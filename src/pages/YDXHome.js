@@ -125,6 +125,7 @@ const YDXHome = (props) => {
           const width = dialog.dialog_duration * unitLength;
           const dialog_start_time = {
             dialog_seq_no: dialog.dialog_sequence_num,
+            // dialog_end_time: dialog.dialog_end_time,
             controlledPosition: { x: x, y: 0 },
             width: width,
           };
@@ -324,6 +325,15 @@ const YDXHome = (props) => {
           currExtendedAC.currentTime = 0;
           setCurrExtendedAC(null);
         }
+        if (currInlineAC !== null) {
+          // to stop playing -> pause and set time to 0
+          currInlineAC.play();
+          currInlineAC.addEventListener('ended', function () {
+            setCurrInlineAC(null); // setting back to null, as it is played completely.
+        });
+          // currInlineAC.currentTime = 0;
+          // setCurrInlineAC(null);
+        }
         clearInterval(timer);
         break;
       case 2: // Paused
@@ -335,8 +345,8 @@ const YDXHome = (props) => {
         if (currInlineAC !== null) {
           // to stop playing -> pause and set time to 0
           currInlineAC.pause();
-          currInlineAC.currentTime = 0;
-          setCurrInlineAC(null);
+          // currInlineAC.currentTime = 0;
+          // setCurrInlineAC(null);
         }
         clearInterval(timer);
         break;
@@ -395,6 +405,20 @@ const YDXHome = (props) => {
     currentEvent.seekTo(progressBarTime);
     const currentTime = currentEvent.getCurrentTime();
     setCurrentTime(currentTime);
+    if (currExtendedAC !== null) {
+      // to stop playing -> pause and set time to 0
+      currExtendedAC.pause();
+      currExtendedAC.currentTime = 0;
+      setCurrExtendedAC(null);
+      currentEvent.playVideo();
+    }
+    if (currInlineAC !== null) {
+      // to stop playing -> pause and set time to 0
+      currInlineAC.pause();
+      currInlineAC.currentTime = 0;
+      setCurrExtendedAC(null);
+      currentEvent.playVideo();
+    }
   };
 
   // toggle Show Edit Component
