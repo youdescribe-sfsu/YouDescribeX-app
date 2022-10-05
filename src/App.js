@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import YDXHome from './pages/YDXHome';
 import PageNotFound from './pages/PageNotFound';
+import UserStudyHome from './pages/UserStudyHome';
 import './assets/css/index.css';
 import { ToastContainer, toast, Zoom } from 'react-toastify'; // for toast messages
 import 'react-toastify/dist/ReactToastify.css';
@@ -12,6 +13,7 @@ const App = () => {
       <Routes>
         <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
         <Route path="/*" element={<PageNotFound />} />
+        <Route path="/userstudy" element={<UserStudyHome/>}/>
       </Routes>
       <ToastContainer
         className="toast-btn"
