@@ -1,0 +1,38 @@
+.home-container {
+    /* height: 100vh; */
+    display: 'flex';
+    align-items: 'center';
+    justify-content: 'center';
+    width: min-content;
+    height: '100vh';
+    margin-top: 50px;
+  }
+
+  .div-below-hr {
+    margin-top: -10px;
+    margin-bottom: 2.2rem;
+  }
+
+  .user-study-text {
+    font-size: large;
+    height: 120%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tutorial-text {
+    font-size: large;
+    height: 120%;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+  }
+
+
+  .text-bars {
+    background-color: white;
+    width: 1050px;
+    height: 40px;
+    overflow-y: scroll;
+}
