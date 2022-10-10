@@ -30,6 +30,11 @@
     margin-left: 20px;
   }
 
+  .app {
+    font-family: sans-serif;
+    text-align: center;
+    font-family: "Montserrat";
+  }
 
   .text-bars {
     background-color: white;

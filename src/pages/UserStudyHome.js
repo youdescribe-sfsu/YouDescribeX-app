@@ -6,6 +6,10 @@ import '../assets/css/userstudyhome.css';
 import Navbar from 'react-bootstrap/Navbar';
 import '../assets/css/editAudioDesc.css';
 import '../assets/css/notes.css';
+import { useElapsedTime } from "use-elapsed-time";
+
+
+// import Timer from '../components/Timer'
 import axios from 'axios';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -19,6 +23,9 @@ const UserStudyHome = (props) => {
   const [videoId, setVideoId] = useState('');
   const [userIdWithAi, setuserIdWithAi] = useState('');
   const [userIdWithoutAi, setuserIdWithoutAi] = useState('');
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const { elapsedTime } = useElapsedTime({ isPlaying });
 
   const fetchParticipantData = () => {
     axios
@@ -36,6 +43,9 @@ const UserStudyHome = (props) => {
 
   useEffect(() => {
     fetchParticipantData();
+    document.addEventListener("keyup", () => {
+      setIsPlaying((prevIsPlaying) => !prevIsPlaying);
+    });
   });
 
   const navigate = useNavigate();
@@ -47,7 +57,28 @@ const UserStudyHome = (props) => {
       <Container>
         <Navbar.Brand href="#home" >
         <h6 className="tutorial-text text-center font-weight-bolder"> Video Description User Study</h6>
+        {/* <div className="app">
+          <h1>use-elapsed-time demo</h1>
+          <p>Press any key to play/pause time</p>
+          <div style={{ fontSize: 56 }}>{elapsedTime.toFixed(2)}</div>
+        </div> */}
+        {/* <Timer/> */}
+        {/* <div>
+          <img 
+          src='../assets/images/pause_white.png'
+          ></img> 
+        </div> */}
+        {/* <img
+          id="btn-timer"
+          src="../assets/images/pause_white.png"
+          style="height: 20px; width: 20px; color: white; margin-right: 10px"
+        />
+        <b
+          ><span style="color: white">Time Elapsed:&nbsp;</span>
+          <span style="color: white" id="txt-timeElaspsed">00:00</span></b
+        > */}
         </Navbar.Brand>
+        
       </Container>
     </Navbar>
       <div className="container home-container">     

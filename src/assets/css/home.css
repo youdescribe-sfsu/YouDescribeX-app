@@ -83,6 +83,13 @@ hr {
   margin-bottom: 1rem;
 }
 
+.app {
+  font-family: sans-serif;
+  text-align: center;
+  color: white;
+  font-family: "Montserrat";
+}
+
 .dialog-timestamps-div {
   float: left;
   /* cursor: ew-resize; */

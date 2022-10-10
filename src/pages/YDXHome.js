@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useElapsedTime } from "use-elapsed-time";
 import { useParams } from 'react-router-dom'; /* to use params on the url */
 import axios from 'axios';
 import YouTube from 'react-youtube';
@@ -9,6 +10,7 @@ import Notes from '../components/NotesComponent';
 import convertSecondsToCardFormat from '../helperFunctions/convertSecondsToCardFormat';
 import InsertPublishComponent from '../components/InsertPublishComponent';
 import Spinner from '../modules/Spinner';
+
 
 const YDXHome = (props) => {
   /* to use params on the url and get userId & youtubeVideoId */
@@ -68,6 +70,9 @@ const YDXHome = (props) => {
   // this hides one edit component when the other is opened
   const [editComponentToggleList, setEditComponentToggleList] = useState([]);
 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const { elapsedTime } = useElapsedTime({ isPlaying });
+
   useEffect(() => {
     setDivWidths({
       divRef1:
@@ -79,6 +84,9 @@ const YDXHome = (props) => {
     setShowSpinner(true);
     // set the toggle list back to empty if we are fetching the data again
     fetchUserVideoData(); // use axios to get audio descriptions for the youtubeVideoId & userId passed to the url Params
+    document.addEventListener("keyup", () => {
+      setIsPlaying((prevIsPlaying) => !prevIsPlaying);
+    });
   }, [
     draggableDivWidth,
     unitLength,
@@ -455,6 +463,12 @@ const YDXHome = (props) => {
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
         {/* Youtube Iframe & Notes Component Container */}
+        <div className="app">
+          <h6>Time elapsed  </h6>
+          {/* <img src='../assets/images/pause_white.png'></img> */}
+          <p>Press any key to play/pause time</p>
+          <div style={{ fontSize: 30 }}>{elapsedTime.toFixed(2)}</div>
+        </div>
         <div className="d-flex justify-content-around">
           <div className="text-white">
             <YouTube
