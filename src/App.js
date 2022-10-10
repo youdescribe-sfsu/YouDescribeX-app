@@ -13,7 +13,7 @@ const App = () => {
       <Routes>
         <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
         <Route path="/*" element={<PageNotFound />} />
-        <Route path="/userstudy" element={<UserStudyHome/>}/>
+        <Route path="/userstudy/:participantId" element={<UserStudyHome/>}/>
       </Routes>
       <ToastContainer
         className="toast-btn"
