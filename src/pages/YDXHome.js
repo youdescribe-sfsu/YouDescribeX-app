@@ -6,6 +6,7 @@ import YouTube from 'react-youtube';
 import Draggable from 'react-draggable';
 import '../assets/css/home.css';
 import AudioClipComponent from '../components/AudioClipComponent';
+import Timer from '../components/Timer';
 import Notes from '../components/NotesComponent';
 import convertSecondsToCardFormat from '../helperFunctions/convertSecondsToCardFormat';
 import InsertPublishComponent from '../components/InsertPublishComponent';
@@ -462,13 +463,14 @@ const YDXHome = (props) => {
       {/* Spinner div - displayed based on showSpinner */}
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
+        <Timer/>
         {/* Youtube Iframe & Notes Component Container */}
-        <div className="app">
+        {/* <div className="app">
           <h6>Time elapsed  </h6>
-          {/* <img src='../assets/images/pause_white.png'></img> */}
+          <img src='../assets/images/pause_white.png'></img>
           <p>Press any key to play/pause time</p>
           <div style={{ fontSize: 30 }}>{elapsedTime.toFixed(2)}</div>
-        </div>
+        </div> */}
         <div className="d-flex justify-content-around">
           <div className="text-white">
             <YouTube

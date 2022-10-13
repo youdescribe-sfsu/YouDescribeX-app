@@ -7,6 +7,7 @@ import './assets/css/index.css';
 import { ToastContainer, toast, Zoom } from 'react-toastify'; // for toast messages
 import 'react-toastify/dist/ReactToastify.css';
 
+
 const App = () => {
   return (
     <BrowserRouter>

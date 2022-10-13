@@ -4,16 +4,14 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import '../assets/css/userstudyhome.css';
 import Navbar from 'react-bootstrap/Navbar';
-import '../assets/css/editAudioDesc.css';
-import '../assets/css/notes.css';
+// import '../assets/css/editAudioDesc.css';
+// import '../assets/css/notes.css';
 import { useElapsedTime } from "use-elapsed-time";
 
 
 // import Timer from '../components/Timer'
 import axios from 'axios';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-
-
 
 const UserStudyHome = (props) => {
 
@@ -54,7 +52,7 @@ const UserStudyHome = (props) => {
     
     <React.Fragment>
       <Navbar bg="dark" variant="dark" className='m-auto justify-content-center'>
-      <Container>
+      {/* <Container> */}
         <Navbar.Brand href="#home" >
         <h6 className="tutorial-text text-center font-weight-bolder"> Video Description User Study</h6>
         {/* <div className="app">
@@ -79,7 +77,7 @@ const UserStudyHome = (props) => {
         > */}
         </Navbar.Brand>
         
-      </Container>
+      {/* </Container> */}
     </Navbar>
       <div className="container home-container">     
         <div className=" text-white" >
@@ -101,16 +99,16 @@ const UserStudyHome = (props) => {
             <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoId}/${userIdWithoutAi}`}>Video 1 : Without AI support</Link></h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder">User Survey for Video 1</h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_aVIpOXQobXyUmxw?participantID=${participantId}`}>User Survey for Video 1</a></h6>
           </div>
         </div>
         <hr />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoId}/${userIdWithAi}`}>Video 2 : With AI support</Link></h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoId}/${userIdWithAi}`} >Video 2 : With AI support</Link></h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder">User Survey for Video 2</h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_0TGdUeUJ06X0xhA?participantID=${participantId}`}>User Survey for Video 2</a></h6>
           </div>
         </div>
         <hr />

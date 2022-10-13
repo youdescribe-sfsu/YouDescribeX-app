@@ -8,37 +8,47 @@
     margin-top: 50px;
   }
 
-  .div-below-hr {
-    margin-top: -10px;
-    margin-bottom: 2.2rem;
-  }
+.div-below-hr {
+  margin-top: -10px;
+  margin-bottom: 2.2rem;
+}
 
-  .user-study-text {
-    font-size: large;
-    height: 120%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+.user-study-text {
+  font-size: large;
+  height: 120%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .tutorial-text {
-    font-size: large;
-    height: 120%;
-    display: flex;
-    align-items: center;
-    justify-content: left;
-    margin-left: 20px;
-  }
+.tutorial-text {
+  font-size: large;
+  height: 120%;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  margin-left: 20px;
+}
 
-  .app {
-    font-family: sans-serif;
-    text-align: center;
-    font-family: "Montserrat";
-  }
+.app {
+  font-family: sans-serif;
+  text-align: center;
+  font-family: "Montserrat";
+}
 
-  .text-bars {
-    background-color: white;
-    width: 1050px;
-    height: 40px;
-    overflow-y: scroll;
+.text-bars {
+  background-color: white;
+  width: 1050px;
+  height: 40px;
+  overflow-y: scroll;
+}
+
+a {
+  color: black;
+  text-decoration: none;
+  
+}
+
+a:hover { 
+  background-color: lightgray;
 }
