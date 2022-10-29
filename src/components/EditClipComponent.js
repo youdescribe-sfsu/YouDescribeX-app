@@ -643,6 +643,7 @@ const EditClipComponent = (props) => {
                   <button
                     type="button"
                     className="btn rounded btn-sm text-white primary-btn-color disabled-btn"
+                    disabled
                   >
                     Replace
                   </button>

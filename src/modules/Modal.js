@@ -23,7 +23,7 @@ const Modal = (props) => {
           <div className="modal-footer d-flex justify-content-evenly align-items-center">
             <button
               type="button"
-              className="btn primary-btn-color text-center text-white w-25"
+              className="btn primary-btn-color text-center m-1 text-white w-25"
               data-bs-dismiss="modal"
               onClick={(e) => {
                 modalTask(e);
