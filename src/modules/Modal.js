@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Modal = (props) => {
   const modalId = props.id;
   const modalTitle = props.title;
@@ -22,20 +20,20 @@ const Modal = (props) => {
           {/* <!-- Modal body --> */}
           <div className="modal-body text-center">{modalText}</div>
           {/* <!-- Modal footer --> */}
-          <div className="modal-footer d-flex justify-content-center align-items-center">
+          <div className="modal-footer d-flex justify-content-evenly align-items-center">
             <button
               type="button"
-              className="btn primary-btn-color text-center m-1 text-white"
+              className="btn primary-btn-color text-center text-white w-25"
               data-bs-dismiss="modal"
               onClick={(e) => {
                 modalTask(e);
               }}
             >
-              Yes
+              YES
             </button>
             <button
               type="button"
-              className="btn primary-btn-color text-white"
+              className="btn bg-secondary text-white"
               data-bs-dismiss="modal"
             >
               Close

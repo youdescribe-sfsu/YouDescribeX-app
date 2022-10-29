@@ -37,6 +37,8 @@ const EditClipComponent = (props) => {
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0);
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0);
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0);
+  // const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] =
+  //   useState(0.0);
 
   // variable and function declaration of the react-media-recorder package
   const { status, startRecording, stopRecording, mediaBlobUrl } =
@@ -70,8 +72,8 @@ const EditClipComponent = (props) => {
     );
     // scrolls to the latest clip when a new clip is added
     var date = new Date();
-    var ONE_MIN = 1 * 60 * 1000;
-    if (date - new Date(clip_created_at) <= ONE_MIN) {
+    var TEN_SEC = 10 * 1000;
+    if (date - new Date(clip_created_at) <= TEN_SEC) {
       ref.current.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
@@ -123,6 +125,11 @@ const EditClipComponent = (props) => {
     setClipStartTimeSeconds(
       convertSecondsToCardFormat(props_clip_start_time).split(':')[2]
     );
+    // setClipStartTimeMilliSeconds(
+    //   Math.floor(
+    //     (props_clip_start_time - Math.floor(props_clip_start_time)) * 100
+    //   )
+    // );
   };
 
   // calculate the Start Time in seconds from the Hours, Minutes & Seconds passed from handleBlur functions
@@ -495,7 +502,9 @@ const EditClipComponent = (props) => {
             </div>
             {/* Start Time div */}
             <div className="mx-2 d-flex justify-content-between align-items-center flex-column">
-              <h6 className="text-white">Start Time</h6>
+              <h6 className="text-white">
+                Start Time: {props_clip_start_time}
+              </h6>
               <div className="edit-time-div">
                 <div className="text-dark text-center d-flex justify-content-evenly">
                   <input
@@ -537,6 +546,18 @@ const EditClipComponent = (props) => {
                       evt.preventDefault()
                     }
                   />
+                  {/* <div className="mx-1">.</div>
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark"
+                    value={
+                      clipStartTimeMilliSeconds < 10
+                        ? `0` + clipStartTimeMilliSeconds
+                        : clipStartTimeMilliSeconds
+                    }
+                    readOnly
+                  /> */}
                 </div>
               </div>
               {/* Clip Duration div */}
@@ -570,7 +591,7 @@ const EditClipComponent = (props) => {
                   className="btn rounded btn-sm mx-auto border border-warning bg-light"
                   onClick={stopRecording} // default functions given by the react-media-recorder package
                 >
-                  <i className="fa fa-stop text-danger" />
+                  <i className="fa fa-stop text-danger  fs-5 mt-1" />
                 </button>
               ) : (readySetGo === '' && status !== 'recording') ||
                 (readySetGo === 'start' && status === 'stopped') ? (
@@ -582,7 +603,7 @@ const EditClipComponent = (props) => {
                   className="btn rounded btn-sm mx-auto border border-warning bg-light"
                   onClick={handleReadySetGo} // default functions given by the react-media-recorder package
                 >
-                  <i className="fa fa-microphone text-danger" />
+                  <i className="fa fa-microphone text-danger fs-5 mt-1" />
                 </button>
               ) : readySetGo !== 'start' ? (
                 <button
@@ -592,7 +613,7 @@ const EditClipComponent = (props) => {
                   type="button"
                   className="btn rounded btn-sm mx-auto border border-warning bg-light"
                 >
-                  <b className="fs-6">{readySetGo}</b>
+                  <b className="fs-5 mt-1">{readySetGo}</b>
                 </button>
               ) : (
                 <></>
@@ -601,6 +622,7 @@ const EditClipComponent = (props) => {
             {/* No recording to Play */}
             {mediaBlobUrl === null ? (
               <>
+                {/* Disabled buttons */}
                 <div
                   data-bs-toggle="tooltip"
                   data-bs-placement="bottom"
@@ -608,8 +630,7 @@ const EditClipComponent = (props) => {
                 >
                   <button
                     type="button"
-                    className="btn rounded btn-sm text-white primary-btn-color mx-3"
-                    disabled
+                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn mx-3"
                   >
                     Listen
                   </button>
@@ -617,12 +638,11 @@ const EditClipComponent = (props) => {
                 <div
                   data-bs-toggle="toggle"
                   data-bs-placement="bottom"
-                  title="Replace the AI's Voice with your Voice"
+                  title="No recording to Replace"
                 >
                   <button
                     type="button"
-                    className="btn rounded btn-sm text-white primary-btn-color"
-                    disabled
+                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn"
                   >
                     Replace
                   </button>
@@ -711,7 +731,7 @@ const EditClipComponent = (props) => {
                 onClick={handlePlayPauseYouTubeVideo}
               >
                 <i className="fa fa-play play-pause-icons" />
-                {'  '} Play Video with AD
+                {'  '} Play Video with Description
               </button>
             )}
           </div>

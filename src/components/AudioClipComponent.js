@@ -109,14 +109,14 @@ const AudioClipComponent = (props) => {
 
   // Handle Nudge icons -> add/remove 1 second to start_time
   const handleLeftNudgeClick = (e) => {
-    let newClipStartTime = (parseFloat(clipStartTime) - 1).toFixed(2);
+    let newClipStartTime = (parseFloat(clipStartTime) - 0.25).toFixed(2);
     // so that the audio block isn't out of the timeline
     if (newClipStartTime >= 1) {
       updateStartTimeNDraggablePosition(newClipStartTime);
     }
   };
   const handleRightNudgeClick = (e) => {
-    let newClipStartTime = (parseFloat(clipStartTime) + 1).toFixed(2);
+    let newClipStartTime = (parseFloat(clipStartTime) + 0.25).toFixed(2);
     // so that the audio block isn't out of the timeline
     if (clipPlaybackType === 'inline') {
       if (
@@ -247,7 +247,7 @@ const AudioClipComponent = (props) => {
               className="nudge-btns-div d-flex justify-content-around align-items-center"
               data-bs-toggle="tooltip"
               data-bs-placement="bottom"
-              title="Nudge the audio block (1s)"
+              title="Nudge the audio block (0.25s)"
             >
               <i
                 className="fa fa-chevron-left p-2 nudge-icons"

@@ -254,6 +254,7 @@ const YDXHome = (props) => {
     playedClipPath
   ) => {
     if (currentState === 1) {
+      //playing
       const filteredClip = audioClips.filter(
         (clip) =>
           parseFloat(updatedCurrentTime) >=
@@ -461,7 +462,7 @@ const YDXHome = (props) => {
         {/* Dialog Timeline */}
         <div className="row div-below-hr">
           <div className="col-3 text-white" ref={divRef1}>
-            <h6 className="dialog-timeline-text text-center font-weight-bolder">
+            <h6 className="dialog-timeline-text text-center fw-bolder">
               Dialog Timeline ({convertSecondsToCardFormat(videoLength)}):
             </h6>
           </div>

@@ -48,6 +48,11 @@
     height: 95px;
 }
 
+.disabled-btn {
+    opacity: 0.45;
+    cursor: not-allowed !important;
+}
+
  /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
