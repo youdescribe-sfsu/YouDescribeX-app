@@ -99,7 +99,10 @@ const UserStudyHome = (props) => {
             <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoId}/${userIdWithoutAi}`}>Video 1 : Without AI support</Link></h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_aVIpOXQobXyUmxw?participantID=${participantId}`}>User Survey for Video 1</a></h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>User Survey for Video 1</a></h6>
+          </div>
+          <div className="mx-auto my-auto text-bars align-items-center border rounded">
+            <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}>NASA TLX Survey for Video 1</a></h6>
           </div>
         </div>
         <hr />
@@ -108,13 +111,16 @@ const UserStudyHome = (props) => {
             <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoId}/${userIdWithAi}`} >Video 2 : With AI support</Link></h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_0TGdUeUJ06X0xhA?participantID=${participantId}`}>User Survey for Video 2</a></h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>User Survey for Video 2</a></h6>
+          </div>
+          <div className="mx-auto my-auto text-bars align-items-center border rounded">
+            <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}>NASA TLX Survey for Video 2</a></h6>
           </div>
         </div>
         <hr />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"> General Survey</h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://docs.google.com/forms/d/e/1FAIpQLSfoIOrNWzZXK4tJ4QDIFLrM7-mSFhGtyW6opra67smrz2nbqw/viewform?usp=pp_url&entry.186159302=${participantId}`}> General Survey</a></h6>
          </div>
         </div>
         <hr />

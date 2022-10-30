@@ -40,7 +40,7 @@ const YDXHome = (props) => {
   const [divWidths, setDivWidths] = useState({});
 
   // State Variables
-  const [videoId, setVideoId] = useState(''); // retrieved from db, stored to fetch audio_descriptions
+   const [videoId, setVideoId] = useState(''); // retrieved from db, stored to fetch audio_descriptions
   const [audioDescriptionId, setAudioDescriptionId] = useState(''); // retrieved from db, stored to fetch Notes & Audio Clips
   const [notesData, setNotesData] = useState(''); // retrieved from db, stored to pass on to Notes Component
   const [videoLength, setVideoLength] = useState(0); // retrieved from db, stored to display as a label for the dialog timeline
