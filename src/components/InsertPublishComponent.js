@@ -6,6 +6,10 @@ import Modal from '../modules/Modal';
 
 const InsertPublishComponent = (props) => {
   // destructuring props
+  // props which handles clicks of New Inline and New Extended buttons from Button Component
+  const handleClicksFromParent = props.handleClicksFromParent;
+  const setHandleClicksFromParent = props.setHandleClicksFromParent;
+
   const setShowSpinner = props.setShowSpinner;
   const userId = props.userId;
   const youtubeVideoId = props.youtubeVideoId;
@@ -25,6 +29,18 @@ const InsertPublishComponent = (props) => {
     setShowNewACComponent(true);
     setShowInlineACComponent(false);
   };
+
+  useEffect(() => {
+    if (handleClicksFromParent === 'inline') {
+      setShowNewACComponent(true);
+      setShowInlineACComponent(true);
+      setHandleClicksFromParent(''); // reset it back to empty
+    } else if (handleClicksFromParent === 'extended') {
+      setShowNewACComponent(true);
+      setShowInlineACComponent(false);
+      setHandleClicksFromParent(''); // reset it back to empty
+    }
+  }, [props]);
 
   return (
     <React.Fragment>

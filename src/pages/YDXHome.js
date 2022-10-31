@@ -8,6 +8,7 @@ import AudioClipComponent from '../components/AudioClipComponent';
 import Notes from '../components/NotesComponent';
 import convertSecondsToCardFormat from '../helperFunctions/convertSecondsToCardFormat';
 import InsertPublishComponent from '../components/InsertPublishComponent';
+import ButtonsComponent from '../components/ButtonsComponent';
 import Spinner from '../modules/Spinner';
 
 const YDXHome = (props) => {
@@ -15,8 +16,8 @@ const YDXHome = (props) => {
   const { userId, youtubeVideoId } = useParams();
   /* Options for YouTube video API */
   const opts = {
-    height: '290',
-    width: '520',
+    height: '265',
+    width: '500',
     playerVars: {
       autoplay: 0,
       enablejsapi: 1,
@@ -67,6 +68,10 @@ const YDXHome = (props) => {
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
   const [editComponentToggleList, setEditComponentToggleList] = useState([]);
+
+  // handle clicks of new Inline & New Extended buttons placed beside Notes
+  // pass as props to ButtonsComponent & InsertPublishComponent'
+  const [handleClicksFromParent, setHandleClicksFromParent] = useState('');
 
   useEffect(() => {
     setDivWidths({
@@ -456,9 +461,10 @@ const YDXHome = (props) => {
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
         {/* Youtube Iframe & Notes Component Container */}
-        <div className="d-flex justify-content-around">
+        <div className="d-flex justify-content-around mt-1">
           <div className="text-white">
             <YouTube
+              className="rounded"
               videoId={youtubeVideoId}
               opts={opts}
               onStateChange={onStateChange}
@@ -472,8 +478,11 @@ const YDXHome = (props) => {
             audioDescriptionId={audioDescriptionId}
             notesData={notesData}
           />
+          <ButtonsComponent
+            setHandleClicksFromParent={setHandleClicksFromParent}
+          />
         </div>
-        <hr />
+        <hr className="m-2" />
         {/* Dialog Timeline */}
         <div className="row div-below-hr">
           <div className="col-3 text-white" ref={divRef1}>
@@ -546,6 +555,8 @@ const YDXHome = (props) => {
           ))}
         </div>
         <InsertPublishComponent
+          handleClicksFromParent={handleClicksFromParent}
+          setHandleClicksFromParent={setHandleClicksFromParent}
           userId={userId}
           setShowSpinner={setShowSpinner}
           youtubeVideoId={youtubeVideoId}

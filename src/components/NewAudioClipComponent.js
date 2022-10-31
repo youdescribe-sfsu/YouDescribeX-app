@@ -72,7 +72,7 @@ const NewAudioClipComponent = (props) => {
       );
     }
     handleClipStartTimeInputsRender();
-  }, [mediaBlobUrl]);
+  }, [mediaBlobUrl, props.showInlineACComponent]);
 
   // render the values in the input[type='number'] fields of the start time - renders everytime the props_clip_start_time value changes
   const handleClipStartTimeInputsRender = () => {

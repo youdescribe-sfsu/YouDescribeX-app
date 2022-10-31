@@ -3,16 +3,17 @@
 /* Notes section */
 .notes-bg {
     background-color: rgb(80, 80, 80);
-    width: 450px;
-    height: 291px
+    border: rgb(122, 121, 121) 1px solid;
+    width: 420px;
+    height: 265px
 }
 .notes-label {
     margin-bottom: -5px;
 }
 .notes-textarea-div {
     background-color: white;
-    width: 430px;
-    height: 256px;
+    width: 400px;
+    height: 232px;
     overflow-y: scroll;
 }
 .notes-textarea {

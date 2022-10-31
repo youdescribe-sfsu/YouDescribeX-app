@@ -591,7 +591,7 @@ const EditClipComponent = (props) => {
                   className="btn rounded btn-sm mx-auto border border-warning bg-light"
                   onClick={stopRecording} // default functions given by the react-media-recorder package
                 >
-                  <i className="fa fa-stop text-danger fs-5 mt-1" />
+                  <i className="fa fa-stop text-danger  fs-5 mt-1" />
                 </button>
               ) : (readySetGo === '' && status !== 'recording') ||
                 (readySetGo === 'start' && status === 'stopped') ? (

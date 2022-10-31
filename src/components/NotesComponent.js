@@ -97,14 +97,14 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }) => {
   }, [notesData]);
 
   return (
-    <div className="notes-bg">
+    <div className="notes-bg rounded">
       <div className="d-flex justify-content-between align-items-center pt-1 px-3 notes-label">
         <h6 className="text-white">Notes:</h6>
       </div>
       <div className="mx-auto my-auto notes-textarea-div align-items-center border rounded">
         <textarea
           className="form-control border rounded notes-textarea"
-          rows="10"
+          rows="9"
           id="notes"
           name="notes"
           placeholder="Start taking your Notes.."
