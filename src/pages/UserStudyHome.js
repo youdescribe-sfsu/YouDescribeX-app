@@ -18,7 +18,8 @@ const UserStudyHome = (props) => {
   const { participantId} = useParams();
   console.log(participantId)
 
-  const [videoId, setVideoId] = useState('');
+  const [videoIdWithAi, setVideoIdWithAi] = useState('');
+  const [videoIdWithoutAi, setVideoIdWithoutAi] = useState('');
   const [userIdWithAi, setuserIdWithAi] = useState('');
   const [userIdWithoutAi, setuserIdWithoutAi] = useState('');
 
@@ -29,7 +30,8 @@ const UserStudyHome = (props) => {
     axios
       .get(`/api/create-participant-links/get-participant/${participantId}`)
       .then((res) => {
-        setVideoId(res.data.youtube_video_id);
+        setVideoIdWithAi(res.data.youtube_video_id_with_AI);
+        setVideoIdWithoutAi(res.data.youtube_video_id_without_AI);
         setuserIdWithAi(res.data.user_id_with_AI);
         setuserIdWithoutAi(res.data.user_id_without_AI);
       })
@@ -96,7 +98,7 @@ const UserStudyHome = (props) => {
         <hr />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoId}/${userIdWithoutAi}`}>Video 1 : Without AI support</Link></h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>Video 1 : Without AI support</Link></h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>User Survey for Video 1</a></h6>
@@ -108,7 +110,7 @@ const UserStudyHome = (props) => {
         <hr />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoId}/${userIdWithAi}`} >Video 2 : With AI support</Link></h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoIdWithAi}/${userIdWithAi}`} >Video 2 : With AI support</Link></h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>User Survey for Video 2</a></h6>

@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef , TextareaHTMLAttributes,} from 'react';
 import { useReactMediaRecorder } from 'react-media-recorder';
 import convertSecondsToCardFormat from '../helperFunctions/convertSecondsToCardFormat';
 import '../assets/css/editAudioDesc.css';
 import axios from 'axios';
 import { toast } from 'react-toastify'; // for toast messages
 import Modal from '../modules/Modal';
+import TextareaAutosize from 'react-textarea-autosize';
 
 const EditClipComponent = (props) => {
   const ref = useRef();
@@ -448,16 +449,13 @@ const EditClipComponent = (props) => {
               <h6 className="text-white">
                 Clip Description: {is_recorded ? '(Recorded)' : ''}
               </h6>
-              <textarea
+              <TextareaAutosize
                 className="form-control form-control-sm border rounded text-center description-textarea"
-                rows="3"
                 id="description"
                 name="description"
-                // defaultValue={clip_description_text}
-                // placeholder={is_recorded ? 'This is a Recorded Audio Clip' : ''}
                 value={clipDescriptionText}
                 onChange={(e) => setClipDescriptionText(e.target.value)}
-              ></textarea>
+              ></TextareaAutosize>
               {/* play, save & Delete buttons */}
               <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
                 <button
@@ -571,12 +569,14 @@ const EditClipComponent = (props) => {
           </div>
         </div>
         {/* vertical divider line */}
-        <div className="d-flex flex-column align-items-center">
-          <h6>Or</h6>
-          <div className="vertical-divider-div"></div>
+        <div className="d-flex justify-content-between align-items-start">
+          <div className="d-flex flex-column align-items-center">
+            <h6>Or</h6>
+            <div className="vertical-divider-div"></div>
+          </div>
         </div>
         {/* Record & Replace Section */}
-        <div>
+        <div >
           <h6 className="text-white text-center">
             Record & Replace AI's voice
           </h6>
