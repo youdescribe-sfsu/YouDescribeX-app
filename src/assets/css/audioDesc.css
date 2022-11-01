@@ -58,6 +58,9 @@
 .extended-bg {
   background-color: var(--extended-color);
 }
+.play-pause-bg {
+  background-color: var(--success-color);
+}
 
 .inline-extended-radio {
   font-weight: 500;
