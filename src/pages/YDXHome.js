@@ -73,6 +73,9 @@ const YDXHome = (props) => {
   // pass as props to ButtonsComponent & InsertPublishComponent'
   const [handleClicksFromParent, setHandleClicksFromParent] = useState('');
 
+  const [isCurrentExtACPaused, setCurrentExtACPaused] = useState(false); // Manages the play/pause state of an extended audio clip
+  const [isGloballyPaused, setGloballyPaused] = useState(true); // Manages the global play/pause state
+
   useEffect(() => {
     setDivWidths({
       divRef1:
@@ -300,6 +303,7 @@ const YDXHome = (props) => {
               currentAudio.addEventListener('ended', function () {
                 setCurrExtendedAC(null); // setting back to null, as it is played completely.
                 currentEvent.playVideo();
+                setCurrentExtACPaused(false); // reset the play/pause state
               });
             }
           }
@@ -340,6 +344,7 @@ const YDXHome = (props) => {
           // currInlineAC.currentTime = 0;
           // setCurrInlineAC(null);
         }
+        setGloballyPaused(false); // reset the play/pause state
         clearInterval(timer);
         break;
       case 2: // Paused
@@ -455,6 +460,26 @@ const YDXHome = (props) => {
     currentEvent.playVideo(); // if paused, video is played from that audio clip.
   };
 
+  const handlePlayPause = () => {
+    if (currExtendedAC) { // If an extended clip exists, make it play/pause
+      if (isCurrentExtACPaused) {
+        currExtendedAC.play();
+        setCurrentExtACPaused(false);
+        setGloballyPaused(false);
+      } else {
+        currExtendedAC.pause();
+        setCurrentExtACPaused(true);
+        setGloballyPaused(true);
+      }
+    } else if (currentState === 1) { // If an extended clip does not exist make the YouTube video play/pause
+      currentEvent.pauseVideo();
+      setGloballyPaused(true);
+    } else {
+      currentEvent.playVideo();
+      setGloballyPaused(false);
+    }
+  };
+
   return (
     <React.Fragment>
       {/* Spinner div - displayed based on showSpinner */}
@@ -473,13 +498,15 @@ const YDXHome = (props) => {
               onReady={onReady}
             />
           </div>
+          <ButtonsComponent
+            setHandleClicksFromParent={setHandleClicksFromParent}
+            handlePlayPause={handlePlayPause}
+            isGloballyPaused={isGloballyPaused}
+          />
           <Notes
             currentTime={convertSecondsToCardFormat(currentTime)}
             audioDescriptionId={audioDescriptionId}
             notesData={notesData}
-          />
-          <ButtonsComponent
-            setHandleClicksFromParent={setHandleClicksFromParent}
           />
         </div>
         <hr className="m-2" />
