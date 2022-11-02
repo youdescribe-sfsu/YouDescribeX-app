@@ -320,7 +320,7 @@ const YDXHome = (props) => {
     switch (event.data) {
       case 0: // end of the video
         clearInterval(timer);
-        event.target.seekTo(0);
+        // event.target.seekTo(0);
         break;
       case 1: // Playing
         // Case for Extended Audio Clips:
