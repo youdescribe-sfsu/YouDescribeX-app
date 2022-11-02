@@ -299,6 +299,7 @@ const AudioClipComponent = (props) => {
                     ></div>
                   )}
                 </Draggable>
+                
               </div>
             </div>
             <div className="mx-5 mt-2">

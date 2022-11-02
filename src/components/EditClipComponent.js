@@ -38,8 +38,7 @@ const EditClipComponent = (props) => {
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0);
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0);
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0);
-  // const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] =
-  //   useState(0.0);
+  const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] = useState(0.0);
 
   // variable and function declaration of the react-media-recorder package
   const { status, startRecording, stopRecording, mediaBlobUrl } =
@@ -117,25 +116,24 @@ const EditClipComponent = (props) => {
 
   // render the values in the input[type='number'] fields of the start time - renders everytime the props_clip_start_time value changes
   const handleClipStartTimeInputsRender = () => {
+    let cardFormat = convertSecondsToCardFormat(props_clip_start_time).split(':');
     setClipStartTimeHours(
-      convertSecondsToCardFormat(props_clip_start_time).split(':')[0]
+      cardFormat[0]
     );
     setClipStartTimeMinutes(
-      convertSecondsToCardFormat(props_clip_start_time).split(':')[1]
+      cardFormat[1]
     );
     setClipStartTimeSeconds(
-      convertSecondsToCardFormat(props_clip_start_time).split(':')[2]
+      cardFormat[2]
     );
-    // setClipStartTimeMilliSeconds(
-    //   Math.floor(
-    //     (props_clip_start_time - Math.floor(props_clip_start_time)) * 100
-    //   )
-    // );
+    setClipStartTimeMilliSeconds(
+      cardFormat[3]
+    );
   };
 
   // calculate the Start Time in seconds from the Hours, Minutes & Seconds passed from handleBlur functions
-  const calculateClipStartTimeinSeconds = (hours, minutes, seconds) => {
-    let calculatedSeconds = +hours * 60 * 60 + +minutes * 60 + +seconds;
+  const calculateClipStartTimeinSeconds = (milliseconds, minutes, seconds) => {
+    let calculatedSeconds = +milliseconds / 1000 + +minutes * 60 + +seconds;
     // restrict the audio block to the timeline
     if (clip_playback_type === 'inline') {
       if (
@@ -230,13 +228,13 @@ const EditClipComponent = (props) => {
   };
   const handleOnChangeClipStartTimeMinutes = (e) => {
     setClipStartTimeMinutes(e.target.value);
-    if (e.target.value.length > 2) {
-      setClipStartTimeMinutes(e.target.value.substring(0, 2));
-    } else if (e.target.value.length === 2) {
-      if (parseInt(e.target.value) >= 60) {
-        setClipStartTimeMinutes('59');
-      }
-    }
+    // if (e.target.value.length > 2) {
+    //   setClipStartTimeMinutes(e.target.value.substring(0, 2));
+    // } else if (e.target.value.length === 2) {
+    //   if (parseInt(e.target.value) >= 60) {
+    //     setClipStartTimeMinutes('59');
+    //   }
+    // }
   };
   const handleOnChangeClipStartTimeSeconds = (e) => {
     setClipStartTimeSeconds(e.target.value);
@@ -248,25 +246,36 @@ const EditClipComponent = (props) => {
       }
     }
   };
-  const handleBlurClipStartTimeHours = (e) => {
+
+  const handleOnChangeClipStartTimeMilliSeconds = (e) => {
+    setClipStartTimeMilliSeconds(e.target.value);
+    if (e.target.value.length > 2) {
+      setClipStartTimeMilliSeconds(e.target.value.substring(0, 2));
+    } else if (e.target.value.length === 2) {
+      if (parseInt(e.target.value) >= 60) {
+        setClipStartTimeMilliSeconds('59');
+      }
+    }
+  };
+  const handleBlurClipStartTimeMilliSeconds = (e) => {
     // store the current clipStartTimeHours in a temp variable,
     // so that when calculateClipStartTimeinSeconds without going into the loops,
     // it has the previous value in it
-    let tempStartTimeHours = clipStartTimeHours;
+    let  tempStartTimeMilliSeconds= clipStartTimeMilliSeconds;
     if (e.target.value.length === 1) {
-      setClipStartTimeHours(e.target.value + '0');
-      tempStartTimeHours = e.target.value + '0';
+      setClipStartTimeMilliSeconds(e.target.value + '0');
+      tempStartTimeMilliSeconds = e.target.value + '0';
       if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeHours('59');
-        tempStartTimeHours = '59';
+        setClipStartTimeMilliSeconds('59');
+        tempStartTimeMilliSeconds = '59';
       }
     } else if (e.target.value.length === 0) {
-      setClipStartTimeHours('00');
-      tempStartTimeHours = '00';
+      setClipStartTimeMilliSeconds('00');
+      tempStartTimeMilliSeconds = '00';
     }
     // call the function which will update the clipStartTime in the parent component and the db is updated too.
     calculateClipStartTimeinSeconds(
-      tempStartTimeHours,
+      tempStartTimeMilliSeconds,
       clipStartTimeMinutes,
       clipStartTimeSeconds
     );
@@ -289,7 +298,7 @@ const EditClipComponent = (props) => {
     }
     // call the function which will update the clipStartTime in the parent component and the db is updated too.
     calculateClipStartTimeinSeconds(
-      clipStartTimeHours,
+      clipStartTimeMilliSeconds,
       tempStartTimeMinutes,
       clipStartTimeSeconds
     );
@@ -312,7 +321,7 @@ const EditClipComponent = (props) => {
     }
     // call the function which will update the clipStartTime in the parent component and the db is updated too.
     calculateClipStartTimeinSeconds(
-      clipStartTimeHours,
+      clipStartTimeMilliSeconds,
       clipStartTimeMinutes,
       tempStartTimeSeconds
     );
@@ -501,7 +510,8 @@ const EditClipComponent = (props) => {
             {/* Start Time div */}
             <div className="mx-2 d-flex justify-content-between align-items-center flex-column">
               <h6 className="text-white">
-                Start Time: {props_clip_start_time}
+                Start Time  
+                {/* TODO: We will need to handle three digit long minutes or videos longer than hour */}
               </h6>
               <div className="edit-time-div">
                 <div className="text-dark text-center d-flex justify-content-evenly">
@@ -510,19 +520,6 @@ const EditClipComponent = (props) => {
                     style={{ width: '25px' }}
                     className="text-white bg-dark"
                     min="0"
-                    value={clipStartTimeHours}
-                    onChange={handleOnChangeClipStartTimeHours}
-                    onBlur={handleBlurClipStartTimeHours}
-                    onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
-                      evt.preventDefault()
-                    }
-                  />
-                  <div className="mx-1">:</div>
-                  <input
-                    type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark"
                     value={clipStartTimeMinutes}
                     onChange={handleOnChangeClipStartTimeMinutes}
                     onBlur={handleBlurClipStartTimeMinutes}
@@ -539,6 +536,19 @@ const EditClipComponent = (props) => {
                     value={clipStartTimeSeconds}
                     onChange={handleOnChangeClipStartTimeSeconds}
                     onBlur={handleBlurClipStartTimeSeconds}
+                    onKeyDown={(evt) =>
+                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      evt.preventDefault()
+                    }
+                  />
+                  <div className="mx-1">:</div>
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark"
+                    value={clipStartTimeMilliSeconds}
+                    onChange={handleOnChangeClipStartTimeMilliSeconds}
+                    onBlur={handleBlurClipStartTimeMilliSeconds}
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()
