@@ -591,7 +591,7 @@ const EditClipComponent = (props) => {
                   className="btn rounded btn-sm mx-auto border border-warning bg-light"
                   onClick={stopRecording} // default functions given by the react-media-recorder package
                 >
-                  <i className="fa fa-stop text-danger" />
+                  <i className="fa fa-stop text-danger  fs-5 mt-1" />
                 </button>
               ) : (readySetGo === '' && status !== 'recording') ||
                 (readySetGo === 'start' && status === 'stopped') ? (
@@ -603,7 +603,7 @@ const EditClipComponent = (props) => {
                   className="btn rounded btn-sm mx-auto border border-warning bg-light"
                   onClick={handleReadySetGo} // default functions given by the react-media-recorder package
                 >
-                  <i className="fa fa-microphone text-danger" />
+                  <i className="fa fa-microphone text-danger fs-5 mt-1" />
                 </button>
               ) : readySetGo !== 'start' ? (
                 <button
@@ -613,7 +613,7 @@ const EditClipComponent = (props) => {
                   type="button"
                   className="btn rounded btn-sm mx-auto border border-warning bg-light"
                 >
-                  <b className="fs-6">{readySetGo}</b>
+                  <b className="fs-5 mt-1">{readySetGo}</b>
                 </button>
               ) : (
                 <></>
@@ -622,6 +622,7 @@ const EditClipComponent = (props) => {
             {/* No recording to Play */}
             {mediaBlobUrl === null ? (
               <>
+                {/* Disabled buttons */}
                 <div
                   data-bs-toggle="tooltip"
                   data-bs-placement="bottom"
@@ -629,8 +630,7 @@ const EditClipComponent = (props) => {
                 >
                   <button
                     type="button"
-                    className="btn rounded btn-sm text-white primary-btn-color mx-3"
-                    disabled
+                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn mx-3"
                   >
                     Listen
                   </button>
@@ -638,11 +638,11 @@ const EditClipComponent = (props) => {
                 <div
                   data-bs-toggle="toggle"
                   data-bs-placement="bottom"
-                  title="Replace the AI's Voice with your Voice"
+                  title="No recording to Replace"
                 >
                   <button
                     type="button"
-                    className="btn rounded btn-sm text-white primary-btn-color"
+                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn"
                     disabled
                   >
                     Replace
@@ -732,7 +732,7 @@ const EditClipComponent = (props) => {
                 onClick={handlePlayPauseYouTubeVideo}
               >
                 <i className="fa fa-play play-pause-icons" />
-                {'  '} Play Video with AD
+                {'  '} Play Video with Description
               </button>
             )}
           </div>

@@ -10,6 +10,7 @@ import Timer from '../components/Timer';
 import Notes from '../components/NotesComponent';
 import convertSecondsToCardFormat from '../helperFunctions/convertSecondsToCardFormat';
 import InsertPublishComponent from '../components/InsertPublishComponent';
+import ButtonsComponent from '../components/ButtonsComponent';
 import Spinner from '../modules/Spinner';
 
 
@@ -18,8 +19,8 @@ const YDXHome = (props) => {
   const { userId, youtubeVideoId } = useParams();
   /* Options for YouTube video API */
   const opts = {
-    height: '290',
-    width: '520',
+    height: '265',
+    width: '500',
     playerVars: {
       autoplay: 0,
       enablejsapi: 1,
@@ -71,9 +72,16 @@ const YDXHome = (props) => {
   // this hides one edit component when the other is opened
   const [editComponentToggleList, setEditComponentToggleList] = useState([]);
 
+    // handle clicks of new Inline & New Extended buttons placed beside Notes
+  // pass as props to ButtonsComponent & InsertPublishComponent'
+  const [handleClicksFromParent, setHandleClicksFromParent] = useState('');
+
+  const [isCurrentExtACPaused, setCurrentExtACPaused] = useState(false); // Manages the play/pause state of an extended audio clip
+  const [isGloballyPaused, setGloballyPaused] = useState(true); // Manages the global play/pause state
+
   const [isPlaying, setIsPlaying] = useState(false);
   const { elapsedTime } = useElapsedTime({ isPlaying });
-
+  
   useEffect(() => {
     setDivWidths({
       divRef1:
@@ -259,6 +267,7 @@ const YDXHome = (props) => {
     playedClipPath
   ) => {
     if (currentState === 1) {
+      // playing
       const filteredClip = audioClips.filter(
         (clip) =>
           parseFloat(updatedCurrentTime) >=
@@ -303,6 +312,7 @@ const YDXHome = (props) => {
               currentAudio.addEventListener('ended', function () {
                 setCurrExtendedAC(null); // setting back to null, as it is played completely.
                 currentEvent.playVideo();
+                setCurrentExtACPaused(false); // reset the play/pause state
               });
             }
           }
@@ -339,10 +349,11 @@ const YDXHome = (props) => {
           currInlineAC.play();
           currInlineAC.addEventListener('ended', function () {
             setCurrInlineAC(null); // setting back to null, as it is played completely.
-        });
+          });
           // currInlineAC.currentTime = 0;
           // setCurrInlineAC(null);
         }
+        setGloballyPaused(false); // reset the play/pause state
         clearInterval(timer);
         break;
       case 2: // Paused
@@ -458,6 +469,26 @@ const YDXHome = (props) => {
     currentEvent.playVideo(); // if paused, video is played from that audio clip.
   };
 
+  const handlePlayPause = () => {
+    if (currExtendedAC) { // If an extended clip exists, make it play/pause
+      if (isCurrentExtACPaused) {
+        currExtendedAC.play();
+        setCurrentExtACPaused(false);
+        setGloballyPaused(false);
+      } else {
+        currExtendedAC.pause();
+        setCurrentExtACPaused(true);
+        setGloballyPaused(true);
+      }
+    } else if (currentState === 1) { // If an extended clip does not exist make the YouTube video play/pause
+      currentEvent.pauseVideo();
+      setGloballyPaused(true);
+    } else {
+      currentEvent.playVideo();
+      setGloballyPaused(false);
+    }
+  };
+
   return (
     <React.Fragment>
       {/* Spinner div - displayed based on showSpinner */}
@@ -465,15 +496,10 @@ const YDXHome = (props) => {
       <div className="container home-container">
         <Timer/>
         {/* Youtube Iframe & Notes Component Container */}
-        {/* <div className="app">
-          <h6>Time elapsed  </h6>
-          <img src='../assets/images/pause_white.png'></img>
-          <p>Press any key to play/pause time</p>
-          <div style={{ fontSize: 30 }}>{elapsedTime.toFixed(2)}</div>
-        </div> */}
         <div className="d-flex justify-content-around">
           <div className="text-white">
             <YouTube
+              className="rounded"
               videoId={youtubeVideoId}
               opts={opts}
               onStateChange={onStateChange}
@@ -482,17 +508,22 @@ const YDXHome = (props) => {
               onReady={onReady}
             />
           </div>
+          <ButtonsComponent
+            setHandleClicksFromParent={setHandleClicksFromParent}
+            handlePlayPause={handlePlayPause}
+            isGloballyPaused={isGloballyPaused}
+          />
           <Notes
             currentTime={convertSecondsToCardFormat(currentTime)}
             audioDescriptionId={audioDescriptionId}
             notesData={notesData}
           />
         </div>
-        <hr />
+        <hr className="m-2" />
         {/* Dialog Timeline */}
         <div className="row div-below-hr">
           <div className="col-3 text-white" ref={divRef1}>
-            <h6 className="dialog-timeline-text text-center font-weight-bolder">
+            <h6 className="dialog-timeline-text text-center fw-bolder">
               Dialog Timeline ({convertSecondsToCardFormat(videoLength)}):
             </h6>
           </div>
@@ -561,6 +592,8 @@ const YDXHome = (props) => {
           ))}
         </div>
         <InsertPublishComponent
+          handleClicksFromParent={handleClicksFromParent}
+          setHandleClicksFromParent={setHandleClicksFromParent}
           userId={userId}
           setShowSpinner={setShowSpinner}
           youtubeVideoId={youtubeVideoId}
