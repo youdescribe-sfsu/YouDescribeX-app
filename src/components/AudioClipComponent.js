@@ -211,7 +211,7 @@ const AudioClipComponent = (props) => {
   return (
     <React.Fragment>
       {/* React Fragments allow you to wrap or group multiple elements without adding an extra node to the DOM. */}
-      <div className="text-white component mt-2 rounded">
+      <div className="text-white component mt-2 rounded" id={clip_id}>
         <div className="row align-items-center">
           <div className="col-2" style={{ width: divWidths.divRef1 }}>
             <div className="mx-1 text-center">

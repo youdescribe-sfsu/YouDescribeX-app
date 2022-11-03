@@ -317,6 +317,8 @@ const YDXHome = (props) => {
             }
           }
         }
+      const element = document.getElementById(filteredClip[0].clip_id);
+      element.scrollIntoView({behavior: 'smooth',block: 'start',})
       }
     }
   };
@@ -495,6 +497,7 @@ const YDXHome = (props) => {
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
         <Timer/>
+        <hr className="m-2" />
         {/* Youtube Iframe & Notes Component Container */}
         <div className="d-flex justify-content-around">
           <div className="text-white">
@@ -512,7 +515,7 @@ const YDXHome = (props) => {
             setHandleClicksFromParent={setHandleClicksFromParent}
             handlePlayPause={handlePlayPause}
             isGloballyPaused={isGloballyPaused}
-          />
+          /> 
           <Notes
             currentTime={convertSecondsToCardFormat(currentTime)}
             audioDescriptionId={audioDescriptionId}
@@ -568,7 +571,7 @@ const YDXHome = (props) => {
           </div>
         </div>
         {/* Map Audio Clips Component */}
-        <div className="audio-desc-component-list">
+        <div className="audio-desc-component-list" id='audio-list'>
           {audioClips.map((clip, key) => (
             <AudioClipComponent
               key={key}
