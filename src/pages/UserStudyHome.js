@@ -16,6 +16,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 const UserStudyHome = (props) => {
 
   const { participantId} = useParams();
+  sessionStorage.setItem("id", participantId);
   console.log(participantId)
 
   const [videoIdWithAi, setVideoIdWithAi] = useState('');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../assets/css/insertPublish.css';
 import '../assets/css/audioDesc.css';
+import axios from 'axios';
 import NewAudioClipComponent from './NewAudioClipComponent';
 import Modal from '../modules/Modal';
 
@@ -9,13 +10,15 @@ const InsertPublishComponent = (props) => {
   // props which handles clicks of New Inline and New Extended buttons from Button Component
   const handleClicksFromParent = props.handleClicksFromParent;
   const setHandleClicksFromParent = props.setHandleClicksFromParent;
-
+  let seconds = props.seconds;
+  const resetFunction = props.reset;
   const setShowSpinner = props.setShowSpinner;
   const userId = props.userId;
   const youtubeVideoId = props.youtubeVideoId;
   const currentTime = props.currentTime;
   const videoLength = props.videoLength;
   const audioDescriptionId = props.audioDescriptionId;
+  // const [timeData,setTimeData] = useState(seconds);
   const [showInlineACComponent, setShowInlineACComponent] = useState(false);
   const [showNewACComponent, setShowNewACComponent] = useState(false);
   const handleClickInsertInline = (e) => {
@@ -28,6 +31,22 @@ const InsertPublishComponent = (props) => {
     e.preventDefault();
     setShowNewACComponent(true);
     setShowInlineACComponent(false);
+  };
+
+  const handleClickPublish = (e) => {
+    let participant_id = sessionStorage.getItem("id");
+    axios.post('/api/add-timedata-to-db/addtimedata', {
+      participant_id: participant_id,
+      time: seconds
+    })
+    .then(function (response) {
+      resetFunction();
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
   };
 
   useEffect(() => {
@@ -91,6 +110,7 @@ const InsertPublishComponent = (props) => {
             className="btn publish-bg text-white"
             data-bs-toggle="modal"
             data-bs-target="#publishModal"
+            onClick={handleClickPublish}
           >
             <i className="fa fa-upload" /> {'   '}
             Publish
@@ -98,7 +118,7 @@ const InsertPublishComponent = (props) => {
         </div>
       </div>
       {/* Publish Modal Confirmation Modal - opens when user hits Publish buton and asks for a confirmation */}
-      <Modal id="publishModal" title="Publish" text="Are you sure?" />
+      {/* <Modal id="publishModal" title="Publish" text="Are you sure?" /> */}
     </React.Fragment>
   );
 };

@@ -24,21 +24,18 @@ const Timer = () => {
       clearInterval(interval);
     }
     return () => clearInterval(interval);
-  }, [isActive, seconds]);
+  }, [isActive]);
 
   return (
     <div className="app">
       <div className="col">
         <div className="time">
-            Time elapsed : {seconds}s
+            User Study Timer : {seconds}s
         <button className={`button button-primary button-primary-${isActive ? 'active' : 'inactive'}`} onClick={toggle}>
           {isActive ? 'Pause' : 'Start'}
         </button>
         <button className="button" onClick={reset}>
           Reset
-        </button>
-        <button className="button button-danger" onClick={reset}>
-          Stop Time
         </button>
         </div>
       </div>

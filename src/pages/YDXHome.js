@@ -81,7 +81,19 @@ const YDXHome = (props) => {
 
   const [isPlaying, setIsPlaying] = useState(false);
   const { elapsedTime } = useElapsedTime({ isPlaying });
-  
+
+  const [seconds, setSeconds] = useState(0);
+  const [isActive, setIsActive] = useState(false);
+
+  function toggle() {
+    setIsActive(!isActive);
+  }
+
+  function reset() {
+    setSeconds(0);
+    setIsActive(false);
+  }
+
   useEffect(() => {
     setDivWidths({
       divRef1:
@@ -96,7 +108,17 @@ const YDXHome = (props) => {
     document.addEventListener("keyup", () => {
       setIsPlaying((prevIsPlaying) => !prevIsPlaying);
     });
+    let interval = null;
+    if (isActive) {
+      interval = setInterval(() => {
+        setSeconds(seconds => seconds + 1);
+      }, 1000);
+    } else if (!isActive && seconds !== 0) {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
   }, [
+    isActive,
     draggableDivWidth,
     unitLength,
     videoId,
@@ -496,7 +518,19 @@ const YDXHome = (props) => {
       {/* Spinner div - displayed based on showSpinner */}
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
-        <Timer/>
+        <div className="app">
+          <div className="col">
+            <div className="time">
+                User Study Timer : {seconds}s
+            <button className={`button button-primary button-primary-${isActive ? 'active' : 'inactive'}`} onClick={toggle}>
+              {isActive ? 'Pause' : 'Start'}
+            </button>
+            <button className="button" onClick={reset}>
+              Reset
+            </button>
+            </div>
+          </div>
+        </div>
         <hr className="m-2" />
         {/* Youtube Iframe & Notes Component Container */}
         <div className="d-flex justify-content-around">
@@ -603,6 +637,8 @@ const YDXHome = (props) => {
           currentTime={currentTime}
           videoLength={videoLength}
           audioDescriptionId={audioDescriptionId}
+          seconds={seconds}
+          reset = {reset}
         />
       </div>
     </React.Fragment>
