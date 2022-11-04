@@ -79,6 +79,8 @@ const YDXHome = (props) => {
   const [isCurrentExtACPaused, setCurrentExtACPaused] = useState(false); // Manages the play/pause state of an extended audio clip
   const [isGloballyPaused, setGloballyPaused] = useState(true); // Manages the global play/pause state
 
+  const [hasAudioDescriptionsEnabled, setAudioDescriptionsEnabled] = useState(false); // Manages the state for audio descriptions (enabled/disabled)
+
   const [isPlaying, setIsPlaying] = useState(false);
   const { elapsedTime } = useElapsedTime({ isPlaying });
 
@@ -277,6 +279,9 @@ const YDXHome = (props) => {
     setDraggableTime({ x: unitLength * time, y: 0 });
     // check if the audio is not played recently. do not play it again.
     if (parseFloat(recentAudioPlayedTime) !== parseFloat(time)) {
+      if (!hasAudioDescriptionsEnabled) { // Skip playing if audio descriptions are playing
+        return;
+      }
       // To Play audio files based on current time
       playAudioAtCurrentTime(time, playedAudioClip, playedClipPath);
     }
@@ -513,6 +518,12 @@ const YDXHome = (props) => {
     }
   };
 
+  const handleAudioDescriptions = (newStatus) => {
+    if (currentState !== 1){
+      setAudioDescriptionsEnabled(newStatus)
+    }
+  }
+
   return (
     <React.Fragment>
       {/* Spinner div - displayed based on showSpinner */}
@@ -556,6 +567,35 @@ const YDXHome = (props) => {
             notesData={notesData}
           />
         </div>
+        <div className="px-5 py-2 d-flex align-items-center">
+          <h6 className="dialog-timeline-text text-center fw-bolder text-white mx-4">
+            Audio Descriptions:
+          </h6>
+          <div className="btn-group btn-toggle">
+            <button
+              className={[
+                "btn btn-sm",
+                hasAudioDescriptionsEnabled
+                  ? "btn-primary active"
+                  : "btn-light",
+              ].join(" ")}
+              onClick={() => handleAudioDescriptions(true)}
+            >
+              ON
+            </button>
+            <button
+              className={[
+                "btn btn-sm",
+                hasAudioDescriptionsEnabled
+                  ? "btn-light"
+                  : "btn-primary active",
+              ].join(" ")}
+              onClick={() => handleAudioDescriptions(false)}
+            >
+              OFF
+            </button>
+          </div>
+        </div>
         <hr className="m-2" />
         {/* Dialog Timeline */}
         <div className="row div-below-hr">
@@ -579,7 +619,7 @@ const YDXHome = (props) => {
                       className="dialog-timestamps-div"
                       style={{
                         width: dialog.width,
-                        height: '20px',
+                        height: "20px",
                       }}
                     ></div>
                   </Draggable>
