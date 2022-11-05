@@ -17,6 +17,7 @@ import Spinner from '../modules/Spinner';
 const YDXHome = (props) => {
   /* to use params on the url and get userId & youtubeVideoId */
   const { userId, youtubeVideoId } = useParams();
+  let participant_id = sessionStorage.getItem("id");
   /* Options for YouTube video API */
   const opts = {
     height: '265',
@@ -679,6 +680,7 @@ const YDXHome = (props) => {
           audioDescriptionId={audioDescriptionId}
           seconds={seconds}
           reset = {reset}
+          participant_id = {participant_id}
         />
       </div>
     </React.Fragment>
