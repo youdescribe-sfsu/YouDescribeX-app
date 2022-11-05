@@ -38,6 +38,8 @@ const NewAudioClipComponent = (props) => {
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0);
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0);
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0);
+  const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] = useState(0.0);
+
 
   useEffect(() => {
     // scroll to the bottom of the screen and make the Inline AD component visible
@@ -85,12 +87,15 @@ const NewAudioClipComponent = (props) => {
     setClipStartTimeSeconds(
       convertSecondsToCardFormat(currentTime).split(':')[2]
     );
+    setClipStartTimeMilliSeconds(
+      convertSecondsToCardFormat(currentTime).split(':')[3]
+    );
     setNewACStartTime(currentTime);
   };
 
   // calculate the Start Time in seconds from the Hours, Minutes & Seconds passed from handleBlur functions
-  const calculateClipStartTimeinSeconds = (hours, minutes, seconds) => {
-    let calculatedSeconds = +hours * 60 * 60 + +minutes * 60 + +seconds;
+  const calculateClipStartTimeinSeconds = (milliseconds, minutes, seconds) => {
+    let calculatedSeconds = +milliseconds / 1000 + +minutes * 60 + +seconds;
     // check if the updated start time is more than the videolength, if yes, throw error and retain the old state
     if (calculatedSeconds > videoLength) {
       toast.error('Oops!! Start Time cannot be later than the video end time.'); // show toast error message
@@ -101,21 +106,21 @@ const NewAudioClipComponent = (props) => {
   };
 
   // lots of if else conditions to ensure correct input in the start time number fields.
-  const handleOnChangeClipStartTimeHours = (e) => {
-    setClipStartTimeHours(e.target.value);
-    if (e.target.value.length > 2) {
-      setClipStartTimeHours(e.target.value.substring(0, 2));
-    }
-  };
+  // const handleOnChangeClipStartTimeHours = (e) => {
+  //   setClipStartTimeHours(e.target.value);
+  //   if (e.target.value.length > 2) {
+  //     setClipStartTimeHours(e.target.value.substring(0, 2));
+  //   }
+  // };
   const handleOnChangeClipStartTimeMinutes = (e) => {
     setClipStartTimeMinutes(e.target.value);
-    if (e.target.value.length > 2) {
-      setClipStartTimeMinutes(e.target.value.substring(0, 2));
-    } else if (e.target.value.length === 2) {
-      if (parseInt(e.target.value) >= 60) {
-        setClipStartTimeMinutes('59');
-      }
-    }
+    // if (e.target.value.length > 2) {
+    //   setClipStartTimeMinutes(e.target.value.substring(0, 2));
+    // } else if (e.target.value.length === 2) {
+    //   if (parseInt(e.target.value) >= 60) {
+    //     setClipStartTimeMinutes('59');
+    //   }
+    // }
   };
   const handleOnChangeClipStartTimeSeconds = (e) => {
     setClipStartTimeSeconds(e.target.value);
@@ -127,25 +132,36 @@ const NewAudioClipComponent = (props) => {
       }
     }
   };
-  const handleBlurClipStartTimeHours = (e) => {
+
+  const handleOnChangeClipStartTimeMilliSeconds = (e) => {
+    setClipStartTimeMilliSeconds(e.target.value);
+    if (e.target.value.length > 2) {
+      setClipStartTimeMilliSeconds(e.target.value.substring(0, 2));
+    } else if (e.target.value.length === 2) {
+      if (parseInt(e.target.value) >= 60) {
+        setClipStartTimeMilliSeconds('59');
+      }
+    }
+  };
+  const handleBlurClipStartTimeMilliSeconds = (e) => {
     // store the current clipStartTimeHours in a temp variable,
     // so that when calculateClipStartTimeinSeconds without going into the loops,
     // it has the previous value in it
-    let tempStartTimeHours = clipStartTimeHours;
+    let  tempStartTimeMilliSeconds= clipStartTimeMilliSeconds;
     if (e.target.value.length === 1) {
-      setClipStartTimeHours(e.target.value + '0');
-      tempStartTimeHours = e.target.value + '0';
+      setClipStartTimeMilliSeconds(e.target.value + '0');
+      tempStartTimeMilliSeconds = e.target.value + '0';
       if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeHours('59');
-        tempStartTimeHours = '59';
+        setClipStartTimeMilliSeconds('59');
+        tempStartTimeMilliSeconds = '59';
       }
     } else if (e.target.value.length === 0) {
-      setClipStartTimeHours('00');
-      tempStartTimeHours = '00';
+      setClipStartTimeMilliSeconds('00');
+      tempStartTimeMilliSeconds = '00';
     }
     // call the function which will update the clipStartTime in the parent component and the db is updated too.
     calculateClipStartTimeinSeconds(
-      tempStartTimeHours,
+      tempStartTimeMilliSeconds,
       clipStartTimeMinutes,
       clipStartTimeSeconds
     );
@@ -168,7 +184,7 @@ const NewAudioClipComponent = (props) => {
     }
     // call the function which will update the clipStartTime in the parent component and the db is updated too.
     calculateClipStartTimeinSeconds(
-      clipStartTimeHours,
+      clipStartTimeMilliSeconds,
       tempStartTimeMinutes,
       clipStartTimeSeconds
     );
@@ -191,7 +207,7 @@ const NewAudioClipComponent = (props) => {
     }
     // call the function which will update the clipStartTime in the parent component and the db is updated too.
     calculateClipStartTimeinSeconds(
-      clipStartTimeHours,
+      clipStartTimeMilliSeconds,
       clipStartTimeMinutes,
       tempStartTimeSeconds
     );
@@ -376,19 +392,6 @@ const NewAudioClipComponent = (props) => {
                   style={{ width: '25px', height: '28px' }}
                   className="text-white bg-dark"
                   min="0"
-                  value={clipStartTimeHours}
-                  onChange={handleOnChangeClipStartTimeHours}
-                  onBlur={handleBlurClipStartTimeHours}
-                  onKeyDown={(evt) =>
-                    ['e', 'E', '+', '-'].includes(evt.key) &&
-                    evt.preventDefault()
-                  }
-                />
-                <div className="mx-1">:</div>
-                <input
-                  type="number"
-                  style={{ width: '25px', height: '28px' }}
-                  className="text-white bg-dark"
                   value={clipStartTimeMinutes}
                   onChange={handleOnChangeClipStartTimeMinutes}
                   onBlur={handleBlurClipStartTimeMinutes}
@@ -405,6 +408,19 @@ const NewAudioClipComponent = (props) => {
                   value={clipStartTimeSeconds}
                   onChange={handleOnChangeClipStartTimeSeconds}
                   onBlur={handleBlurClipStartTimeSeconds}
+                  onKeyDown={(evt) =>
+                    ['e', 'E', '+', '-'].includes(evt.key) &&
+                    evt.preventDefault()
+                  }
+                />
+                <div className="mx-1">:</div>
+                <input
+                  type="number"
+                  style={{ width: '25px', height: '28px' }}
+                  className="text-white bg-dark"
+                  value={clipStartTimeMilliSeconds}
+                  onChange={handleOnChangeClipStartTimeMilliSeconds}
+                  onBlur={handleBlurClipStartTimeMilliSeconds}
                   onKeyDown={(evt) =>
                     ['e', 'E', '+', '-'].includes(evt.key) &&
                     evt.preventDefault()
