@@ -26,7 +26,7 @@ const YDXHome = (props) => {
       autoplay: 0,
       enablejsapi: 1,
       cc_load_policy: 1,
-      controls: 1,
+      controls: 0,
       fs: 0,
       iv_load_policy: 3,
       modestbranding: 1,
@@ -108,6 +108,8 @@ const YDXHome = (props) => {
     setShowSpinner(true);
     // set the toggle list back to empty if we are fetching the data again
     fetchUserVideoData(); // use axios to get audio descriptions for the youtubeVideoId & userId passed to the url Params
+    getAudioDescriptionsState(videoId); // Fetch the state of audio description toggle buttons from local storage. 
+
     document.addEventListener("keyup", () => {
       setIsPlaying((prevIsPlaying) => !prevIsPlaying);
     });
@@ -150,6 +152,14 @@ const YDXHome = (props) => {
     let unitLength = draggableDivWidth / videoEndTime; // let unitlength = 644 / 299;
     setUnitLength(unitLength);
   };
+
+  // Fetch the state of the audio descriptions button from local storage.
+  // If no data is found in local storage, set the state to default (false)
+  const getAudioDescriptionsState = (videoId) => {
+    const storedState = JSON.parse(localStorage.getItem(videoId)) ?? false;
+    setAudioDescriptionsEnabled(storedState);
+  }
+
   // use axios and get dialog timestamps for the Dialog Timeline
   const fetchDialogData = () => {
     axios
@@ -521,7 +531,8 @@ const YDXHome = (props) => {
 
   const handleAudioDescriptions = (newStatus) => {
     if (currentState !== 1){
-      setAudioDescriptionsEnabled(newStatus)
+      setAudioDescriptionsEnabled(newStatus);
+      localStorage.setItem(videoId, String(newStatus));
     }
   }
 
