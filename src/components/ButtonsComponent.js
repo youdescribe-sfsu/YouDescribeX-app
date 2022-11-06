@@ -13,7 +13,7 @@ const ButtonsComponent = (props) => {
           onClick={() => setHandleClicksFromParent("inline")}
         >
           <i className="fa fa-plus" /> {"   "}
-          New Inline
+          Insert Inline
         </button>
       </div>
       <div>
@@ -23,7 +23,7 @@ const ButtonsComponent = (props) => {
           onClick={() => setHandleClicksFromParent("extended")}
         >
           <i className="fa fa-plus" /> {"   "}
-          New Extended
+          Insert Extended
         </button>
       </div>
       <div>

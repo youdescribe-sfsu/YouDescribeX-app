@@ -77,7 +77,7 @@ const InsertPublishComponent = (props) => {
       {showNewACComponent ? (
         <>
           <h5 className="text-white">
-            Insert New {showInlineACComponent ? 'Inline' : 'Extended'} Audio
+            Insert {showInlineACComponent ? 'Inline' : 'Extended'} Audio
             Clip
           </h5>
           <NewAudioClipComponent
@@ -103,7 +103,7 @@ const InsertPublishComponent = (props) => {
             onClick={handleClickInsertInline}
           >
             <i className="fa fa-plus" /> {'   '}
-            Insert New Inline
+            Insert Inline
           </button>
           <button
             type="button"
@@ -111,7 +111,7 @@ const InsertPublishComponent = (props) => {
             onClick={handleClickInsertExtended}
           >
             <i className="fa fa-plus" /> {'   '}
-            Insert New Extended
+            Insert Extended
           </button>
         </div>
         <div className="mx-4">
