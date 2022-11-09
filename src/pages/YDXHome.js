@@ -490,9 +490,7 @@ const YDXHome = (props) => {
       if (value) {
         if (data.clipId === clipId) {
           data.showEditComponent = value;
-        } else {
-          data.showEditComponent = !value;
-        }
+        } 
       } else {
         // else case is used when false is passed to the function. If false, other edit components are not opened.
         if (data.clipId === clipId) {

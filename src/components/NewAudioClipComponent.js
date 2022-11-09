@@ -36,8 +36,8 @@ const NewAudioClipComponent = (props) => {
 
   // use 3 state variables to hold the value of 3 input type number fields
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0);
-  const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0);
-  const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0);
+  const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0);
+  const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0);
   const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] = useState(0.0);
 
 

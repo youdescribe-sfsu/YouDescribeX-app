@@ -446,9 +446,10 @@ const EditClipComponent = (props) => {
       startRecording();
     }, 3700);
   };
-
+  
   return (
-    <div className="edit-component text-white" ref={ref}>
+    
+    <div className="edit-component text-white" ref={ref} id={clip_id}>
       <div className="d-flex justify-content-evenly align-items-center">
         {/* Clip Description & Start time Div */}
         <div className="description-section mt-1">
