@@ -99,7 +99,10 @@ const UserStudyHome = (props) => {
         <hr />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>Video 1 : Without AI support</Link></h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/videopage/${videoIdWithoutAi}`}>Play Video 1 </Link></h6>
+          </div>
+          <div className="mx-auto my-auto text-bars align-items-center border rounded">
+            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>FreeStyle Interface</Link></h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>User Survey for Video 1</a></h6>
@@ -111,7 +114,10 @@ const UserStudyHome = (props) => {
         <hr />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoIdWithAi}/${userIdWithAi}`} >Video 2 : With AI support</Link></h6>
+            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/videopage/${videoIdWithAi}`} >Play Video 2 </Link></h6>
+          </div>
+          <div className="mx-auto my-auto text-bars align-items-center border rounded">
+            <h6 className="tutorial-text text-center font-weight-bolder"><Link to={`/${videoIdWithAi}/${userIdWithAi}`} >AI Prompted Interface</Link></h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder"><a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>User Survey for Video 2</a></h6>
