@@ -80,8 +80,6 @@ const YDXHome = (props) => {
   const [isCurrentExtACPaused, setCurrentExtACPaused] = useState(false); // Manages the play/pause state of an extended audio clip
   const [isGloballyPaused, setGloballyPaused] = useState(true); // Manages the global play/pause state
 
-  const [hasAudioDescriptionsEnabled, setAudioDescriptionsEnabled] = useState(false); // Manages the state for audio descriptions (enabled/disabled)
-
   const [isPlaying, setIsPlaying] = useState(false);
   const { elapsedTime } = useElapsedTime({ isPlaying });
 
@@ -110,7 +108,6 @@ const YDXHome = (props) => {
     setShowSpinner(true);
     // set the toggle list back to empty if we are fetching the data again
     fetchUserVideoData(); // use axios to get audio descriptions for the youtubeVideoId & userId passed to the url Params
-    getAudioDescriptionsState(videoId); // Fetch the state of audio description toggle buttons from local storage. 
 
     document.addEventListener("keyup", () => {
       setIsPlaying((prevIsPlaying) => !prevIsPlaying);
@@ -162,13 +159,6 @@ const YDXHome = (props) => {
     let unitLength = draggableDivWidth / videoEndTime; // let unitlength = 644 / 299;
     setUnitLength(unitLength);
   };
-
-  // Fetch the state of the audio descriptions button from local storage.
-  // If no data is found in local storage, set the state to default (false)
-  const getAudioDescriptionsState = (videoId) => {
-    const storedState = JSON.parse(localStorage.getItem(videoId)) ?? false;
-    setAudioDescriptionsEnabled(storedState);
-  }
 
   // use axios and get dialog timestamps for the Dialog Timeline
   const fetchDialogData = () => {
@@ -300,9 +290,6 @@ const YDXHome = (props) => {
     setDraggableTime({ x: unitLength * time, y: 0 });
     // check if the audio is not played recently. do not play it again.
     if (parseFloat(recentAudioPlayedTime) !== parseFloat(time)) {
-      if (!hasAudioDescriptionsEnabled) { // Skip playing if audio descriptions are playing
-        return;
-      }
       // To Play audio files based on current time
       playAudioAtCurrentTime(time, playedAudioClip, playedClipPath);
     }
@@ -540,13 +527,6 @@ const YDXHome = (props) => {
     }
   };
 
-  const handleAudioDescriptions = (newStatus) => {
-    if (currentState !== 1){
-      setAudioDescriptionsEnabled(newStatus);
-      localStorage.setItem(videoId, String(newStatus));
-    }
-  }
-
   return (
     <React.Fragment>
       {/* Spinner div - displayed based on showSpinner */}
@@ -589,35 +569,6 @@ const YDXHome = (props) => {
             audioDescriptionId={audioDescriptionId}
             notesData={notesData}
           />
-        </div>
-        <div className="px-5 py-2 d-flex align-items-center">
-          <h6 className="dialog-timeline-text text-center fw-bolder text-white mx-4">
-            Audio Descriptions:
-          </h6>
-          <div className="btn-group btn-toggle">
-            <button
-              className={[
-                "btn btn-sm",
-                hasAudioDescriptionsEnabled
-                  ? "btn-primary active"
-                  : "btn-light",
-              ].join(" ")}
-              onClick={() => handleAudioDescriptions(true)}
-            >
-              ON
-            </button>
-            <button
-              className={[
-                "btn btn-sm",
-                hasAudioDescriptionsEnabled
-                  ? "btn-light"
-                  : "btn-primary active",
-              ].join(" ")}
-              onClick={() => handleAudioDescriptions(false)}
-            >
-              OFF
-            </button>
-          </div>
         </div>
         <hr className="m-2" />
         {/* Dialog Timeline */}
