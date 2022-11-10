@@ -23,6 +23,7 @@ const InsertPublishComponent = (props) => {
   const videoLength = props.videoLength;
   const audioDescriptionId = props.audioDescriptionId;
   const participant_id = props.participant_id;
+  const setNewClipAdded = props.setNewClipAdded;
   // const [timeData,setTimeData] = useState(seconds);
   const [showInlineACComponent, setShowInlineACComponent] = useState(false);
   const [showNewACComponent, setShowNewACComponent] = useState(false);
@@ -89,6 +90,7 @@ const InsertPublishComponent = (props) => {
             videoLength={videoLength}
             audioDescriptionId={audioDescriptionId}
             setShowSpinner={setShowSpinner}
+            setNewClipAdded={setNewClipAdded}
           />
         </>
       ) : (

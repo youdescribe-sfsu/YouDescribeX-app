@@ -88,6 +88,8 @@ const YDXHome = (props) => {
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
 
+  const [newClipAdded, setNewClipAdded] = useState(false);
+
   function toggle() {
     setIsActive(!isActive);
   }
@@ -132,6 +134,14 @@ const YDXHome = (props) => {
     updateData, // to fetch data whenever updateData state is changed.
     setEditComponentToggleList,
   ]);
+
+  useEffect(() => {
+    if(newClipAdded) {
+      fetchAudioDescriptionData(true);
+      setNewClipAdded(false);
+    }
+  }, [newClipAdded])
+  
 
   // for calculating the draggable-div width of the timeline
   const calculateDraggableDivWidth = () => {
@@ -220,7 +230,7 @@ const YDXHome = (props) => {
   };
 
   // use axios to get audio descriptions for the videoId (set in fetchUserVideoData()) & userId passed to the url Params
-  const fetchAudioDescriptionData = () => {
+  const fetchAudioDescriptionData = (isNewClipAdded = false) => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
     axios
       .get(`/api/audio-descriptions/get-user-ad/${videoId}&${userId}`)
@@ -266,7 +276,7 @@ const YDXHome = (props) => {
           }
         });
 
-        if (editComponentToggleList.length === 0) {
+        if (editComponentToggleList.length === 0 || isNewClipAdded) {
           setEditComponentToggleList(tempArray);
         }
         setAudioClips(audioClipsData);
@@ -314,6 +324,8 @@ const YDXHome = (props) => {
             parseFloat(parseFloat(clip.clip_start_time) + 0.07)
       );
       if (filteredClip.length !== 0) {
+        const prevelement = document.querySelectorAll('.green-border');
+        prevelement.forEach(elem => (elem.classList.remove('green-border')))
         if (playedAudioClip != filteredClip[0].clip_id) {
           setPlayedAudioClip(filteredClip[0].clip_id);
           //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
@@ -357,6 +369,7 @@ const YDXHome = (props) => {
         }
       const element = document.getElementById(filteredClip[0].clip_id);
       element.scrollIntoView({behavior: 'smooth',block: 'start',})
+      element.classList.add('green-border');
       }
     }
   };
@@ -690,6 +703,7 @@ const YDXHome = (props) => {
           seconds={seconds}
           reset = {reset}
           participant_id = {participant_id}
+          setNewClipAdded={setNewClipAdded}
         />
       </div>
     </React.Fragment>

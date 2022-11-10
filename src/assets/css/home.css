@@ -96,3 +96,7 @@ hr {
   position: absolute;
   background-color: #64b5f6;
 }
+
+.green-border{
+  border: 1px solid green;
+}

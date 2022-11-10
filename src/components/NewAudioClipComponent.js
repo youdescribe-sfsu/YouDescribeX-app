@@ -19,7 +19,7 @@ const NewAudioClipComponent = (props) => {
 
   // for audio Recording
   // variable and function declaration of the react-media-recorder package
-  const { status, startRecording, stopRecording, mediaBlobUrl } =
+  const { status, startRecording, stopRecording, mediaBlobUrl, clearBlobUrl } =
     useReactMediaRecorder({ audio: true }); // using only the audio recorder here
   const [readySetGo, setReadySetGo] = useState('');
   // this state variable keeps track of the play/pause state of the recorded audio
@@ -49,7 +49,7 @@ const NewAudioClipComponent = (props) => {
       behavior: 'smooth',
     });
     // following statements execute whenever mediaBlobUrl is updated.. used it in the dependency array
-    if (mediaBlobUrl !== null) {
+    if (mediaBlobUrl) {
       setRecordedAudio(new Audio(mediaBlobUrl));
       const aud = new Audio(mediaBlobUrl);
       // set audio duration if recorded
@@ -234,13 +234,13 @@ const NewAudioClipComponent = (props) => {
     if (newACTitle === '') {
       toast.error('Please enter a Title');
     } else {
-      if (newACDescriptionText === '' && mediaBlobUrl === null) {
+      if (!newACDescriptionText && !mediaBlobUrl) {
         toast.error(
           'Please enter a description text for the New Clip or record one'
         );
       } else {
         setShowSpinner(true);
-        if (mediaBlobUrl !== null) {
+        if (mediaBlobUrl) {
           // axios call to backend with isRecorded true
           saveNewClipInDB({ isRecorded: true });
         } else {
@@ -283,9 +283,11 @@ const NewAudioClipComponent = (props) => {
       })
       .then((res) => {
         toast.success(`New Clip Added Successfully!!\n${res.data}`);
-        setTimeout(() => {
-          window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
-        }, 4000); // setting the timeout to show the toast message for 2 sec
+        // setTimeout(() => {
+        //   window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
+        // }, 4000); // setting the timeout to show the toast message for 2 sec
+        setShowNewACComponent(false);
+        props.setNewClipAdded(true);
       })
       .catch((err) => {
         console.log(err.response.data.message);
@@ -443,7 +445,11 @@ const NewAudioClipComponent = (props) => {
             name="description"
             placeholder="Start writing a Text Description.."
             value={newACDescriptionText}
-            onChange={(e) => setNewACDescriptionText(e.target.value)}
+            onChange={(e) => {
+              if(mediaBlobUrl) {
+                clearBlobUrl();
+              };
+              setNewACDescriptionText(e.target.value)}}
           ></textarea>
         </div>
         {/* vertical divider line */}
@@ -498,7 +504,7 @@ const NewAudioClipComponent = (props) => {
               )}
             </div>
             {/* No recording to Play */}
-            {mediaBlobUrl === null ? (
+            {!mediaBlobUrl ? (
               <div
                 data-bs-toggle="tooltip"
                 data-bs-placement="bottom"

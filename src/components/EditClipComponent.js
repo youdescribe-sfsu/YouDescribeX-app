@@ -33,12 +33,21 @@ const EditClipComponent = (props) => {
   const is_recorded = props.is_recorded;
   const clip_audio_path = props.clip_audio_path;
   const clip_created_at = props.clip_created_at;
+  const clip_end_time = parseFloat(props_clip_start_time) + parseFloat(clip_duration);
 
   // use 3 state variables to hold the value of 3 input type number fields
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0);
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0);
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0);
   const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] = useState(0.0);
+
+  const [clipDurationMinutes, setClipDurationMinutes] = useState(0.0);
+  const [clipDurationSeconds, setClipDurationSeconds] = useState(0.0);
+  const [clipDurationMilliSeconds, setClipDurationMilliSeconds] = useState(0.0);
+
+  // const [clipEndTimeMinutes, setClipEndTimeMinutes] = useState(0.0);
+  // const [clipEndTimeSeconds, setClipEndTimeSeconds] = useState(0.0);
+  // const [clipEndTimeMilliSeconds, setClipEndTimeMilliSeconds] = useState(0.0);
 
   // variable and function declaration of the react-media-recorder package
   const { status, startRecording, stopRecording, mediaBlobUrl } =
@@ -109,6 +118,8 @@ const EditClipComponent = (props) => {
     setAdAudio(new Audio(clip_audio_path));
     // render the start time input fields based on the updated prop value - props_clip_start_time
     handleClipStartTimeInputsRender();
+    handleClipEndTimeInputsRender();
+    
   }, [
     mediaBlobUrl,
     props, // re-render whenever the props change
@@ -129,6 +140,20 @@ const EditClipComponent = (props) => {
     setClipStartTimeMilliSeconds(
       cardFormat[3]
     );
+  };
+
+  const handleClipEndTimeInputsRender = () => {
+    let cardFormat = convertSecondsToCardFormat(clip_end_time).split(':');
+    setClipDurationMinutes(
+      cardFormat[1]
+    );
+    setClipDurationSeconds(
+      cardFormat[2]
+    );
+    setClipDurationMilliSeconds(
+      cardFormat[3]
+    );
+
   };
 
   // calculate the Start Time in seconds from the Hours, Minutes & Seconds passed from handleBlur functions
@@ -550,6 +575,65 @@ const EditClipComponent = (props) => {
                     value={clipStartTimeMilliSeconds}
                     onChange={handleOnChangeClipStartTimeMilliSeconds}
                     onBlur={handleBlurClipStartTimeMilliSeconds}
+                    onKeyDown={(evt) =>
+                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      evt.preventDefault()
+                    }
+                  />
+                  {/* <div className="mx-1">.</div>
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark"
+                    value={
+                      clipStartTimeMilliSeconds < 10
+                        ? `0` + clipStartTimeMilliSeconds
+                        : clipStartTimeMilliSeconds
+                    }
+                    readOnly
+                  /> */}
+                </div>
+              </div>
+              <h6 className="text-white">
+                End Time  
+                {/* TODO: We will need to handle three digit long minutes or videos longer than hour */}
+              </h6>
+              <div className="edit-time-div">
+                <div className="text-dark text-center d-flex justify-content-evenly">
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark"
+                    min="0"
+                    value={clipDurationMinutes}
+                    // onChange={handleOnChangeClipStartTimeMinutes}
+                    // onBlur={handleBlurClipStartTimeMinutes}
+                    onKeyDown={(evt) =>
+                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      evt.preventDefault()
+                    }
+                  />
+                  <div className="mx-1">:</div>
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark"
+                    value={clipDurationSeconds}
+                    // onChange={handleOnChangeClipStartTimeSeconds}
+                    // onBlur={handleBlurClipStartTimeSeconds}
+                    onKeyDown={(evt) =>
+                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      evt.preventDefault()
+                    }
+                  />
+                  <div className="mx-1">:</div>
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark"
+                    value={clipDurationMilliSeconds}
+                    // onChange={handleOnChangeClipStartTimeMilliSeconds}
+                    // onBlur={handleBlurClipStartTimeMilliSeconds}
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()
