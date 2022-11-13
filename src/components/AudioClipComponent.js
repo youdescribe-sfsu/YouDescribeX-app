@@ -375,6 +375,7 @@ const AudioClipComponent = (props) => {
           videoLength={videoLength}
           setShowSpinner={props.setShowSpinner}
           audioDescriptionId={props.audioDescriptionId}
+          fetchUserVideoData={props.fetchUserVideoData}
         />
       ) : (
         <> </>
