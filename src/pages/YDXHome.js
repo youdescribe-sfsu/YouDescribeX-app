@@ -86,7 +86,8 @@ const YDXHome = (props) => {
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
 
-  const [newClipAdded, setNewClipAdded] = useState(false);
+  const [needRefresh, setNeedRefresh] = useState(false);
+  // const [clipDeleted, setClipDeleted] = useState(false);
 
   function toggle() {
     setIsActive(!isActive);
@@ -133,12 +134,11 @@ const YDXHome = (props) => {
   ]);
 
   useEffect(() => {
-    if(newClipAdded) {
+    if(needRefresh) {
       fetchAudioDescriptionData(true);
-      setNewClipAdded(false);
+      setNeedRefresh(false);
     }
-  }, [newClipAdded])
-  
+  }, [needRefresh])
 
   // for calculating the draggable-div width of the timeline
   const calculateDraggableDivWidth = () => {
@@ -655,7 +655,7 @@ const YDXHome = (props) => {
           seconds={seconds}
           reset = {reset}
           participant_id = {participant_id}
-          setNewClipAdded={setNewClipAdded}
+          setNeedRefresh={setNeedRefresh}
         />
       </div>
     </React.Fragment>
