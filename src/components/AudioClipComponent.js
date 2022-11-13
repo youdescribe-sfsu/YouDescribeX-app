@@ -261,7 +261,7 @@ const AudioClipComponent = (props) => {
               />
             </div>
           </div>
-          <div className="col-8" style={{ width: divWidths.divRef3 }}>
+          <div className="col-7" style={{ width: divWidths.divRef3 }}>
             <div className="row mx-1 component-timeline-div">
               <div
                 id="ad-draggable-div"
