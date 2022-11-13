@@ -639,7 +639,6 @@ const YDXHome = (props) => {
               setEditComponentToggleFunc={setEditComponentToggleFunc}
               divWidths={divWidths}
               handlePlayAudioClip={handlePlayAudioClip}
-              setNeedRefresh = {setNeedRefresh}
             />
           ))}
         </div>
