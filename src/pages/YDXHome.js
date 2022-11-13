@@ -578,7 +578,7 @@ const YDXHome = (props) => {
               Dialog Timeline ({convertSecondsToCardFormat(videoLength)}):
             </h6>
           </div>
-          <div className="col-8 mt-3" ref={divRef2}>
+          <div className="col-7 mt-3" ref={divRef2}>
             <div className="row mx-1 timeline-div">
               <div id="draggable-div" className="draggable-div" ref={divRef3}>
                 {/* Dialog Timeline blue & white div's */}
