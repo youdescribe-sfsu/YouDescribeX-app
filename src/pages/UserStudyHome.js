@@ -42,13 +42,19 @@ const UserStudyHome = (props) => {
       });
   };
 
+  function charIsLetter(char) {
+    if (typeof char !== 'string') {
+      return false;
+    }
+    return /^[a-zA-Z]+$/.test(char);
+  }
 
   useEffect(() => {
     fetchParticipantData();
     document.addEventListener("keyup", () => {
       setIsPlaying((prevIsPlaying) => !prevIsPlaying);
     });
-    setRandomOrder(Math.floor(Math.random() * 2));
+    setRandomOrder(charIsLetter(participantId.charAt(0)));
   });
 
 
@@ -101,16 +107,16 @@ const UserStudyHome = (props) => {
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-              {randomOrder == 0 ? 
-                <Link to={`/videopage/${videoIdWithoutAi}`}>Play Video {randomOrder+1} </Link> 
+              {randomOrder ? 
+                <Link to={`/videopage/${videoIdWithoutAi}`}>Play Video 1 </Link> 
               : 
-                <Link to={`/videopage/${videoIdWithAi}`} >Play Video {randomOrder} </Link>
+                <Link to={`/videopage/${videoIdWithAi}`} >Play Video 1 </Link>
               } 
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-              { randomOrder == 0 ?
+              { randomOrder ?
                 <Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>FreeStyle Interface</Link>
               :
                 <Link to={`/${videoIdWithAi}/${userIdWithAi}`} >AI Prompted Interface</Link>
@@ -119,19 +125,19 @@ const UserStudyHome = (props) => {
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-              { randomOrder == 0 ?
-                <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>User Survey for Video {randomOrder+1}</a>
+              { randomOrder ?
+                <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>User Survey for Video 1</a>
               :
-                <a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>User Survey for Video {randomOrder}</a>             
+                <a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>User Survey for Video 1</a>             
               }
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-              { randomOrder == 0 ?
-                <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}>NASA TLX Survey for Video {randomOrder+1}</a>
+              { randomOrder ?
+                <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}>NASA TLX Survey for Video 1</a>
               :
-                <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}>NASA TLX Survey for Video {randomOrder}</a>
+                <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}>NASA TLX Survey for Video 1</a>
               }
             </h6>
           </div>
@@ -140,16 +146,16 @@ const UserStudyHome = (props) => {
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-              {randomOrder == 0 ? 
-                <Link to={`/videopage/${videoIdWithAi}`} >Play Video {randomOrder+2} </Link>
+              {randomOrder ? 
+                <Link to={`/videopage/${videoIdWithAi}`} >Play Video 2 </Link>
               : 
-                <Link to={`/videopage/${videoIdWithoutAi}`}>Play Video {randomOrder+1} </Link> 
+                <Link to={`/videopage/${videoIdWithoutAi}`}>Play Video 2 </Link> 
             } 
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-              { randomOrder == 0 ?
+              { randomOrder ?
               <Link to={`/${videoIdWithAi}/${userIdWithAi}`} >AI Prompted Interface</Link>
               :
               <Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>FreeStyle Interface</Link>
@@ -158,19 +164,19 @@ const UserStudyHome = (props) => {
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-            { randomOrder == 0 ?
-              <a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>User Survey for Video {randomOrder+2}</a>
+            { randomOrder ?
+              <a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>User Survey for Video 2</a>
               :
-              <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>User Survey for Video {randomOrder+1}</a>
+              <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>User Survey for Video 2</a>
             }
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-            { randomOrder == 0 ?
-              <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}>NASA TLX Survey for Video {randomOrder+2}</a>
+            { randomOrder ?
+              <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}>NASA TLX Survey for Video 2</a>
               :
-              <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}>NASA TLX Survey for Video {randomOrder+1}</a>
+              <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}>NASA TLX Survey for Video 2</a>
             }
             </h6>
           </div>
