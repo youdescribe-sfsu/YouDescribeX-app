@@ -287,7 +287,7 @@ const NewAudioClipComponent = (props) => {
         //   window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
         // }, 4000); // setting the timeout to show the toast message for 2 sec
         setShowNewACComponent(false);
-        props.setNewClipAdded(true);
+        props.setNeedRefresh(true);
       })
       .catch((err) => {
         console.log(err.response.data.message);

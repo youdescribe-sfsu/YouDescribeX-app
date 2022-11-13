@@ -390,9 +390,10 @@ const EditClipComponent = (props) => {
         toast.success(
           'Clip Deleted Successfully!! Please wait while we fetch latest Clip Data'
         );
-        setTimeout(() => {
-          window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
-        }, 3000); // setting the timeout to show the toast message for 4 sec
+        // setTimeout(() => {
+        //   window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
+        // }, 3000); // setting the timeout to show the toast message for 4 sec
+        props.setNeedRefresh(true);
       })
       .catch((err) => {
         console.error(err);

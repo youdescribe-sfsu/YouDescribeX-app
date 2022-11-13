@@ -34,6 +34,7 @@ const AudioClipComponent = (props) => {
   const clip_audio_path = props.clip.clip_audio_path;
   const is_recorded = props.clip.is_recorded;
   const clip_created_at = props.clip.createdAt;
+  const setNeedRefresh = props.setNeedRefresh;
 
   // React State Variables
   const [clipPlaybackType, setClipPlayBackType] = useState('');
@@ -375,6 +376,7 @@ const AudioClipComponent = (props) => {
           videoLength={videoLength}
           setShowSpinner={props.setShowSpinner}
           audioDescriptionId={props.audioDescriptionId}
+          setNeedRefresh = {setNeedRefresh}
         />
       ) : (
         <> </>
