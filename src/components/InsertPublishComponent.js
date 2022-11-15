@@ -6,7 +6,7 @@ import {
   useNavigate
 } from "react-router-dom";
 import NewAudioClipComponent from './NewAudioClipComponent';
-import Modal from '../modules/Modal';
+import ModalComponent from '../modules/Modal';
 
 const InsertPublishComponent = (props) => {
   // destructuring props
@@ -27,6 +27,8 @@ const InsertPublishComponent = (props) => {
   // const [timeData,setTimeData] = useState(seconds);
   const [showInlineACComponent, setShowInlineACComponent] = useState(false);
   const [showNewACComponent, setShowNewACComponent] = useState(false);
+  const [isModal,setIsModal] = useState(false);
+
   const handleClickInsertInline = (e) => {
     e.preventDefault();
     setShowNewACComponent(true);
@@ -122,15 +124,23 @@ const InsertPublishComponent = (props) => {
             className="btn publish-bg text-white"
             data-bs-toggle="modal"
             data-bs-target="#publishModal"
-            onClick={handleClickPublish}
+            onClick={()=>setIsModal(true)}
+            
           >
             <i className="fa fa-upload" /> {'   '}
             Publish
           </button>
         </div>
+        
       </div>
       {/* Publish Modal Confirmation Modal - opens when user hits Publish buton and asks for a confirmation */}
-      <Modal id="publishModal" title="Publish" text="Are you sure?"  modalTask={handlePublish}/>
+      <ModalComponent 
+        id="publishModal" 
+        title="Publish" 
+        text="Are you sure you want to publish this audio description?"  
+        modalTask={handlePublish} 
+        show={isModal}
+        handleClose={()=>setIsModal(false)}/>
     </React.Fragment>
   );
 };

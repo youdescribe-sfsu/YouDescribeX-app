@@ -4,9 +4,9 @@ import convertSecondsToCardFormat from '../helperFunctions/convertSecondsToCardF
 import '../assets/css/editAudioDesc.css';
 import axios from 'axios';
 import { toast } from 'react-toastify'; // for toast messages
-import Modal from '../modules/Modal';
 import TextareaAutosize from 'react-textarea-autosize';
-
+import ModalComponent from '../modules/Modal';
+import Button from "react-bootstrap/Button";
 const EditClipComponent = (props) => {
   const ref = useRef();
   // destructuring props
@@ -44,6 +44,8 @@ const EditClipComponent = (props) => {
   const [clipDurationMinutes, setClipDurationMinutes] = useState(0.0);
   const [clipDurationSeconds, setClipDurationSeconds] = useState(0.0);
   const [clipDurationMilliSeconds, setClipDurationMilliSeconds] = useState(0.0);
+  const [isDeleteModal,setIsDeleteModal] = useState(false);
+  const [isReplaceModal,setIsReplaceModal] = useState(false);
 
   // const [clipEndTimeMinutes, setClipEndTimeMinutes] = useState(0.0);
   // const [clipEndTimeSeconds, setClipEndTimeSeconds] = useState(0.0);
@@ -90,6 +92,7 @@ const EditClipComponent = (props) => {
       });
     }
 
+    
     // following statements execute whenever mediaBlobUrl is updated.. used it in the dependency array
     if (mediaBlobUrl !== null) {
       setRecordedAudio(new Audio(mediaBlobUrl));
@@ -494,14 +497,15 @@ const EditClipComponent = (props) => {
               ></TextareaAutosize>
               {/* play, save & Delete buttons */}
               <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
-                <button
+                <Button
                   type="button"
                   className="btn rounded btn-sm text-white bg-danger"
-                  data-bs-toggle="modal"
-                  data-bs-target="#deleteModal"
+                  // data-bs-toggle="modal"
+                  // data-bs-target="#deleteModal"
+                  onClick={()=>setIsDeleteModal(true)}
                 >
                   <i className="fa fa-trash" /> {'  '} Delete
-                </button>
+                </Button>
                 <button
                   type="button"
                   className="btn rounded btn-sm text-white save-desc-btn"
@@ -736,13 +740,13 @@ const EditClipComponent = (props) => {
                   data-bs-placement="bottom"
                   title="No recording to Replace"
                 >
-                  <button
+                  <Button
                     type="button"
                     className="btn rounded btn-sm text-white primary-btn-color disabled-btn"
                     disabled
                   >
                     Replace
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : isRecordedAudioPlaying ? ( //Listen to your recording
@@ -789,14 +793,15 @@ const EditClipComponent = (props) => {
                   data-bs-placement="bottom"
                   title="Replace the AI's Voice with your Voice"
                 >
-                  <button
+                  <Button
                     type="button"
                     className="btn rounded btn-sm text-white primary-btn-color"
-                    data-bs-toggle="modal"
-                    data-bs-target="#replaceModal"
+                    // data-bs-toggle="modal"
+                    // data-bs-target="#replaceModal"
+                    onClick={()=>setIsReplaceModal(true)}
                   >
                     Replace
-                  </button>
+                  </Button>
                 </div>
               </>
             )}
@@ -836,19 +841,23 @@ const EditClipComponent = (props) => {
       </div>
 
       {/* <!-- Replace Modal --> Confirmation Modal - opens when user hits Replace and asks for a confirmation if AI's audio is to be replaced with the user recorded audio*/}
-      <Modal
+      {<ModalComponent
         id="replaceModal"
         title="Replace"
         text="Are you sure you want to replace AI's voice with the one you recorded?"
-        modalTask={handleClickReplaceClip}
-      />
+        modalTask={(e) => handleClickReplaceClip(e)}
+        show={isReplaceModal}
+        handleClose={()=>setIsReplaceModal(false)}
+      />}
       {/* <!-- Delete Modal --> Confirmation Modal - opens when user hits Delete and asks for a confirmation if Audio Clip need to be deleted*/}
-      <Modal
+      {<ModalComponent
         id="deleteModal"
         title="Delete"
-        text="Are you sure you want to delete the Audio Clip?"
-        modalTask={handleClickDeleteClip}
-      />
+        text={"Are you sure you want to delete the Audio Clip?"}
+        modalTask={(e) => handleClickDeleteClip(e)}
+        show={isDeleteModal}
+        handleClose={()=>setIsDeleteModal(false)}
+      />}
     </div>
   );
 };

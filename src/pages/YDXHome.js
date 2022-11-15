@@ -269,7 +269,7 @@ const YDXHome = (props) => {
         if (editComponentToggleList.length === 0 || isNewClipAdded) {
           setEditComponentToggleList(tempArray);
         }
-        setAudioClips(audioClipsData);
+        setAudioClips([...audioClipsData]);
         setNotesData(notesData);
       })
       .catch((err) => {

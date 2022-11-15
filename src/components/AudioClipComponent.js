@@ -353,7 +353,7 @@ const AudioClipComponent = (props) => {
         </div>
       </div>
       {/* Based on the state of the showEditComponent variable, the edit component will be displayed*/}  
-      {showEditComponent ? (    
+      {showEditComponent && (    
         <EditClipComponent
           handleClipStartTimeUpdate={handleClipStartTimeUpdate}
           userId={userId}
@@ -377,8 +377,6 @@ const AudioClipComponent = (props) => {
           audioDescriptionId={props.audioDescriptionId}
           fetchUserVideoData={props.fetchUserVideoData}
         />
-      ) : (
-        <> </>
       )}
       </div>
     </React.Fragment>
