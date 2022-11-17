@@ -21,7 +21,7 @@ const App = () => {
       <ToastContainer
         className="toast-btn"
         position="top-center"
-        autoClose={4000}
+        autoClose={1000}
         closeOnClick
         draggable
         pauseOnFocusLoss
