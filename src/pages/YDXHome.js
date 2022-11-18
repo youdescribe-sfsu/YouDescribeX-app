@@ -12,6 +12,7 @@ import convertSecondsToCardFormat from '../helperFunctions/convertSecondsToCardF
 import InsertPublishComponent from '../components/InsertPublishComponent';
 import ButtonsComponent from '../components/ButtonsComponent';
 import Spinner from '../modules/Spinner';
+import { Howl } from 'howler';
 
 
 const YDXHome = (props) => {
@@ -247,7 +248,11 @@ const YDXHome = (props) => {
             '.',
             '/api/static'
           );
-          clip.clip_audio = new Audio(clip.clip_audio_path);
+          clip.clip_audio = new Howl({
+            src: clip.clip_audio_path,
+            html5: false,
+            pool: 1
+          });
 
           // set the showEditComponent of the new clip to true.. compare time
           if (date - new Date(clip.createdAt) <= ONE_MIN) {
@@ -306,9 +311,9 @@ const YDXHome = (props) => {
       const filteredClip = audioClips.filter(
         (clip) =>
           parseFloat(updatedCurrentTime) >=
-            parseFloat(parseFloat(clip.clip_start_time) - 0.07) &&
+            parseFloat(parseFloat(clip.clip_start_time) - 0.1) &&
           parseFloat(updatedCurrentTime) <=
-            parseFloat(parseFloat(clip.clip_start_time) + 0.07)
+            parseFloat(parseFloat(clip.clip_start_time) + 0.1)
       );
       if (filteredClip.length !== 0) {
         const prevelement = document.querySelectorAll('.green-border');
@@ -325,11 +330,18 @@ const YDXHome = (props) => {
               // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
               setEditComponentToggleFunc(filteredClip[0].clip_id, true);
               const currentAudio = filteredClip[0].clip_audio;
-              currentAudio.play();
+              console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][INLINE] Playing Audio Clip -> Original Start Time = ${filteredClip[0].clip_start_time}`);
+              if (!currentAudio.playing()){
+                currentAudio.play();
+              }
               // see onStateChange() - storing current inline clip.
               setCurrInlineAC(currentAudio);
               // ended event listener, to set the currInlineAC back to null
-              currentAudio.addEventListener('ended', function () {
+              currentAudio.on('play', function () {
+                console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][INLINE][Howler JS] Audio Clip started playing`)
+              });
+              currentAudio.on('end', function () {
+                console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][INLINE][Howler JS] Audio Clip ended`);
                 setCurrInlineAC(null); // setting back to null, as it is played completely.
               });
             }
@@ -342,11 +354,19 @@ const YDXHome = (props) => {
               setEditComponentToggleFunc(filteredClip[0].clip_id, true);
               const currentAudio = filteredClip[0].clip_audio;
               currentEvent.pauseVideo();
-              currentAudio.play();
+              console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][EXTENDED] Playing Audio CLIP -> Original Start Time = ${filteredClip[0].clip_start_time}`);
+              console.log('Current Audio Clip -> ', currentAudio);
+              if (!currentAudio.playing()){
+                currentAudio.play();
+              }
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio);
               // youtube video should be played after the clip has finished playing
-              currentAudio.addEventListener('ended', function () {
+              currentAudio.on('play', function () {
+                console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][EXTENDED][Howler JS] Audio Clip started playing`)
+              });
+              currentAudio.on('end', function () {
+                console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][EXTENDED][Howler JS] Audio Clip ended`);
                 setCurrExtendedAC(null); // setting back to null, as it is played completely.
                 currentEvent.playVideo();
                 setCurrentExtACPaused(false); // reset the play/pause state
@@ -387,7 +407,7 @@ const YDXHome = (props) => {
         if (currInlineAC !== null) {
           // to stop playing -> pause and set time to 0
           currInlineAC.play();
-          currInlineAC.addEventListener('ended', function () {
+          currInlineAC.on('end', function () {
             setCurrInlineAC(null); // setting back to null, as it is played completely.
           });
           // currInlineAC.currentTime = 0;
