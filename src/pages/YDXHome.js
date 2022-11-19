@@ -250,7 +250,7 @@ const YDXHome = (props) => {
           );
           clip.clip_audio = new Howl({
             src: clip.clip_audio_path,
-            html5: false,
+            html5: true,
             pool: 1
           });
 
@@ -275,6 +275,7 @@ const YDXHome = (props) => {
           setEditComponentToggleList(tempArray);
         }
         setAudioClips([...audioClipsData]);
+        // console.log("Audio Clips", audioClips);
         setNotesData(notesData);
       })
       .catch((err) => {
@@ -311,14 +312,15 @@ const YDXHome = (props) => {
       const filteredClip = audioClips.filter(
         (clip) =>
           parseFloat(updatedCurrentTime) >=
-            parseFloat(parseFloat(clip.clip_start_time) - 0.1) &&
+            parseFloat(parseFloat(clip.clip_start_time) - 0.02) &&
           parseFloat(updatedCurrentTime) <=
-            parseFloat(parseFloat(clip.clip_start_time) + 0.1)
+            parseFloat(parseFloat(clip.clip_start_time) + 0.02)
       );
       if (filteredClip.length !== 0) {
+        console.log('Updated Current Time', updatedCurrentTime, 'Clip Start Time', filteredClip[0].clip_start_time);
         const prevelement = document.querySelectorAll('.green-border');
         prevelement.forEach(elem => (elem.classList.remove('green-border')))
-        if (playedAudioClip != filteredClip[0].clip_id) {
+        if (playedAudioClip !== filteredClip[0].clip_id) {
           setPlayedAudioClip(filteredClip[0].clip_id);
           //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(updatedCurrentTime);
@@ -332,6 +334,7 @@ const YDXHome = (props) => {
               const currentAudio = filteredClip[0].clip_audio;
               console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][INLINE] Playing Audio Clip -> Original Start Time = ${filteredClip[0].clip_start_time}`);
               if (!currentAudio.playing()){
+                currentAudio.seek(0);
                 currentAudio.play();
               }
               // see onStateChange() - storing current inline clip.
@@ -355,8 +358,8 @@ const YDXHome = (props) => {
               const currentAudio = filteredClip[0].clip_audio;
               currentEvent.pauseVideo();
               console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][EXTENDED] Playing Audio CLIP -> Original Start Time = ${filteredClip[0].clip_start_time}`);
-              console.log('Current Audio Clip -> ', currentAudio);
               if (!currentAudio.playing()){
+                currentAudio.seek(0);
                 currentAudio.play();
               }
               // see onStateChange() - storing current Extended Clip
