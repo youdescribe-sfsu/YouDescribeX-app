@@ -312,11 +312,12 @@ const YDXHome = (props) => {
       const filteredClip = audioClips.filter(
         (clip) =>
           parseFloat(updatedCurrentTime) >=
-            parseFloat(parseFloat(clip.clip_start_time) - 0.02) &&
+            parseFloat(parseFloat(clip.clip_start_time) - 0.01) &&
           parseFloat(updatedCurrentTime) <=
-            parseFloat(parseFloat(clip.clip_start_time) + 0.02)
+            parseFloat(parseFloat(clip.clip_start_time) + 0.01)
       );
       if (filteredClip.length !== 0) {
+        console.log('Filtered Clips Length', filteredClip.length);
         console.log('Updated Current Time', updatedCurrentTime, 'Clip Start Time', filteredClip[0].clip_start_time);
         const prevelement = document.querySelectorAll('.green-border');
         prevelement.forEach(elem => (elem.classList.remove('green-border')))
