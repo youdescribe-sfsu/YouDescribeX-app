@@ -312,75 +312,100 @@ const YDXHome = (props) => {
       const filteredClip = audioClips.filter(
         (clip) =>
           parseFloat(updatedCurrentTime) >=
-            parseFloat(parseFloat(clip.clip_start_time) - 0.01) &&
+            parseFloat(parseFloat(clip.clip_start_time) - 0.1) &&
           parseFloat(updatedCurrentTime) <=
-            parseFloat(parseFloat(clip.clip_start_time) + 0.01)
+            parseFloat(parseFloat(clip.clip_start_time) + 0.1)
       );
       if (filteredClip.length !== 0) {
-        console.log('Filtered Clips Length', filteredClip.length);
-        console.log('Updated Current Time', updatedCurrentTime, 'Clip Start Time', filteredClip[0].clip_start_time);
-        const prevelement = document.querySelectorAll('.green-border');
-        prevelement.forEach(elem => (elem.classList.remove('green-border')))
-        if (playedAudioClip !== filteredClip[0].clip_id) {
-          setPlayedAudioClip(filteredClip[0].clip_id);
-          //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
-          setRecentAudioPlayedTime(updatedCurrentTime);
-          const clip_audio_path = filteredClip[0].clip_audio_path;
-          // play along with the video if the clip is an inline clip
-          if (filteredClip[0].playback_type === 'inline') {
-            if (clip_audio_path !== playedClipPath) {
-              setPlayedClipPath(clip_audio_path);
-              // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-              setEditComponentToggleFunc(filteredClip[0].clip_id, true);
-              const currentAudio = filteredClip[0].clip_audio;
-              console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][INLINE] Playing Audio Clip -> Original Start Time = ${filteredClip[0].clip_start_time}`);
-              if (!currentAudio.playing()){
-                currentAudio.seek(0);
-                currentAudio.play();
+        filteredClip.forEach((currentFilteredClip) => {
+          console.log("Filtered Clips Length", filteredClip.length);
+          console.log(
+            "Updated Current Time",
+            updatedCurrentTime,
+            "Clip Start Time",
+            currentFilteredClip.clip_start_time
+          );
+          const prevelement = document.querySelectorAll(".green-border");
+          prevelement.forEach((elem) => elem.classList.remove("green-border"));
+          if (playedAudioClip !== currentFilteredClip.clip_id) {
+            setPlayedAudioClip(currentFilteredClip.clip_id);
+            //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
+            setRecentAudioPlayedTime(updatedCurrentTime);
+            const clip_audio_path = currentFilteredClip.clip_audio_path;
+            // play along with the video if the clip is an inline clip
+            if (currentFilteredClip.playback_type === "inline") {
+              if (clip_audio_path !== playedClipPath) {
+                setPlayedClipPath(clip_audio_path);
+                // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
+                setEditComponentToggleFunc(currentFilteredClip.clip_id, true);
+                const currentAudio = currentFilteredClip.clip_audio;
+                console.log(
+                  new Date().toISOString(),
+                  `[${currentFilteredClip.clip_id}][INLINE] Playing Audio Clip -> Original Start Time = ${currentFilteredClip.clip_start_time}`
+                );
+                if (!currentAudio.playing()) {
+                  currentAudio.seek(0);
+                  currentAudio.play();
+                }
+                // see onStateChange() - storing current inline clip.
+                setCurrInlineAC(currentAudio);
+                // ended event listener, to set the currInlineAC back to null
+                currentAudio.on("play", function () {
+                  console.log(
+                    new Date().toISOString(),
+                    `[${currentFilteredClip.clip_id}][INLINE][Howler JS] Audio Clip started playing`
+                  );
+                });
+                currentAudio.on("end", function () {
+                  console.log(
+                    new Date().toISOString(),
+                    `[${currentFilteredClip.clip_id}][INLINE][Howler JS] Audio Clip ended`
+                  );
+                  setCurrInlineAC(null); // setting back to null, as it is played completely.
+                });
               }
-              // see onStateChange() - storing current inline clip.
-              setCurrInlineAC(currentAudio);
-              // ended event listener, to set the currInlineAC back to null
-              currentAudio.on('play', function () {
-                console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][INLINE][Howler JS] Audio Clip started playing`)
-              });
-              currentAudio.on('end', function () {
-                console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][INLINE][Howler JS] Audio Clip ended`);
-                setCurrInlineAC(null); // setting back to null, as it is played completely.
-              });
+            }
+            // play after pausing the youtube video if the clip is an extended clip
+            else if (currentFilteredClip.playback_type === "extended") {
+              if (clip_audio_path !== playedClipPath) {
+                setPlayedClipPath(clip_audio_path);
+                // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
+                setEditComponentToggleFunc(currentFilteredClip.clip_id, true);
+                const currentAudio = currentFilteredClip.clip_audio;
+                currentEvent.pauseVideo();
+                console.log(
+                  new Date().toISOString(),
+                  `[${currentFilteredClip.clip_id}][EXTENDED] Playing Audio CLIP -> Original Start Time = ${currentFilteredClip.clip_start_time}`
+                );
+                if (!currentAudio.playing()) {
+                  currentAudio.seek(0);
+                  currentAudio.play();
+                }
+                // see onStateChange() - storing current Extended Clip
+                setCurrExtendedAC(currentAudio);
+                // youtube video should be played after the clip has finished playing
+                currentAudio.on("play", function () {
+                  console.log(
+                    new Date().toISOString(),
+                    `[${currentFilteredClip.clip_id}][EXTENDED][Howler JS] Audio Clip started playing`
+                  );
+                });
+                currentAudio.on("end", function () {
+                  console.log(
+                    new Date().toISOString(),
+                    `[${currentFilteredClip.clip_id}][EXTENDED][Howler JS] Audio Clip ended`
+                  );
+                  setCurrExtendedAC(null); // setting back to null, as it is played completely.
+                  currentEvent.playVideo();
+                  setCurrentExtACPaused(false); // reset the play/pause state
+                });
+              }
             }
           }
-          // play after pausing the youtube video if the clip is an extended clip
-          else if (filteredClip[0].playback_type === 'extended') {
-            if (clip_audio_path !== playedClipPath) {
-              setPlayedClipPath(clip_audio_path);
-              // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-              setEditComponentToggleFunc(filteredClip[0].clip_id, true);
-              const currentAudio = filteredClip[0].clip_audio;
-              currentEvent.pauseVideo();
-              console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][EXTENDED] Playing Audio CLIP -> Original Start Time = ${filteredClip[0].clip_start_time}`);
-              if (!currentAudio.playing()){
-                currentAudio.seek(0);
-                currentAudio.play();
-              }
-              // see onStateChange() - storing current Extended Clip
-              setCurrExtendedAC(currentAudio);
-              // youtube video should be played after the clip has finished playing
-              currentAudio.on('play', function () {
-                console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][EXTENDED][Howler JS] Audio Clip started playing`)
-              });
-              currentAudio.on('end', function () {
-                console.log(new Date().toISOString(), `[${filteredClip[0].clip_id}][EXTENDED][Howler JS] Audio Clip ended`);
-                setCurrExtendedAC(null); // setting back to null, as it is played completely.
-                currentEvent.playVideo();
-                setCurrentExtACPaused(false); // reset the play/pause state
-              });
-            }
-          }
-        }
-      const element = document.getElementById(filteredClip[0].clip_id);
-      element.scrollIntoView({behavior: 'smooth',block: 'start',})
-      element.classList.add('green-border');
+          const element = document.getElementById(currentFilteredClip.clip_id);
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+          element.classList.add("green-border");
+        });
       }
     }
   };
