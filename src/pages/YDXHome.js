@@ -695,7 +695,7 @@ const YDXHome = (props) => {
             </div>
           </div>
         </div>
-        <div className="row">
+        {/* <div className="row">
           <div className="col-3 text-white" ref={divRef1}>
             <h6 className="dialog-timeline-text text-center fw-bolder">
               Sampling Rate:
@@ -710,7 +710,7 @@ const YDXHome = (props) => {
               <option value={10}>1/100</option>
             </select>
           </div>
-        </div>
+        </div> */}
         {/* Map Audio Clips Component */}
         <div className="audio-desc-component-list" id="audio-list">
           {audioClips.map((clip, key) => (
