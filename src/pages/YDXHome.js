@@ -84,7 +84,8 @@ const YDXHome = (props) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const { elapsedTime } = useElapsedTime({ isPlaying });
 
-  const [seconds, setSeconds] = useState(0);
+  const storedValueAsNumber = Number(localStorage.getItem('Seconds'));
+  const [seconds, setSeconds] = useState(Number.isInteger(storedValueAsNumber) ? storedValueAsNumber : 0);
   const [isActive, setIsActive] = useState(false);
 
   const [needRefresh, setNeedRefresh] = useState(false);
@@ -134,6 +135,11 @@ const YDXHome = (props) => {
     updateData, // to fetch data whenever updateData state is changed.
     setEditComponentToggleList,
   ]);
+
+  useEffect(() => {
+    localStorage.setItem('Seconds', String(seconds));
+  }, [seconds]);
+
 
   useEffect(() => {
     if(needRefresh) {
