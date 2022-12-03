@@ -102,6 +102,11 @@ const UserStudyHome = (props) => {
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder"> Tutorial Video</h6>
          </div>
+         <div className="mx-auto my-auto text-bars align-items-center border rounded">
+            <h6 className="tutorial-text text-center font-weight-bolder">
+                <a href={`https://www.youtube.com/playlist?list=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7`}>Audio Description Basics for beginners</a>
+            </h6>
+          </div>
         </div>
         <hr />
         <div>
