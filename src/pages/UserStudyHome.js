@@ -4,7 +4,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import '../assets/css/userstudyhome.css';
 import Navbar from 'react-bootstrap/Navbar';
-import { RiSurveyFill,RiExternalLinkLine } from 'react-icons/ri';
+import { RiSurveyFill,RiExternalLinkLine, RiPlayCircleFill } from 'react-icons/ri';
 
 // import '../assets/css/editAudioDesc.css';
 // import '../assets/css/notes.css';
@@ -104,7 +104,8 @@ const UserStudyHome = (props) => {
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
               <h6 className="tutorial-text text-center font-weight-bolder">
                   <a href={`https://www.youtube.com/playlist?list=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7`}>
-                    <img src={`http://img.youtube.com/vi/24Pmmo9wKik/0.jpg`} width="70" height="70"></img>
+                    {/* <img src={`http://img.youtube.com/vi/24Pmmo9wKik/0.jpg`} width="70" height="70"></img> */}
+                    <RiPlayCircleFill/>
                     &nbsp;Audio Description Basics for beginners</a>
               </h6>
           </div>
@@ -119,13 +120,15 @@ const UserStudyHome = (props) => {
             <h6 className="tutorial-text text-center font-weight-bolder">
               {randomOrder ? 
                 <a href={`/videopage/${videoIdWithoutAi}`}>
-                  <img src={`http://img.youtube.com/vi/${videoIdWithoutAi}/0.jpg`} width="70" height="70"></img>
+                  {/* <img src={`http://img.youtube.com/vi/${videoIdWithoutAi}/0.jpg`} width="70" height="70"></img> */}
+                  <RiPlayCircleFill/>
                   &nbsp;
                   Play Video 1 
                 </a> 
               : 
                 <a href={`/videopage/${videoIdWithAi}`} >
-                  <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img>
+                  {/* <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img> */}
+                  <RiPlayCircleFill/>
                   &nbsp;
                   Play Video 1 
                 </a>
@@ -186,13 +189,15 @@ const UserStudyHome = (props) => {
             <h6 className="tutorial-text text-center font-weight-bolder">
               {randomOrder ? 
                 <Link to={`/videopage/${videoIdWithAi}`} >
-                  <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img>
+                  {/* <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img> */}
+                  <RiPlayCircleFill/>
                   &nbsp;
                   Play Video 2 
                 </Link>
               : 
                 <Link to={`/videopage/${videoIdWithoutAi}`}>
-                  <img src={`http://img.youtube.com/vi/${videoIdWithoutAi}/0.jpg`} width="70" height="70"></img>
+                  {/* <img src={`http://img.youtube.com/vi/${videoIdWithoutAi}/0.jpg`} width="70" height="70"></img> */}
+                  <RiPlayCircleFill/>
                   &nbsp;
                   Play Video 2 
                 </Link> 
