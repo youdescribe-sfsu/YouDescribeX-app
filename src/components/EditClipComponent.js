@@ -498,21 +498,18 @@ const EditClipComponent = (props) => {
               {/* play, save & Delete buttons */}
               <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
                 <Button
-                  type="button"
                   className="btn rounded btn-sm text-white bg-danger"
-                  // data-bs-toggle="modal"
-                  // data-bs-target="#deleteModal"
                   onClick={()=>setIsDeleteModal(true)}
                 >
                   <i className="fa fa-trash" /> {'  '} Delete
                 </Button>
-                <button
+                <Button
                   type="button"
                   className="btn rounded btn-sm text-white save-desc-btn"
                   onClick={handleClickSaveClipDescription}
                 >
                   <i className="fa fa-save" /> {'  '} Save
-                </button>
+                </Button>
                 {isAdAudioPlaying ? (
                   <button
                     type="button"
@@ -741,7 +738,6 @@ const EditClipComponent = (props) => {
                   title="No recording to Replace"
                 >
                   <Button
-                    type="button"
                     className="btn rounded btn-sm text-white primary-btn-color disabled-btn"
                     disabled
                   >
@@ -766,14 +762,12 @@ const EditClipComponent = (props) => {
                   data-bs-placement="bottom"
                   title="Replace the AI's Voice with your Voice"
                 >
-                  <button
-                    type="button"
+                  <Button
                     className="btn rounded btn-sm text-white primary-btn-color"
-                    data-bs-toggle="modal"
-                    data-bs-target="#replaceModal"
+                    onClick={()=>setIsReplaceModal(true)}
                   >
                     Replace
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : (
@@ -794,10 +788,7 @@ const EditClipComponent = (props) => {
                   title="Replace the AI's Voice with your Voice"
                 >
                   <Button
-                    type="button"
                     className="btn rounded btn-sm text-white primary-btn-color"
-                    // data-bs-toggle="modal"
-                    // data-bs-target="#replaceModal"
                     onClick={()=>setIsReplaceModal(true)}
                   >
                     Replace

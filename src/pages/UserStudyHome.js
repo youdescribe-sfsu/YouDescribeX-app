@@ -4,6 +4,8 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import '../assets/css/userstudyhome.css';
 import Navbar from 'react-bootstrap/Navbar';
+import { RiSurveyFill,RiExternalLinkLine } from 'react-icons/ri';
+
 // import '../assets/css/editAudioDesc.css';
 // import '../assets/css/notes.css';
 import { useElapsedTime } from "use-elapsed-time";
@@ -100,49 +102,80 @@ const UserStudyHome = (props) => {
         <hr />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"> Tutorial Video</h6>
-         </div>
-         <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder">
-                <a href={`https://www.youtube.com/playlist?list=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7`}>Audio Description Basics for beginners</a>
-            </h6>
+              <h6 className="tutorial-text text-center font-weight-bolder">
+                  <a href={`https://www.youtube.com/playlist?list=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7`}>
+                    <img src={`http://img.youtube.com/vi/24Pmmo9wKik/0.jpg`} width="70" height="70"></img>
+                    &nbsp;Audio Description Basics for beginners</a>
+              </h6>
           </div>
+          <div className="mx-auto my-auto text-bars align-items-center border rounded">
+            <h6 className="tutorial-text text-center font-weight-bolder"><RiExternalLinkLine/>
+                  &nbsp;Tutorial Video</h6>
+         </div>
         </div>
         <hr />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               {randomOrder ? 
-                <Link to={`/videopage/${videoIdWithoutAi}`}>Play Video 1 </Link> 
+                <a href={`/videopage/${videoIdWithoutAi}`}>
+                  <img src={`http://img.youtube.com/vi/${videoIdWithoutAi}/0.jpg`} width="70" height="70"></img>
+                  &nbsp;
+                  Play Video 1 
+                </a> 
               : 
-                <Link to={`/videopage/${videoIdWithAi}`} >Play Video 1 </Link>
+                <a href={`/videopage/${videoIdWithAi}`} >
+                  <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img>
+                  &nbsp;
+                  Play Video 1 
+                </a>
               } 
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               { randomOrder ?
-                <Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>FreeStyle Interface</Link>
+                <Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>
+                  {/* <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img> */}
+                  <RiExternalLinkLine/>
+                  &nbsp;
+                  FreeStyle Interface
+                </Link>
               :
-                <Link to={`/${videoIdWithAi}/${userIdWithAi}`} >AI Prompted Interface</Link>
+                <Link to={`/${videoIdWithAi}/${userIdWithAi}`} >
+                  {/* <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img> */}
+                  <RiExternalLinkLine/>
+                  &nbsp;
+                  AI Prompted Interface
+                </Link>
               }
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               { randomOrder ?
-                <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>User Survey for Video 1</a>
+                <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>
+                  {/* <img src="../assets/images/survey.png" width="70" height="70"></img> */}
+                  <RiSurveyFill />
+                  &nbsp;
+                  User Survey for Video 1</a>
               :
-                <a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>User Survey for Video 1</a>             
+                <a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>
+                  {/* <img src="../assets/images/survey.png" width="70" height="70"></img> */}
+                  <RiSurveyFill/>
+                  &nbsp;
+                  User Survey for Video 1</a>             
               }
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               { randomOrder ?
-                <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}>NASA TLX Survey for Video 1</a>
+                <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}> <RiSurveyFill />
+                &nbsp;NASA TLX Survey for Video 1</a>
               :
-                <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}>NASA TLX Survey for Video 1</a>
+                <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}> <RiSurveyFill />
+                &nbsp;NASA TLX Survey for Video 1</a>
               }
             </h6>
           </div>
@@ -152,36 +185,50 @@ const UserStudyHome = (props) => {
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               {randomOrder ? 
-                <Link to={`/videopage/${videoIdWithAi}`} >Play Video 2 </Link>
+                <Link to={`/videopage/${videoIdWithAi}`} >
+                  <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img>
+                  &nbsp;
+                  Play Video 2 
+                </Link>
               : 
-                <Link to={`/videopage/${videoIdWithoutAi}`}>Play Video 2 </Link> 
+                <Link to={`/videopage/${videoIdWithoutAi}`}>
+                  <img src={`http://img.youtube.com/vi/${videoIdWithoutAi}/0.jpg`} width="70" height="70"></img>
+                  &nbsp;
+                  Play Video 2 
+                </Link> 
             } 
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               { randomOrder ?
-              <Link to={`/${videoIdWithAi}/${userIdWithAi}`} >AI Prompted Interface</Link>
+              <Link to={`/${videoIdWithAi}/${userIdWithAi}`} ><RiExternalLinkLine/>
+              &nbsp;AI Prompted Interface</Link>
               :
-              <Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>FreeStyle Interface</Link>
+              <Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}><RiExternalLinkLine/>
+              &nbsp;FreeStyle Interface</Link>
             }
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
             { randomOrder ?
-              <a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}>User Survey for Video 2</a>
+              <a href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}> <RiSurveyFill />
+              &nbsp;User Survey for Video 2</a>
               :
-              <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}>User Survey for Video 2</a>
+              <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}> <RiSurveyFill />
+              &nbsp;User Survey for Video 2</a>
             }
             </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
             { randomOrder ?
-              <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}>NASA TLX Survey for Video 2</a>
+              <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}> <RiSurveyFill />
+              &nbsp;NASA TLX Survey for Video 2</a>
               :
-              <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}>NASA TLX Survey for Video 2</a>
+              <a href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}> <RiSurveyFill />
+              &nbsp;NASA TLX Survey for Video 2</a>
             }
             </h6>
           </div>
@@ -190,7 +237,8 @@ const UserStudyHome = (props) => {
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-              <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfoIOrNWzZXK4tJ4QDIFLrM7-mSFhGtyW6opra67smrz2nbqw/viewform?usp=pp_url&entry.186159302=${participantId}`}> General Survey</a>
+              <a href={`https://docs.google.com/forms/d/e/1FAIpQLSfoIOrNWzZXK4tJ4QDIFLrM7-mSFhGtyW6opra67smrz2nbqw/viewform?usp=pp_url&entry.186159302=${participantId}`}> <RiSurveyFill />
+                  &nbsp; General Survey</a>
             </h6>
          </div>
         </div>

@@ -17,35 +17,23 @@ const ModalComponent = (props) => {
           {/* <!-- Modal Header --> */}
           <div className="modal-header">
             <h4 className="modal-title">{modalTitle}</h4>
-            <button
-              type="button"
+            <Button
               className="btn-close"
-              data-bs-dismiss="modal"
               onClick={handleClose}
-            ></button>
-            
+            ></Button>
           </div>
           {/* <!-- Modal body --> */}
           <div className="modal-body text-center">{modalText}</div>
           {/* <!-- Modal footer --> */}
           <div className="modal-footer d-flex justify-content-evenly align-items-center">
-            <button
-              type="button"
+            <Button
               className="btn primary-btn-color text-center m-1 text-white w-25"
-              data-bs-dismiss="modal"
               onClick={(e) => {
                 modalTask(e);
               }}
             >
               YES
-            </button>
-            {/* <button
-              type="button"
-              className="btn bg-secondary text-white"
-              data-bs-dismiss="modal"
-            >
-              Close
-            </button> */}
+            </Button>
             <Button variant="secondary" onClick={handleClose}>
               Close
           </Button>
