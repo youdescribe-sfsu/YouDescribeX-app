@@ -387,6 +387,7 @@ const EditClipComponent = (props) => {
   const handleClickDeleteClip = (e) => {
     props.setShowSpinner(true);
     e.preventDefault();
+    console.log(clip_id)
     axios
       .delete(`/api/audio-clips/delete-clip/${clip_id}`)
       .then((res) => {
@@ -394,6 +395,7 @@ const EditClipComponent = (props) => {
           'Clip Deleted Successfully!! Please wait while we fetch latest Clip Data'
         );
         props.fetchUserVideoData();
+        props.setNeedRefresh(true);
         // setTimeout(() => {
         //   window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
         // }, 3000); // setting the timeout to show the toast message for 4 sec

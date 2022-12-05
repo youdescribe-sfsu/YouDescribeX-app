@@ -739,6 +739,7 @@ const YDXHome = (props) => {
               divWidths={divWidths}
               handlePlayAudioClip={handlePlayAudioClip}
               fetchUserVideoData={fetchUserVideoData}
+              setNeedRefresh={setNeedRefresh}
             />
           ))}
         </div>
