@@ -30,6 +30,7 @@ const ModalComponent = (props) => {
               className="btn primary-btn-color text-center m-1 text-white w-25"
               onClick={(e) => {
                 modalTask(e);
+                handleClose(e);
               }}
             >
               YES
