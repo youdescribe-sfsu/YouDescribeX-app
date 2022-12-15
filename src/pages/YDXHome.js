@@ -425,7 +425,7 @@ const YDXHome = (props) => {
             element.scrollIntoView({ behavior: "smooth", block: "start" });
             element.classList.add("green-border");
           }
-          await waitForTimer(50);
+          await waitForTimer(200);
         }
       }
         // for (const currentFilteredClip of filteredClip) {
