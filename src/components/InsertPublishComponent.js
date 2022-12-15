@@ -59,6 +59,17 @@ const InsertPublishComponent = (props) => {
 
   const handlePublish = async (e) => {
     console.log("publish");
+    axios.post('/api/add-timedata-to-db/addtimedata', {
+      participant_id: participant_id,
+      time: seconds
+    })
+    .then(function (response) {
+      resetFunction();
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
     navigate(`/userstudy/${participant_id}`);
   };
 
