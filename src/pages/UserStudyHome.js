@@ -94,7 +94,7 @@ const UserStudyHome = (props) => {
       <div className="container home-container">     
         <div className=" text-white" >
           <h6 className="user-study-text text-center font-weight-bolder">
-          Note: Please do the tutorial first. Please ensure that you attempt the video descriptions below in sequential order only. 
+          Note: Please watch the tutorial first. Please ensure that you attempt the video descriptions below in sequential order only. 
           </h6>
           <h6 className="user-study-text text-center font-weight-bolder">For example, complete Video 1 Before Video 2
           </h6>
@@ -110,8 +110,12 @@ const UserStudyHome = (props) => {
               </h6>
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
-            <h6 className="tutorial-text text-center font-weight-bolder"><RiExternalLinkLine/>
-                  &nbsp;Tutorial Video</h6>
+            <h6 className="tutorial-text text-center font-weight-bolder">
+                  <a href={`https://screencast-o-matic.com/watch/c3lD3eVvBzE`}>
+                  <RiExternalLinkLine/>
+                  &nbsp;
+                  Tutorial Video</a>
+            </h6>
          </div>
         </div>
         <hr />

@@ -61,7 +61,8 @@ const InsertPublishComponent = (props) => {
     console.log("publish");
     axios.post('/api/add-timedata-to-db/addtimedata', {
       participant_id: participant_id,
-      time: seconds
+      time: seconds,
+      video_id: youtubeVideoId
     })
     .then(function (response) {
       resetFunction();
