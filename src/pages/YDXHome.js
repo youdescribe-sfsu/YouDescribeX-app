@@ -600,6 +600,7 @@ const YDXHome = (props) => {
       currentEvent.pauseVideo();
       setGloballyPaused(true);
     } else {
+      if(!isActive) setIsActive(true);
       currentEvent.playVideo();
       setGloballyPaused(false);
     }
