@@ -456,6 +456,7 @@ const YDXHome = (props) => {
         // User plays the YT Video. Extended is still played along with the video. Overlapping with Dialogs &/ other audio clips
         // Work around - add current extended audio clip to a state variable & check if YT state is changed to playing i.e. 1
         // if yes, stop playing the extended audio clip & set the state back to null
+        if(!isActive) setIsActive(true); //if the timer is paused it will start again when the video plays
         if (currExtendedAC !== null) {
           // to stop playing -> pause and set time to 0
           currExtendedAC.pause();
@@ -600,7 +601,7 @@ const YDXHome = (props) => {
       currentEvent.pauseVideo();
       setGloballyPaused(true);
     } else {
-      if(!isActive) setIsActive(true);
+      if(!isActive) setIsActive(true); //if the timer is paused it will start again when the video plays
       currentEvent.playVideo();
       setGloballyPaused(false);
     }
