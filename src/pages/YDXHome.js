@@ -87,6 +87,7 @@ const YDXHome = (props) => {
   const storedValueAsNumber = Number(localStorage.getItem('Seconds'));
   const [seconds, setSeconds] = useState(Number.isInteger(storedValueAsNumber) ? storedValueAsNumber : 0);
   const [isActive, setIsActive] = useState(false);
+  const [user,setUser] = useState(sessionStorage.getItem("User"));
 
   const [needRefresh, setNeedRefresh] = useState(false);
   // const [clipDeleted, setClipDeleted] = useState(false);
@@ -102,6 +103,7 @@ const YDXHome = (props) => {
   }
 
   useEffect(() => {
+    setUser(userId);
     setDivWidths({
       divRef1:
         divRef1.current.clientWidth / 3 + divRef1.current.clientWidth / 3,
@@ -138,7 +140,8 @@ const YDXHome = (props) => {
 
   useEffect(() => {
     localStorage.setItem('Seconds', String(seconds));
-  }, [seconds]);
+    sessionStorage.setItem('User', user);
+  }, [seconds,user]);
 
 
   useEffect(() => {
@@ -148,6 +151,13 @@ const YDXHome = (props) => {
     }
   }, [needRefresh])
 
+  useEffect(()=>{
+    console.log(user);
+    console.log(userId);
+    if (userId != sessionStorage.getItem("User")) {
+        setSeconds(0);
+      }
+  },[])
   // for calculating the draggable-div width of the timeline
   const calculateDraggableDivWidth = () => {
     // remove the left & right margin - leaving about 96% of the total width of the draggable-div
