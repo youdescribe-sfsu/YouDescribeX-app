@@ -553,6 +553,7 @@ const YDXHome = (props) => {
     progressBarTime = position.x / unitLength;
     currentEvent.seekTo(progressBarTime);
     const currentTime = currentEvent.getCurrentTime();
+    setRecentAudioPlayedTime(0.0);
     setCurrentTime(currentTime);
     if (currExtendedAC !== null) {
       // to stop playing -> pause and set time to 0
