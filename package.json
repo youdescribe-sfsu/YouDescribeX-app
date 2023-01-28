@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^0.25.0",
     "bootstrap": "^5.2.2",
+    "debounce": "^1.2.1",
     "howler": "^2.2.3",
     "logrocket": "^3.0.1",
     "react": "^17.0.2",
