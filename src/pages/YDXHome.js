@@ -16,6 +16,7 @@ import { Howl } from 'howler';
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { debounce } from 'debounce';
+import { useMemo } from 'react';
 
 const useClipIDStore = create(devtools((set) => ({
   clipID: '',
@@ -109,6 +110,9 @@ const YDXHome = (props) => {
 
   // Previous time variable - Holds the value of previous time
   const [previousTime, setPreviousTime] = useState(0.0);
+  const [clipStack, setClipStack] = useState([]);
+
+  const clipStackRef = useRef();
 
   const clipID = useClipIDStore(state => state.clipID);
   const setClipID = useClipIDStore(state => state.setClipID);
@@ -174,6 +178,11 @@ const YDXHome = (props) => {
     sessionStorage.setItem('User', user);
   }, [seconds,user]);
 
+  useEffect(() => {
+    console.log('Clip Stack updated', clipStack);
+    clipStackRef.current = clipStack;
+  }, [clipStack])
+
 
   useEffect(() => {
     if(needRefresh) {
@@ -196,7 +205,7 @@ const YDXHome = (props) => {
   useEffect(()=>{
     console.log(user);
     console.log(userId);
-    if (userId != sessionStorage.getItem("User")) {
+    if (userId !== sessionStorage.getItem("User")) {
         setSeconds(0);
       }
   },[])
@@ -307,11 +316,6 @@ const YDXHome = (props) => {
             '.',
             '/api/static'
           );
-          clip.clip_audio = new Howl({
-            src: clip.clip_audio_path,
-            html5: true,
-            pool: 1
-          });
 
           // set the showEditComponent of the new clip to true.. compare time
           if (date - new Date(clip.createdAt) <= ONE_MIN) {
@@ -337,6 +341,17 @@ const YDXHome = (props) => {
         console.log(audioClipsData);
         // console.log("Audio Clips", audioClips);
         setNotesData(notesData);
+        let clipStackData = [];
+        for (let i = 0; i < 5; i++){
+          let clip = audioClipsData[i];
+          clip.clip_audio = new Howl({
+            src: clip.clip_audio_path,
+            html5: true,
+            pool: 1
+          });
+          clipStackData.push(clip);
+        }
+        setClipStack(clipStackData);
       })
       .catch((err) => {
         // console.error(err.response.data);
@@ -374,10 +389,10 @@ const YDXHome = (props) => {
       // playing
       // Compare current window with clip at current clip index
       if (
-        audioClips[currentClipIndexRef.current].clip_start_time <= currentTimeRef.current &&
-        audioClips[currentClipIndexRef.current].clip_start_time >= previousTimeRef.current
+        clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
+        clipStackRef.current[0].clip_start_time >= previousTimeRef.current
       ) {
-        const currentFilteredClip = audioClips[currentClipIndexRef.current];
+        const currentFilteredClip = clipStackRef.current[0];
         setCurrentClipIndex(currentClipIndexRef.current + 1);
         // console.log("Filtered Clips", filteredClip, 'CLIP COUNTER', clipCounter, previousTime, currentTime);
         const prevelement = document.querySelectorAll(".green-border");
@@ -412,6 +427,19 @@ const YDXHome = (props) => {
               });
               currentAudio.on("end", function () {
                 setCurrInlineAC(null);
+                currentAudio.unload();
+                let newClip = audioClips[currentClipIndexRef.current + 4];
+                console.log('New CLIP => ', newClip);
+                if (newClip){
+                  newClip.clip_audio = new Howl({
+                    src: newClip.clip_audio_path,
+                    html5: true,
+                    pool: 1
+                  });
+                  setClipStack([...clipStackRef.current.slice(1, 5), newClip]);
+                } else {
+                  setClipStack([...clipStackRef.current.slice(1, 5)]);
+                }
               });
             }
           }
@@ -435,7 +463,20 @@ const YDXHome = (props) => {
               currentAudio.on("end", function () {
                 setCurrExtendedAC(null); // setting back to null, as it is played completely.
                 currentEvent.playVideo();
+                currentAudio.unload();
                 setCurrentExtACPaused(false); // reset the play/pause state
+                let newClip = audioClips[currentClipIndexRef.current + 4];
+                console.log('New CLIP => ', newClip);
+                if (newClip){
+                  newClip.clip_audio = new Howl({
+                    src: newClip.clip_audio_path,
+                    html5: true,
+                    pool: 1
+                  });
+                  setClipStack([...clipStackRef.current.slice(1, 5), newClip]);
+                } else {
+                  setClipStack([...clipStackRef.current.slice(1, 5)]);
+                }
               });
             }
           }
@@ -563,7 +604,7 @@ const YDXHome = (props) => {
     setStoreCurrentTime(currentTime);
     setStorePreviousTime(currentTime);
     setClipID('');
-    updateClipIndexCallback();
+    updateClipsDataCallback();
     if (currExtendedAC !== null) {
       // to stop playing -> pause and set time to 0
       currExtendedAC.pause();
@@ -578,15 +619,37 @@ const YDXHome = (props) => {
       setCurrExtendedAC(null);
       currentEvent.playVideo();
     }
-  };
+  };  
 
-  const updateClipIndexCallback = debounce(() => {
+  
+  const updateClipStackData = useCallback(() => {
     let newClipIndex = audioClips.findIndex(
       (clip) => clip.clip_start_time > currentTimeRef.current
-    );
-    setCurrentClipIndex(newClipIndex);
-  }, 100);
-
+      );
+      setCurrentClipIndex(newClipIndex);
+      
+      // slice audio clips from newClipIndex to newClipIndex + 5
+      let clipStackData = [];
+      // Create Howl objects for each clip
+      for (let i = newClipIndex; i < newClipIndex + 5; i++){
+        let clip = audioClips[i];
+        if (clip){
+          clip.clip_audio = new Howl({
+            src: clip.clip_audio_path,
+            html5: true,
+            pool: 1
+          });
+          clipStackData.push(clip);
+        }
+      };
+      // Update clipStack
+      setClipStack(clipStackData);
+    }, [audioClips, setCurrentClipIndex]);
+    
+    const updateClipsDataCallback = useMemo(() => debounce(() => {
+      updateClipStackData();
+    }, 500), [updateClipStackData]);
+    
   // toggle Show Edit Component
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
