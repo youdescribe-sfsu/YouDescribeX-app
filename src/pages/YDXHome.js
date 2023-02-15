@@ -1,33 +1,38 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useElapsedTime } from "use-elapsed-time";
-import { useParams } from 'react-router-dom'; /* to use params on the url */
-import axios from 'axios';
-import YouTube from 'react-youtube';
-import Draggable from 'react-draggable';
-import '../assets/css/home.css';
-import AudioClipComponent from '../components/AudioClipComponent';
-import Timer from '../components/Timer';
-import Notes from '../components/NotesComponent';
-import convertSecondsToCardFormat from '../helperFunctions/convertSecondsToCardFormat';
-import InsertPublishComponent from '../components/InsertPublishComponent';
-import ButtonsComponent from '../components/ButtonsComponent';
-import Spinner from '../modules/Spinner';
-import { Howl } from 'howler';
-import { create } from 'zustand'
-import { devtools } from 'zustand/middleware'
-import { debounce } from 'debounce';
-import { useMemo } from 'react';
+import { useParams } from "react-router-dom"; /* to use params on the url */
+import axios from "axios";
+import YouTube from "react-youtube";
+import Draggable from "react-draggable";
+import "../assets/css/home.css";
+import AudioClipComponent from "../components/AudioClipComponent";
+import Timer from "../components/Timer";
+import Notes from "../components/NotesComponent";
+import convertSecondsToCardFormat from "../helperFunctions/convertSecondsToCardFormat";
+import InsertPublishComponent from "../components/InsertPublishComponent";
+import ButtonsComponent from "../components/ButtonsComponent";
+import Spinner from "../modules/Spinner";
+import { Howl } from "howler";
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import { debounce } from "debounce";
+import { useMemo } from "react";
 
-const useClipIDStore = create(devtools((set) => ({
-  clipID: '',
-  currentTime: 0.0,
-  previousTime: 0.0,
-  currentClipIndex: 0,
-  setClipID: (clipID) => set((state) => ({ ...state, clipID: clipID })),
-  setStoreCurrentTime: (time) => set((state) => ({...state, currentTime: time})),
-  setStorePreviousTime: (time) => set((state) => ({...state, previousTime: time})),
-  setCurrentClipIndex: (newIndex) => set((state) => ({...state, currentClipIndex: newIndex}))
-})))
+const useClipIDStore = create(
+  devtools((set) => ({
+    clipID: "",
+    currentTime: 0.0,
+    previousTime: 0.0,
+    currentClipIndex: 0,
+    setClipID: (clipID) => set((state) => ({ ...state, clipID: clipID })),
+    setStoreCurrentTime: (time) =>
+      set((state) => ({ ...state, currentTime: time })),
+    setStorePreviousTime: (time) =>
+      set((state) => ({ ...state, previousTime: time })),
+    setCurrentClipIndex: (newIndex) =>
+      set((state) => ({ ...state, currentClipIndex: newIndex })),
+  }))
+);
 
 const YDXHome = (props) => {
   /* to use params on the url and get userId & youtubeVideoId */
@@ -35,8 +40,8 @@ const YDXHome = (props) => {
   let participant_id = sessionStorage.getItem("id");
   /* Options for YouTube video API */
   const opts = {
-    height: '265',
-    width: '500',
+    height: "265",
+    width: "500",
     playerVars: {
       autoplay: 0,
       enablejsapi: 1,
@@ -47,7 +52,7 @@ const YDXHome = (props) => {
       modestbranding: 1,
       rel: 0,
       showinfo: 0,
-      wmode: 'opaque',
+      wmode: "opaque",
     },
   };
   // use a reference for the #draggable-div to get the width and use in calculateDraggableDivWidth()
@@ -57,9 +62,9 @@ const YDXHome = (props) => {
   const [divWidths, setDivWidths] = useState({});
 
   // State Variables
-   const [videoId, setVideoId] = useState(''); // retrieved from db, stored to fetch audio_descriptions
-  const [audioDescriptionId, setAudioDescriptionId] = useState(''); // retrieved from db, stored to fetch Notes & Audio Clips
-  const [notesData, setNotesData] = useState(''); // retrieved from db, stored to pass on to Notes Component
+  const [videoId, setVideoId] = useState(""); // retrieved from db, stored to fetch audio_descriptions
+  const [audioDescriptionId, setAudioDescriptionId] = useState(""); // retrieved from db, stored to fetch Notes & Audio Clips
+  const [notesData, setNotesData] = useState(""); // retrieved from db, stored to pass on to Notes Component
   const [videoLength, setVideoLength] = useState(0); // retrieved from db, stored to display as a label for the dialog timeline
   const [draggableDivWidth, setDraggableDivWidth] = useState(0.0); //stores width of #draggable-div
   const [currentEvent, setCurrentEvent] = useState(0); //stores YouTube video's event
@@ -79,8 +84,8 @@ const YDXHome = (props) => {
   const [updateData, setUpdateData] = useState(false); // passed to child components to use in the dependency array so that data is fetched again after this variable is modified
 
   const [recentAudioPlayedTime, setRecentAudioPlayedTime] = useState(0.0); // used to store the time of a recent AD played to stop playing the same Audio twice concurrently - due to an issue found in updateTime() method because it returns the same currentTime twice or more
-  const [playedAudioClip, setPlayedAudioClip] = useState(''); // store clip_id of the audio clip that is already played.
-  const [playedClipPath, setPlayedClipPath] = useState(''); // store clip_audio_path of the audio clip that is already played.
+  const [playedAudioClip, setPlayedAudioClip] = useState(""); // store clip_id of the audio clip that is already played.
+  const [playedClipPath, setPlayedClipPath] = useState(""); // store clip_audio_path of the audio clip that is already played.
   // Spinner div
   const [showSpinner, setShowSpinner] = useState(false);
 
@@ -88,9 +93,9 @@ const YDXHome = (props) => {
   // this hides one edit component when the other is opened
   const [editComponentToggleList, setEditComponentToggleList] = useState([]);
 
-    // handle clicks of new Inline & New Extended buttons placed beside Notes
+  // handle clicks of new Inline & New Extended buttons placed beside Notes
   // pass as props to ButtonsComponent & InsertPublishComponent'
-  const [handleClicksFromParent, setHandleClicksFromParent] = useState('');
+  const [handleClicksFromParent, setHandleClicksFromParent] = useState("");
 
   const [isCurrentExtACPaused, setCurrentExtACPaused] = useState(false); // Manages the play/pause state of an extended audio clip
   const [isGloballyPaused, setGloballyPaused] = useState(true); // Manages the global play/pause state
@@ -98,15 +103,16 @@ const YDXHome = (props) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const { elapsedTime } = useElapsedTime({ isPlaying });
 
-  const storedValueAsNumber = Number(localStorage.getItem('Seconds'));
-  const [seconds, setSeconds] = useState(Number.isInteger(storedValueAsNumber) ? storedValueAsNumber : 0);
+  const storedValueAsNumber = Number(localStorage.getItem("Seconds"));
+  const [seconds, setSeconds] = useState(
+    Number.isInteger(storedValueAsNumber) ? storedValueAsNumber : 0
+  );
   const [isActive, setIsActive] = useState(false);
-  const [user,setUser] = useState(sessionStorage.getItem("User"));
+  const [user, setUser] = useState(sessionStorage.getItem("User"));
 
   const [needRefresh, setNeedRefresh] = useState(false);
   // const [clipDeleted, setClipDeleted] = useState(false);
   const [samplingRate, setSamplingRate] = useState(100);
-  // const [samplingRate, setSamplingRate] = useState(500);
 
   // Previous time variable - Holds the value of previous time
   const [previousTime, setPreviousTime] = useState(0.0);
@@ -114,19 +120,23 @@ const YDXHome = (props) => {
 
   const clipStackRef = useRef();
 
-  const clipID = useClipIDStore(state => state.clipID);
-  const setClipID = useClipIDStore(state => state.setClipID);
+  const setClipID = useClipIDStore((state) => state.setClipID);
   const clipIDRef = useRef(useClipIDStore.getState().clipID);
-  const currentClipIndex = useRef(useClipIDStore.getState().currentClipIndex);
 
-  const currentTimeRef = useRef()
-  const setStoreCurrentTime = useClipIDStore(state => state.setStoreCurrentTime);
+  const currentTimeRef = useRef();
+  const setStoreCurrentTime = useClipIDStore(
+    (state) => state.setStoreCurrentTime
+  );
 
-  const previousTimeRef = useRef()
-  const setStorePreviousTime = useClipIDStore(state => state.setStorePreviousTime);
+  const previousTimeRef = useRef();
+  const setStorePreviousTime = useClipIDStore(
+    (state) => state.setStorePreviousTime
+  );
 
   const currentClipIndexRef = useRef();
-  const setCurrentClipIndex = useClipIDStore(state => state.setCurrentClipIndex);
+  const setCurrentClipIndex = useClipIDStore(
+    (state) => state.setCurrentClipIndex
+  );
 
   function toggle() {
     setIsActive(!isActive);
@@ -156,7 +166,7 @@ const YDXHome = (props) => {
     let interval = null;
     if (isActive) {
       interval = setInterval(() => {
-        setSeconds(seconds => seconds + 1);
+        setSeconds((seconds) => seconds + 1);
       }, 1000);
     } else if (!isActive && seconds !== 0) {
       clearInterval(interval);
@@ -174,22 +184,20 @@ const YDXHome = (props) => {
   ]);
 
   useEffect(() => {
-    localStorage.setItem('Seconds', String(seconds));
-    sessionStorage.setItem('User', user);
-  }, [seconds,user]);
+    localStorage.setItem("Seconds", String(seconds));
+    sessionStorage.setItem("User", user);
+  }, [seconds, user]);
 
   useEffect(() => {
-    console.log('Clip Stack updated', clipStack);
     clipStackRef.current = clipStack;
-  }, [clipStack])
-
+  }, [clipStack]);
 
   useEffect(() => {
-    if(needRefresh) {
+    if (needRefresh) {
       fetchAudioDescriptionData(true);
       setNeedRefresh(false);
     }
-  }, [needRefresh])
+  }, [needRefresh]);
 
   useEffect(
     () =>
@@ -202,13 +210,13 @@ const YDXHome = (props) => {
     []
   );
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log(user);
     console.log(userId);
     if (userId !== sessionStorage.getItem("User")) {
-        setSeconds(0);
-      }
-  },[])
+      setSeconds(0);
+    }
+  }, []);
   // for calculating the draggable-div width of the timeline
   const calculateDraggableDivWidth = () => {
     // remove the left & right margin - leaving about 96% of the total width of the draggable-div
@@ -313,8 +321,8 @@ const YDXHome = (props) => {
           // add a sequence number for every audio clip
           clip.clip_sequence_num = i + 1;
           clip.clip_audio_path = clip.clip_audio_path.replace(
-            '.',
-            '/api/static'
+            ".",
+            "/api/static"
           );
 
           // set the showEditComponent of the new clip to true.. compare time
@@ -342,12 +350,10 @@ const YDXHome = (props) => {
         // console.log("Audio Clips", audioClips);
         setNotesData(notesData);
         let clipStackData = [];
-        for (let i = 0; i < 5; i++){
+        for (let i = 0; i < 5; i++) {
           let clip = audioClipsData[i];
           clip.clip_audio = new Howl({
             src: clip.clip_audio_path,
-            html5: true,
-            pool: 1
           });
           clipStackData.push(clip);
         }
@@ -385,20 +391,23 @@ const YDXHome = (props) => {
     playedAudioClip,
     playedClipPath
   ) => {
+    // playing
     if (currentState === 1) {
-      // playing
+      // If a clip is currently playing, skip check
+      if (currInlineAC?.playing() || currExtendedAC?.playing()) {
+        return;
+      }
       // Compare current window with clip at current clip index
       if (
         clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
         clipStackRef.current[0].clip_start_time >= previousTimeRef.current
       ) {
         const currentFilteredClip = clipStackRef.current[0];
-        setCurrentClipIndex(currentClipIndexRef.current + 1);
-        // console.log("Filtered Clips", filteredClip, 'CLIP COUNTER', clipCounter, previousTime, currentTime);
+        setCurrentClipIndex(currentClipIndexRef.current + 1); // Update current clip index
         const prevelement = document.querySelectorAll(".green-border");
         // TODO: Convert to normal for loop
         prevelement.forEach((elem) => elem.classList.remove("green-border"));
-        // console.log('Has Played Recently?', id, previousTime, currentTime, 'AND',  currentFilteredClip.clip_id);
+        // Play the clip only if it wasn't played recently
         if (playedAudioClip !== currentFilteredClip.clip_id) {
           setPlayedAudioClip(currentFilteredClip.clip_id);
           //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
@@ -418,7 +427,6 @@ const YDXHome = (props) => {
                 return;
               }
               currentAudio.play();
-              console.log("Played clip");
               // see onStateChange() - storing current inline clip.
               setCurrInlineAC(currentAudio);
               // ended event listener, to set the currInlineAC back to null
@@ -427,14 +435,14 @@ const YDXHome = (props) => {
               });
               currentAudio.on("end", function () {
                 setCurrInlineAC(null);
+                // Unload current clip
                 currentAudio.unload();
+                // Load a new clip and add it to the stack
                 let newClip = audioClips[currentClipIndexRef.current + 4];
-                console.log('New CLIP => ', newClip);
-                if (newClip){
+                console.log("New CLIP => ", newClip);
+                if (newClip) {
                   newClip.clip_audio = new Howl({
                     src: newClip.clip_audio_path,
-                    html5: true,
-                    pool: 1
                   });
                   setClipStack([...clipStackRef.current.slice(1, 5), newClip]);
                 } else {
@@ -457,21 +465,20 @@ const YDXHome = (props) => {
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio);
               // youtube video should be played after the clip has finished playing
-              currentAudio.on("play", function () {
-              });
+              currentAudio.on("play", function () {});
               // eslint-disable-next-line no-loop-func
               currentAudio.on("end", function () {
                 setCurrExtendedAC(null); // setting back to null, as it is played completely.
                 currentEvent.playVideo();
+                // Unload current clip
                 currentAudio.unload();
                 setCurrentExtACPaused(false); // reset the play/pause state
+                // Add a new clip to the stack
                 let newClip = audioClips[currentClipIndexRef.current + 4];
-                console.log('New CLIP => ', newClip);
-                if (newClip){
+                console.log("New CLIP => ", newClip);
+                if (newClip) {
                   newClip.clip_audio = new Howl({
                     src: newClip.clip_audio_path,
-                    html5: true,
-                    pool: 1
                   });
                   setClipStack([...clipStackRef.current.slice(1, 5), newClip]);
                 } else {
@@ -506,7 +513,7 @@ const YDXHome = (props) => {
         // User plays the YT Video. Extended is still played along with the video. Overlapping with Dialogs &/ other audio clips
         // Work around - add current extended audio clip to a state variable & check if YT state is changed to playing i.e. 1
         // if yes, stop playing the extended audio clip & set the state back to null
-        if(!isActive) setIsActive(true); //if the timer is paused it will start again when the video plays
+        if (!isActive) setIsActive(true); //if the timer is paused it will start again when the video plays
         if (currExtendedAC !== null) {
           // to stop playing -> pause and set time to 0
           currExtendedAC.pause();
@@ -516,7 +523,7 @@ const YDXHome = (props) => {
         if (currInlineAC !== null) {
           // to stop playing -> pause and set time to 0
           currInlineAC.play();
-          currInlineAC.on('end', function () {
+          currInlineAC.on("end", function () {
             setCurrInlineAC(null); // setting back to null, as it is played completely.
           });
           // currInlineAC.currentTime = 0;
@@ -542,8 +549,8 @@ const YDXHome = (props) => {
       case 3: // Buffering
         // onSeek - Buffering event is also called
         // so that when user wants to go back and play the same clip again, recentAudioPlayedTime will be reset to 0.
-        setPlayedClipPath('');
-        setPlayedAudioClip('');
+        setPlayedClipPath("");
+        setPlayedAudioClip("");
         setRecentAudioPlayedTime(0.0);
         clearInterval(timer);
         setCurrExtendedAC(null);
@@ -591,19 +598,19 @@ const YDXHome = (props) => {
   };
   const dragProgressBar = (event, position) => {
     // setDraggableTime({ x: position.x, y: 0 });
-    console.log('Dragging');
+    console.log("Dragging");
     let progressBarTime = 0.0;
     progressBarTime = position.x / unitLength;
     currentEvent.seekTo(progressBarTime);
     const currentTime = currentEvent.getCurrentTime();
     setRecentAudioPlayedTime(0.0);
-    setPlayedAudioClip('');
-    setPlayedClipPath('');
+    setPlayedAudioClip("");
+    setPlayedClipPath("");
     setCurrentTime(currentTime);
     setPreviousTime(currentTime);
     setStoreCurrentTime(currentTime);
     setStorePreviousTime(currentTime);
-    setClipID('');
+    setClipID("");
     updateClipsDataCallback();
     if (currExtendedAC !== null) {
       // to stop playing -> pause and set time to 0
@@ -619,37 +626,38 @@ const YDXHome = (props) => {
       setCurrExtendedAC(null);
       currentEvent.playVideo();
     }
-  };  
+  };
 
-  
   const updateClipStackData = useCallback(() => {
     let newClipIndex = audioClips.findIndex(
       (clip) => clip.clip_start_time > currentTimeRef.current
-      );
-      setCurrentClipIndex(newClipIndex);
-      
-      // slice audio clips from newClipIndex to newClipIndex + 5
-      let clipStackData = [];
-      // Create Howl objects for each clip
-      for (let i = newClipIndex; i < newClipIndex + 5; i++){
-        let clip = audioClips[i];
-        if (clip){
-          clip.clip_audio = new Howl({
-            src: clip.clip_audio_path,
-            html5: true,
-            pool: 1
-          });
-          clipStackData.push(clip);
-        }
-      };
-      // Update clipStack
-      setClipStack(clipStackData);
-    }, [audioClips, setCurrentClipIndex]);
-    
-    const updateClipsDataCallback = useMemo(() => debounce(() => {
-      updateClipStackData();
-    }, 500), [updateClipStackData]);
-    
+    );
+    setCurrentClipIndex(newClipIndex);
+
+    // slice audio clips from newClipIndex to newClipIndex + 5
+    let clipStackData = [];
+    // Create Howl objects for each clip
+    for (let i = newClipIndex; i < newClipIndex + 5; i++) {
+      let clip = audioClips[i];
+      if (clip) {
+        clip.clip_audio = new Howl({
+          src: clip.clip_audio_path,
+        });
+        clipStackData.push(clip);
+      }
+    }
+    // Update clipStack
+    setClipStack(clipStackData);
+  }, [audioClips, setCurrentClipIndex]);
+
+  const updateClipsDataCallback = useMemo(
+    () =>
+      debounce(() => {
+        updateClipStackData();
+      }, 500),
+    [updateClipStackData]
+  );
+
   // toggle Show Edit Component
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
@@ -659,7 +667,7 @@ const YDXHome = (props) => {
       if (value) {
         if (data.clipId === clipId) {
           data.showEditComponent = value;
-        } 
+        }
       } else {
         // else case is used when false is passed to the function. If false, other edit components are not opened.
         if (data.clipId === clipId) {
@@ -677,7 +685,8 @@ const YDXHome = (props) => {
   };
 
   const handlePlayPause = () => {
-    if (currExtendedAC) { // If an extended clip exists, make it play/pause
+    if (currExtendedAC) {
+      // If an extended clip exists, make it play/pause
       if (isCurrentExtACPaused) {
         currExtendedAC.play();
         setCurrentExtACPaused(false);
@@ -687,11 +696,12 @@ const YDXHome = (props) => {
         setCurrentExtACPaused(true);
         setGloballyPaused(true);
       }
-    } else if (currentState === 1) { // If an extended clip does not exist make the YouTube video play/pause
+    } else if (currentState === 1) {
+      // If an extended clip does not exist make the YouTube video play/pause
       currentEvent.pauseVideo();
       setGloballyPaused(true);
     } else {
-      if(!isActive) setIsActive(true); //if the timer is paused it will start again when the video plays
+      if (!isActive) setIsActive(true); //if the timer is paused it will start again when the video plays
       currentEvent.playVideo();
       setGloballyPaused(false);
     }
