@@ -1,13 +1,12 @@
-import React from 'react';
 const PageNotFound = () => {
   return (
     <div
       className="d-flex justify-content-center align-items-center"
-      style={{ height: '100vh' }}
+      style={{ height: "100vh" }}
     >
       <div
         className="bg-white d-flex justify-content-center align-items-center flex-column p-4 rounded"
-        style={{ height: '300px' }}
+        style={{ height: "300px" }}
       >
         <h1>Wrong URL</h1>
         <p>
