@@ -1,5 +1,5 @@
 // converts seconds to hh:mm:ss format
-const convertSecondsToCardFormat = (timeInSeconds) => {
+const convertSecondsToCardFormat = (timeInSeconds: any) => {
   let hours = Math.floor(timeInSeconds / 3600);
   let minutes = Math.floor(timeInSeconds / 60);
   let seconds = Math.floor(timeInSeconds);
