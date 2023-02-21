@@ -1,12 +1,11 @@
-import React from 'react';
-import '../assets/css/home.css';
+import "../assets/css/home.css";
 
-const Spinner = (props) => {
+const Spinner = () => {
   return (
     <div className="spinner-div justify-content-center align-items-center w-100 h-100 position-fixed">
       <div
         className="spinner-border text-light"
-        style={{ width: '3rem', height: '3rem' }}
+        style={{ width: "3rem", height: "3rem" }}
         role="status"
       >
         <span className="visually-hidden">Loading...</span>

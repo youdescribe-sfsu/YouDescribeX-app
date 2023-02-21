@@ -1,51 +1,79 @@
-import React, { useState, useEffect, useRef , TextareaHTMLAttributes,} from 'react';
-import { useReactMediaRecorder } from 'react-media-recorder';
-import convertSecondsToCardFormat from '../helperFunctions/convertSecondsToCardFormat';
-import '../assets/css/editAudioDesc.css';
-import axios from 'axios';
-import { toast } from 'react-toastify'; // for toast messages
-import TextareaAutosize from 'react-textarea-autosize';
-import ModalComponent from '../modules/Modal';
+import React, { useState, useEffect, useRef } from "react";
+import { useReactMediaRecorder } from "react-media-recorder";
+import convertSecondsToCardFormat from "../../helperFunctions/convertSecondsToCardFormat";
+import "../../assets/css/editAudioDesc.css";
+import axios from "axios";
+import { toast } from "react-toastify"; // for toast messages
+import TextareaAutosize from "react-textarea-autosize";
+import ModalComponent from "../../modules/Modal";
 import Button from "react-bootstrap/Button";
-const EditClipComponent = (props) => {
-  const ref = useRef();
-  // destructuring props
-  //props of URL Params
-  const userId = props.userId;
-  const youtubeVideoId = props.youtubeVideoId;
-  // props of the video
-  const currentTime = props.currentTime;
-  const currentState = props.currentState;
-  const currentEvent = props.currentEvent;
-  const videoLength = props.videoLength;
-  const handleClipStartTimeUpdate = props.handleClipStartTimeUpdate;
+import { YouTubePlayer } from "youtube-player/dist/types";
 
-  // props - state for updating and fetching data in YDXHome.js (child to parent component)
-  const updateData = props.updateData;
-  const setUpdateData = props.setUpdateData;
+interface Props {
+  userId: string;
+  youtubeVideoId: string;
+  currentTime: number;
+  currentState: number;
+  currentEvent: YouTubePlayer | undefined;
+  videoLength: number;
+  handleClipStartTimeUpdate: (value: number) => void;
+  updateData: boolean;
+  setUpdateData: React.Dispatch<React.SetStateAction<boolean>>;
+  clipId: string;
+  initialClipDescriptionText: string;
+  clipDescriptionType: string;
+  clipPlaybackType: string;
+  clipStartTime: number;
+  clipDuration: number;
+  isRecorded: boolean;
+  clipAudioPath: string;
+  clipCreatedAt: string;
+  setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>;
+  audioDescriptionId: string;
+  fetchUserVideoData: () => void;
+  setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-  const clip_id = props.clip_id;
-  const clip_description_text = props.clip_description_text;
-  const clip_description_type = props.clip_description_type;
-  const clip_playback_type = props.clip_playback_type;
-  const props_clip_start_time = props.clip_start_time;
-  const clip_duration = props.clip_duration;
-  const is_recorded = props.is_recorded;
-  const clip_audio_path = props.clip_audio_path;
-  const clip_created_at = props.clip_created_at;
-  const clip_end_time = parseFloat(props_clip_start_time) + parseFloat(clip_duration);
+const EditClip = ({
+  userId,
+  youtubeVideoId,
+  currentTime,
+  currentState,
+  currentEvent,
+  videoLength,
+  handleClipStartTimeUpdate,
+  updateData,
+  setUpdateData,
+  clipId,
+  initialClipDescriptionText,
+  clipDescriptionType,
+  clipPlaybackType,
+  clipStartTime,
+  clipDuration,
+  isRecorded,
+  clipAudioPath,
+  clipCreatedAt,
+  setShowSpinner,
+  audioDescriptionId,
+  fetchUserVideoData,
+  setNeedRefresh,
+}: Props) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const clipEndTime = clipStartTime + clipDuration;
 
   // use 3 state variables to hold the value of 3 input type number fields
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0);
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0);
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0);
-  const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] = useState(0.0);
+  const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] =
+    useState(0.0);
 
   const [clipDurationMinutes, setClipDurationMinutes] = useState(0.0);
   const [clipDurationSeconds, setClipDurationSeconds] = useState(0.0);
   const [clipDurationMilliSeconds, setClipDurationMilliSeconds] = useState(0.0);
-  const [isDeleteModal,setIsDeleteModal] = useState(false);
-  const [isReplaceModal,setIsReplaceModal] = useState(false);
+  const [isDeleteModal, setIsDeleteModal] = useState(false);
+  const [isReplaceModal, setIsReplaceModal] = useState(false);
 
   // const [clipEndTimeMinutes, setClipEndTimeMinutes] = useState(0.0);
   // const [clipEndTimeSeconds, setClipEndTimeSeconds] = useState(0.0);
@@ -57,22 +85,22 @@ const EditClipComponent = (props) => {
   // this state variable keeps track of the play/pause state of the recorded audio
   const [isRecordedAudioPlaying, setIsRecordedAudioPlaying] = useState(false);
   // this state variable is updated whenever mediaBlobUrl is updated. i.e. whenever a new recording is created
-  const [recordedAudio, setRecordedAudio] = useState('');
-  const [adAudio, setAdAudio] = useState('');
+  const [recordedAudio, setRecordedAudio] = useState<HTMLAudioElement>();
+  const [adAudio, setAdAudio] = useState<HTMLAudioElement>();
   const [isAdAudioPlaying, setIsAdAudioPlaying] = useState(false);
   const [isYoutubeVideoPlaying, setIsYoutubeVideoPlaying] = useState(false);
 
   // initialize state variables from props
   const [clipDescriptionText, setClipDescriptionText] = useState(
-    clip_description_text
+    initialClipDescriptionText
   );
 
   const [recordedClipDuration, setRecordedClipDuration] = useState(0.0);
 
-  const [readySetGo, setReadySetGo] = useState('');
+  const [readySetGo, setReadySetGo] = useState("");
 
   useEffect(() => {
-    // setClipDescriptionText(clip_description_text);
+    // setClipDescriptionText(initialClipDescriptionText);
     // set the button text & state based on YouTube Player's currentState
     setIsYoutubeVideoPlaying(
       currentState === -1 || currentState === 0 || currentState === 2
@@ -82,24 +110,23 @@ const EditClipComponent = (props) => {
         : false
     );
     // scrolls to the latest clip when a new clip is added
-    var date = new Date();
-    var TEN_SEC = 10 * 1000;
-    if (date - new Date(clip_created_at) <= TEN_SEC) {
-      ref.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-        inline: 'nearest',
+    const date = new Date();
+    const TEN_SEC = 10 * 1000;
+    if (date.getTime() - new Date(clipCreatedAt).getTime() <= TEN_SEC) {
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
       });
     }
 
-    
     // following statements execute whenever mediaBlobUrl is updated.. used it in the dependency array
     if (mediaBlobUrl !== null) {
       setRecordedAudio(new Audio(mediaBlobUrl));
       const aud = new Audio(mediaBlobUrl);
       // set audio duration if recorded
       aud.addEventListener(
-        'loadedmetadata',
+        "loadedmetadata",
         function () {
           if (aud.duration === Infinity) {
             // set it to bigger than the actual duration
@@ -118,60 +145,43 @@ const EditClipComponent = (props) => {
         false
       );
     }
-    setAdAudio(new Audio(clip_audio_path));
-    // render the start time input fields based on the updated prop value - props_clip_start_time
+    setAdAudio(new Audio(clipAudioPath));
+    // render the start time input fields based on the updated prop value - clipStartTime
     handleClipStartTimeInputsRender();
     handleClipEndTimeInputsRender();
-    
-  }, [
-    mediaBlobUrl,
-    props, // re-render whenever the props change
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clipAudioPath, clipCreatedAt, currentState, mediaBlobUrl]);
 
-  // render the values in the input[type='number'] fields of the start time - renders everytime the props_clip_start_time value changes
+  // render the values in the input[type='number'] fields of the start time - renders everytime the clipStartTime value changes
   const handleClipStartTimeInputsRender = () => {
-    let cardFormat = convertSecondsToCardFormat(props_clip_start_time).split(':');
-    setClipStartTimeHours(
-      cardFormat[0]
-    );
-    setClipStartTimeMinutes(
-      cardFormat[1]
-    );
-    setClipStartTimeSeconds(
-      cardFormat[2]
-    );
-    setClipStartTimeMilliSeconds(
-      cardFormat[3]
-    );
+    let cardFormat = convertSecondsToCardFormat(clipStartTime).split(":");
+    setClipStartTimeHours(parseInt(cardFormat[0]));
+    setClipStartTimeMinutes(parseInt(cardFormat[1]));
+    setClipStartTimeSeconds(parseInt(cardFormat[2]));
+    setClipStartTimeMilliSeconds(parseInt(cardFormat[3]));
   };
 
   const handleClipEndTimeInputsRender = () => {
-    let cardFormat = convertSecondsToCardFormat(clip_end_time).split(':');
-    setClipDurationMinutes(
-      cardFormat[1]
-    );
-    setClipDurationSeconds(
-      cardFormat[2]
-    );
-    setClipDurationMilliSeconds(
-      cardFormat[3]
-    );
-
+    let cardFormat = convertSecondsToCardFormat(clipEndTime).split(":");
+    setClipDurationMinutes(parseInt(cardFormat[1]));
+    setClipDurationSeconds(parseInt(cardFormat[2]));
+    setClipDurationMilliSeconds(parseInt(cardFormat[3]));
   };
 
   // calculate the Start Time in seconds from the Hours, Minutes & Seconds passed from handleBlur functions
-  const calculateClipStartTimeinSeconds = (milliseconds, minutes, seconds) => {
+  const calculateClipStartTimeinSeconds = (
+    milliseconds: number,
+    minutes: number,
+    seconds: number
+  ) => {
     let calculatedSeconds = +milliseconds / 1000 + +minutes * 60 + +seconds;
     // restrict the audio block to the timeline
-    if (clip_playback_type === 'inline') {
-      if (
-        parseFloat(calculatedSeconds) + parseFloat(clip_duration) <=
-        videoLength
-      ) {
+    if (clipPlaybackType === "inline") {
+      if (calculatedSeconds + clipDuration <= videoLength) {
         handleClipStartTimeUpdate(calculatedSeconds);
       } else {
         toast.error(
-          'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.'
+          "Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time."
         );
         handleClipStartTimeInputsRender();
       }
@@ -184,7 +194,7 @@ const EditClipComponent = (props) => {
         handleClipStartTimeUpdate(calculatedSeconds);
       } else {
         toast.error(
-          'Oops!! Start Time cannot be later than the video end time.'
+          "Oops!! Start Time cannot be later than the video end time."
         ); // show toast error message
         handleClipStartTimeInputsRender();
       }
@@ -194,13 +204,13 @@ const EditClipComponent = (props) => {
   // function for toggling play pause functionality of the recorded audio - on button click
   const handlePlayPauseRecordedAudio = () => {
     if (isRecordedAudioPlaying) {
-      recordedAudio.pause();
+      recordedAudio?.pause();
       setIsRecordedAudioPlaying(false);
     } else {
-      recordedAudio.play();
+      recordedAudio?.play();
       setIsRecordedAudioPlaying(true);
       // this is for setting setIsRecordedAudioPlaying variable to false, once the playback is completed.
-      recordedAudio.addEventListener('ended', function () {
+      recordedAudio?.addEventListener("ended", function () {
         setIsRecordedAudioPlaying(false);
       });
     }
@@ -209,10 +219,10 @@ const EditClipComponent = (props) => {
   // function for toggling play pause functionality of audio Clip - on button click
   const handlePlayPauseAdAudio = () => {
     if (isAdAudioPlaying) {
-      adAudio.pause();
+      adAudio?.pause();
       setIsAdAudioPlaying(false);
     } else {
-      let audioProm = adAudio.play();
+      let audioProm = adAudio?.play();
       // handle exceptions in playing audio - like having the wrong url in the audiopath
       if (audioProm !== undefined) {
         audioProm
@@ -220,13 +230,13 @@ const EditClipComponent = (props) => {
             // Automatic playback started!
             setIsAdAudioPlaying(true);
             // this is for setting setIsAdAudioPlaying variable to false, once the playback is completed.
-            adAudio.addEventListener('ended', function () {
+            adAudio?.addEventListener("ended", function () {
               setIsAdAudioPlaying(false);
             });
           })
           .catch((err) => {
             // Auto-play was prevented
-            toast.error('Oops! Cannot find Audio. Please try later.');
+            toast.error("Oops! Cannot find Audio. Please try later.");
             // console.error(err);
           });
       }
@@ -237,24 +247,24 @@ const EditClipComponent = (props) => {
   const handlePlayPauseYouTubeVideo = () => {
     // if youTube video is not started or it has ended or it is paused
     if (currentState === -1 || currentState === 0 || currentState === 2) {
-      currentEvent.playVideo();
+      currentEvent?.playVideo();
       setIsYoutubeVideoPlaying(true);
     }
     // if youTube video is playing
     else if (currentState === 1) {
-      currentEvent.pauseVideo();
+      currentEvent?.pauseVideo();
       setIsYoutubeVideoPlaying(false);
     }
   };
 
   // lot of if else conditions to ensure correct input in the start time number fields.
-  const handleOnChangeClipStartTimeHours = (e) => {
-    setClipStartTimeHours(e.target.value);
-    if (e.target.value.length > 2) {
-      setClipStartTimeHours(e.target.value.substring(0, 2));
-    }
-  };
-  const handleOnChangeClipStartTimeMinutes = (e) => {
+  // const handleOnChangeClipStartTimeHours = (e: any) => {
+  //   setClipStartTimeHours(e.target.value);
+  //   if (e.target.value.length > 2) {
+  //     setClipStartTimeHours(e.target.value.substring(0, 2));
+  //   }
+  // };
+  const handleOnChangeClipStartTimeMinutes = (e: any) => {
     setClipStartTimeMinutes(e.target.value);
     // if (e.target.value.length > 2) {
     //   setClipStartTimeMinutes(e.target.value.substring(0, 2));
@@ -264,42 +274,42 @@ const EditClipComponent = (props) => {
     //   }
     // }
   };
-  const handleOnChangeClipStartTimeSeconds = (e) => {
+  const handleOnChangeClipStartTimeSeconds = (e: any) => {
     setClipStartTimeSeconds(e.target.value);
     if (e.target.value.length > 2) {
       setClipStartTimeSeconds(e.target.value.substring(0, 2));
     } else if (e.target.value.length === 2) {
       if (parseInt(e.target.value) >= 60) {
-        setClipStartTimeSeconds('59');
+        setClipStartTimeSeconds(59);
       }
     }
   };
 
-  const handleOnChangeClipStartTimeMilliSeconds = (e) => {
+  const handleOnChangeClipStartTimeMilliSeconds = (e: any) => {
     setClipStartTimeMilliSeconds(e.target.value);
     if (e.target.value.length > 2) {
       setClipStartTimeMilliSeconds(e.target.value.substring(0, 2));
     } else if (e.target.value.length === 2) {
       if (parseInt(e.target.value) >= 60) {
-        setClipStartTimeMilliSeconds('59');
+        setClipStartTimeMilliSeconds(59);
       }
     }
   };
-  const handleBlurClipStartTimeMilliSeconds = (e) => {
+  const handleBlurClipStartTimeMilliSeconds = (e: any) => {
     // store the current clipStartTimeHours in a temp variable,
     // so that when calculateClipStartTimeinSeconds without going into the loops,
     // it has the previous value in it
-    let  tempStartTimeMilliSeconds= clipStartTimeMilliSeconds;
+    let tempStartTimeMilliSeconds = clipStartTimeMilliSeconds;
     if (e.target.value.length === 1) {
-      setClipStartTimeMilliSeconds(e.target.value + '0');
-      tempStartTimeMilliSeconds = e.target.value + '0';
-      if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeMilliSeconds('59');
-        tempStartTimeMilliSeconds = '59';
+      setClipStartTimeMilliSeconds(Number(e.target.value + "0"));
+      tempStartTimeMilliSeconds = Number(e.target.value + "0");
+      if (parseInt(e.target.value + "0") >= 60) {
+        setClipStartTimeMilliSeconds(59);
+        tempStartTimeMilliSeconds = 59;
       }
     } else if (e.target.value.length === 0) {
-      setClipStartTimeMilliSeconds('00');
-      tempStartTimeMilliSeconds = '00';
+      setClipStartTimeMilliSeconds(0);
+      tempStartTimeMilliSeconds = 0;
     }
     // call the function which will update the clipStartTime in the parent component and the db is updated too.
     calculateClipStartTimeinSeconds(
@@ -308,21 +318,21 @@ const EditClipComponent = (props) => {
       clipStartTimeSeconds
     );
   };
-  const handleBlurClipStartTimeMinutes = (e) => {
+  const handleBlurClipStartTimeMinutes = (e: any) => {
     // store the current clipStartTimeMinutes in a temp variable,
     // so that when calculateClipStartTimeinSeconds without going into the loops,
     // it has the previous value in it
     let tempStartTimeMinutes = clipStartTimeMinutes;
     if (e.target.value.length === 1) {
-      setClipStartTimeMinutes(e.target.value + '0');
-      tempStartTimeMinutes = e.target.value + '0';
-      if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeMinutes('59');
-        tempStartTimeMinutes = '59';
+      setClipStartTimeMinutes(Number(e.target.value + "0"));
+      tempStartTimeMinutes = Number(e.target.value + "0");
+      if (parseInt(e.target.value + "0") >= 60) {
+        setClipStartTimeMinutes(59);
+        tempStartTimeMinutes = 59;
       }
     } else if (e.target.value.length === 0) {
-      setClipStartTimeMinutes('00');
-      tempStartTimeMinutes = '00';
+      setClipStartTimeMinutes(0);
+      tempStartTimeMinutes = 0;
     }
     // call the function which will update the clipStartTime in the parent component and the db is updated too.
     calculateClipStartTimeinSeconds(
@@ -331,21 +341,21 @@ const EditClipComponent = (props) => {
       clipStartTimeSeconds
     );
   };
-  const handleBlurClipStartTimeSeconds = (e) => {
+  const handleBlurClipStartTimeSeconds = (e: any) => {
     // store the current clipStartTimeSeconds in a temp variable,
     // so that when calculateClipStartTimeinSeconds without going into the loops,
     // it has the previous value in it
     let tempStartTimeSeconds = clipStartTimeSeconds;
     if (e.target.value.length === 1) {
-      setClipStartTimeSeconds(e.target.value + '0');
-      tempStartTimeSeconds = e.target.value + '0';
-      if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeSeconds('59');
-        tempStartTimeSeconds = '59';
+      setClipStartTimeSeconds(Number(e.target.value + "0"));
+      tempStartTimeSeconds = Number(e.target.value + "0");
+      if (parseInt(e.target.value + "0") >= 60) {
+        setClipStartTimeSeconds(59);
+        tempStartTimeSeconds = 59;
       }
     } else if (e.target.value.length === 0) {
-      setClipStartTimeSeconds('00');
-      tempStartTimeSeconds = '00';
+      setClipStartTimeSeconds(0);
+      tempStartTimeSeconds = 0;
     }
     // call the function which will update the clipStartTime in the parent component and the db is updated too.
     calculateClipStartTimeinSeconds(
@@ -356,25 +366,25 @@ const EditClipComponent = (props) => {
   };
 
   // handle save clip description - axios call -> generate audio & update endtime, duration
-  const handleClickSaveClipDescription = (e) => {
+  const handleClickSaveClipDescription = (e: any) => {
     e.preventDefault();
     // check if the clip has been updated
-    if (clipDescriptionText !== clip_description_text) {
+    if (clipDescriptionText !== initialClipDescriptionText) {
       // show spinner
-      props.setShowSpinner(true);
+      setShowSpinner(true);
       axios
-        .put(`/api/audio-clips/update-clip-description/${clip_id}`, {
+        .put(`/api/audio-clips/update-clip-description/${clipId}`, {
           userId: userId,
           youtubeVideoId: youtubeVideoId,
           clipDescriptionText: clipDescriptionText,
-          clipDescriptionType: clip_description_type,
-          audioDescriptionId: props.audioDescriptionId,
+          clipDescriptionType: clipDescriptionType,
+          audioDescriptionId: audioDescriptionId,
         })
         .then((res) => {
           // below prop is used to re-render the parent component i.e. fetch audio clip data
           setUpdateData(!updateData);
-          props.setShowSpinner(false); // stop showing spinner
-          toast.success('Description Saved Successfully!!'); // show toast message
+          setShowSpinner(false); // stop showing spinner
+          toast.success("Description Saved Successfully!!"); // show toast message
         })
         .catch((err) => {
           // err.response.data.message has the message text send by the server
@@ -384,75 +394,69 @@ const EditClipComponent = (props) => {
   };
 
   // delete a clip
-  const handleClickDeleteClip = (e) => {
-    props.setShowSpinner(true);
+  const handleClickDeleteClip = (e: any) => {
+    setShowSpinner(true);
     e.preventDefault();
-    console.log(clip_id)
+    console.log(clipId);
     axios
-      .delete(`/api/audio-clips/delete-clip/${clip_id}`)
+      .delete(`/api/audio-clips/delete-clip/${clipId}`)
       .then((res) => {
         toast.success(
-          'Clip Deleted Successfully!! Please wait while we fetch latest Clip Data'
+          "Clip Deleted Successfully!! Please wait while we fetch latest Clip Data"
         );
-        props.fetchUserVideoData();
-        props.setNeedRefresh(true);
+        fetchUserVideoData();
+        setNeedRefresh(true);
         // setTimeout(() => {
         //   window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
         // }, 3000); // setting the timeout to show the toast message for 4 sec
       })
       .catch((err) => {
         console.error(err);
-        toast.error('Error Deleting Clip. Please try again later.');
+        toast.error("Error Deleting Clip. Please try again later.");
       });
   };
 
   // handle record & replace
-  const handleClickReplaceClip = async (e) => {
-    props.setShowSpinner(true);
+  const handleClickReplaceClip = async (e: any) => {
+    setShowSpinner(true);
     e.preventDefault();
     if (mediaBlobUrl === null) {
       toast.error(
-        'Error while saving the recorded audio. Please record again.'
+        "Error while saving the recorded audio. Please record again."
       );
-      props.setShowSpinner(false);
+      setShowSpinner(false);
     } else {
       // create a new FormData object for easy file uploads
       let formData = new FormData();
-      const audioBlob = await fetch(mediaBlobUrl).then((r) => r.blob()); // get blob from the audio URI
-      const audioFile = new File([audioBlob], 'voice.mp3', {
-        type: 'audio/mp3',
+      const audioBlob = await fetch(`${mediaBlobUrl}`).then((r) => r.blob()); // get blob from the audio URI
+      const audioFile = new File([audioBlob], "voice.mp3", {
+        type: "audio/mp3",
       });
-      formData.append('clipDescriptionText', clipDescriptionText);
-      formData.append('clipStartTime', props_clip_start_time);
-      formData.append('newACType', clip_description_type);
-      formData.append('youtubeVideoId', youtubeVideoId);
-      formData.append('recordedClipDuration', recordedClipDuration);
-      formData.append('audioDescriptionId', props.audioDescriptionId);
-      formData.append('userId', userId);
-      formData.append('file', audioFile);
+      formData.append("clipDescriptionText", clipDescriptionText);
+      formData.append("clipStartTime", String(clipStartTime));
+      formData.append("newACType", clipDescriptionType);
+      formData.append("youtubeVideoId", youtubeVideoId);
+      formData.append("recordedClipDuration", String(recordedClipDuration));
+      formData.append("audioDescriptionId", audioDescriptionId);
+      formData.append("userId", userId);
+      formData.append("file", audioFile);
 
       // upload formData using axios
       axios
-        .put(
-          `/api/audio-clips/record-replace-clip-audio/${clip_id}`,
-          formData,
-          {
-            headers: { 'Content-Type': 'multipart/form-data' },
-            reportProgress: true,
-            observe: 'events',
-          }
-        )
+        .put(`/api/audio-clips/record-replace-clip-audio/${clipId}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
         .then((res) => {
-          toast.success('Replaced Clip Successfully with the Recorded Audio!!');
+          toast.success("Replaced Clip Successfully with the Recorded Audio!!");
           setTimeout(() => {
             setUpdateData(!updateData);
-            props.setShowSpinner(false);
+            setShowSpinner(false);
           }, 4000); // setting the timeout to show the toast message for 4 sec
         })
         .catch((err) => {
           console.log(err);
           toast.error(
-            'Error while replacing Audio Clip. Please try again later.'
+            "Error while replacing Audio Clip. Please try again later."
           );
         });
     }
@@ -460,7 +464,7 @@ const EditClipComponent = (props) => {
 
   // handle Record Ready Set Go
   const handleReadySetGo = () => {
-    const _321Go = ['3', '2', '1', 'Go', 'start'];
+    const _321Go = ["3", "2", "1", "Go", "start"];
     // using the concept of closures & IIFE in JavaScript
     _321Go.forEach((val, i) => {
       setTimeout(
@@ -477,10 +481,9 @@ const EditClipComponent = (props) => {
       startRecording();
     }, 3700);
   };
-  
+
   return (
-    
-    <div className="edit-component text-white" ref={ref} id={clip_id}>
+    <div className="edit-component text-white" ref={ref} id={clipId}>
       <div className="d-flex justify-content-evenly align-items-center">
         {/* Clip Description & Start time Div */}
         <div className="description-section mt-1">
@@ -488,7 +491,7 @@ const EditClipComponent = (props) => {
             {/* Description label, text area & buttons*/}
             <div className="d-flex justify-content-center align-items-start flex-column">
               <h6 className="text-white">
-                Clip Description: {is_recorded ? '(Recorded)' : ''}
+                Clip Description: {isRecorded ? "(Recorded)" : ""}
               </h6>
               <TextareaAutosize
                 className="form-control form-control-sm border rounded text-center description-textarea"
@@ -501,16 +504,16 @@ const EditClipComponent = (props) => {
               <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
                 <Button
                   className="btn rounded btn-sm text-white bg-danger"
-                  onClick={()=>setIsDeleteModal(true)}
+                  onClick={() => setIsDeleteModal(true)}
                 >
-                  <i className="fa fa-trash" /> {'  '} Delete
+                  <i className="fa fa-trash" /> {"  "} Delete
                 </Button>
                 <Button
                   type="button"
                   className="btn rounded btn-sm text-white save-desc-btn"
                   onClick={handleClickSaveClipDescription}
                 >
-                  <i className="fa fa-save" /> {'  '} Save
+                  <i className="fa fa-save" /> {"  "} Save
                 </Button>
                 {isAdAudioPlaying ? (
                   <button
@@ -521,7 +524,7 @@ const EditClipComponent = (props) => {
                     title="Pause Audio"
                     onClick={handlePlayPauseAdAudio}
                   >
-                    <i className="fa fa-pause" /> {'  '} Pause
+                    <i className="fa fa-pause" /> {"  "} Pause
                   </button>
                 ) : (
                   <button
@@ -532,7 +535,7 @@ const EditClipComponent = (props) => {
                     title="Play this Clip"
                     onClick={handlePlayPauseAdAudio}
                   >
-                    <i className="fa fa-play" /> {'  '} Play
+                    <i className="fa fa-play" /> {"  "} Play
                   </button>
                 )}
               </div>
@@ -540,47 +543,47 @@ const EditClipComponent = (props) => {
             {/* Start Time div */}
             <div className="mx-2 d-flex justify-content-between align-items-center flex-column">
               <h6 className="text-white">
-                Start Time  
+                Start Time
                 {/* TODO: We will need to handle three digit long minutes or videos longer than hour */}
               </h6>
               <div className="edit-time-div">
                 <div className="text-dark text-center d-flex justify-content-evenly">
                   <input
                     type="number"
-                    style={{ width: '25px' }}
+                    style={{ width: "25px" }}
                     className="text-white bg-dark"
                     min="0"
                     value={clipStartTimeMinutes}
                     onChange={handleOnChangeClipStartTimeMinutes}
                     onBlur={handleBlurClipStartTimeMinutes}
                     onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      ["e", "E", "+", "-"].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
                   <div className="mx-1">:</div>
                   <input
                     type="number"
-                    style={{ width: '25px' }}
+                    style={{ width: "25px" }}
                     className="text-white bg-dark"
                     value={clipStartTimeSeconds}
                     onChange={handleOnChangeClipStartTimeSeconds}
                     onBlur={handleBlurClipStartTimeSeconds}
                     onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      ["e", "E", "+", "-"].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
                   <div className="mx-1">:</div>
                   <input
                     type="number"
-                    style={{ width: '25px' }}
+                    style={{ width: "25px" }}
                     className="text-white bg-dark"
                     value={clipStartTimeMilliSeconds}
                     onChange={handleOnChangeClipStartTimeMilliSeconds}
                     onBlur={handleBlurClipStartTimeMilliSeconds}
                     onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      ["e", "E", "+", "-"].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
@@ -599,47 +602,47 @@ const EditClipComponent = (props) => {
                 </div>
               </div>
               <h6 className="text-white">
-                End Time  
+                End Time
                 {/* TODO: We will need to handle three digit long minutes or videos longer than hour */}
               </h6>
               <div className="edit-time-div">
                 <div className="text-dark text-center d-flex justify-content-evenly">
                   <input
                     type="number"
-                    style={{ width: '25px' }}
+                    style={{ width: "25px" }}
                     className="text-white bg-dark"
                     min="0"
                     value={clipDurationMinutes}
                     // onChange={handleOnChangeClipStartTimeMinutes}
                     // onBlur={handleBlurClipStartTimeMinutes}
                     onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      ["e", "E", "+", "-"].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
                   <div className="mx-1">:</div>
                   <input
                     type="number"
-                    style={{ width: '25px' }}
+                    style={{ width: "25px" }}
                     className="text-white bg-dark"
                     value={clipDurationSeconds}
                     // onChange={handleOnChangeClipStartTimeSeconds}
                     // onBlur={handleBlurClipStartTimeSeconds}
                     onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      ["e", "E", "+", "-"].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
                   <div className="mx-1">:</div>
                   <input
                     type="number"
-                    style={{ width: '25px' }}
+                    style={{ width: "25px" }}
                     className="text-white bg-dark"
                     value={clipDurationMilliSeconds}
                     // onChange={handleOnChangeClipStartTimeMilliSeconds}
                     // onBlur={handleBlurClipStartTimeMilliSeconds}
                     onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      ["e", "E", "+", "-"].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
@@ -660,8 +663,8 @@ const EditClipComponent = (props) => {
               {/* Clip Duration div */}
               <div>
                 <h6 className="text-white text-center">
-                  {/* Duration: {convertSecondsToCardFormat(clip_duration)} sec*/}
-                  Duration: {parseFloat(clip_duration).toFixed(2)} sec
+                  {/* Duration: {convertSecondsToCardFormat(clipDuration)} sec*/}
+                  Duration: {clipDuration.toFixed(2)} sec
                 </h6>
               </div>
             </div>
@@ -675,13 +678,13 @@ const EditClipComponent = (props) => {
           </div>
         </div>
         {/* Record & Replace Section */}
-        <div >
+        <div>
           <h6 className="text-white text-center">
             Record & Replace AI's voice
           </h6>
           <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 w-100 my-2">
             <div className="mx-1">
-              {status === 'recording' && readySetGo !== '' ? (
+              {status === "recording" && readySetGo !== "" ? (
                 <button
                   data-bs-toggle="tooltip"
                   data-bs-placement="bottom"
@@ -692,8 +695,8 @@ const EditClipComponent = (props) => {
                 >
                   <i className="fa fa-stop text-danger  fs-5 mt-1" />
                 </button>
-              ) : (readySetGo === '' && status !== 'recording') ||
-                (readySetGo === 'start' && status === 'stopped') ? (
+              ) : (readySetGo === "" && status !== "recording") ||
+                (readySetGo === "start" && status === "stopped") ? (
                 <button
                   data-bs-toggle="tooltip"
                   data-bs-placement="bottom"
@@ -704,7 +707,7 @@ const EditClipComponent = (props) => {
                 >
                   <i className="fa fa-microphone text-danger fs-5 mt-1" />
                 </button>
-              ) : readySetGo !== 'start' ? (
+              ) : readySetGo !== "start" ? (
                 <button
                   data-bs-toggle="tooltip"
                   data-bs-placement="bottom"
@@ -766,7 +769,7 @@ const EditClipComponent = (props) => {
                 >
                   <Button
                     className="btn rounded btn-sm text-white primary-btn-color"
-                    onClick={()=>setIsReplaceModal(true)}
+                    onClick={() => setIsReplaceModal(true)}
                   >
                     Replace
                   </Button>
@@ -791,7 +794,7 @@ const EditClipComponent = (props) => {
                 >
                   <Button
                     className="btn rounded btn-sm text-white primary-btn-color"
-                    onClick={()=>setIsReplaceModal(true)}
+                    onClick={() => setIsReplaceModal(true)}
                   >
                     Replace
                   </Button>
@@ -800,8 +803,7 @@ const EditClipComponent = (props) => {
             )}
           </div>
           <div className="text-center">
-            Recording Duration: {parseFloat(recordedClipDuration).toFixed(2)}{' '}
-            sec
+            Recording Duration: {recordedClipDuration.toFixed(2)} sec
           </div>
           <div className="d-flex justify-content-center align-items-center rounded mx-auto p-1">
             {isYoutubeVideoPlaying ? (
@@ -814,7 +816,7 @@ const EditClipComponent = (props) => {
                 onClick={handlePlayPauseYouTubeVideo}
               >
                 <i className="fa fa-pause play-pause-icons" />
-                {'  '} Pause Video with AD
+                {"  "} Pause Video with AD
               </button>
             ) : (
               <button
@@ -826,7 +828,7 @@ const EditClipComponent = (props) => {
                 onClick={handlePlayPauseYouTubeVideo}
               >
                 <i className="fa fa-play play-pause-icons" />
-                {'  '} Play Video with Description
+                {"  "} Play Video with Description
               </button>
             )}
           </div>
@@ -834,25 +836,29 @@ const EditClipComponent = (props) => {
       </div>
 
       {/* <!-- Replace Modal --> Confirmation Modal - opens when user hits Replace and asks for a confirmation if AI's audio is to be replaced with the user recorded audio*/}
-      {<ModalComponent
-        id="replaceModal"
-        title="Replace"
-        text="Are you sure you want to replace AI's voice with the one you recorded?"
-        modalTask={(e) => handleClickReplaceClip(e)}
-        show={isReplaceModal}
-        handleClose={()=>setIsReplaceModal(false)}
-      />}
+      {
+        <ModalComponent
+          id="replaceModal"
+          title="Replace"
+          text="Are you sure you want to replace AI's voice with the one you recorded?"
+          modalTask={(e: any) => handleClickReplaceClip(e)}
+          show={isReplaceModal}
+          handleClose={() => setIsReplaceModal(false)}
+        />
+      }
       {/* <!-- Delete Modal --> Confirmation Modal - opens when user hits Delete and asks for a confirmation if Audio Clip need to be deleted*/}
-      {<ModalComponent
-        id="deleteModal"
-        title="Delete"
-        text={"Are you sure you want to delete the Audio Clip?"}
-        modalTask={(e) => handleClickDeleteClip(e)}
-        show={isDeleteModal}
-        handleClose={()=>setIsDeleteModal(false)}
-      />}
+      {
+        <ModalComponent
+          id="deleteModal"
+          title="Delete"
+          text={"Are you sure you want to delete the Audio Clip?"}
+          modalTask={(e: any) => handleClickDeleteClip(e)}
+          show={isDeleteModal}
+          handleClose={() => setIsDeleteModal(false)}
+        />
+      }
     </div>
   );
 };
 
-export default EditClipComponent;
+export default EditClip;

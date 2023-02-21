@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import '../assets/css/insertPublish.css';
-import '../assets/css/audioDesc.css';
+import "../../assets/css/insertPublish.css";
+import "../../assets/css/audioDesc.css";
 
-const ButtonsComponent = (props) => {
-  const setHandleClicksFromParent = props.setHandleClicksFromParent;
+interface Props {
+  setHandleClicksFromParent: (value: string) => void;
+  handlePlayPause: () => void;
+  isGloballyPaused: boolean;
+}
+
+const Buttons = ({
+  setHandleClicksFromParent,
+  handlePlayPause,
+  isGloballyPaused,
+}: Props) => {
   return (
     <div className="d-flex justify-content-evenly flex-column text-center">
       <div>
@@ -30,19 +38,19 @@ const ButtonsComponent = (props) => {
         <button
           type="button"
           className="btn btn-sm play-pause-bg text-white"
-          onClick={() => props.handlePlayPause()}
+          onClick={() => handlePlayPause()}
         >
-          {props.isGloballyPaused ? (
+          {isGloballyPaused ? (
             <i className="fa fa-play" />
           ) : (
             <i className="fa fa-pause" />
           )}
           {"    "}
-          {props.isGloballyPaused ? "Play" : "Pause"}
+          {isGloballyPaused ? "Play" : "Pause"}
         </button>
       </div>
     </div>
   );
 };
 
-export default ButtonsComponent;
+export default Buttons;

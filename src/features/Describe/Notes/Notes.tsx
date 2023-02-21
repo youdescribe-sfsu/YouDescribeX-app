@@ -1,45 +1,52 @@
-import axios from 'axios';
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import '../assets/css/editAudioDesc.css';
-import '../assets/css/notes.css';
+import axios from "axios";
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import "../assets/css/editAudioDesc.css";
+import "../assets/css/notes.css";
 
-const Notes = ({ currentTime, audioDescriptionId, notesData }) => {
+interface Props {
+  currentTime: string;
+  audioDescriptionId: string;
+  notesData: any;
+}
+
+const Notes = ({ currentTime, audioDescriptionId, notesData }: Props) => {
   // React State Variables
-  const [noteValue, setNoteValue] = useState(''); // to store Notes text
-  const [noteId, setNoteId] = useState(''); // to store Note Id - for POST requests later
-  const [noteDetails, setNoteDetails] = useState([]); // to store Notes Details
+  const [noteValue, setNoteValue] = useState(""); // to store Notes text
+  const [noteId, setNoteId] = useState(""); // to store Note Id - for POST requests later
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [noteDetails, setNoteDetails] = useState<any[]>([]); // to store Notes Details
 
   // this function handles keyUp event in the Notes textarea -> whenever an enter key is hit,
   // a timestamp is inserted in the Notes
-  const handleNewNoteLine = (e) => {
+  const handleNewNoteLine = (e: any) => {
     const tempNoteValue = noteValue;
     let keycode = e.keyCode ? e.keyCode : e.which;
-    if (keycode === parseInt('13')) {
-      setNoteValue(tempNoteValue + currentTime + ' - ');
-      handleNoteAutoSave(tempNoteValue + currentTime + ' - ');
+    if (keycode === parseInt("13")) {
+      setNoteValue(tempNoteValue + currentTime + " - ");
+      handleNoteAutoSave(tempNoteValue + currentTime + " - ");
     }
   };
   // for focus event of Notes Textarea -> if the notes is empty, timestamp is inserted
-  const handleTextAreaFocus = (e) => {
+  const handleTextAreaFocus = (e: any) => {
     let tempNoteValue = noteValue;
-    if (noteValue === '') {
-      setNoteValue(tempNoteValue + currentTime + ' - ');
-      handleNoteAutoSave(tempNoteValue + currentTime + ' - ');
+    if (noteValue === "") {
+      setNoteValue(tempNoteValue + currentTime + " - ");
+      handleNoteAutoSave(tempNoteValue + currentTime + " - ");
     }
     // TODO: what if notes is not empty
   };
 
-  const handleNoteChange = (e) => {
-    let updatedNoteValue = '';
-    if (noteValue === '') {
+  const handleNoteChange = (e: any) => {
+    let updatedNoteValue = "";
+    if (noteValue === "") {
       // insert current time if all notes is cleared and didn't lose focus
-      updatedNoteValue = currentTime + ' - ' + e.target.value;
-    } else if (noteValue.split('').reverse().join('').indexOf('\n') === 0) {
+      updatedNoteValue = currentTime + " - " + e.target.value;
+    } else if (noteValue.split("").reverse().join("").indexOf("\n") === 0) {
       // After a new line/enter, if user clears the time and enters note directly
       // e.nativeEvent.data will have the key entered - adding currentime before that
       if (e.nativeEvent.data !== null) {
-        updatedNoteValue = noteValue + currentTime + ' - ' + e.nativeEvent.data;
+        updatedNoteValue = noteValue + currentTime + " - " + e.nativeEvent.data;
       } else {
         updatedNoteValue = e.target.value;
       }
@@ -50,9 +57,9 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }) => {
     handleNoteAutoSave(updatedNoteValue);
   };
 
-  const handleNoteAutoSave = (currentNoteValue) => {
+  const handleNoteAutoSave = (currentNoteValue: any) => {
     axios
-      .post('/api/notes/post-note', {
+      .post("/api/notes/post-note", {
         noteId: noteId,
         notes: currentNoteValue,
         adId: audioDescriptionId,
@@ -62,13 +69,14 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }) => {
       })
       .catch((err) => {
         console.error(err.response.data);
-        toast.error('Error Saving Note! Please Try Again...');
+        toast.error("Error Saving Note! Please Try Again...");
       });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleNoteHighlight = () => {
     let noteList = noteValue.split(/\r?\n/);
-    let tempNoteDetails = [];
+    let tempNoteDetails: any[] = [];
     noteList.forEach((note, key) => {
       if (note.slice(0, 8).match(/\d{2}:\d{2}:\d{2}/)) {
         const noteTimestamp = {
@@ -91,8 +99,8 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }) => {
       setNoteId(notesData.notes_id);
     } else {
       // else insert empty strings - somehow, useState('') is not working
-      setNoteValue('');
-      setNoteId('');
+      setNoteValue("");
+      setNoteId("");
     }
   }, [notesData]);
 
@@ -104,7 +112,7 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }) => {
       <div className="mx-auto my-auto notes-textarea-div align-items-center border rounded">
         <textarea
           className="form-control border rounded notes-textarea"
-          rows="9"
+          rows={9}
           id="notes"
           name="notes"
           placeholder="Start taking your Notes.."
