@@ -1,13 +1,13 @@
-import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Button";
+import Modal from 'react-bootstrap/Modal'
+import Button from 'react-bootstrap/Button'
 
 interface Props {
-  id: string;
-  title: string;
-  text: string;
-  modalTask: (e: any) => void;
-  show: boolean;
-  handleClose: () => void;
+  id: string
+  title: string
+  text: string
+  modalTask: (e: any) => void
+  show: boolean
+  handleClose: () => void
 }
 
 const ModalComponent = ({
@@ -35,8 +35,8 @@ const ModalComponent = ({
             <Button
               className="btn primary-btn-color text-center m-1 text-white w-25"
               onClick={(e) => {
-                modalTask(e);
-                handleClose();
+                modalTask(e)
+                handleClose()
               }}
             >
               YES
@@ -49,7 +49,7 @@ const ModalComponent = ({
       </div>
       {/* </div> */}
     </Modal>
-  );
-};
+  )
+}
 
-export default ModalComponent;
+export default ModalComponent

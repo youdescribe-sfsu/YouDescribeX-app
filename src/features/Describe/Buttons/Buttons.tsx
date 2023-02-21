@@ -1,10 +1,10 @@
-import "../../assets/css/insertPublish.css";
-import "../../assets/css/audioDesc.css";
+import '../../assets/css/insertPublish.css'
+import '../../assets/css/audioDesc.css'
 
 interface Props {
-  setHandleClicksFromParent: (value: string) => void;
-  handlePlayPause: () => void;
-  isGloballyPaused: boolean;
+  setHandleClicksFromParent: (value: string) => void
+  handlePlayPause: () => void
+  isGloballyPaused: boolean
 }
 
 const Buttons = ({
@@ -18,9 +18,9 @@ const Buttons = ({
         <button
           type="button"
           className="btn btn-sm inline-bg text-dark"
-          onClick={() => setHandleClicksFromParent("inline")}
+          onClick={() => setHandleClicksFromParent('inline')}
         >
-          <i className="fa fa-plus" /> {"   "}
+          <i className="fa fa-plus" /> {'   '}
           Insert Inline
         </button>
       </div>
@@ -28,9 +28,9 @@ const Buttons = ({
         <button
           type="button"
           className="btn btn-sm extended-bg text-white"
-          onClick={() => setHandleClicksFromParent("extended")}
+          onClick={() => setHandleClicksFromParent('extended')}
         >
-          <i className="fa fa-plus" /> {"   "}
+          <i className="fa fa-plus" /> {'   '}
           Insert Extended
         </button>
       </div>
@@ -45,12 +45,12 @@ const Buttons = ({
           ) : (
             <i className="fa fa-pause" />
           )}
-          {"    "}
-          {isGloballyPaused ? "Play" : "Pause"}
+          {'    '}
+          {isGloballyPaused ? 'Play' : 'Pause'}
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Buttons;
+export default Buttons

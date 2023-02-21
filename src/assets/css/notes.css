@@ -1,32 +1,31 @@
-
 @import '../css/index.css';
 /* Notes section */
 .notes-bg {
-    background-color: rgb(80, 80, 80);
-    border: rgb(122, 121, 121) 1px solid;
-    width: 420px;
-    height: 265px
+  background-color: rgb(80, 80, 80);
+  border: rgb(122, 121, 121) 1px solid;
+  width: 420px;
+  height: 265px;
 }
 .notes-label {
-    margin-bottom: -5px;
+  margin-bottom: -5px;
 }
 .notes-textarea-div {
-    background-color: white;
-    width: 400px;
-    height: 232px;
-    overflow-y: scroll;
+  background-color: white;
+  width: 400px;
+  height: 232px;
+  overflow-y: scroll;
 }
 .notes-textarea {
-    resize: none;
+  resize: none;
 }
 .notes-save-btn {
-    padding-left: 3px;
-    padding-right: 3px;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    /* margin-top: -3px; */
+  padding-left: 3px;
+  padding-right: 3px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  /* margin-top: -3px; */
 }
 /* primary color */
 .primary-btn-color {
-    background-color: var(--primary-color);
+  background-color: var(--primary-color);
 }

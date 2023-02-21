@@ -1,21 +1,21 @@
-import { Howl } from "howler";
+import { Howl } from 'howler'
 
 export interface Clip {
-  audioDescriptionAdId: string;
-  clipAudio?: Howl;
-  clipId: string;
-  clipTitle: string;
-  clipAudioPath: string;
-  clipDuration: number;
-  clipEndTime: number;
-  clipSequenceNumber: number;
-  clipStartTime: number;
-  createdAt: string;
-  descriptionText: string;
-  descriptionType: string;
-  isRecorded: boolean;
-  playbackType: string;
-  updatedAt: string;
+  audioDescriptionAdId: string
+  clipAudio?: Howl
+  clipId: string
+  clipTitle: string
+  clipAudioPath: string
+  clipDuration: number
+  clipEndTime: number
+  clipSequenceNumber: number
+  clipStartTime: number
+  createdAt: string
+  descriptionText: string
+  descriptionType: string
+  isRecorded: boolean
+  playbackType: string
+  updatedAt: string
 }
 
 const convertClipObject = (clip: any) => {
@@ -35,8 +35,8 @@ const convertClipObject = (clip: any) => {
     isRecorded: clip.is_recorded,
     playbackType: clip.playback_type,
     updatedAt: clip.updatedAt,
-  };
-  return newClip;
-};
+  }
+  return newClip
+}
 
-export default convertClipObject;
+export default convertClipObject

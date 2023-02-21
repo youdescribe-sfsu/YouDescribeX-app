@@ -1,31 +1,31 @@
-import React, { useState, useEffect } from "react";
-import "../assets/css/timer.css";
+import React, { useState, useEffect } from 'react'
+import '../assets/css/timer.css'
 
 const Timer = () => {
-  const [seconds, setSeconds] = useState(0);
-  const [isActive, setIsActive] = useState(false);
+  const [seconds, setSeconds] = useState(0)
+  const [isActive, setIsActive] = useState(false)
 
   function toggle() {
-    setIsActive(!isActive);
+    setIsActive(!isActive)
   }
 
   function reset() {
-    setSeconds(0);
-    setIsActive(false);
+    setSeconds(0)
+    setIsActive(false)
   }
 
   useEffect(() => {
-    let interval: any = null;
+    let interval: any = null
     if (isActive) {
       interval = setInterval(() => {
-        setSeconds((seconds) => seconds + 1);
-      }, 1000);
+        setSeconds((seconds) => seconds + 1)
+      }, 1000)
     } else if (!isActive && seconds !== 0) {
-      clearInterval(interval);
+      clearInterval(interval)
     }
-    return () => clearInterval(interval);
+    return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive]);
+  }, [isActive])
 
   return (
     <div className="app">
@@ -34,11 +34,11 @@ const Timer = () => {
           User Study Timer : {seconds}s
           <button
             className={`button button-primary button-primary-${
-              isActive ? "active" : "inactive"
+              isActive ? 'active' : 'inactive'
             }`}
             onClick={toggle}
           >
-            {isActive ? "Pause" : "Start"}
+            {isActive ? 'Pause' : 'Start'}
           </button>
           <button className="button" onClick={reset}>
             Reset
@@ -46,7 +46,7 @@ const Timer = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Timer;
+export default Timer

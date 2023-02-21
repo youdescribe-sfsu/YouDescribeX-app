@@ -1,21 +1,21 @@
-import React, { useState } from "react";
-import YouTube, { Options } from "react-youtube";
-import { useParams } from "react-router-dom";
-import "../assets/css/playVideo.css";
+import React, { useState } from 'react'
+import YouTube, { Options } from 'react-youtube'
+import { useParams } from 'react-router-dom'
+import '../assets/css/playVideo.css'
 
 const PlayVideo = () => {
-  const { youtubeVideoId } = useParams();
+  const { youtubeVideoId } = useParams()
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentEvent, setCurrentEvent] = useState(0); //stores YouTube video's event
+  const [currentEvent, setCurrentEvent] = useState(0) //stores YouTube video's event
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentState, setCurrentState] = useState(-1); // stores YouTube video's PLAYING, CUED, PAUSED, UNSTARTED, BUFFERING, ENDED state values
+  const [currentState, setCurrentState] = useState(-1) // stores YouTube video's PLAYING, CUED, PAUSED, UNSTARTED, BUFFERING, ENDED state values
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentTime, setCurrentTime] = useState(0.0); //stores current running time of the YouTube video
+  const [currentTime, setCurrentTime] = useState(0.0) //stores current running time of the YouTube video
 
   const opts: Options = {
-    height: "265",
-    width: "500",
+    height: '265',
+    width: '500',
     playerVars: {
       autoplay: 0,
       enablejsapi: 1,
@@ -27,25 +27,25 @@ const PlayVideo = () => {
       rel: 0,
       showinfo: 0,
     },
-  };
+  }
 
   // YouTube Player Functions
   const onStateChange = (event: any) => {
-    const currentTime = event.target.getCurrentTime();
-    setCurrentEvent(event.target);
-    setCurrentTime(currentTime);
-    setCurrentState(event.data);
-  };
+    const currentTime = event.target.getCurrentTime()
+    setCurrentEvent(event.target)
+    setCurrentTime(currentTime)
+    setCurrentState(event.data)
+  }
   const onReady = (event: any) => {
-    setCurrentEvent(event.target);
-  };
+    setCurrentEvent(event.target)
+  }
   const onPlay = (event: any) => {
-    setCurrentEvent(event.target);
-    setCurrentTime(event.target.getCurrentTime());
-  };
+    setCurrentEvent(event.target)
+    setCurrentTime(event.target.getCurrentTime())
+  }
   const onPause = (event: any) => {
-    event.target.pauseVideo();
-  };
+    event.target.pauseVideo()
+  }
 
   return (
     <React.Fragment>
@@ -67,7 +67,7 @@ const PlayVideo = () => {
         </div>
       </div>
     </React.Fragment>
-  );
-};
+  )
+}
 
-export default PlayVideo;
+export default PlayVideo

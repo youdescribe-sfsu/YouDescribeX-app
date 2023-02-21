@@ -17,7 +17,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+  background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
   z-index: 2000; /* Specify a stack order in case you're using a different order for other elements
   Bootstrap Modal z-index is 1060.. so use any number >1060 to show the spinner on top of the Modal */
   cursor: pointer; /* Add a pointer on hover */
@@ -87,7 +87,7 @@ hr {
   font-family: sans-serif;
   text-align: center;
   color: white;
-  font-family: "Montserrat";
+  font-family: 'Montserrat';
 }
 
 .dialog-timestamps-div {
@@ -97,6 +97,6 @@ hr {
   background-color: #64b5f6;
 }
 
-.green-border{
+.green-border {
   border: 3px solid green;
 }

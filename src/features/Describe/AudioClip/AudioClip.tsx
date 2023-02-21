@@ -1,36 +1,36 @@
-import React, { useState, useEffect } from "react";
-import "../../assets/css/audioDesc.css";
-import Draggable from "react-draggable";
-import EditClip from "../EditClip/EditClip";
-import convertSecondsToCardFormat from "../../../shared/utils/convertSecondsToCardFormat";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { Clip } from "../../../shared/utils/convertClipObject";
-import { YouTubePlayer } from "youtube-player/dist/types";
+import React, { useState, useEffect } from 'react'
+import '../../assets/css/audioDesc.css'
+import Draggable from 'react-draggable'
+import EditClip from '../EditClip/EditClip'
+import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+import { Clip } from '../../../shared/utils/convertClipObject'
+import { YouTubePlayer } from 'youtube-player/dist/types'
 
 interface Props {
-  userId: string;
-  youtubeVideoId: string;
-  unitLength: number;
-  currentTime: number;
-  videoLength: number;
-  updateData: boolean;
-  setUpdateData: React.Dispatch<React.SetStateAction<boolean>>;
+  userId: string
+  youtubeVideoId: string
+  unitLength: number
+  currentTime: number
+  videoLength: number
+  updateData: boolean
+  setUpdateData: React.Dispatch<React.SetStateAction<boolean>>
   // TODO: Change to camel case
-  clip: Clip;
-  setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>;
-  divWidths: { [key: string]: number };
-  handlePlayAudioClip: (startTime: number) => void;
+  clip: Clip
+  setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
+  divWidths: { [key: string]: number }
+  handlePlayAudioClip: (startTime: number) => void
   editComponentToggleList: {
-    clipId: string;
-    showEditComponent: boolean;
-  }[];
-  audioDescriptionId: string;
-  setEditComponentToggleFunc: (clipId: string, value: boolean) => void;
-  currentEvent: YouTubePlayer | undefined;
-  currentState: number;
-  setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>;
-  fetchUserVideoData: () => void;
+    clipId: string
+    showEditComponent: boolean
+  }[]
+  audioDescriptionId: string
+  setEditComponentToggleFunc: (clipId: string, value: boolean) => void
+  currentEvent: YouTubePlayer | undefined
+  currentState: number
+  setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
+  fetchUserVideoData: () => void
 }
 
 const AudioClip = ({
@@ -54,51 +54,51 @@ const AudioClip = ({
   fetchUserVideoData,
 }: Props) => {
   // all audio clip data from props
-  const clipID = clip.clipId;
-  const clipSequenceNumber = clip.clipSequenceNumber;
-  const initialClipTitle = clip.clipTitle;
-  const clipDescriptionType = clip.descriptionType;
-  const clipDescriptionText = clip.descriptionText;
-  const initialClipPlaybackType = clip.playbackType;
-  const initialClipStartTime = clip.clipStartTime;
-  const clipDuration = clip.clipDuration;
-  const clipAudioPath = clip.clipAudioPath;
-  const isRecorded = clip.isRecorded;
-  const clipCreatedAt = clip.createdAt;
+  const clipID = clip.clipId
+  const clipSequenceNumber = clip.clipSequenceNumber
+  const initialClipTitle = clip.clipTitle
+  const clipDescriptionType = clip.descriptionType
+  const clipDescriptionText = clip.descriptionText
+  const initialClipPlaybackType = clip.playbackType
+  const initialClipStartTime = clip.clipStartTime
+  const clipDuration = clip.clipDuration
+  const clipAudioPath = clip.clipAudioPath
+  const isRecorded = clip.isRecorded
+  const clipCreatedAt = clip.createdAt
 
   // React State Variables
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [clipPlaybackType, setClipPlayBackType] = useState("");
+  const [clipPlaybackType, setClipPlayBackType] = useState('')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [clipTitle, setClipTitle] = useState("");
+  const [clipTitle, setClipTitle] = useState('')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [clipStartTime, setClipStartTime] = useState(0);
+  const [clipStartTime, setClipStartTime] = useState(0)
 
   // toggle variable to show or hide the edit component.
-  const [showEditComponent, setShowEditComponent] = useState(false);
-  const [adDraggableWidth, setAdDraggableWidth] = useState(0.0);
+  const [showEditComponent, setShowEditComponent] = useState(false)
+  const [adDraggableWidth, setAdDraggableWidth] = useState(0.0)
   const [adDraggablePosition, setAdDraggablePosition] = useState({
     x: 0,
     y: 0,
-  });
+  })
 
   useEffect(() => {
-    setClipPlayBackType(initialClipPlaybackType);
-    setClipTitle(initialClipTitle);
+    setClipPlayBackType(initialClipPlaybackType)
+    setClipTitle(initialClipTitle)
     // logic to show/hide the edit component based on props.
     // this hides one edit component when the other is opened
     editComponentToggleList.forEach((item) => {
       if (item.clipId === clipID) {
         item.showEditComponent
           ? setShowEditComponent(true)
-          : setShowEditComponent(false);
+          : setShowEditComponent(false)
       }
-    });
+    })
     //  update the clip start time based on the value from the props
-    setClipStartTime(initialClipStartTime);
+    setClipStartTime(initialClipStartTime)
     // set draggable position & width
-    setAdDraggablePosition({ x: initialClipStartTime * unitLength, y: 0 });
-    setAdDraggableWidth(clipDuration * unitLength);
+    setAdDraggablePosition({ x: initialClipStartTime * unitLength, y: 0 })
+    setAdDraggableWidth(clipDuration * unitLength)
   }, [
     clipDuration,
     clipID,
@@ -107,75 +107,75 @@ const AudioClip = ({
     initialClipTitle,
     editComponentToggleList,
     unitLength,
-  ]);
+  ])
 
   // Dialog Timeline Draggable Functions
   const stopADBar = (event: any, position: any) => {
-    let adBarTime = position.x / unitLength;
-    let newClipStartTime = Number(parseFloat(`${adBarTime}`).toFixed(2));
+    const adBarTime = position.x / unitLength
+    const newClipStartTime = Number(parseFloat(`${adBarTime}`).toFixed(2))
     // set left and right bounds
     if (Number(newClipStartTime) >= 1 && newClipStartTime < videoLength) {
-      if (initialClipPlaybackType === "inline") {
+      if (initialClipPlaybackType === 'inline') {
         // calculate the duration too for inline clips
         if (newClipStartTime + clipDuration <= videoLength) {
-          updateStartTimeNDraggablePosition(newClipStartTime);
+          updateStartTimeNDraggablePosition(newClipStartTime)
         } else {
           toast.error(
-            "Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time."
-          );
+            'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
+          )
         }
       }
       // extended clip
       else {
         if (newClipStartTime < videoLength) {
-          updateStartTimeNDraggablePosition(newClipStartTime);
+          updateStartTimeNDraggablePosition(newClipStartTime)
         }
       }
     } else {
       toast.error(
-        "Audio Clip is bounded to the timeline. Please try adjusting the start time.."
-      );
+        'Audio Clip is bounded to the timeline. Please try adjusting the start time..',
+      )
     }
-  };
+  }
 
   // Handle Nudge icons -> add/remove 1 second to start_time
   const handleLeftNudgeClick = (e: any) => {
-    let newClipStartTime = (
+    const newClipStartTime = (
       parseFloat(`${initialClipStartTime}`) - 0.25
-    ).toFixed(2);
+    ).toFixed(2)
     // so that the audio block isn't out of the timeline
     if (Number(newClipStartTime) >= 1) {
-      updateStartTimeNDraggablePosition(newClipStartTime);
+      updateStartTimeNDraggablePosition(newClipStartTime)
     }
-  };
+  }
   const handleRightNudgeClick = (e: any) => {
-    let newClipStartTime = Number(
-      (parseFloat(`${initialClipStartTime}`) + 0.25).toFixed(2)
-    );
+    const newClipStartTime = Number(
+      (parseFloat(`${initialClipStartTime}`) + 0.25).toFixed(2),
+    )
     // so that the audio block isn't out of the timeline
-    if (initialClipPlaybackType === "inline") {
+    if (initialClipPlaybackType === 'inline') {
       if (newClipStartTime + clipDuration <= videoLength) {
-        updateStartTimeNDraggablePosition(newClipStartTime);
+        updateStartTimeNDraggablePosition(newClipStartTime)
       } else {
         toast.error(
-          "Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time."
-        );
+          'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
+        )
       }
     }
     // extended clip
     else {
       if (newClipStartTime < videoLength) {
-        updateStartTimeNDraggablePosition(newClipStartTime);
+        updateStartTimeNDraggablePosition(newClipStartTime)
       }
     }
-  };
+  }
 
   const updateStartTimeNDraggablePosition = (newClipStartTime: any) => {
-    setClipStartTime(newClipStartTime);
+    setClipStartTime(newClipStartTime)
     // Also update the draggable div position based on start time
-    setAdDraggablePosition({ x: newClipStartTime * unitLength, y: 0 });
-    handleClipStartTimeUpdate(newClipStartTime);
-  };
+    setAdDraggablePosition({ x: newClipStartTime * unitLength, y: 0 })
+    handleClipStartTimeUpdate(newClipStartTime)
+  }
 
   // handle put (update) requests
   // handle update of start time from handleLeftNudgeClick, handleRightNudgeClick, stopADBar
@@ -188,16 +188,16 @@ const AudioClip = ({
       })
       .then((res) => {
         // below prop is used to re-render the parent component i.e. fetch audio clip data
-        setUpdateData(!updateData);
+        setUpdateData(!updateData)
       })
       .catch((err) => {
-        console.error(err);
-      });
-  };
+        console.error(err)
+      })
+  }
 
   // update clip title
   const handleClipTitleUpdate = (e: any) => {
-    setClipTitle(e.target.value);
+    setClipTitle(e.target.value)
     axios
       .put(`/api/audio-clips/update-clip-title/${clipID}`, {
         adTitle: e.target.value,
@@ -209,36 +209,36 @@ const AudioClip = ({
         // setUpdateData(!updateData);
       })
       .catch((err) => {
-        console.error(err.response.data);
-        toast.error("Error updating Title. Please try again!!");
-      });
-  };
+        console.error(err.response.data)
+        toast.error('Error updating Title. Please try again!!')
+      })
+  }
   // update clip playback type - inline/extended
   const handlePlaybackTypeUpdate = (e: any) => {
     // check if user is trying to change the clip Playback type to inline at the end of the timeline
     if (
-      initialClipPlaybackType === "extended" &&
-      e.target.value === "inline" &&
+      initialClipPlaybackType === 'extended' &&
+      e.target.value === 'inline' &&
       parseFloat(`${initialClipStartTime}`) + clipDuration > videoLength
     ) {
       // if yes, throw an error message
       toast.error(
-        "Audio Clip cannot be changed to Inline as it is bounded to the timeline. Please try adjusting the start time first."
-      );
+        'Audio Clip cannot be changed to Inline as it is bounded to the timeline. Please try adjusting the start time first.',
+      )
     } else {
-      setClipPlayBackType(e.target.value);
+      setClipPlayBackType(e.target.value)
       axios
         .put(`/api/audio-clips/update-clip-playback-type/${clipID}`, {
           clipPlaybackType: e.target.value,
         })
         .then((res) => {
-          setUpdateData(!updateData);
+          setUpdateData(!updateData)
         })
         .catch((err) => {
-          console.error(err);
-        });
+          console.error(err)
+        })
     }
-  };
+  }
 
   return (
     <React.Fragment>
@@ -265,7 +265,7 @@ const AudioClip = ({
                 <h6 className="mt-1 text-white">
                   <b>Type: </b>
                   {clipDescriptionType.charAt(0).toUpperCase() +
-                    clipDescriptionType.slice(1)}{" "}
+                    clipDescriptionType.slice(1)}{' '}
                   {/* <b>End: </b>
                 {clip_end_time} */}
                 </h6>
@@ -273,7 +273,7 @@ const AudioClip = ({
             </div>
             <div
               className="col-1 text-center component-column-width-2"
-              style={{ width: divWidths.divRef2, marginBottom: "36px" }}
+              style={{ width: divWidths.divRef2, marginBottom: '36px' }}
             >
               <small className="text-white">Nudge</small>
               <div
@@ -306,7 +306,7 @@ const AudioClip = ({
                     onStop={stopADBar}
                     bounds="parent"
                   >
-                    {initialClipPlaybackType === "inline" ? (
+                    {initialClipPlaybackType === 'inline' ? (
                       <div
                         className="ad-timestamp-div"
                         data-bs-toggle="tooltip"
@@ -314,8 +314,8 @@ const AudioClip = ({
                         title={convertSecondsToCardFormat(initialClipStartTime)}
                         style={{
                           width: adDraggableWidth,
-                          height: "20px",
-                          backgroundColor: "var(--inline-color)",
+                          height: '20px',
+                          backgroundColor: 'var(--inline-color)',
                         }}
                       ></div>
                     ) : (
@@ -325,9 +325,9 @@ const AudioClip = ({
                         data-bs-placement="bottom"
                         title={convertSecondsToCardFormat(initialClipStartTime)}
                         style={{
-                          width: "2px",
-                          height: "20px",
-                          backgroundColor: "var(--extended-color)",
+                          width: '2px',
+                          height: '20px',
+                          backgroundColor: 'var(--extended-color)',
                         }}
                       ></div>
                     )}
@@ -343,7 +343,7 @@ const AudioClip = ({
                     id="radio1"
                     value="inline"
                     checked={
-                      initialClipPlaybackType === "inline" ? true : false
+                      initialClipPlaybackType === 'inline' ? true : false
                     }
                     onChange={handlePlaybackTypeUpdate}
                   />
@@ -359,7 +359,7 @@ const AudioClip = ({
                     id="radio2"
                     value="extended"
                     checked={
-                      initialClipPlaybackType === "extended" ? true : false
+                      initialClipPlaybackType === 'extended' ? true : false
                     }
                     onChange={handlePlaybackTypeUpdate}
                   />
@@ -416,6 +416,6 @@ const AudioClip = ({
         )}
       </div>
     </React.Fragment>
-  );
-};
-export default AudioClip;
+  )
+}
+export default AudioClip

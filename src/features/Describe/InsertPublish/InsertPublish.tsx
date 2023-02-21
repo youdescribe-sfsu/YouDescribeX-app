@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from "react";
-import "../assets/css/insertPublish.css";
-import "../assets/css/audioDesc.css";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import NewAudioClipComponent from "../NewAudioClip/NewAudioClip";
-import ModalComponent from "../../../shared/components/Modal/Modal";
+import React, { useState, useEffect } from 'react'
+import '../assets/css/insertPublish.css'
+import '../assets/css/audioDesc.css'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+import NewAudioClipComponent from '../NewAudioClip/NewAudioClip'
+import ModalComponent from '../../../shared/components/Modal/Modal'
 
 interface Props {
-  handleClicksFromParent: string;
-  setHandleClicksFromParent: React.Dispatch<React.SetStateAction<string>>;
-  seconds: number;
-  reset: () => void;
-  setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>;
-  userId: string;
-  youtubeVideoId: string;
-  currentTime: number;
-  videoLength: number;
-  audioDescriptionId: string;
-  participantId: string;
-  setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>;
+  handleClicksFromParent: string
+  setHandleClicksFromParent: React.Dispatch<React.SetStateAction<string>>
+  seconds: number
+  reset: () => void
+  setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
+  userId: string
+  youtubeVideoId: string
+  currentTime: number
+  videoLength: number
+  audioDescriptionId: string
+  participantId: string
+  setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const InsertPublish = ({
@@ -37,69 +37,69 @@ const InsertPublish = ({
 }: Props) => {
   // destructuring props
   // props which handles clicks of New Inline and New Extended buttons from Button Component
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   // const [timeData,setTimeData] = useState(seconds);
-  const [showInlineACComponent, setShowInlineACComponent] = useState(false);
-  const [showNewACComponent, setShowNewACComponent] = useState(false);
-  const [isModal, setIsModal] = useState(false);
+  const [showInlineACComponent, setShowInlineACComponent] = useState(false)
+  const [showNewACComponent, setShowNewACComponent] = useState(false)
+  const [isModal, setIsModal] = useState(false)
 
   const handleClickInsertInline = (e: any) => {
-    e.preventDefault();
-    setShowNewACComponent(true);
-    setShowInlineACComponent(true);
-  };
+    e.preventDefault()
+    setShowNewACComponent(true)
+    setShowInlineACComponent(true)
+  }
 
   const handleClickInsertExtended = (e: any) => {
-    e.preventDefault();
-    setShowNewACComponent(true);
-    setShowInlineACComponent(false);
-  };
+    e.preventDefault()
+    setShowNewACComponent(true)
+    setShowInlineACComponent(false)
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClickPublish = (e: any) => {
     axios
-      .post("/api/add-timedata-to-db/addtimedata", {
+      .post('/api/add-timedata-to-db/addtimedata', {
         participant_id: participantId,
         time: seconds,
       })
       .then(function (response) {
-        reset();
-        console.log(response);
+        reset()
+        console.log(response)
       })
       .catch(function (error) {
-        console.log(error);
-      });
-  };
+        console.log(error)
+      })
+  }
 
   const handlePublish = async (e: any) => {
-    console.log("publish");
+    console.log('publish')
     axios
-      .post("/api/add-timedata-to-db/addtimedata", {
+      .post('/api/add-timedata-to-db/addtimedata', {
         participant_id: participantId,
         time: seconds,
         video_id: youtubeVideoId,
       })
       .then(function (response) {
-        reset();
-        console.log(response);
+        reset()
+        console.log(response)
       })
       .catch(function (error) {
-        console.log(error);
-      });
-    navigate(`/userstudy/${participantId}`);
-  };
+        console.log(error)
+      })
+    navigate(`/userstudy/${participantId}`)
+  }
 
   useEffect(() => {
-    if (handleClicksFromParent === "inline") {
-      setShowNewACComponent(true);
-      setShowInlineACComponent(true);
-      setHandleClicksFromParent(""); // reset it back to empty
-    } else if (handleClicksFromParent === "extended") {
-      setShowNewACComponent(true);
-      setShowInlineACComponent(false);
-      setHandleClicksFromParent(""); // reset it back to empty
+    if (handleClicksFromParent === 'inline') {
+      setShowNewACComponent(true)
+      setShowInlineACComponent(true)
+      setHandleClicksFromParent('') // reset it back to empty
+    } else if (handleClicksFromParent === 'extended') {
+      setShowNewACComponent(true)
+      setShowInlineACComponent(false)
+      setHandleClicksFromParent('') // reset it back to empty
     }
-  }, [handleClicksFromParent, setHandleClicksFromParent]);
+  }, [handleClicksFromParent, setHandleClicksFromParent])
 
   return (
     <React.Fragment>
@@ -107,7 +107,7 @@ const InsertPublish = ({
       {showNewACComponent ? (
         <>
           <h5 className="text-white">
-            Insert {showInlineACComponent ? "Inline" : "Extended"} Audio Clip
+            Insert {showInlineACComponent ? 'Inline' : 'Extended'} Audio Clip
           </h5>
           <NewAudioClipComponent
             userId={userId}
@@ -132,7 +132,7 @@ const InsertPublish = ({
             className="btn inline-bg text-dark"
             onClick={handleClickInsertInline}
           >
-            <i className="fa fa-plus" /> {"   "}
+            <i className="fa fa-plus" /> {'   '}
             Insert Inline
           </button>
           <button
@@ -140,7 +140,7 @@ const InsertPublish = ({
             className="btn mx-5 extended-bg text-white"
             onClick={handleClickInsertExtended}
           >
-            <i className="fa fa-plus" /> {"   "}
+            <i className="fa fa-plus" /> {'   '}
             Insert Extended
           </button>
         </div>
@@ -152,7 +152,7 @@ const InsertPublish = ({
             data-bs-target="#publishModal"
             onClick={() => setIsModal(true)}
           >
-            <i className="fa fa-upload" /> {"   "}
+            <i className="fa fa-upload" /> {'   '}
             Publish
           </button>
         </div>
@@ -167,7 +167,7 @@ const InsertPublish = ({
         handleClose={() => setIsModal(false)}
       />
     </React.Fragment>
-  );
-};
+  )
+}
 
-export default InsertPublish;
+export default InsertPublish

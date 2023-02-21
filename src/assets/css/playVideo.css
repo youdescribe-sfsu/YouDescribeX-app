@@ -2,16 +2,16 @@
 /* rectangular container */
 .home-container {
   /* height: 100vh; */
-display: 'flex';
-align-items: 'center';
-justify-content: 'center';
-width: 100%;
-height: '100vh';
-margin-top: 50px;
+  display: 'flex';
+  align-items: 'center';
+  justify-content: 'center';
+  width: 100%;
+  height: '100vh';
+  margin-top: 50px;
 }
 
-.youtube-video{
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.youtube-video {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

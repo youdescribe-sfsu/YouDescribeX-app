@@ -1,61 +1,61 @@
-import React, { useState, useEffect } from "react";
-import "../assets/css/userstudyhome.css";
-import Navbar from "react-bootstrap/Navbar";
+import React, { useState, useEffect } from 'react'
+import '../assets/css/userstudyhome.css'
+import Navbar from 'react-bootstrap/Navbar'
 import {
   RiSurveyFill,
   RiExternalLinkLine,
   RiPlayCircleFill,
-} from "react-icons/ri";
+} from 'react-icons/ri'
 
-import { useElapsedTime } from "use-elapsed-time";
+import { useElapsedTime } from 'use-elapsed-time'
 
-import axios from "axios";
-import { Link, useParams } from "react-router-dom";
+import axios from 'axios'
+import { Link, useParams } from 'react-router-dom'
 
 const UserStudyHome = () => {
-  const { participantId } = useParams();
-  sessionStorage.setItem("id", participantId || "");
-  console.log(participantId);
+  const { participantId } = useParams()
+  sessionStorage.setItem('id', participantId || '')
+  console.log(participantId)
 
-  const [videoIdWithAi, setVideoIdWithAi] = useState("");
-  const [videoIdWithoutAi, setVideoIdWithoutAi] = useState("");
-  const [userIdWithAi, setuserIdWithAi] = useState("");
-  const [userIdWithoutAi, setuserIdWithoutAi] = useState("");
-  const [randomOrder, setRandomOrder] = useState(false);
+  const [videoIdWithAi, setVideoIdWithAi] = useState('')
+  const [videoIdWithoutAi, setVideoIdWithoutAi] = useState('')
+  const [userIdWithAi, setuserIdWithAi] = useState('')
+  const [userIdWithoutAi, setuserIdWithoutAi] = useState('')
+  const [randomOrder, setRandomOrder] = useState(false)
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { elapsedTime } = useElapsedTime({ isPlaying });
+  const { elapsedTime } = useElapsedTime({ isPlaying })
 
   const fetchParticipantData = () => {
     axios
       .get(`/api/create-participant-links/get-participant/${participantId}`)
       .then((res) => {
-        setVideoIdWithAi(res.data.youtube_video_id_with_AI);
-        setVideoIdWithoutAi(res.data.youtube_video_id_without_AI);
-        setuserIdWithAi(res.data.user_id_with_AI);
-        setuserIdWithoutAi(res.data.user_id_without_AI);
+        setVideoIdWithAi(res.data.youtube_video_id_with_AI)
+        setVideoIdWithoutAi(res.data.youtube_video_id_without_AI)
+        setuserIdWithAi(res.data.user_id_with_AI)
+        setuserIdWithoutAi(res.data.user_id_without_AI)
       })
       .catch((err) => {
-        console.error(err.response.data);
-      });
-  };
+        console.error(err.response.data)
+      })
+  }
 
   function charIsLetter(char: any) {
-    if (typeof char !== "string") {
-      return false;
+    if (typeof char !== 'string') {
+      return false
     }
-    return /^[a-zA-Z]+$/.test(char);
+    return /^[a-zA-Z]+$/.test(char)
   }
 
   useEffect(() => {
-    fetchParticipantData();
-    document.addEventListener("keyup", () => {
-      setIsPlaying((prevIsPlaying) => !prevIsPlaying);
-    });
-    setRandomOrder(charIsLetter(participantId?.charAt(0)));
+    fetchParticipantData()
+    document.addEventListener('keyup', () => {
+      setIsPlaying((prevIsPlaying) => !prevIsPlaying)
+    })
+    setRandomOrder(charIsLetter(participantId?.charAt(0)))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [participantId]);
+  }, [participantId])
 
   return (
     <React.Fragment>
@@ -67,7 +67,7 @@ const UserStudyHome = () => {
         {/* <Container> */}
         <Navbar.Brand href="#home">
           <h6 className="tutorial-text text-center font-weight-bolder">
-            {" "}
+            {' '}
             Video Description User Study
           </h6>
           {/* <div className="app">
@@ -189,7 +189,7 @@ const UserStudyHome = () => {
                 <a
                   href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}
                 >
-                  {" "}
+                  {' '}
                   <RiSurveyFill />
                   &nbsp;NASA TLX Survey for Video 1
                 </a>
@@ -197,7 +197,7 @@ const UserStudyHome = () => {
                 <a
                   href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}
                 >
-                  {" "}
+                  {' '}
                   <RiSurveyFill />
                   &nbsp;NASA TLX Survey for Video 1
                 </a>
@@ -245,7 +245,7 @@ const UserStudyHome = () => {
                 <a
                   href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}
                 >
-                  {" "}
+                  {' '}
                   <RiSurveyFill />
                   &nbsp;User Survey for Video 2
                 </a>
@@ -253,7 +253,7 @@ const UserStudyHome = () => {
                 <a
                   href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}
                 >
-                  {" "}
+                  {' '}
                   <RiSurveyFill />
                   &nbsp;User Survey for Video 2
                 </a>
@@ -266,7 +266,7 @@ const UserStudyHome = () => {
                 <a
                   href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}
                 >
-                  {" "}
+                  {' '}
                   <RiSurveyFill />
                   &nbsp;NASA TLX Survey for Video 2
                 </a>
@@ -274,7 +274,7 @@ const UserStudyHome = () => {
                 <a
                   href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}
                 >
-                  {" "}
+                  {' '}
                   <RiSurveyFill />
                   &nbsp;NASA TLX Survey for Video 2
                 </a>
@@ -289,7 +289,7 @@ const UserStudyHome = () => {
               <a
                 href={`https://docs.google.com/forms/d/e/1FAIpQLSfoIOrNWzZXK4tJ4QDIFLrM7-mSFhGtyW6opra67smrz2nbqw/viewform?usp=pp_url&entry.186159302=${participantId}`}
               >
-                {" "}
+                {' '}
                 <RiSurveyFill />
                 &nbsp; General Survey
               </a>
@@ -299,7 +299,7 @@ const UserStudyHome = () => {
         <hr />
       </div>
     </React.Fragment>
-  );
-};
+  )
+}
 
-export default UserStudyHome;
+export default UserStudyHome
