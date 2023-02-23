@@ -1,4 +1,4 @@
-@import '../css/index.css';
+@import '../css/index.module.css';
 /* Notes section */
 .notes-bg {
   background-color: rgb(80, 80, 80);

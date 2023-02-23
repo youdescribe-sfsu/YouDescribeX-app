@@ -1,4 +1,4 @@
-@import '../css/index.css';
+@import '../css/index.module.css';
 .component {
   background-color: rgb(80, 80, 80);
   margin-right: 1.3%;

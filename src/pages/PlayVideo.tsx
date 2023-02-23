@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import YouTube, { Options } from 'react-youtube'
 import { useParams } from 'react-router-dom'
-import '../assets/css/playVideo.css'
+import '@/assets/css/playVideo.module.css'
 
 const PlayVideo = () => {
   const { youtubeVideoId } = useParams()

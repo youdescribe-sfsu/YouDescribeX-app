@@ -4,10 +4,13 @@ import YDXHome from './pages/YDXHome'
 import PageNotFound from './pages/PageNotFound'
 import UserStudyHome from './pages/UserStudyHome'
 import PlayVideo from './pages/PlayVideo'
-import './assets/css/index.css'
+import './assets/css/index.module.css'
+import './app.scss'
 import { ToastContainer, toast, Zoom } from 'react-toastify' // for toast messages
 import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
+import Home from './pages/Home'
+import Navbar from './shared/components/Navbar/Navbar'
 
 const App = () => {
   useEffect(() => {
@@ -20,24 +23,28 @@ const App = () => {
   }, [])
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
-        <Route path="/*" element={<PageNotFound />} />
-        <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
-        <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
-      </Routes>
-      <ToastContainer
-        className="toast-btn"
-        position="top-center"
-        autoClose={1000}
-        closeOnClick
-        draggable
-        pauseOnFocusLoss
-        pauseOnHover
-        theme="colored"
-      />
-    </BrowserRouter>
+    <>
+      <BrowserRouter>
+        <Navbar translate={(string) => string} />
+        <Routes>
+          <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/*" element={<PageNotFound />} />
+          <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
+          <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
+        </Routes>
+        <ToastContainer
+          className="toast-btn"
+          position="top-center"
+          autoClose={1000}
+          closeOnClick
+          draggable
+          pauseOnFocusLoss
+          pauseOnHover
+          theme="colored"
+        />
+      </BrowserRouter>
+    </>
   )
 }
 

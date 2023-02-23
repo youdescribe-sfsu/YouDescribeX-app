@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import '../assets/css/userstudyhome.css'
+import '@/assets/css/userstudyhome.module.css'
 import Navbar from 'react-bootstrap/Navbar'
 import {
   RiSurveyFill,
@@ -78,12 +78,12 @@ const UserStudyHome = () => {
           {/* <Timer/> */}
           {/* <div>
           <img 
-          src='../assets/images/pause_white.png'
+          src='@/assets/images/pause_white.png'
           ></img> 
         </div> */}
           {/* <img
           id="btn-timer"
-          src="../assets/images/pause_white.png"
+          src="@/assets/images/pause_white.png"
           style="height: 20px; width: 20px; color: white; margin-right: 10px"
         />
         <b
@@ -168,7 +168,7 @@ const UserStudyHome = () => {
                 <a
                   href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}
                 >
-                  {/* <img src="../assets/images/survey.png" width="70" height="70"></img> */}
+                  {/* <img src="@/assets/images/survey.png" width="70" height="70"></img> */}
                   <RiSurveyFill />
                   &nbsp; User Survey for Video 1
                 </a>
@@ -176,7 +176,7 @@ const UserStudyHome = () => {
                 <a
                   href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}
                 >
-                  {/* <img src="../assets/images/survey.png" width="70" height="70"></img> */}
+                  {/* <img src="@/assets/images/survey.png" width="70" height="70"></img> */}
                   <RiSurveyFill />
                   &nbsp; User Survey for Video 1
                 </a>

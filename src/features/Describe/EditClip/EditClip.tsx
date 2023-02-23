@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
-import '../../assets/css/editAudioDesc.css'
+import styles from '@/assets/css/audioDesc.module.css'
 import axios from 'axios'
 import { toast } from 'react-toastify' // for toast messages
 import TextareaAutosize from 'react-textarea-autosize'
@@ -60,7 +60,6 @@ const EditClip = ({
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
-
   // use 3 state variables to hold the value of 3 input type number fields
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0)

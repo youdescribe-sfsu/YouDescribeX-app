@@ -8,7 +8,7 @@ import Draggable, {
   DraggableEvent,
   DraggableEventHandler,
 } from 'react-draggable'
-import '../assets/css/home.css'
+import '@/assets/css/home.module.css'
 import AudioClip from '../features/Describe/AudioClip/AudioClip'
 import Notes from '../features/Describe/Notes/Notes'
 import convertSecondsToCardFormat from '../shared/utils/convertSecondsToCardFormat'
