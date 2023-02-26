@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import YouTube, { Options } from 'react-youtube'
+import YouTube from 'react-youtube'
 import { useParams } from 'react-router-dom'
 import '@/assets/css/playVideo.css'
+import { Options } from 'youtube-player/dist/types'
 
 const PlayVideo = () => {
   const { youtubeVideoId } = useParams()
@@ -25,7 +26,6 @@ const PlayVideo = () => {
       iv_load_policy: 3,
       modestbranding: 1,
       rel: 0,
-      showinfo: 0,
     },
   }
 

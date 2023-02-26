@@ -2,12 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useElapsedTime } from 'use-elapsed-time'
 import { useParams } from 'react-router-dom' /* to use params on the url */
 import axios from 'axios'
-import YouTube, { Options } from 'react-youtube'
-import Draggable, {
-  DraggableData,
-  DraggableEvent,
-  DraggableEventHandler,
-} from 'react-draggable'
+import YouTube, { YouTubePlayer } from 'react-youtube'
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
 import '../assets/css/home.css'
 import '../assets/css/timer.css'
 import AudioClip from '../features/Describe/AudioClip/AudioClip'
@@ -22,7 +18,7 @@ import { devtools } from 'zustand/middleware'
 import { debounce } from 'debounce'
 import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
-import { YouTubePlayer } from 'youtube-player/dist/types'
+import { Options } from 'youtube-player/dist/types'
 
 interface YDXDescribeState {
   clipID: string
@@ -52,7 +48,7 @@ const useClipIDStore = create<YDXDescribeState>()(
   })),
 )
 
-const YDXHome = (props: any) => {
+const YDXHome = () => {
   /* to use params on the url and get userId & youtubeVideoId */
   const { userId, youtubeVideoId } = useParams()
   const participant_id = sessionStorage.getItem('id')
@@ -69,7 +65,6 @@ const YDXHome = (props: any) => {
       iv_load_policy: 3,
       modestbranding: 1,
       rel: 0,
-      showinfo: 0,
     },
   }
   // use a reference for the #draggable-div to get the width and use in calculateDraggableDivWidth()
@@ -161,6 +156,8 @@ const YDXHome = (props: any) => {
     (state) => state.setCurrentClipIndex,
   )
 
+  const currentEventRef = useRef(currentEvent)
+
   function toggle() {
     setIsActive(!isActive)
   }
@@ -216,6 +213,10 @@ const YDXHome = (props: any) => {
   useEffect(() => {
     clipStackRef.current = clipStack
   }, [clipStack])
+
+  useEffect(() => {
+    currentEventRef.current = currentEvent
+  }, [currentEvent])
 
   useEffect(() => {
     if (needRefresh) {
@@ -291,6 +292,8 @@ const YDXHome = (props: any) => {
       })
       .catch((err) => {
         // console.error(err.response.data);
+        console.error('ERROR in fetchDialogData', err)
+
         setShowSpinner(true)
       })
   }
@@ -319,6 +322,8 @@ const YDXHome = (props: any) => {
       })
       .catch((err) => {
         // console.error(err.response.data);
+        console.error('ERROR in fetchUserVideoData', err)
+
         setShowSpinner(true)
       })
   }
@@ -349,21 +354,24 @@ const YDXHome = (props: any) => {
         const ONE_MIN = 1 * 60 * 1000
         audioClipsData.forEach((clip, i) => {
           // add a sequence number for every audio clip
-          clip.clipSequenceNumber = i + 1
-          clip.clipAudioPath = clip.clipAudioPath.replace('.', '/api/static')
+          clip.clip_sequence_number = i + 1
+          clip.clip_audio_path = clip.clip_audio_path.replace(
+            '.',
+            '/api/static',
+          )
 
           // set the showEditComponent of the new clip to true.. compare time
           if (date.getTime() - new Date(clip.createdAt).getTime() <= ONE_MIN) {
             // show Edit Component
             tempArray.push({
-              clipId: clip.clipId,
+              clipId: clip.clip_id,
               showEditComponent: true,
             })
           } else {
             // logic to show/hide the edit component and add it to a list along with clip Id
             // this hides one edit component when the other is opened
             tempArray.push({
-              clipId: clip.clipId,
+              clipId: clip.clip_id,
               showEditComponent: false,
             })
           }
@@ -379,8 +387,8 @@ const YDXHome = (props: any) => {
         const clipStackData = []
         for (let i = 0; i < 5; i++) {
           const clip = audioClipsData[i]
-          clip.clipAudio = new Howl({
-            src: clip.clipAudioPath,
+          clip.clip_audio = new Howl({
+            src: clip.clip_audio_path,
             html5: true,
           })
           clipStackData.push(clip)
@@ -389,6 +397,8 @@ const YDXHome = (props: any) => {
       })
       .catch((err) => {
         // console.error(err.response.data);
+        console.error('ERROR in fetchAudioDescriptionData', err)
+
         setShowSpinner(true)
       })
   }
@@ -427,8 +437,8 @@ const YDXHome = (props: any) => {
       }
       // Compare current window with clip at current clip index
       if (
-        clipStackRef.current[0].clipStartTime <= currentTimeRef.current &&
-        clipStackRef.current[0].clipStartTime >= previousTimeRef.current
+        clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
+        clipStackRef.current[0].clip_start_time >= previousTimeRef.current
       ) {
         const currentFilteredClip = clipStackRef.current[0]
         setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
@@ -436,21 +446,21 @@ const YDXHome = (props: any) => {
         // TODO: Convert to normal for loop
         prevelement.forEach((elem) => elem.classList.remove('green-border'))
         // Play the clip only if it wasn't played recently
-        if (playedAudioClip !== currentFilteredClip.clipId) {
-          setPlayedAudioClip(currentFilteredClip.clipId)
+        if (playedAudioClip !== currentFilteredClip.clip_id) {
+          setPlayedAudioClip(currentFilteredClip.clip_id)
           //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
-          const clipAudioPath = currentFilteredClip.clipAudioPath
+          const clipAudioPath = currentFilteredClip.clip_audio_path
           // play along with the video if the clip is an inline clip
-          if (currentFilteredClip.playbackType === 'inline') {
+          if (currentFilteredClip.playback_type === 'inline') {
             if (clipAudioPath !== playedClipPath) {
               setPlayedClipPath(clipAudioPath)
               // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-              setEditComponentToggleFunc(currentFilteredClip.clipId, true)
-              const currentAudio = currentFilteredClip.clipAudio
+              setEditComponentToggleFunc(currentFilteredClip.clip_id, true)
+              const currentAudio = currentFilteredClip.clip_audio
               if (
                 currentAudio?.playing() ||
-                currentFilteredClip.clipId === clipIDRef.current
+                currentFilteredClip.clip_id === clipIDRef.current
               ) {
                 return
               }
@@ -459,7 +469,7 @@ const YDXHome = (props: any) => {
               setCurrInlineAC(currentAudio)
               // ended event listener, to set the currInlineAC back to null
               currentAudio?.once('play', function () {
-                setClipID(currentFilteredClip.clipId)
+                setClipID(currentFilteredClip.clip_id)
               })
               currentAudio?.on('end', function () {
                 setCurrInlineAC(undefined)
@@ -469,8 +479,8 @@ const YDXHome = (props: any) => {
                 const newClip = audioClips[currentClipIndexRef.current + 4]
                 console.log('New CLIP => ', newClip)
                 if (newClip) {
-                  newClip.clipAudio = new Howl({
-                    src: newClip.clipAudioPath,
+                  newClip.clip_audio = new Howl({
+                    src: newClip.clip_audio_path,
                     html5: true,
                   })
                   setClipStack([...clipStackRef.current.slice(1, 5), newClip])
@@ -481,12 +491,12 @@ const YDXHome = (props: any) => {
             }
           }
           // play after pausing the youtube video if the clip is an extended clip
-          else if (currentFilteredClip.playbackType === 'extended') {
+          else if (currentFilteredClip.playback_type === 'extended') {
             if (clipAudioPath !== playedClipPath) {
               setPlayedClipPath(clipAudioPath)
               // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-              setEditComponentToggleFunc(currentFilteredClip.clipId, true)
-              const currentAudio = currentFilteredClip.clipAudio
+              setEditComponentToggleFunc(currentFilteredClip.clip_id, true)
+              const currentAudio = currentFilteredClip.clip_audio
               currentEvent?.pauseVideo()
               if (!currentAudio?.playing()) {
                 currentAudio?.play()
@@ -505,8 +515,8 @@ const YDXHome = (props: any) => {
                 const newClip = audioClips[currentClipIndexRef.current + 4]
                 console.log('New CLIP => ', newClip)
                 if (newClip) {
-                  newClip.clipAudio = new Howl({
-                    src: newClip.clipAudioPath,
+                  newClip.clip_audio = new Howl({
+                    src: newClip.clip_audio_path,
                     html5: true,
                   })
                   setClipStack([...clipStackRef.current.slice(1, 5), newClip])
@@ -517,7 +527,7 @@ const YDXHome = (props: any) => {
             }
           }
         }
-        const element = document.getElementById(currentFilteredClip.clipId)
+        const element = document.getElementById(currentFilteredClip.clip_id)
         element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         element?.classList.add('green-border')
       }
@@ -616,34 +626,31 @@ const YDXHome = (props: any) => {
   }
 
   // Dialog Timeline Draggable Functions
-  const stopProgressBar: DraggableEventHandler = (
+  const stopProgressBar = async (
     event: DraggableEvent,
     position: DraggableData,
   ) => {
     setDraggableTime({ x: position.x, y: 0 })
     let progressBarTime = 0.0
     progressBarTime = position.x / unitLength
-    currentEvent?.seekTo(progressBarTime, true)
-    currentEvent?.getCurrentTime().then((time) => {
-      setCurrentTime(time ?? 0)
-      setStoreCurrentTime(time ?? 0)
-    })
+    currentEventRef.current?.seekTo(progressBarTime, true)
+    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
+    setPreviousTime(currentPlayerTime ?? 0)
+    setStorePreviousTime(currentPlayerTime ?? 0)
   }
-  const dragProgressBar: DraggableEventHandler = (
+  const dragProgressBar = async (
     event: DraggableEvent,
     position: DraggableData,
   ) => {
     // setDraggableTime({ x: position.x, y: 0 });
-    console.log('Dragging')
     let progressBarTime = 0.0
     progressBarTime = position.x / unitLength
-    currentEvent?.seekTo(progressBarTime, true)
-    currentEvent?.getCurrentTime().then((currentTime) => {
-      setCurrentTime(currentTime ?? 0)
-      setPreviousTime(currentTime ?? 0)
-      setStoreCurrentTime(currentTime ?? 0)
-      setStorePreviousTime(currentTime ?? 0)
-    })
+    currentEventRef.current?.seekTo(progressBarTime, true)
+    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
+    setCurrentTime(currentPlayerTime ?? 0)
+    setPreviousTime(currentPlayerTime ?? 0)
+    setStoreCurrentTime(currentPlayerTime ?? 0)
+    setStorePreviousTime(currentPlayerTime ?? 0)
     setRecentAudioPlayedTime(0.0)
     setPlayedAudioClip('')
     setPlayedClipPath('')
@@ -667,7 +674,7 @@ const YDXHome = (props: any) => {
 
   const updateClipStackData = useCallback(() => {
     const newClipIndex = audioClips.findIndex(
-      (clip) => clip.clipStartTime > currentTimeRef.current,
+      (clip) => clip.clip_start_time > currentTimeRef.current,
     )
     setCurrentClipIndex(newClipIndex)
 
@@ -677,8 +684,8 @@ const YDXHome = (props: any) => {
     for (let i = newClipIndex; i < newClipIndex + 5; i++) {
       const clip = audioClips[i]
       if (clip) {
-        clip.clipAudio = new Howl({
-          src: clip.clipAudioPath,
+        clip.clip_audio = new Howl({
+          src: clip.clip_audio_path,
           html5: true,
         })
         clipStackData.push(clip)
@@ -828,8 +835,12 @@ const YDXHome = (props: any) => {
                   bounds="parent"
                   defaultPosition={{ x: 0, y: 0 }}
                   position={draggableTime}
-                  onDrag={dragProgressBar}
-                  onStop={stopProgressBar}
+                  onDrag={(e, data) => {
+                    dragProgressBar(e, data)
+                  }}
+                  onStop={(e, data) => {
+                    stopProgressBar(e, data)
+                  }}
                 >
                   <div tabIndex={0} className="progress-bar-div">
                     <p className="mt-5 text-white progress-bar-time">
