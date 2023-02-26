@@ -350,10 +350,11 @@ const YDXHome = (props) => {
         // console.log("Audio Clips", audioClips);
         setNotesData(notesData);
         let clipStackData = [];
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 10; i++) {
           let clip = audioClipsData[i];
           clip.clip_audio = new Howl({
             src: clip.clip_audio_path,
+            html5: true,
           });
           clipStackData.push(clip);
         }
@@ -438,15 +439,16 @@ const YDXHome = (props) => {
                 // Unload current clip
                 currentAudio.unload();
                 // Load a new clip and add it to the stack
-                let newClip = audioClips[currentClipIndexRef.current + 4];
+                let newClip = audioClips[currentClipIndexRef.current + 9];
                 console.log("New CLIP => ", newClip);
                 if (newClip) {
                   newClip.clip_audio = new Howl({
                     src: newClip.clip_audio_path,
+                    html5: true,
                   });
-                  setClipStack([...clipStackRef.current.slice(1, 5), newClip]);
+                  setClipStack([...clipStackRef.current.slice(1, 10), newClip]);
                 } else {
-                  setClipStack([...clipStackRef.current.slice(1, 5)]);
+                  setClipStack([...clipStackRef.current.slice(1, 10)]);
                 }
               });
             }
@@ -474,15 +476,16 @@ const YDXHome = (props) => {
                 currentAudio.unload();
                 setCurrentExtACPaused(false); // reset the play/pause state
                 // Add a new clip to the stack
-                let newClip = audioClips[currentClipIndexRef.current + 4];
+                let newClip = audioClips[currentClipIndexRef.current + 9];
                 console.log("New CLIP => ", newClip);
                 if (newClip) {
                   newClip.clip_audio = new Howl({
                     src: newClip.clip_audio_path,
+                    html5: true,
                   });
-                  setClipStack([...clipStackRef.current.slice(1, 5), newClip]);
+                  setClipStack([...clipStackRef.current.slice(1, 10), newClip]);
                 } else {
-                  setClipStack([...clipStackRef.current.slice(1, 5)]);
+                  setClipStack([...clipStackRef.current.slice(1, 10)]);
                 }
               });
             }
@@ -637,11 +640,12 @@ const YDXHome = (props) => {
     // slice audio clips from newClipIndex to newClipIndex + 5
     let clipStackData = [];
     // Create Howl objects for each clip
-    for (let i = newClipIndex; i < newClipIndex + 5; i++) {
+    for (let i = newClipIndex; i < newClipIndex + 10; i++) {
       let clip = audioClips[i];
       if (clip) {
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
+          html5: true,
         });
         clipStackData.push(clip);
       }
