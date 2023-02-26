@@ -1,8 +1,8 @@
 import axios from 'axios'
 import React, { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
-import '@/assets/css/editAudioDesc.module.css'
-import '@/assets/css/notes.module.css'
+import '@/assets/css/editAudioDesc.css'
+import '@/assets/css/notes.css'
 
 interface Props {
   currentTime: string

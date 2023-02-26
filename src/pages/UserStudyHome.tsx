@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import '@/assets/css/userstudyhome.module.css'
+import '@/assets/css/userstudyhome.css'
 import Navbar from 'react-bootstrap/Navbar'
 import {
   RiSurveyFill,

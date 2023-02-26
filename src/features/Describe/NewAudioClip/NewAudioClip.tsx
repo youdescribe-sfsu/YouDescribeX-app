@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
-import '@/assets/css/audioDesc.module.css'
-import '@/assets/css/editAudioDesc.module.css'
+import '@/assets/css/audioDesc.css'
+import '@/assets/css/editAudioDesc.css'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 

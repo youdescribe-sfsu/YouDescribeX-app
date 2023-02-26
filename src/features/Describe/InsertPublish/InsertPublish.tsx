@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import '@/assets/css/insertPublish.module.css'
-import '@/assets/css/audioDesc.module.css'
+import '@/assets/css/insertPublish.css'
+import '@/assets/css/audioDesc.css'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import NewAudioClipComponent from '../NewAudioClip/NewAudioClip'

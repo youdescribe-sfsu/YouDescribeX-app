@@ -1,5 +1,5 @@
-import '@/assets/css/insertPublish.module.css'
-import '@/assets/css/audioDesc.module.css'
+import '@/assets/css/insertPublish.css'
+import '@/assets/css/audioDesc.css'
 
 interface Props {
   setHandleClicksFromParent: (value: string) => void

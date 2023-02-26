@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import '@/assets/css/audioDesc.module.css'
+import '@/assets/css/audioDesc.css'
 import Draggable from 'react-draggable'
 import EditClip from '../EditClip/EditClip'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'

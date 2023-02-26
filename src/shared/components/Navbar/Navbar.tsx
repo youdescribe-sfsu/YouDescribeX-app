@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import path from 'path-browserify'
-import styles from './Navbar.module.css'
+import styles from './Navbar.css'
 import clsx from 'clsx'
 
 interface Props {
@@ -24,7 +24,7 @@ const Navbar = ({ translate }: Props) => {
 
   const navMenuClose = () => {
     const mySidenav = document.getElementById('mySidenav')
-    mySidenav ? (mySidenav.style.display = 'none') : null
+    mySidenav && (mySidenav.style.display = 'none')
   }
 
   const userMenuToggle = () => {

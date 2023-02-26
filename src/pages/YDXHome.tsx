@@ -8,7 +8,8 @@ import Draggable, {
   DraggableEvent,
   DraggableEventHandler,
 } from 'react-draggable'
-import '@/assets/css/home.module.css'
+import '../assets/css/home.css'
+import '../assets/css/timer.css'
 import AudioClip from '../features/Describe/AudioClip/AudioClip'
 import Notes from '../features/Describe/Notes/Notes'
 import convertSecondsToCardFormat from '../shared/utils/convertSecondsToCardFormat'
@@ -380,6 +381,7 @@ const YDXHome = (props: any) => {
           const clip = audioClipsData[i]
           clip.clipAudio = new Howl({
             src: clip.clipAudioPath,
+            html5: true,
           })
           clipStackData.push(clip)
         }
@@ -469,6 +471,7 @@ const YDXHome = (props: any) => {
                 if (newClip) {
                   newClip.clipAudio = new Howl({
                     src: newClip.clipAudioPath,
+                    html5: true,
                   })
                   setClipStack([...clipStackRef.current.slice(1, 5), newClip])
                 } else {
@@ -504,6 +507,7 @@ const YDXHome = (props: any) => {
                 if (newClip) {
                   newClip.clipAudio = new Howl({
                     src: newClip.clipAudioPath,
+                    html5: true,
                   })
                   setClipStack([...clipStackRef.current.slice(1, 5), newClip])
                 } else {
@@ -675,6 +679,7 @@ const YDXHome = (props: any) => {
       if (clip) {
         clip.clipAudio = new Howl({
           src: clip.clipAudioPath,
+          html5: true,
         })
         clipStackData.push(clip)
       }

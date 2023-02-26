@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
-import styles from '@/assets/css/audioDesc.module.css'
+import '@/assets/css/audioDesc.css'
 import axios from 'axios'
 import { toast } from 'react-toastify' // for toast messages
 import TextareaAutosize from 'react-textarea-autosize'
@@ -8,6 +8,7 @@ import ModalComponent from '../../../shared/components/Modal/Modal'
 import Button from 'react-bootstrap/Button'
 import { YouTubePlayer } from 'youtube-player/dist/types'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
+import padNumber from '@/shared/utils/padNumber'
 
 interface Props {
   userId: string
@@ -552,7 +553,7 @@ const EditClip = ({
                     style={{ width: '25px' }}
                     className="text-white bg-dark"
                     min="0"
-                    value={clipStartTimeMinutes}
+                    value={padNumber(clipStartTimeMinutes)}
                     onChange={handleOnChangeClipStartTimeMinutes}
                     onBlur={handleBlurClipStartTimeMinutes}
                     onKeyDown={(evt) =>
@@ -565,7 +566,7 @@ const EditClip = ({
                     type="number"
                     style={{ width: '25px' }}
                     className="text-white bg-dark"
-                    value={clipStartTimeSeconds}
+                    value={padNumber(clipStartTimeSeconds)}
                     onChange={handleOnChangeClipStartTimeSeconds}
                     onBlur={handleBlurClipStartTimeSeconds}
                     onKeyDown={(evt) =>
@@ -578,7 +579,7 @@ const EditClip = ({
                     type="number"
                     style={{ width: '25px' }}
                     className="text-white bg-dark"
-                    value={clipStartTimeMilliSeconds}
+                    value={padNumber(clipStartTimeMilliSeconds)}
                     onChange={handleOnChangeClipStartTimeMilliSeconds}
                     onBlur={handleBlurClipStartTimeMilliSeconds}
                     onKeyDown={(evt) =>
@@ -611,7 +612,7 @@ const EditClip = ({
                     style={{ width: '25px' }}
                     className="text-white bg-dark"
                     min="0"
-                    value={clipDurationMinutes}
+                    value={padNumber(clipDurationMinutes)}
                     // onChange={handleOnChangeClipStartTimeMinutes}
                     // onBlur={handleBlurClipStartTimeMinutes}
                     onKeyDown={(evt) =>
@@ -624,7 +625,7 @@ const EditClip = ({
                     type="number"
                     style={{ width: '25px' }}
                     className="text-white bg-dark"
-                    value={clipDurationSeconds}
+                    value={padNumber(clipDurationSeconds)}
                     // onChange={handleOnChangeClipStartTimeSeconds}
                     // onBlur={handleBlurClipStartTimeSeconds}
                     onKeyDown={(evt) =>
@@ -637,7 +638,7 @@ const EditClip = ({
                     type="number"
                     style={{ width: '25px' }}
                     className="text-white bg-dark"
-                    value={clipDurationMilliSeconds}
+                    value={padNumber(clipDurationMilliSeconds)}
                     // onChange={handleOnChangeClipStartTimeMilliSeconds}
                     // onBlur={handleBlurClipStartTimeMilliSeconds}
                     onKeyDown={(evt) =>
