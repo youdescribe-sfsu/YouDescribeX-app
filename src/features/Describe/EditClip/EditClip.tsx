@@ -503,14 +503,14 @@ const EditClip = ({
               {/* play, save & Delete buttons */}
               <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
                 <Button
-                  className="btn rounded btn-sm text-white bg-danger"
+                  className="btn rounded btn-sm text-white bg-danger ydx-button"
                   onClick={() => setIsDeleteModal(true)}
                 >
                   <i className="fa fa-trash" /> {'  '} Delete
                 </Button>
                 <Button
                   type="button"
-                  className="btn rounded btn-sm text-white save-desc-btn"
+                  className="btn rounded btn-sm text-white save-desc-btn ydx-button"
                   onClick={handleClickSaveClipDescription}
                 >
                   <i className="fa fa-save" /> {'  '} Save
@@ -518,7 +518,7 @@ const EditClip = ({
                 {isAdAudioPlaying ? (
                   <button
                     type="button"
-                    className="btn rounded btn-sm primary-btn-color text-white"
+                    className="btn rounded btn-sm primary-btn-color text-white ydx-button"
                     data-bs-toggle="tooltip"
                     data-bs-placement="bottom"
                     title="Pause Audio"
@@ -529,7 +529,7 @@ const EditClip = ({
                 ) : (
                   <button
                     type="button"
-                    className="btn rounded btn-sm primary-btn-color text-white"
+                    className="btn rounded btn-sm primary-btn-color text-white ydx-button"
                     data-bs-toggle="tooltip"
                     data-bs-placement="bottom"
                     title="Play this Clip"
@@ -551,7 +551,7 @@ const EditClip = ({
                   <input
                     type="number"
                     style={{ width: '25px' }}
-                    className="text-white bg-dark"
+                    className="text-white bg-dark ydx-input"
                     min="0"
                     value={padNumber(clipStartTimeMinutes)}
                     onChange={handleOnChangeClipStartTimeMinutes}
@@ -565,7 +565,7 @@ const EditClip = ({
                   <input
                     type="number"
                     style={{ width: '25px' }}
-                    className="text-white bg-dark"
+                    className="text-white bg-dark ydx-input"
                     value={padNumber(clipStartTimeSeconds)}
                     onChange={handleOnChangeClipStartTimeSeconds}
                     onBlur={handleBlurClipStartTimeSeconds}
@@ -578,7 +578,7 @@ const EditClip = ({
                   <input
                     type="number"
                     style={{ width: '25px' }}
-                    className="text-white bg-dark"
+                    className="text-white bg-dark ydx-input"
                     value={padNumber(clipStartTimeMilliSeconds)}
                     onChange={handleOnChangeClipStartTimeMilliSeconds}
                     onBlur={handleBlurClipStartTimeMilliSeconds}
@@ -610,7 +610,7 @@ const EditClip = ({
                   <input
                     type="number"
                     style={{ width: '25px' }}
-                    className="text-white bg-dark"
+                    className="text-white bg-dark ydx-input"
                     min="0"
                     value={padNumber(clipDurationMinutes)}
                     // onChange={handleOnChangeClipStartTimeMinutes}
@@ -624,7 +624,7 @@ const EditClip = ({
                   <input
                     type="number"
                     style={{ width: '25px' }}
-                    className="text-white bg-dark"
+                    className="text-white bg-dark ydx-input"
                     value={padNumber(clipDurationSeconds)}
                     // onChange={handleOnChangeClipStartTimeSeconds}
                     // onBlur={handleBlurClipStartTimeSeconds}
@@ -637,7 +637,7 @@ const EditClip = ({
                   <input
                     type="number"
                     style={{ width: '25px' }}
-                    className="text-white bg-dark"
+                    className="text-white bg-dark ydx-input"
                     value={padNumber(clipDurationMilliSeconds)}
                     // onChange={handleOnChangeClipStartTimeMilliSeconds}
                     // onBlur={handleBlurClipStartTimeMilliSeconds}
@@ -690,7 +690,7 @@ const EditClip = ({
                   data-bs-placement="bottom"
                   title="Click to Stop Recording"
                   type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light"
+                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
                   onClick={stopRecording} // default functions given by the react-media-recorder package
                 >
                   <i className="fa fa-stop text-danger  fs-5 mt-1" />
@@ -702,7 +702,7 @@ const EditClip = ({
                   data-bs-placement="bottom"
                   title="Click to Start Recording your voice"
                   type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light"
+                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
                   onClick={handleReadySetGo} // default functions given by the react-media-recorder package
                 >
                   <i className="fa fa-microphone text-danger fs-5 mt-1" />
@@ -713,7 +713,7 @@ const EditClip = ({
                   data-bs-placement="bottom"
                   title="Ready Set Go"
                   type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light"
+                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
                 >
                   <b className="fs-5 mt-1">{readySetGo}</b>
                 </button>
@@ -732,7 +732,7 @@ const EditClip = ({
                 >
                   <button
                     type="button"
-                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn mx-3"
+                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn mx-3 ydx-button"
                   >
                     Listen
                   </button>
@@ -743,7 +743,7 @@ const EditClip = ({
                   title="No recording to Replace"
                 >
                   <Button
-                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn"
+                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn ydx-button"
                     disabled
                   >
                     Replace
@@ -754,7 +754,7 @@ const EditClip = ({
               <>
                 <button
                   type="button"
-                  className="btn rounded btn-sm text-white primary-btn-color mx-3"
+                  className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
                   data-bs-toggle="tooltip"
                   data-bs-placement="bottom"
                   title="Listen to your recording"
@@ -768,7 +768,7 @@ const EditClip = ({
                   title="Replace the AI's Voice with your Voice"
                 >
                   <Button
-                    className="btn rounded btn-sm text-white primary-btn-color"
+                    className="btn rounded btn-sm text-white primary-btn-color ydx-button"
                     onClick={() => setIsReplaceModal(true)}
                   >
                     Replace
@@ -779,7 +779,7 @@ const EditClip = ({
               <>
                 <button
                   type="button"
-                  className="btn rounded btn-sm text-white primary-btn-color mx-3"
+                  className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
                   data-bs-toggle="tooltip"
                   data-bs-placement="bottom"
                   title="Listen to your recording"
@@ -793,7 +793,7 @@ const EditClip = ({
                   title="Replace the AI's Voice with your Voice"
                 >
                   <Button
-                    className="btn rounded btn-sm text-white primary-btn-color"
+                    className="btn rounded btn-sm text-white primary-btn-color ydx-button"
                     onClick={() => setIsReplaceModal(true)}
                   >
                     Replace
@@ -809,7 +809,7 @@ const EditClip = ({
             {isYoutubeVideoPlaying ? (
               <button
                 type="button"
-                className="btn rounded btn-sm text-white primary-btn-color"
+                className="btn rounded btn-sm text-white primary-btn-color ydx-button"
                 data-bs-toggle="tooltip"
                 data-bs-placement="bottom"
                 title="YouTube Video plays/pauses along with the Audio Clip"
@@ -821,7 +821,7 @@ const EditClip = ({
             ) : (
               <button
                 type="button"
-                className="btn rounded btn-sm text-white primary-btn-color"
+                className="btn rounded btn-sm text-white primary-btn-color ydx-button"
                 data-bs-toggle="tooltip"
                 data-bs-placement="bottom"
                 title="YouTube Video plays/pauses along with the Audio Clips"

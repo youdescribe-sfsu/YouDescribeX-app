@@ -54,8 +54,8 @@
 }
 
 /* Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
+.ydx-input::-webkit-outer-spin-button,
+.ydx-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
   outline: none;
@@ -63,7 +63,7 @@ input::-webkit-inner-spin-button {
 }
 
 /* Firefox */
-input[type='number'] {
+.ydx-input[type='number'] {
   -moz-appearance: textfield;
   outline: none;
   border-radius: 5px;

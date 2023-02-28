@@ -58,7 +58,7 @@ const UserStudyHome = () => {
   }, [participantId])
 
   return (
-    <React.Fragment>
+    <div className="ydx-body ydx-html">
       <Navbar
         bg="dark"
         variant="dark"
@@ -104,12 +104,13 @@ const UserStudyHome = () => {
             For example, complete Video 1 Before Video 2
           </h6>
         </div>
-        <hr />
+        <hr className="ydx-hr" />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               <a
                 href={`https://www.youtube.com/playlist?list=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7`}
+                className="ydx-link"
               >
                 {/* <img src={`http://img.youtube.com/vi/24Pmmo9wKik/0.jpg`} width="70" height="70"></img> */}
                 <RiPlayCircleFill />
@@ -119,25 +120,28 @@ const UserStudyHome = () => {
           </div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
-              <a href={`https://screencast-o-matic.com/watch/c3lD3eVvBzE`}>
+              <a
+                href={`https://screencast-o-matic.com/watch/c3lD3eVvBzE`}
+                className="ydx-link"
+              >
                 <RiExternalLinkLine />
                 &nbsp; Tutorial Video
               </a>
             </h6>
           </div>
         </div>
-        <hr />
+        <hr className="ydx-hr" />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               {randomOrder ? (
-                <a href={`/videopage/${videoIdWithoutAi}`}>
+                <a href={`/videopage/${videoIdWithoutAi}`} className="ydx-link">
                   {/* <img src={`http://img.youtube.com/vi/${videoIdWithoutAi}/0.jpg`} width="70" height="70"></img> */}
                   <RiPlayCircleFill />
                   &nbsp; Play Video 1
                 </a>
               ) : (
-                <a href={`/videopage/${videoIdWithAi}`}>
+                <a href={`/videopage/${videoIdWithAi}`} className="ydx-link">
                   {/* <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img> */}
                   <RiPlayCircleFill />
                   &nbsp; Play Video 1
@@ -148,13 +152,19 @@ const UserStudyHome = () => {
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               {randomOrder ? (
-                <Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>
+                <Link
+                  to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}
+                  className="ydx-link"
+                >
                   {/* <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img> */}
                   <RiExternalLinkLine />
                   &nbsp; FreeStyle Interface
                 </Link>
               ) : (
-                <Link to={`/${videoIdWithAi}/${userIdWithAi}`}>
+                <Link
+                  to={`/${videoIdWithAi}/${userIdWithAi}`}
+                  className="ydx-link"
+                >
                   {/* <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img> */}
                   <RiExternalLinkLine />
                   &nbsp; AI Prompted Interface
@@ -167,6 +177,7 @@ const UserStudyHome = () => {
               {randomOrder ? (
                 <a
                   href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}
+                  className="ydx-link"
                 >
                   {/* <img src="@/assets/images/survey.png" width="70" height="70"></img> */}
                   <RiSurveyFill />
@@ -175,6 +186,7 @@ const UserStudyHome = () => {
               ) : (
                 <a
                   href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}
+                  className="ydx-link"
                 >
                   {/* <img src="@/assets/images/survey.png" width="70" height="70"></img> */}
                   <RiSurveyFill />
@@ -188,6 +200,7 @@ const UserStudyHome = () => {
               {randomOrder ? (
                 <a
                   href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}
+                  className="ydx-link"
                 >
                   {' '}
                   <RiSurveyFill />
@@ -196,6 +209,7 @@ const UserStudyHome = () => {
               ) : (
                 <a
                   href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}
+                  className="ydx-link"
                 >
                   {' '}
                   <RiSurveyFill />
@@ -205,18 +219,21 @@ const UserStudyHome = () => {
             </h6>
           </div>
         </div>
-        <hr />
+        <hr className="ydx-hr" />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               {randomOrder ? (
-                <Link to={`/videopage/${videoIdWithAi}`}>
+                <Link to={`/videopage/${videoIdWithAi}`} className="ydx-link">
                   {/* <img src={`http://img.youtube.com/vi/${videoIdWithAi}/0.jpg`} width="70" height="70"></img> */}
                   <RiPlayCircleFill />
                   &nbsp; Play Video 2
                 </Link>
               ) : (
-                <Link to={`/videopage/${videoIdWithoutAi}`}>
+                <Link
+                  to={`/videopage/${videoIdWithoutAi}`}
+                  className="ydx-link"
+                >
                   {/* <img src={`http://img.youtube.com/vi/${videoIdWithoutAi}/0.jpg`} width="70" height="70"></img> */}
                   <RiPlayCircleFill />
                   &nbsp; Play Video 2
@@ -227,12 +244,18 @@ const UserStudyHome = () => {
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               {randomOrder ? (
-                <Link to={`/${videoIdWithAi}/${userIdWithAi}`}>
+                <Link
+                  to={`/${videoIdWithAi}/${userIdWithAi}`}
+                  className="ydx-link"
+                >
                   <RiExternalLinkLine />
                   &nbsp;AI Prompted Interface
                 </Link>
               ) : (
-                <Link to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}>
+                <Link
+                  to={`/${videoIdWithoutAi}/${userIdWithoutAi}`}
+                  className="ydx-link"
+                >
                   <RiExternalLinkLine />
                   &nbsp;FreeStyle Interface
                 </Link>
@@ -244,6 +267,7 @@ const UserStudyHome = () => {
               {randomOrder ? (
                 <a
                   href={`https://docs.google.com/forms/d/e/1FAIpQLScN-w1k6pS3pdgEKVoYcWLhbwikAg2vbPqBDD7A4umTStoQuA/viewform?usp=pp_url&entry.221372424=${participantId}`}
+                  className="ydx-link"
                 >
                   {' '}
                   <RiSurveyFill />
@@ -252,6 +276,7 @@ const UserStudyHome = () => {
               ) : (
                 <a
                   href={`https://docs.google.com/forms/d/e/1FAIpQLSfKgSpEspPFszXUrgwiTxWK6Qk9J9dF8EBWnqUBn8-zVu--0A/viewform?usp=pp_url&entry.851854037=${participantId}`}
+                  className="ydx-link"
                 >
                   {' '}
                   <RiSurveyFill />
@@ -265,6 +290,7 @@ const UserStudyHome = () => {
               {randomOrder ? (
                 <a
                   href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_eXOXVIPvO95SlGS?participantID=${participantId}`}
+                  className="ydx-link"
                 >
                   {' '}
                   <RiSurveyFill />
@@ -273,6 +299,7 @@ const UserStudyHome = () => {
               ) : (
                 <a
                   href={`https://sfsu.co1.qualtrics.com/jfe/form/SV_cTR8f4CwWTomvdA?participantID=${participantId}`}
+                  className="ydx-link"
                 >
                   {' '}
                   <RiSurveyFill />
@@ -282,12 +309,13 @@ const UserStudyHome = () => {
             </h6>
           </div>
         </div>
-        <hr />
+        <hr className="ydx-hr" />
         <div>
           <div className="mx-auto my-auto text-bars align-items-center border rounded">
             <h6 className="tutorial-text text-center font-weight-bolder">
               <a
                 href={`https://docs.google.com/forms/d/e/1FAIpQLSfoIOrNWzZXK4tJ4QDIFLrM7-mSFhGtyW6opra67smrz2nbqw/viewform?usp=pp_url&entry.186159302=${participantId}`}
+                className="ydx-link"
               >
                 {' '}
                 <RiSurveyFill />
@@ -296,9 +324,9 @@ const UserStudyHome = () => {
             </h6>
           </div>
         </div>
-        <hr />
+        <hr className="ydx-hr" />
       </div>
-    </React.Fragment>
+    </div>
   )
 }
 

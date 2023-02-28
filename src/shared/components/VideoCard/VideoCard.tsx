@@ -112,7 +112,12 @@ const VideoCard = ({
     <div id="video-card" className="w3-margin-top w3-left" title="">
       <div className="w3-card-2 w3-hover-shadow">
         <div id="card-thumbnail" aria-hidden="true">
-          <Link role="link" aria-hidden="true" to={'/video/' + youTubeId}>
+          <Link
+            role="link"
+            aria-hidden="true"
+            to={'/video/' + youTubeId}
+            className="ydx-link"
+          >
             <img alt={title} src={thumbnailMediumUrl} width="100%" />
           </Link>
           <div id="card-duration">{duration}</div>
@@ -121,7 +126,11 @@ const VideoCard = ({
           <div id="card-title-container">
             <div id="card-title">
               <h3>
-                <Link role="link" to={'/video/' + youTubeId}>
+                <Link
+                  role="link"
+                  to={'/video/' + youTubeId}
+                  className="ydx-link"
+                >
                   {title}
                 </Link>
               </h3>

@@ -349,7 +349,7 @@ const NewAudioClipComponent = ({
           {showInlineACComponent ? (
             <div className="form-check form-check-inline">
               <input
-                className="form-check-input"
+                className="form-check-input ydx-input"
                 type="radio"
                 id="radio1"
                 value="inline"
@@ -362,7 +362,7 @@ const NewAudioClipComponent = ({
           ) : (
             <div className="form-check form-check-inline">
               <input
-                className="form-check-input"
+                className="form-check-input ydx-input"
                 type="radio"
                 id="radio2"
                 value="extended"
@@ -379,7 +379,7 @@ const NewAudioClipComponent = ({
           <h6 className="text-white fw-bolder mb-0">Title:</h6>
           <input
             type="text"
-            className="form-control form-control-sm text-center mx-2"
+            className="form-control form-control-sm text-center mx-2 ydx-input"
             placeholder="Title goes here.."
             value={newACTitle}
             onChange={(e) => setNewACTitle(e.target.value)}
@@ -408,7 +408,7 @@ const NewAudioClipComponent = ({
                 <input
                   type="number"
                   style={{ width: '25px', height: '28px' }}
-                  className="text-white bg-dark"
+                  className="text-white bg-dark ydx-input"
                   min="0"
                   value={clipStartTimeMinutes}
                   onChange={handleOnChangeClipStartTimeMinutes}
@@ -422,7 +422,7 @@ const NewAudioClipComponent = ({
                 <input
                   type="number"
                   style={{ width: '25px', height: '28px' }}
-                  className="text-white bg-dark"
+                  className="text-white bg-dark ydx-input"
                   value={clipStartTimeSeconds}
                   onChange={handleOnChangeClipStartTimeSeconds}
                   onBlur={handleBlurClipStartTimeSeconds}
@@ -435,7 +435,7 @@ const NewAudioClipComponent = ({
                 <input
                   type="number"
                   style={{ width: '25px', height: '28px' }}
-                  className="text-white bg-dark"
+                  className="text-white bg-dark ydx-input"
                   value={clipStartTimeMilliSeconds}
                   onChange={handleOnChangeClipStartTimeMilliSeconds}
                   onBlur={handleBlurClipStartTimeMilliSeconds}
@@ -488,7 +488,7 @@ const NewAudioClipComponent = ({
                   data-bs-placement="bottom"
                   title="Click to Stop Recording"
                   type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light"
+                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
                   onClick={stopRecording} // default functions given by the react-media-recorder package
                 >
                   <i className="fa fa-stop text-danger" />
@@ -500,7 +500,7 @@ const NewAudioClipComponent = ({
                   data-bs-placement="bottom"
                   title="Click to Start Recording your voice"
                   type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light"
+                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
                   onClick={handleReadySetGo} // default functions given by the react-media-recorder package
                 >
                   <i className="fa fa-microphone text-danger" />
@@ -511,7 +511,7 @@ const NewAudioClipComponent = ({
                   data-bs-placement="bottom"
                   title="Ready Set Go"
                   type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light"
+                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
                   disabled
                 >
                   <b className="fs-6">{readySetGo}</b>
@@ -529,7 +529,7 @@ const NewAudioClipComponent = ({
               >
                 <button
                   type="button"
-                  className="btn rounded btn-sm text-white primary-btn-color mx-3"
+                  className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
                   disabled
                 >
                   Listen
@@ -538,7 +538,7 @@ const NewAudioClipComponent = ({
             ) : isRecordedAudioPlaying ? ( //Listen to your recording
               <button
                 type="button"
-                className="btn rounded btn-sm text-white primary-btn-color mx-3"
+                className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
                 data-bs-toggle="tooltip"
                 data-bs-placement="bottom"
                 title="Listen to your recording"
@@ -549,7 +549,7 @@ const NewAudioClipComponent = ({
             ) : (
               <button
                 type="button"
-                className="btn rounded btn-sm text-white primary-btn-color mx-3"
+                className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
                 data-bs-toggle="tooltip"
                 data-bs-placement="bottom"
                 title="Listen to your recording"
@@ -567,7 +567,7 @@ const NewAudioClipComponent = ({
       <div className="text-center mt-1">
         <button
           type="button"
-          className="btn rounded btn-sm text-white save-desc-btn"
+          className="btn rounded btn-sm text-white save-desc-btn ydx-button"
           onClick={handleSaveNewAudioClip}
         >
           <i className="fa fa-save" /> {'  '} Save

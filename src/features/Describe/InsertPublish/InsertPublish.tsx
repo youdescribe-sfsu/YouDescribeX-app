@@ -129,7 +129,7 @@ const InsertPublish = ({
         <div>
           <button
             type="button"
-            className="btn inline-bg text-dark"
+            className="btn inline-bg text-dark ydx-button"
             onClick={handleClickInsertInline}
           >
             <i className="fa fa-plus" /> {'   '}
@@ -137,7 +137,7 @@ const InsertPublish = ({
           </button>
           <button
             type="button"
-            className="btn mx-5 extended-bg text-white"
+            className="btn mx-5 extended-bg text-white ydx-button"
             onClick={handleClickInsertExtended}
           >
             <i className="fa fa-plus" /> {'   '}
@@ -147,7 +147,7 @@ const InsertPublish = ({
         <div className="mx-4">
           <button
             type="button"
-            className="btn publish-bg text-white"
+            className="btn publish-bg text-white ydx-button"
             data-bs-toggle="modal"
             data-bs-target="#publishModal"
             onClick={() => setIsModal(true)}

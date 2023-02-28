@@ -48,7 +48,7 @@ const PlayVideo = () => {
   }
 
   return (
-    <React.Fragment>
+    <div className="ydx-body ydx-html">
       <div className="container home-container">
         <div className="text-white">
           <h6 className="user-study-text text-center ">Youtube Video</h6>
@@ -66,7 +66,7 @@ const PlayVideo = () => {
           />
         </div>
       </div>
-    </React.Fragment>
+    </div>
   )
 }
 

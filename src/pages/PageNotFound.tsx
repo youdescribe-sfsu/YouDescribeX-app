@@ -1,7 +1,7 @@
 const PageNotFound = () => {
   return (
     <div
-      className="d-flex justify-content-center align-items-center"
+      className="d-flex justify-content-center align-items-center ydx-body ydx-html"
       style={{ height: '100vh' }}
     >
       <div

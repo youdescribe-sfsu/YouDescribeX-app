@@ -16,7 +16,6 @@ interface Props {
   videoLength: number
   updateData: boolean
   setUpdateData: React.Dispatch<React.SetStateAction<boolean>>
-  // TODO: Change to camel case
   clip: Clip
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
   divWidths: { [key: string]: number }
@@ -54,16 +53,16 @@ const AudioClip = ({
   fetchUserVideoData,
 }: Props) => {
   // all audio clip data from props
-  const clipID = clip.clipId
-  const clipSequenceNumber = clip.clipSequenceNumber
-  const initialClipTitle = clip.clipTitle
-  const clipDescriptionType = clip.descriptionType
-  const clipDescriptionText = clip.descriptionText
-  const initialClipPlaybackType = clip.playbackType
-  const initialClipStartTime = clip.clipStartTime
-  const clipDuration = clip.clipDuration
-  const clipAudioPath = clip.clipAudioPath
-  const isRecorded = clip.isRecorded
+  const clipID = clip.clip_id
+  const clipSequenceNumber = clip.clip_sequence_number
+  const initialClipTitle = clip.clip_title
+  const clipDescriptionType = clip.description_type
+  const clipDescriptionText = clip.description_text
+  const initialClipPlaybackType = clip.playback_type
+  const initialClipStartTime = clip.clip_start_time
+  const clipDuration = clip.clip_duration
+  const clipAudioPath = clip.clip_audio_path
+  const isRecorded = clip.is_recorded
   const clipCreatedAt = clip.createdAt
 
   // React State Variables

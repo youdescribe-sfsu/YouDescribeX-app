@@ -17,7 +17,7 @@ const Buttons = ({
       <div>
         <button
           type="button"
-          className="btn btn-sm inline-bg text-dark"
+          className="btn btn-sm inline-bg text-dark ydx-button"
           onClick={() => setHandleClicksFromParent('inline')}
         >
           <i className="fa fa-plus" /> {'   '}
@@ -27,7 +27,7 @@ const Buttons = ({
       <div>
         <button
           type="button"
-          className="btn btn-sm extended-bg text-white"
+          className="btn btn-sm extended-bg text-white ydx-button"
           onClick={() => setHandleClicksFromParent('extended')}
         >
           <i className="fa fa-plus" /> {'   '}
@@ -37,7 +37,7 @@ const Buttons = ({
       <div>
         <button
           type="button"
-          className="btn btn-sm play-pause-bg text-white"
+          className="btn btn-sm play-pause-bg text-white ydx-button"
           onClick={() => handlePlayPause()}
         >
           {isGloballyPaused ? (

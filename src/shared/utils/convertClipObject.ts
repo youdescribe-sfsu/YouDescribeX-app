@@ -2,38 +2,38 @@ import { Howl } from 'howler'
 
 export interface Clip {
   audioDescriptionAdId: string
-  clipAudio?: Howl
-  clipId: string
-  clipTitle: string
-  clipAudioPath: string
-  clipDuration: number
-  clipEndTime: number
-  clipSequenceNumber: number
-  clipStartTime: number
+  clip_audio?: Howl
+  clip_id: string
+  clip_title: string
+  clip_audio_path: string
+  clip_duration: number
+  clip_end_time: number
+  clip_sequence_number: number
+  clip_start_time: number
   createdAt: string
-  descriptionText: string
-  descriptionType: string
-  isRecorded: boolean
-  playbackType: string
+  description_text: string
+  description_type: string
+  is_recorded: boolean
+  playback_type: string
   updatedAt: string
 }
 
 const convertClipObject = (clip: any) => {
   const newClip: Clip = {
     audioDescriptionAdId: clip.AudioDescriptionAdId,
-    clipAudio: clip.clip_audio,
-    clipId: clip.clip_id,
-    clipTitle: clip.clip_title,
-    clipAudioPath: clip.clip_audio_path,
-    clipDuration: clip.clip_duration,
-    clipEndTime: clip.clip_end_time,
-    clipSequenceNumber: clip.clip_sequence_number,
-    clipStartTime: clip.clip_start_time,
+    clip_audio: clip.clip_audio,
+    clip_id: clip.clip_id,
+    clip_title: clip.clip_title,
+    clip_audio_path: clip.clip_audio_path,
+    clip_duration: clip.clip_duration,
+    clip_end_time: clip.clip_end_time,
+    clip_sequence_number: clip.clip_sequence_number,
+    clip_start_time: clip.clip_start_time,
     createdAt: clip.createdAt,
-    descriptionText: clip.description_text,
-    descriptionType: clip.description_type,
-    isRecorded: clip.is_recorded,
-    playbackType: clip.playback_type,
+    description_text: clip.description_text,
+    description_type: clip.description_type,
+    is_recorded: clip.is_recorded,
+    playback_type: clip.playback_type,
     updatedAt: clip.updatedAt,
   }
   return newClip

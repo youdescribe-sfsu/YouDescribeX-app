@@ -5,7 +5,7 @@ import PageNotFound from './pages/PageNotFound'
 import UserStudyHome from './pages/UserStudyHome'
 import PlayVideo from './pages/PlayVideo'
 import './assets/css/index.css'
-// import './app.scss'
+import './app.scss'
 import { ToastContainer } from 'react-toastify' // for toast messages
 import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
@@ -25,7 +25,7 @@ const App = () => {
   return (
     <>
       <BrowserRouter>
-        {/* <Navbar translate={(string) => string} /> */}
+        <Navbar translate={(string) => string} />
         <Routes>
           <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
           <Route path="/home" element={<Home />} />

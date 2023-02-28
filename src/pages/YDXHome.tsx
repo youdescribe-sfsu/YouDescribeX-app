@@ -753,7 +753,7 @@ const YDXHome = () => {
   }
 
   return (
-    <React.Fragment>
+    <div className="ydx-body ydx-html">
       {/* Spinner div - displayed based on showSpinner */}
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
@@ -762,20 +762,20 @@ const YDXHome = () => {
             <div className="time">
               User Study Timer : {seconds}s
               <button
-                className={`button button-primary button-primary-${
+                className={`button button-primary ydx-button button-primary-${
                   isActive ? 'active' : 'inactive'
                 }`}
                 onClick={toggle}
               >
                 {isActive ? 'Pause' : 'Start'}
               </button>
-              <button className="button" onClick={reset}>
+              <button className="button ydx-button" onClick={reset}>
                 Reset
               </button>
             </div>
           </div>
         </div>
-        <hr className="m-2" />
+        <hr className="m-2 ydx-hr" />
         {/* Youtube Iframe & Notes Component Container */}
         <div className="d-flex justify-content-around">
           <div className="text-white">
@@ -800,7 +800,7 @@ const YDXHome = () => {
             notesData={notesData}
           />
         </div>
-        <hr className="m-2" />
+        <hr className="m-2 ydx-hr" />
         {/* Dialog Timeline */}
         <div className="row div-below-hr">
           <div className="col-3 text-white" ref={divRef1}>
@@ -909,7 +909,7 @@ const YDXHome = () => {
           setNeedRefresh={setNeedRefresh}
         />
       </div>
-    </React.Fragment>
+    </div>
   )
 }
 

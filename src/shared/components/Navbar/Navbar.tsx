@@ -54,23 +54,20 @@ const Navbar = ({ translate }: Props) => {
   )
 
   return (
-    <nav id="navbar" className={styles.navbar}>
+    <nav id="navbar" className="navbar">
       {/* Navbar (sit on top) */}
       <div className="w3-top">
         <div className="w3-bar w3-white w3-card-2 w3-text-indigo">
           <Link
             to="/"
             id="logo"
-            className={clsx([
-              'w3-bar-item w3-hide-small w3-hide-medium',
-              styles.logo,
-            ])}
+            className="w3-bar-item w3-hide-small w3-hide-medium logo"
           >
             <img
               alt="YouDescribe home"
               height="100%"
               src={path.join(
-                __dirname,
+                'https://youdescribe.org',
                 'assets',
                 'img',
                 'youdescribe_logo_full_(indigo_and_grey).png',

@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap');
-body {
+.ydx-body {
   background-color: #383838;
+  padding-top: 54px;
+  padding-bottom: 40px;
   margin: 0;
   line-height: 1.6;
   /* font-family: -apple-system, BlinkMacSystemFont, 'Fira Sans', 'Segoe UI', 'Roboto', 'Oxygen',
@@ -11,20 +13,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-html {
+.ydx-html {
   scroll-behavior: smooth;
 }
 
-code {
+.ydx-code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
 
-button {
+.ydx-button {
   box-shadow: 0px 0px 4px 1px rgb(206, 246, 240);
 }
 
-button:hover {
+.ydx-button:hover {
   box-shadow: 0px 1px 4px 2px bisque, 0px 1px 2px 2px white;
 }
 

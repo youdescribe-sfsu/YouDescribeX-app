@@ -11,7 +11,6 @@ interface Props {
 
 const Button = ({ ariaLabel, id, title, color, onClick, text }: Props) => {
   return (
-    // TODO: Setup EMOTION for Styling
     <div id="button">
       <button
         aria-label={ariaLabel}

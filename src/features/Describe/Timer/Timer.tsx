@@ -33,14 +33,14 @@ const Timer = () => {
         <div className="time">
           User Study Timer : {seconds}s
           <button
-            className={`button button-primary button-primary-${
+            className={`button button-primary ydx-button button-primary-${
               isActive ? 'active' : 'inactive'
             }`}
             onClick={toggle}
           >
             {isActive ? 'Pause' : 'Start'}
           </button>
-          <button className="button" onClick={reset}>
+          <button className="button ydx-button" onClick={reset}>
             Reset
           </button>
         </div>

@@ -2,7 +2,7 @@
   "name": "ydx-ai-new",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:4000",
+  "proxy": "https://ydx.youdescribe.org",
   "dependencies": {
     "@craco/craco": "^7.0.0",
     "@testing-library/jest-dom": "^5.16.1",
@@ -27,7 +27,7 @@
     "react-textarea-autosize": "^8.3.4",
     "react-timer-hook": "^3.0.5",
     "react-toastify": "^9.0.1",
-    "react-youtube": "^7.14.0",
+    "react-youtube": "^10.1.0",
     "typescript": "^4.9.5",
     "use-elapsed-time": "^3.0.4",
     "web-vitals": "^2.1.4",
