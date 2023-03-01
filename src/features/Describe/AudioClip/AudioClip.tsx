@@ -180,11 +180,14 @@ const AudioClip = ({
   // handle update of start time from handleLeftNudgeClick, handleRightNudgeClick, stopADBar
   const handleClipStartTimeUpdate = (updatedClipStartTime: any) => {
     axios
-      .put(`/api/audio-clips/update-clip-start-time/${clipID}`, {
-        clipStartTime: updatedClipStartTime,
-        audioDescriptionId: audioDescriptionId,
-        youtubeVideoId: youtubeVideoId,
-      })
+      .put(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-start-time/${clipID}`,
+        {
+          clipStartTime: updatedClipStartTime,
+          audioDescriptionId: audioDescriptionId,
+          youtubeVideoId: youtubeVideoId,
+        },
+      )
       .then((res) => {
         // below prop is used to re-render the parent component i.e. fetch audio clip data
         setUpdateData(!updateData)
@@ -198,9 +201,12 @@ const AudioClip = ({
   const handleClipTitleUpdate = (e: any) => {
     setClipTitle(e.target.value)
     axios
-      .put(`/api/audio-clips/update-clip-title/${clipID}`, {
-        adTitle: e.target.value,
-      })
+      .put(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-title/${clipID}`,
+        {
+          adTitle: e.target.value,
+        },
+      )
       .then((res) => {
         // for simple text field update, the update Data is causing loading of the page.
         // so for each char update in the title, the spinner displays - Very bad UX
@@ -227,9 +233,12 @@ const AudioClip = ({
     } else {
       setClipPlayBackType(e.target.value)
       axios
-        .put(`/api/audio-clips/update-clip-playback-type/${clipID}`, {
-          clipPlaybackType: e.target.value,
-        })
+        .put(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-playback-type/${clipID}`,
+          {
+            clipPlaybackType: e.target.value,
+          },
+        )
         .then((res) => {
           setUpdateData(!updateData)
         })

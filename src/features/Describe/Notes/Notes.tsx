@@ -59,7 +59,7 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }: Props) => {
 
   const handleNoteAutoSave = (currentNoteValue: any) => {
     axios
-      .post('/api/notes/post-note', {
+      .post(`${process.env.REACT_APP_YDX_BACKEND_URL}/api/notes/post-note`, {
         noteId: noteId,
         notes: currentNoteValue,
         adId: audioDescriptionId,

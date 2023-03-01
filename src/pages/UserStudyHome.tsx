@@ -29,7 +29,9 @@ const UserStudyHome = () => {
 
   const fetchParticipantData = () => {
     axios
-      .get(`/api/create-participant-links/get-participant/${participantId}`)
+      .get(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-participant-links/get-participant/${participantId}`,
+      )
       .then((res) => {
         setVideoIdWithAi(res.data.youtube_video_id_with_AI)
         setVideoIdWithoutAi(res.data.youtube_video_id_without_AI)

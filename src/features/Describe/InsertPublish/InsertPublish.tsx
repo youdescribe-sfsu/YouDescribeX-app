@@ -58,10 +58,13 @@ const InsertPublish = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClickPublish = (e: any) => {
     axios
-      .post('/api/add-timedata-to-db/addtimedata', {
-        participant_id: participantId,
-        time: seconds,
-      })
+      .post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/add-timedata-to-db/addtimedata`,
+        {
+          participant_id: participantId,
+          time: seconds,
+        },
+      )
       .then(function (response) {
         reset()
         console.log(response)
@@ -74,11 +77,14 @@ const InsertPublish = ({
   const handlePublish = async (e: any) => {
     console.log('publish')
     axios
-      .post('/api/add-timedata-to-db/addtimedata', {
-        participant_id: participantId,
-        time: seconds,
-        video_id: youtubeVideoId,
-      })
+      .post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/add-timedata-to-db/addtimedata`,
+        {
+          participant_id: participantId,
+          time: seconds,
+          video_id: youtubeVideoId,
+        },
+      )
       .then(function (response) {
         reset()
         console.log(response)

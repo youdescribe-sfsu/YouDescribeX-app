@@ -269,7 +269,9 @@ const YDXHome = () => {
   // use axios and get dialog timestamps for the Dialog Timeline
   const fetchDialogData = () => {
     axios
-      .get(`/api/dialog-timestamps/get-video-dialog/${videoId}`)
+      .get(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/dialog-timestamps/get-video-dialog/${videoId}`,
+      )
       .then((res) => {
         setShowSpinner(false)
         const dialogData = res.data
@@ -302,7 +304,9 @@ const YDXHome = () => {
   // fetch videoId based on the youtubeVideoId which is later used to get audioClips
   const fetchUserVideoData = () => {
     axios
-      .get(`/api/videos/get-by-youtubeVideo/${youtubeVideoId}`)
+      .get(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${youtubeVideoId}`,
+      )
       .then((res) => {
         setShowSpinner(false)
         const video_id = res.data.video_id
@@ -333,7 +337,9 @@ const YDXHome = () => {
   const fetchAudioDescriptionData = (isNewClipAdded = false) => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
     axios
-      .get(`/api/audio-descriptions/get-user-ad/${videoId}&${userId}`)
+      .get(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${videoId}&${userId}`,
+      )
       .then((res) => {
         setShowSpinner(false)
         setAudioDescriptionId(res.data.ad_id)
@@ -361,7 +367,7 @@ const YDXHome = () => {
           clip.clip_sequence_number = i + 1
           clip.clip_audio_path = clip.clip_audio_path.replace(
             '.',
-            '/api/static',
+            `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
           )
 
           // set the showEditComponent of the new clip to true.. compare time

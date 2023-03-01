@@ -375,13 +375,16 @@ const EditClip = ({
       // show spinner
       setShowSpinner(true)
       axios
-        .put(`/api/audio-clips/update-clip-description/${clipId}`, {
-          userId: userId,
-          youtubeVideoId: youtubeVideoId,
-          clipDescriptionText: clipDescriptionText,
-          clipDescriptionType: clipDescriptionType,
-          audioDescriptionId: audioDescriptionId,
-        })
+        .put(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
+          {
+            userId: userId,
+            youtubeVideoId: youtubeVideoId,
+            clipDescriptionText: clipDescriptionText,
+            clipDescriptionType: clipDescriptionType,
+            audioDescriptionId: audioDescriptionId,
+          },
+        )
         .then((res) => {
           // below prop is used to re-render the parent component i.e. fetch audio clip data
           setUpdateData(!updateData)
@@ -401,7 +404,9 @@ const EditClip = ({
     e.preventDefault()
     console.log(clipId)
     axios
-      .delete(`/api/audio-clips/delete-clip/${clipId}`)
+      .delete(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/delete-clip/${clipId}`,
+      )
       .then((res) => {
         toast.success(
           'Clip Deleted Successfully!! Please wait while we fetch latest Clip Data',
@@ -443,9 +448,13 @@ const EditClip = ({
 
       // upload formData using axios
       axios
-        .put(`/api/audio-clips/record-replace-clip-audio/${clipId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
+        .put(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/record-replace-clip-audio/${clipId}`,
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          },
+        )
         .then((res) => {
           toast.success('Replaced Clip Successfully with the Recorded Audio!!')
           setTimeout(() => {

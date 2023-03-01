@@ -294,9 +294,13 @@ const NewAudioClipComponent = ({
     }
     // upload formData using axios
     axios
-      .post(`/api/audio-clips/add-new-clip/${audioDescriptionId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      .post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/add-new-clip/${audioDescriptionId}`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
+      )
       .then((res) => {
         toast.success(`New Clip Added Successfully!!\n${res.data}`)
         // setTimeout(() => {
