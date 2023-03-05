@@ -11,6 +11,16 @@ import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
 import Home from './pages/Home'
 import Navbar from './shared/components/Navbar/Navbar'
+import Polyglot from 'node-polyglot'
+import getLanguage from './shared/utils/getLanguage'
+import strings from './shared/strings'
+
+const polyglot = new Polyglot({
+  locale: getLanguage(),
+  phrases: strings[`${getLanguage()}`],
+})
+
+export const translate = polyglot.t.bind(polyglot)
 
 const App = () => {
   useEffect(() => {
@@ -23,16 +33,21 @@ const App = () => {
   }, [])
 
   return (
-    <>
+    <html className="classic-html">
       <BrowserRouter>
-        <Navbar translate={(string) => string} />
-        <Routes>
-          <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/*" element={<PageNotFound />} />
-          <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
-          <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
-        </Routes>
+        <Navbar />
+        <body className="classic-body">
+          <Routes>
+            <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/*" element={<PageNotFound />} />
+            <Route
+              path="/userstudy/:participantId"
+              element={<UserStudyHome />}
+            />
+            <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
+          </Routes>
+        </body>
         <ToastContainer
           className="toast-btn"
           position="top-center"
@@ -44,7 +59,7 @@ const App = () => {
           theme="colored"
         />
       </BrowserRouter>
-    </>
+    </html>
   )
 }
 

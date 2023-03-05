@@ -1,18 +1,18 @@
 .navbar {
   position: relative;
+  padding: 0;
   z-index: 20;
 }
 
-.w3-bar {
-  padding: 16px;
-}
-
-.w3-button {
+.w3-bar .w3-button {
   padding: 16px;
 }
 
 .logo {
   height: 54px;
-  /* line-height: 54px; */
   padding: 8px 12px 8px 12px;
+}
+
+.sidenav {
+  background-color: white;
 }

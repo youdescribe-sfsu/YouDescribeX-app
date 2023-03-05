@@ -1,9 +1,9 @@
-const convertISO8601ToSeconds = (input: string): number | undefined => {
+const convertISO8601ToSeconds = (input: string): number => {
   const reptms = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/
   let hours = 0
   let minutes = 0
   let seconds = 0
-  let totalSeconds
+  let totalSeconds = 0
   if (reptms.test(input)) {
     const matches = reptms.exec(input)
     if (matches) {

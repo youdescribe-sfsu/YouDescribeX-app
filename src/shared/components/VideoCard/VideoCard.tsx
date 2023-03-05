@@ -3,22 +3,25 @@ import ourFetch from '../../utils/ourFetch'
 import { apiUrl } from '../../config'
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../Button/Button'
+import { translate } from '@/App'
+import './VideoCard.css'
 
 interface Props {
   youTubeId: string
-  getAppState: () => any
-  translate: (text: string) => string
+  getAppState?: () => any
+  description?: string
   buttons: string
-  votes: number
+  votes?: number
   title: string
   thumbnailMediumUrl: string
   author: string
-  duration: number
+  duration: string
+  views?: string
+  time: string
 }
 
 const VideoCard = ({
-  getAppState,
-  translate,
+  description,
   youTubeId,
   buttons,
   votes,
@@ -26,8 +29,17 @@ const VideoCard = ({
   thumbnailMediumUrl,
   author,
   duration,
+  views,
+  time,
 }: Props) => {
   const navigate = useNavigate()
+  const getAppState = () => {
+    return {
+      isSignedIn: true,
+      userId: '123',
+      userToken: '123',
+    }
+  }
 
   const upVote = (e: any) => {
     if (!getAppState().isSignedIn) {
@@ -104,52 +116,58 @@ const VideoCard = ({
           text={translate('Edit')}
           color="w3-indigo w3-block"
           onClick={describeThisVideo}
+          classNames="card-button"
         />
       </div>
     ) : null
 
   return (
-    <div id="video-card" className="w3-margin-top w3-left" title="">
+    <div id="video-card" className="w3-margin-top w3-left video-card" title="">
       <div className="w3-card-2 w3-hover-shadow">
-        <div id="card-thumbnail" aria-hidden="true">
+        <div id="card-thumbnail" className="card-thumbnail" aria-hidden="true">
           <Link
             role="link"
             aria-hidden="true"
             to={'/video/' + youTubeId}
-            className="ydx-link"
+            className=""
           >
             <img alt={title} src={thumbnailMediumUrl} width="100%" />
           </Link>
-          <div id="card-duration">{duration}</div>
+          <div id="card-duration" className="card-duration">
+            {duration}
+          </div>
         </div>
         <div className="w3-container w3-padding-bottom">
-          <div id="card-title-container">
-            <div id="card-title">
-              <h3>
+          <div id="card-title-container" className="card-title-container">
+            <div id="card-title" className="card-title">
+              <h3 className="card-h3 classic-h3">
                 <Link
                   role="link"
                   to={'/video/' + youTubeId}
-                  className="ydx-link"
+                  className="classic-link"
                 >
                   {title}
                 </Link>
               </h3>
             </div>
-            <div id="card-author">
-              <span>
+            <div id="card-author" className="card-author">
+              <span className="card-span">
                 {translate('Author')}: {author}
               </span>
               <br />
-              <span>
+              <span className="card-span">
                 {'Votes'}: {votes}
               </span>
               {/* <a href="#">{this.props.describer}</a> */}
             </div>
           </div>
-          {/*<div id="card-stats">
-        <h4><div className="w3-left">{this.props.views}</div><div className="w3-right">{this.props.time}</div></h4>
-      </div>*/}
-          <div id="card-buttons">{buttons}</div>
+          {/* <div id="card-stats">
+            <h4 className="classic-h4">
+              <div className="w3-left">{views}</div>
+              <div className="w3-right">{time}</div>
+            </h4>
+          </div> */}
+          <div id="card-buttons">{buttonElements}</div>
         </div>
       </div>
     </div>

@@ -1,6 +1,9 @@
 import padNumber from './padNumber'
 
-const convertSecondsToCardFormat = (timeInSeconds: number): string => {
+const convertSecondsToCardFormat = (
+  timeInSeconds: number,
+  isClassic = false,
+): string => {
   let hours: number = Math.floor(timeInSeconds / 3600)
   let minutes: number = Math.floor(timeInSeconds / 60)
   let seconds: number = Math.floor(timeInSeconds)
@@ -15,7 +18,14 @@ const convertSecondsToCardFormat = (timeInSeconds: number): string => {
   if (milliseconds < 10) milliseconds = parseInt(`0${milliseconds}`)
   if (minutes < 10) minutes = parseInt(`0${minutes}`)
   if (hours < 10) hours = parseInt(`0${hours}`)
-  return `${padNumber(hours)}:${padNumber(hours)}:${padNumber(
+
+  if (isClassic) {
+    return timeInSeconds < 3600
+      ? `${padNumber(minutes)}:${padNumber(seconds)}`
+      : `${padNumber(hours)}:${padNumber(minutes)}:${padNumber(seconds)}`
+  }
+
+  return `${padNumber(hours)}:${padNumber(minutes)}:${padNumber(
     seconds,
   )}:${padNumber(milliseconds)}`
 }

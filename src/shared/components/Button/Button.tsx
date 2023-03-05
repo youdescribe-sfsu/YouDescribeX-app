@@ -5,18 +5,27 @@ interface Props {
   id?: string
   title?: string
   color: string
-  onClick: (e: any) => void
+  onClick?: (e: any) => void
   text: ReactNode
+  classNames?: string
 }
 
-const Button = ({ ariaLabel, id, title, color, onClick, text }: Props) => {
+const Button = ({
+  ariaLabel,
+  id,
+  title,
+  color,
+  onClick,
+  text,
+  classNames,
+}: Props) => {
   return (
     <div id="button">
       <button
         aria-label={ariaLabel}
         id={id}
         title={title}
-        className={`w3-btn ${color}`}
+        className={`w3-btn ${color} ${classNames}`}
         onClick={onClick}
       >
         {text}

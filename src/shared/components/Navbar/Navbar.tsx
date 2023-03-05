@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import path from 'path-browserify'
-import styles from './Navbar.css'
+import './Navbar.css'
 import clsx from 'clsx'
+import SignInButton from './SignInButton/SignInButton'
+import { translate } from '@/App'
 
-interface Props {
-  translate: (text: string) => string
-}
+// interface Props {}
 
-const Navbar = ({ translate }: Props) => {
+const Navbar = () => {
   const [isSignedIn, setSignedIn] = useState(false)
 
   const navMenuOpen = () => {
@@ -50,16 +50,16 @@ const Navbar = ({ translate }: Props) => {
     <div>Already Signed In</div>
   ) : (
     // TODO: Add a Sign in Button
-    <div>Sign In</div>
+    <SignInButton />
   )
 
   return (
-    <nav id="navbar" className="navbar">
+    <nav id="navbar" className="classic-nav navbar">
       {/* Navbar (sit on top) */}
       <div className="w3-top">
         <div className="w3-bar w3-white w3-card-2 w3-text-indigo">
           <Link
-            to="/"
+            to="/home"
             id="logo"
             className="w3-bar-item w3-hide-small w3-hide-medium logo"
           >
@@ -75,12 +75,12 @@ const Navbar = ({ translate }: Props) => {
             />
           </Link>
 
-          <Link to="/" id="logo" className="w3-bar-item w3-hide-large">
+          <Link to="/home" id="logo" className="w3-bar-item w3-hide-large">
             <img
               alt="YouDescribe home"
               height="100%"
               src={path.join(
-                __dirname,
+                'https://youdescribe.org',
                 'assets',
                 'img',
                 'youdescribe_logo_small_(indigo_and_grey).png',
@@ -101,8 +101,8 @@ const Navbar = ({ translate }: Props) => {
           {/* Right-sided navbar links */}
           <div className="w3-right w3-hide-small w3-hide-medium">
             <Link
-              to="/"
-              className="w3-bar-item w3-small"
+              to="/home"
+              className="classic-link w3-bar-item w3-small"
               style={{ position: 'relative', top: '11px', padding: '8px' }}
             >
               <i className="fa fa-home" aria-hidden="true">
@@ -112,7 +112,7 @@ const Navbar = ({ translate }: Props) => {
             </Link>
             <Link
               to="/wishlist"
-              className="w3-bar-item w3-small"
+              className="classic-link w3-bar-item w3-small"
               style={{ position: 'relative', top: '11px', padding: '8px' }}
             >
               <i className="fa fa-heart" aria-hidden="true">
@@ -122,7 +122,7 @@ const Navbar = ({ translate }: Props) => {
             </Link>
             <Link
               to="/support"
-              className="w3-bar-item w3-small"
+              className="classic-link w3-bar-item w3-small"
               style={{ position: 'relative', top: '11px', padding: '8px' }}
             >
               <i className="fa fa-question-circle" aria-hidden="true">
@@ -153,7 +153,7 @@ const Navbar = ({ translate }: Props) => {
       {/* Sidenav on small screens when clicking the menu icon */}
       <div
         id="mySidenav"
-        className="w3-sidenav w3-black w3-card-2 w3-animate-left w3-hide-large"
+        className="w3-sidenav w3-card-2 w3-animate-left w3-hide-large sidenav"
         style={{ display: 'none' }}
       >
         <a onClick={navMenuClose} className="w3-large w3-padding-16">

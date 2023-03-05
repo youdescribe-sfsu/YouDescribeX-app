@@ -1,3 +1,11 @@
+interface Response {
+  code: number
+  message: string
+  result: any
+  status: number
+  type: string
+}
+
 const ourFetch = (
   url: string,
   JSONparsing = true,
@@ -9,8 +17,8 @@ const ourFetch = (
   } = {
     method: 'GET',
   },
-) => {
-  return new Promise((resolve, reject) => {
+): Promise<Response> => {
+  return new Promise<Response>((resolve, reject) => {
     const req = new XMLHttpRequest()
     req.open(optionObj.method, url)
     if (optionObj.headers) {

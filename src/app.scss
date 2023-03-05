@@ -1,14 +1,14 @@
 /* W3.CSS 2.97 Feb 2017 by Jan Egil and Borge Refsnes */
-.classic html {
+.classic-html {
   box-sizing: border-box;
 }
-.classic *,
-.classic *:before,
-.classic *:after {
+.classic-html *,
+.classic-html *:before,
+.classic-html *:after {
   box-sizing: inherit;
 }
 /* Extract from normalize.css by Nicolas Gallagher and Jonathan Neal git.io/normalize */
-.classic html {
+.classic-html {
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 }
@@ -23,10 +23,10 @@
 .classic figcaption,
 .classic figure,
 .classic footer,
-.classic header,
+.classic-header,
 .classic main,
 .classic menu,
-.classic nav,
+.classic-nav,
 .classic section,
 .classic summary {
   display: block;
@@ -48,13 +48,13 @@
 .classic template {
   display: none;
 }
-.classic a {
+.classic-link {
   color: #337ab7;
   text-decoration: none;
   background-color: transparent;
 }
-.classic a:active,
-.classic a:hover {
+.classic-link:active,
+.classic-link:hover {
   outline-width: 0;
   text-decoration: underline;
 }
@@ -126,7 +126,7 @@
   text-transform: none;
 }
 .classic button,
-.classic html [type='button'],
+.classic-html [type='button'],
 [type='reset'],
 [type='submit'] {
   -webkit-appearance: button;
@@ -184,22 +184,22 @@
   font: inherit;
 }
 /* End extract */
-.classic html,
-.classic body {
+.classic-html,
+.classic-body {
   font-family: Verdana, sans-serif;
   font-size: 15px;
   line-height: 1.5;
 }
-.classic body.noScroll {
+.classic-body.noScroll {
   overflow: hidden;
 }
-.classic html {
+.classic-html {
   overflow-x: hidden;
 }
 .classic h1,
-.classic h2,
-.classic h3,
-.classic h4,
+.classic-h2,
+.classic-h3,
+.classic-h4,
 .classic h5,
 .classic h6,
 .w3-slim,
@@ -209,13 +209,13 @@
 .classic h1 {
   font-size: 24px;
 }
-.classic h2 {
+.classic-h2 {
   font-size: 20px;
 }
-.classic h3 {
+.classic-h3 {
   font-size: 14px;
 }
-.classic h4 {
+.classic-h4 {
   font-size: 11px;
 }
 .classic h5 {
@@ -228,9 +228,9 @@
   font-family: 'Times New Roman', Times, serif;
 }
 .classic h1,
-.classic h2,
-.classic h3,
-.classic h4,
+.classic-h2,
+.classic-h3,
+.classic-h4,
 .classic h5,
 .classic h6 {
   font-weight: 400;
@@ -240,9 +240,9 @@
   letter-spacing: 4px;
 }
 .classic h1 a,
-.classic h2 a,
-.classic h3 a,
-.classic h4 a,
+.classic-h2 a,
+.classic-h3 a,
+.classic-h4 a,
 .classic h5 a,
 .classic h6 a {
   font-weight: inherit;
