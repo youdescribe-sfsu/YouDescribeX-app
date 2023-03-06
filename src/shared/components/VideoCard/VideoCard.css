@@ -1,13 +1,11 @@
 .video-card {
   background-color: #fff;
-  /* width: 180px; */
-  padding: 0 4px;
+  padding: 8px 4px;
 }
 
 @media screen and (min-width: 601px) {
   .video-card {
-    /* width: 194px; */
-    padding: 0 8px;
+    padding: 16px 8px;
   }
   .card-button {
     padding: 4px 8px;

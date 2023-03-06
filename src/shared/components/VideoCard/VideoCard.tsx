@@ -122,8 +122,8 @@ const VideoCard = ({
     ) : null
 
   return (
-    <div id="video-card" className="w3-margin-top w3-left video-card" title="">
-      <div className="w3-card-2 w3-hover-shadow">
+    <div id="video-card" className="w3-left video-card h-100 w-100" title="">
+      <div className="w3-card-2 w3-hover-shadow h-100">
         <div id="card-thumbnail" className="card-thumbnail" aria-hidden="true">
           <Link
             role="link"
@@ -137,7 +137,7 @@ const VideoCard = ({
             {duration}
           </div>
         </div>
-        <div className="w3-container w3-padding-bottom">
+        <div className="w3-container w3-padding-bottom card-content">
           <div id="card-title-container" className="card-title-container">
             <div id="card-title" className="card-title">
               <h3 className="card-h3 classic-h3">
