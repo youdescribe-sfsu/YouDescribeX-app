@@ -2,7 +2,7 @@ import { translate } from '@/App'
 import Spinner from '@/shared/components/Spinner/Spinner'
 import { apiUrl } from '@/shared/config'
 import ourFetch from '@/shared/utils/ourFetch'
-import '@/assets/css/homePage.css'
+import './homePage.css'
 import React, { useEffect, useState } from 'react'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
@@ -26,13 +26,13 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const fetchingVideosToHome = () => {
+  const fetchingVideosToHome = (page: number = currentPage) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const youDescribeVideosIds: any[] = []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const youTubeVideosIds: any[] = []
     let ids = ''
-    const url = `${apiUrl}/videos?page=${currentPage}`
+    const url = `${apiUrl}/videos?page=${page}`
     ourFetch(url)
       .then((response) => {
         setDbResult(response.result)
@@ -110,7 +110,7 @@ const Home = () => {
 
   const loadMoreResults = () => {
     setCurrentPage(currentPage + 1)
-    fetchingVideosToHome()
+    fetchingVideosToHome(currentPage + 1)
   }
 
   const YDLoadMoreButton =
