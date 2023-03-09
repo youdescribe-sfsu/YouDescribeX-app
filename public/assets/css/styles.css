@@ -1,0 +1,44 @@
+body,h1,h2,h3,h4,h5,h6 {font-family: "open sans"}
+body {
+    height: 100%;
+    line-height: 1.8;
+    /*background-color: #fff;*/
+    padding-top: 58px;
+    margin: 0px;
+}
+.w3-bar .w3-button {
+    padding: 16px;
+}
+
+.w3-card-2 {
+  background-color: #fff;
+}
+
+#home {
+  background-color: #eee;
+}
+
+.authoring-tool {
+  background-color: #393939;
+  color: #fff;
+}
+
+#video-player {
+  background-color: #eee;
+  padding: 100px;
+}
+
+.video {
+  background-color: #262626;
+  height: 400px;
+}
+
+.notes {
+  background-color: #262626;
+  height: 400px;
+}
+
+.editor {
+  background-color: #262626;
+  height: 400px;
+}
