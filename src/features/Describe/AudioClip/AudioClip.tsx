@@ -83,7 +83,7 @@ const AudioClip = ({
 
   useEffect(() => {
     setClipPlayBackType(initialClipPlaybackType)
-    setClipTitle(initialClipTitle)
+    setClipTitle(initialClipTitle ?? '')
     // logic to show/hide the edit component based on props.
     // this hides one edit component when the other is opened
     editComponentToggleList.forEach((item) => {
@@ -272,8 +272,8 @@ const AudioClip = ({
                 />
                 <h6 className="mt-1 text-white">
                   <b>Type: </b>
-                  {clipDescriptionType.charAt(0).toUpperCase() +
-                    clipDescriptionType.slice(1)}{' '}
+                  {clipDescriptionType?.charAt(0).toUpperCase() ??
+                    '' + clipDescriptionType?.slice(1)}{' '}
                   {/* <b>End: </b>
                 {clip_end_time} */}
                 </h6>
@@ -403,12 +403,12 @@ const AudioClip = ({
             youtubeVideoId={youtubeVideoId}
             clipCreatedAt={clipCreatedAt}
             clipId={clipID}
-            clipDescriptionType={clipDescriptionType}
-            initialClipDescriptionText={clipDescriptionText}
+            clipDescriptionType={clipDescriptionType ?? ''}
+            initialClipDescriptionText={clipDescriptionText ?? ''}
             clipPlaybackType={initialClipPlaybackType}
             clipStartTime={initialClipStartTime}
             clipDuration={clipDuration}
-            isRecorded={isRecorded}
+            isRecorded={isRecorded ?? false}
             clipAudioPath={clipAudioPath}
             currentTime={currentTime}
             updateData={updateData}

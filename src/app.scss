@@ -102,7 +102,7 @@
   font-family: monospace, monospace;
   font-size: 1em;
 }
-.classic hr {
+.classic-hr {
   box-sizing: content-box;
   height: 0;
   overflow: visible;
@@ -196,12 +196,12 @@
 .classic-html {
   overflow-x: hidden;
 }
-.classic h1,
+.classic-h1,
 .classic-h2,
 .classic-h3,
 .classic-h4,
-.classic h5,
-.classic h6,
+.classic-h5,
+.classic-h6,
 .w3-slim,
 .w3-wide {
   font-family: 'Segoe UI', Arial, sans-serif;
@@ -227,12 +227,12 @@
 .w3-serif {
   font-family: 'Times New Roman', Times, serif;
 }
-.classic h1,
+.classic-h1,
 .classic-h2,
 .classic-h3,
 .classic-h4,
-.classic h5,
-.classic h6 {
+.classic-h5,
+.classic-h6 {
   font-weight: 400;
   margin: 10px 0;
 }
@@ -247,7 +247,7 @@
 .classic h6 a {
   font-weight: inherit;
 }
-.classic hr {
+.classic-hr {
   border: 0;
   border-top: 1px solid #eee;
   margin: 20px 0;

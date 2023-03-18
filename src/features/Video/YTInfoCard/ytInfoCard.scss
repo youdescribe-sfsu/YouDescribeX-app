@@ -1,0 +1,13 @@
+.yt-info-card {
+  .time-and-likes-container {
+    display: flex;
+    color: grey;
+    font-size: 14px;
+    .publish-time {
+      flex: 1;
+    }
+    .video-likes {
+      float: right;
+    }
+  }
+}

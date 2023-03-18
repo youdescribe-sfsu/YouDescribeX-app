@@ -67,7 +67,7 @@ const Navbar = () => {
               alt="YouDescribe home"
               height="100%"
               src={path.join(
-                'https://youdescribe.org',
+                __dirname,
                 'assets',
                 'img',
                 'youdescribe_logo_full_(indigo_and_grey).png',
@@ -75,12 +75,12 @@ const Navbar = () => {
             />
           </Link>
 
-          <Link to="/home" id="logo" className="w3-bar-item w3-hide-large">
+          <Link to="/home" id="logo" className="w3-bar-item w3-hide-large logo">
             <img
               alt="YouDescribe home"
               height="100%"
               src={path.join(
-                'https://youdescribe.org',
+                __dirname,
                 'assets',
                 'img',
                 'youdescribe_logo_small_(indigo_and_grey).png',

@@ -9,11 +9,13 @@ import './app.scss'
 import { ToastContainer } from 'react-toastify' // for toast messages
 import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
-import Home from './pages/Home'
+import Home from './pages/Home/Home'
 import Navbar from './shared/components/Navbar/Navbar'
 import Polyglot from 'node-polyglot'
 import getLanguage from './shared/utils/getLanguage'
 import strings from './shared/strings'
+import Video from './pages/Video/Video'
+import Footer from './shared/components/Footer/Footer'
 
 const polyglot = new Polyglot({
   locale: getLanguage(),
@@ -40,6 +42,7 @@ const App = () => {
           <Routes>
             <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
             <Route path="/home" element={<Home />} />
+            <Route path="/video/:videoId" element={<Video />} />
             <Route path="/*" element={<PageNotFound />} />
             <Route
               path="/userstudy/:participantId"
@@ -58,6 +61,7 @@ const App = () => {
           pauseOnHover
           theme="colored"
         />
+        <Footer />
       </BrowserRouter>
     </html>
   )
