@@ -145,6 +145,8 @@ const Video = () => {
 
   const currentEventRef = useRef(currentEvent)
 
+  const [previousYTTime, setPreviousYTTime] = useState(0.0)
+
   // Update Refs
 
   useEffect(
@@ -668,6 +670,12 @@ const Video = () => {
         clearInterval(timer)
         break
       case 1: // Playing
+        // If the difference between current time and previous time is greater than 0.2 seconds, update the clip stack
+        if (Math.abs(currentTime - previousYTTime) > 0.2) {
+          console.info('User has potentially seeked to a different time')
+          setPreviousYTTime(currentTime)
+          updateClipStackData()
+        }
         // Case for Extended Audio Clips:
         // When an extended Audio Clip is playing, YT video is paused
         // User plays the YT Video. Extended is still played along with the video. Overlapping with Dialogs &/ other audio clips
@@ -692,6 +700,12 @@ const Video = () => {
         clearInterval(timer)
         break
       case 2: // Paused
+        // If the difference between current time and previous time is greater than 0.2 seconds, update the clip stack
+        if (Math.abs(currentTime - previousYTTime) > 0.2) {
+          console.info('User has potentially seeked to a different time')
+          setPreviousYTTime(currentTime)
+          updateClipStackData()
+        }
         // Case for Inline Audio Clips:
         // When an inline Audio Clip is playing along with the Video,
         // If user pauses the YT video, Inline Clip is still played.
@@ -749,6 +763,8 @@ const Video = () => {
   }
 
   const updateClipStackData = useCallback(() => {
+    console.log('Updating Clip Stack | Current Time =', currentTimeRef.current)
+
     const newClipIndex = audioClips.findIndex(
       (clip) =>
         clip.clip_start_time >= currentTimeRef.current ||
