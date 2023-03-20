@@ -220,6 +220,7 @@ const YDXHome = () => {
 
   useEffect(() => {
     clipStackRef.current = clipStack
+    console.log('New Clip Stack', clipStack)
   }, [clipStack])
 
   useEffect(() => {
@@ -469,15 +470,22 @@ const YDXHome = () => {
         clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
         clipStackRef.current[0].clip_end_time >= currentTimeRef.current
       ) {
-        console.warn('An inline clip is supposed to be playing right now')
+        console.warn(
+          'An inline clip is supposed to be playing right now',
+          currentTimeRef.current,
+        )
         if (currentInlineACRef.current?.playing()) {
           console.info('An inline clip is already playing')
           return
         }
-        console.info('Playing inline clip by Seeking to current time')
+        console.info('Playing clip by Seeking to current time')
         // Play Inline Clip
         const currentFilteredClip = clipStackRef.current[0]
-        setCurrentClipIndex(currentClipIndexRef.current + 1)
+        console.log('Clip to be Played', currentFilteredClip)
+        const prevelement = document.querySelectorAll('.green-border')
+        // TODO: Convert to normal for loop
+        prevelement.forEach((elem) => elem.classList.remove('green-border'))
+
         setPlayedAudioClip(currentFilteredClip.clip_id)
         //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
         setRecentAudioPlayedTime(currentTimeRef.current)
@@ -486,15 +494,24 @@ const YDXHome = () => {
         // play along with the video if the clip is an inline clip
         if (currentFilteredClip.playback_type === 'inline') {
           if (clipAudioPath !== playedClipPath) {
+            console.log('Updating Clip Index')
+            setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
             // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
             const currentAudio = currentFilteredClip.clip_audio
+            console.log('Playing inline clip')
             if (
               currentAudio?.playing() ||
               currentFilteredClip.clip_id === clipIDRef.current
             ) {
               return
             }
+            console.log(
+              'Seeking to',
+              currentTimeRef.current - currentFilteredClip.clip_start_time,
+              'seconds',
+            )
+
             currentAudio?.seek(
               currentTimeRef.current - currentFilteredClip.clip_start_time,
             )
@@ -517,50 +534,11 @@ const YDXHome = () => {
               // Unload current clip
               currentAudio.unload()
               // Load a new clip and add it to the stack
+              console.log('Current Clip Index', currentClipIndexRef.current)
+
               const newClip =
                 audioClips[currentClipIndexRef.current + clipStackSize - 1]
-              console.log('New CLIP => ', newClip)
-              if (newClip) {
-                newClip.clip_audio = new Howl({
-                  src: newClip.clip_audio_path,
-                  html5: true,
-                })
-                setClipStack([
-                  ...clipStackRef.current.slice(1, clipStackSize),
-                  newClip,
-                ])
-              } else {
-                setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-              }
-            })
-          }
-        } else {
-          if (
-            clipAudioPath !== playedClipPath &&
-            currentTimeRef.current <= currentFilteredClip.clip_start_time + 1.0
-          ) {
-            // Play extended clip if overlap is less than 1 second
-            setPlayedClipPath(clipAudioPath)
-            // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-            setEditComponentToggleFunc(currentFilteredClip.clip_id, true)
-            const currentAudio = currentFilteredClip.clip_audio
-            currentEvent?.pauseVideo()
-            if (!currentAudio?.playing()) {
-              currentAudio?.play()
-            }
-            // see onStateChange() - storing current Extended Clip
-            setCurrExtendedAC(currentAudio)
-            // youtube video should be played after the clip has finished playing
-            // eslint-disable-next-line no-loop-func
-            currentAudio?.on('end', function () {
-              setCurrExtendedAC(undefined) // setting back to null, as it is played completely.
-              currentEvent?.playVideo()
-              // Unload current clip
-              currentAudio.unload()
-              setCurrentExtACPaused(false) // reset the play/pause state
-              // Add a new clip to the stack
-              const newClip = audioClips[currentClipIndexRef.current + 4]
-              console.log('New CLIP => ', newClip)
+              console.log('New CLIP (seeked inline) => ', newClip)
               if (newClip) {
                 newClip.clip_audio = new Howl({
                   src: newClip.clip_audio_path,
@@ -576,6 +554,51 @@ const YDXHome = () => {
             })
           }
         }
+        const element = document.getElementById(currentFilteredClip.clip_id)
+        element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        element?.classList.add('green-border')
+        // } else {
+        //   if (
+        //     clipAudioPath !== playedClipPath &&
+        //     currentTimeRef.current <= currentFilteredClip.clip_start_time + 1.0
+        //   ) {
+        //     // Play extended clip if overlap is less than 1 second
+        //     setPlayedClipPath(clipAudioPath)
+        //     // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
+        //     setEditComponentToggleFunc(currentFilteredClip.clip_id, true)
+        //     const currentAudio = currentFilteredClip.clip_audio
+        //     currentEvent?.pauseVideo()
+        //     if (!currentAudio?.playing()) {
+        //       currentAudio?.play()
+        //     }
+        //     // see onStateChange() - storing current Extended Clip
+        //     setCurrExtendedAC(currentAudio)
+        //     // youtube video should be played after the clip has finished playing
+        //     // eslint-disable-next-line no-loop-func
+        //     currentAudio?.on('end', function () {
+        //       setCurrExtendedAC(undefined) // setting back to null, as it is played completely.
+        //       currentEvent?.playVideo()
+        //       // Unload current clip
+        //       currentAudio.unload()
+        //       setCurrentExtACPaused(false) // reset the play/pause state
+        //       // Add a new clip to the stack
+        //       const newClip = audioClips[currentClipIndexRef.current + 4]
+        //       console.log('New CLIP (seeked extended) => ', newClip)
+        //       if (newClip) {
+        //         newClip.clip_audio = new Howl({
+        //           src: newClip.clip_audio_path,
+        //           html5: true,
+        //         })
+        //         setClipStack([
+        //           ...clipStackRef.current.slice(1, clipStackSize),
+        //           newClip,
+        //         ])
+        //       } else {
+        //         setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+        //       }
+        //     })
+        //   }
+        // }
       }
       // Case for playing inline and extended clips when the player come across their start or end times
       // Compare current window with clip at current clip index
@@ -584,6 +607,7 @@ const YDXHome = () => {
         clipStackRef.current[0].clip_start_time >= previousTimeRef.current
       ) {
         const currentFilteredClip = clipStackRef.current[0]
+        console.log('Updating Clip Index')
         setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
         const prevelement = document.querySelectorAll('.green-border')
         // TODO: Convert to normal for loop
@@ -619,8 +643,10 @@ const YDXHome = () => {
                 // Unload current clip
                 currentAudio.unload()
                 // Load a new clip and add it to the stack
-                const newClip = audioClips[currentClipIndexRef.current + 4]
-                console.log('New CLIP => ', newClip)
+                console.log('Current Clip Index', currentClipIndexRef.current)
+                const newClip =
+                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+                console.log('New CLIP (normal inline) => ', newClip)
                 if (newClip) {
                   newClip.clip_audio = new Howl({
                     src: newClip.clip_audio_path,
@@ -660,8 +686,10 @@ const YDXHome = () => {
                 currentAudio.unload()
                 setCurrentExtACPaused(false) // reset the play/pause state
                 // Add a new clip to the stack
-                const newClip = audioClips[currentClipIndexRef.current + 4]
-                console.log('New CLIP => ', newClip)
+                console.log('Current Clip Index', currentClipIndexRef.current)
+                const newClip =
+                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+                console.log('New CLIP (normal extended) => ', newClip)
                 if (newClip) {
                   newClip.clip_audio = new Howl({
                     src: newClip.clip_audio_path,

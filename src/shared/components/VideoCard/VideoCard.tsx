@@ -15,7 +15,7 @@ interface Props {
   title: string
   thumbnailMediumUrl: string
   author: string
-  duration: string
+  duration?: string
   views?: string
   time: string
 }
@@ -96,15 +96,17 @@ const VideoCard = ({
         <Button
           ariaLabel={translate('Request an audio description for this video')}
           text={<i className="fa fa-heart" />}
+          classNames="card-button"
           color="w3-white w3-text-indigo w3-left"
           onClick={upVote}
         />
-        <span id="vote-count">
+        {/* <span id="vote-count">
           <div>{votes}</div>
-        </span>
+        </span> */}
         <Button
           ariaLabel={translate('Create an audio description for this video')}
           text={translate('Describe')}
+          classNames="card-button"
           color="w3-indigo w3-right"
           onClick={describeThisVideo}
         />
@@ -133,9 +135,11 @@ const VideoCard = ({
           >
             <img alt={title} src={thumbnailMediumUrl} width="100%" />
           </Link>
-          <div id="card-duration" className="card-duration">
-            {duration}
-          </div>
+          {duration ? (
+            <div id="card-duration" className="card-duration">
+              {duration}
+            </div>
+          ) : null}
         </div>
         <div className="w3-container w3-padding-bottom card-content">
           <div id="card-title-container" className="card-title-container">

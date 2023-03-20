@@ -16,6 +16,7 @@ import getLanguage from './shared/utils/getLanguage'
 import strings from './shared/strings'
 import Video from './pages/Video/Video'
 import Footer from './shared/components/Footer/Footer'
+import Wishlist from './pages/Wishlist/Wishlist'
 
 const polyglot = new Polyglot({
   locale: getLanguage(),
@@ -43,6 +44,7 @@ const App = () => {
             <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
             <Route path="/home" element={<Home />} />
             <Route path="/video/:videoId" element={<Video />} />
+            <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/*" element={<PageNotFound />} />
             <Route
               path="/userstudy/:participantId"
