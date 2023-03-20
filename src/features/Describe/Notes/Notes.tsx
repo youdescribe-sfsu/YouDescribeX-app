@@ -76,7 +76,7 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }: Props) => {
 
   const debouncedHandleNoteAutoSave = useMemo(
     () => debounce(handleNoteAutoSave, 2000),
-    [],
+    [noteId, audioDescriptionId],
   )
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
