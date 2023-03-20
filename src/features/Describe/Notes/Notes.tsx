@@ -1,8 +1,9 @@
 import axios from 'axios'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from 'react-toastify'
 import '@/assets/css/editAudioDesc.css'
 import '@/assets/css/notes.css'
+import { debounce } from 'debounce'
 
 interface Props {
   currentTime: string
@@ -54,7 +55,7 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }: Props) => {
       updatedNoteValue = e.target.value
     }
     setNoteValue(updatedNoteValue)
-    handleNoteAutoSave(updatedNoteValue)
+    debouncedHandleNoteAutoSave(updatedNoteValue)
   }
 
   const handleNoteAutoSave = (currentNoteValue: any) => {
@@ -72,6 +73,11 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }: Props) => {
         toast.error('Error Saving Note! Please Try Again...')
       })
   }
+
+  const debouncedHandleNoteAutoSave = useMemo(
+    () => debounce(handleNoteAutoSave, 2000),
+    [],
+  )
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleNoteHighlight = () => {
