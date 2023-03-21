@@ -184,11 +184,11 @@ const YDXHome = () => {
   }, [descriptionVolume])
 
   useEffect(() => {
-    if (currentEventRef && currentInlineACRef.current?.playing()) {
+    if (currentEventRef) {
       currentEventRef.current?.setVolume(youTubeVolume)
     }
     youTubeVolumeRef.current = youTubeVolume
-  }, [youTubeVolume])
+  }, [youTubeVolume, currentEventRef])
 
   function toggle() {
     setIsActive(!isActive)
@@ -518,12 +518,12 @@ const YDXHome = () => {
         // play along with the video if the clip is an inline clip
         if (currentFilteredClip.playback_type === 'inline') {
           if (clipAudioPath !== playedClipPath) {
-            console.log('Updating Clip Index')
+            console.log('Updating Clip Index (seeked)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
             // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
             const currentAudio = currentFilteredClip.clip_audio
-            console.log('Playing inline clip')
+            console.log('Playing inline clip (seeked)')
             if (
               currentAudio?.playing() ||
               currentFilteredClip.clip_id === clipIDRef.current
@@ -542,19 +542,14 @@ const YDXHome = () => {
             currentAudio?.play()
             // see onStateChange() - storing current inline clip.
             setCurrInlineAC(currentAudio)
-            // Old YouTube Volume
-            const oldVolume = await currentEvent?.getVolume()
             // ended event listener, to set the currInlineAC back to null
             currentAudio?.once('play', function () {
               setClipID(currentFilteredClip.clip_id)
               // Audio Ducking
               currentAudio.volume(descriptionVolumeRef.current / 100)
-              currentEvent?.setVolume(youTubeVolumeRef.current)
             })
             currentAudio?.on('end', function () {
               setCurrInlineAC(undefined)
-              // Restore old volume
-              currentEvent?.setVolume(oldVolume ?? 100)
               // Unload current clip
               currentAudio.unload()
               // Load a new clip and add it to the stack
@@ -577,6 +572,7 @@ const YDXHome = () => {
               }
             })
           }
+          return
         }
         const element = document.getElementById(currentFilteredClip.clip_id)
         // element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -645,6 +641,8 @@ const YDXHome = () => {
           // play along with the video if the clip is an inline clip
           if (currentFilteredClip.playback_type === 'inline') {
             if (clipAudioPath !== playedClipPath) {
+              console.log('Playing Inline Clip (normal)')
+
               setPlayedClipPath(clipAudioPath)
               // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
               setEditComponentToggleFunc(currentFilteredClip.clip_id, true)
@@ -655,8 +653,6 @@ const YDXHome = () => {
               ) {
                 return
               }
-              // Old YouTube Volume
-              const oldVolume = await currentEvent?.getVolume()
               currentAudio?.play()
               // see onStateChange() - storing current inline clip.
               setCurrInlineAC(currentAudio)
@@ -665,14 +661,11 @@ const YDXHome = () => {
                 setClipID(currentFilteredClip.clip_id)
                 // Audio Ducking
                 currentAudio.volume(descriptionVolumeRef.current / 100)
-                currentEvent?.setVolume(youTubeVolumeRef.current)
               })
               currentAudio?.on('end', function () {
                 setCurrInlineAC(undefined)
                 // Unload current clip
                 currentAudio.unload()
-                // Restore old volume
-                currentEvent?.setVolume(oldVolume ?? 100)
                 // Load a new clip and add it to the stack
                 console.log('Current Clip Index', currentClipIndexRef.current)
                 const newClip =
