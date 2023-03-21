@@ -19,6 +19,7 @@ import { debounce } from 'debounce'
 import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
 import { Options } from 'youtube-player/dist/types'
+import VideoPlayerControls from '@/shared/components/VideoPlayerControls/VideoPlayerControls'
 
 interface YDXDescribeState {
   clipID: string
@@ -137,6 +138,12 @@ const YDXHome = () => {
   const [clipStack, setClipStack] = useState<Clip[]>([])
   const [clipStackSize, setClipStackSize] = useState<number>(5)
 
+  // Balancer value for volume controls
+  const [descriptionVolume, setDescriptionVolume] = useState(50)
+  const [youTubeVolume, setYouTubeVolume] = useState(50)
+  const descriptionVolumeRef = useRef(descriptionVolume)
+  const youTubeVolumeRef = useRef(youTubeVolume)
+
   const clipStackRef = useRef(clipStack)
 
   const setClipID = useClipIDStore((state) => state.setClipID)
@@ -165,6 +172,23 @@ const YDXHome = () => {
     currentInlineACRef.current = currInlineAC
     currentExtendedACRef.current = currExtendedAC
   }, [currInlineAC, currExtendedAC])
+
+  useEffect(() => {
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.volume(descriptionVolume / 100)
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.volume(descriptionVolume / 100)
+    }
+    descriptionVolumeRef.current = descriptionVolume
+  }, [descriptionVolume])
+
+  useEffect(() => {
+    if (currentEventRef && currentInlineACRef.current?.playing()) {
+      currentEventRef.current?.setVolume(youTubeVolume)
+    }
+    youTubeVolumeRef.current = youTubeVolume
+  }, [youTubeVolume])
 
   function toggle() {
     setIsActive(!isActive)
@@ -524,8 +548,8 @@ const YDXHome = () => {
             currentAudio?.once('play', function () {
               setClipID(currentFilteredClip.clip_id)
               // Audio Ducking
-              // currentAudio.volume(balancerValue / 100)
-              // currentEvent?.setVolume((100 - balancerValue) * 0.4)
+              currentAudio.volume(descriptionVolumeRef.current / 100)
+              currentEvent?.setVolume(youTubeVolumeRef.current)
             })
             currentAudio?.on('end', function () {
               setCurrInlineAC(undefined)
@@ -555,7 +579,7 @@ const YDXHome = () => {
           }
         }
         const element = document.getElementById(currentFilteredClip.clip_id)
-        element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        // element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         element?.classList.add('green-border')
         // } else {
         //   if (
@@ -631,17 +655,24 @@ const YDXHome = () => {
               ) {
                 return
               }
+              // Old YouTube Volume
+              const oldVolume = await currentEvent?.getVolume()
               currentAudio?.play()
               // see onStateChange() - storing current inline clip.
               setCurrInlineAC(currentAudio)
               // ended event listener, to set the currInlineAC back to null
               currentAudio?.once('play', function () {
                 setClipID(currentFilteredClip.clip_id)
+                // Audio Ducking
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+                currentEvent?.setVolume(youTubeVolumeRef.current)
               })
               currentAudio?.on('end', function () {
                 setCurrInlineAC(undefined)
                 // Unload current clip
                 currentAudio.unload()
+                // Restore old volume
+                currentEvent?.setVolume(oldVolume ?? 100)
                 // Load a new clip and add it to the stack
                 console.log('Current Clip Index', currentClipIndexRef.current)
                 const newClip =
@@ -679,6 +710,9 @@ const YDXHome = () => {
               setCurrExtendedAC(currentAudio)
               // youtube video should be played after the clip has finished playing
               // eslint-disable-next-line no-loop-func
+              currentAudio?.once('play', function () {
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+              })
               currentAudio?.on('end', function () {
                 setCurrExtendedAC(undefined) // setting back to null, as it is played completely.
                 currentEvent?.playVideo()
@@ -709,7 +743,7 @@ const YDXHome = () => {
           }
         }
         const element = document.getElementById(currentFilteredClip.clip_id)
-        element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        // element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         element?.classList.add('green-border')
       }
     }
@@ -982,6 +1016,14 @@ const YDXHome = () => {
             currentTime={convertSecondsToCardFormat(currentTime)}
             audioDescriptionId={audioDescriptionId}
             notesData={notesData}
+          />
+        </div>
+        <div className="text-white d-inline-flex ms-4">
+          <VideoPlayerControls
+            descriptionVolume={descriptionVolume}
+            setDescriptionVolume={setDescriptionVolume}
+            youTubeVideoVolume={youTubeVolume}
+            setYouTubeVideoVolume={setYouTubeVolume}
           />
         </div>
         <hr className="m-2 ydx-hr" />

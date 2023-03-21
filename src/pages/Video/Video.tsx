@@ -30,7 +30,7 @@ import convertClipObject, {
 } from '@/shared/utils/convertClipObject'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
-import VideoPlayerControls from '@/features/Video/VideoPlayerControls/VideoPlayerControls'
+import VideoPlayerControls from '@/shared/components/VideoPlayerControls/VideoPlayerControls'
 import YTInfoCard from '@/features/Video/YTInfoCard/YTInfoCard'
 import { convertLikesToCardFormat } from '@/shared/utils/convertLikesToCardFormat'
 import { convertISO8601ToDate } from '@/shared/utils/convertISO8601ToDate'
@@ -172,6 +172,21 @@ const Video = () => {
     currentInlineACRef.current = currInlineAC
     currentExtendedACRef.current = currExtendedAC
   }, [currInlineAC, currExtendedAC])
+
+  useEffect(() => {
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.volume(descriptionVolume / 100)
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.volume(descriptionVolume / 100)
+    }
+  }, [descriptionVolume])
+
+  useEffect(() => {
+    if (currentEventRef && currentInlineACRef.current?.playing()) {
+      currentEventRef.current?.setVolume(youTubeVolume)
+    }
+  }, [youTubeVolume])
   //
   // END OF YDX STATE VARIABLES
   //
@@ -579,7 +594,7 @@ const Video = () => {
                 setClipID(currentFilteredClip.clip_id)
                 // Audio Ducking
                 currentAudio.volume(descriptionVolume / 100)
-                currentEvent?.setVolume(youTubeVolume / 100)
+                currentEvent?.setVolume(youTubeVolume)
               })
               currentAudio?.on('end', function () {
                 setCurrInlineAC(undefined)

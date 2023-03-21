@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { ChangeEvent, useMemo, useState } from 'react'
 import Form from 'react-bootstrap/Form'
 import './videoPlayerControls.scss'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { debounce } from 'debounce'
 
 interface Props {
   descriptionVolume: number
@@ -16,6 +17,10 @@ const VideoPlayerControls = ({
   youTubeVideoVolume,
   setYouTubeVideoVolume,
 }: Props) => {
+  const [descriptionValue, setDescriptionValue] =
+    useState<number>(descriptionVolume)
+  const [YTValue, setYTValue] = useState<number>(youTubeVideoVolume)
+
   const showAudioDuckingTooltip = (props: any) => {
     return (
       <Tooltip {...props}>
@@ -42,6 +47,33 @@ const VideoPlayerControls = ({
       </Tooltip>
     )
   }
+
+  const handleYouTubeVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setYTValue(parseInt(e.target.value))
+    debouncedYouTubeVolumeChange(parseInt(e.target.value))
+  }
+
+  const debouncedYouTubeVolumeChange = useMemo(
+    () =>
+      debounce((value: number) => {
+        console.log('Updating YT Volume', value)
+        setYouTubeVideoVolume(value)
+      }, 500),
+    [setYouTubeVideoVolume],
+  )
+  const handleDescriptionVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setDescriptionValue(parseInt(e.target.value))
+    debouncedDescriptionVolumeChange(parseInt(e.target.value))
+  }
+
+  const debouncedDescriptionVolumeChange = useMemo(
+    () =>
+      debounce((value: number) => {
+        console.log('Updating Description Volume', value)
+        setDescriptionVolume(value)
+      }, 500),
+    [setDescriptionVolume],
+  )
 
   return (
     <div id="video-player-controls" className="video-player-controls">
@@ -70,10 +102,8 @@ const VideoPlayerControls = ({
           <div className="col-sm-6 col-md-6 col-lg-4">
             <Form.Range
               className=""
-              value={descriptionVolume}
-              onChange={(e) => {
-                setDescriptionVolume(parseInt(e.target.value))
-              }}
+              value={descriptionValue}
+              onChange={handleDescriptionVolumeChange}
             />
           </div>
           <div className="col-sm-6 col-md-6 col-lg-8">
@@ -88,10 +118,8 @@ const VideoPlayerControls = ({
           <div className="col-sm-6 col-md-6 col-lg-4">
             <Form.Range
               className="form-range"
-              value={youTubeVideoVolume}
-              onChange={(e) => {
-                setYouTubeVideoVolume(parseInt(e.target.value))
-              }}
+              value={YTValue}
+              onChange={handleYouTubeVolumeChange}
             />
           </div>
           <div className="col-sm-6 col-md-6 col-lg-8">
