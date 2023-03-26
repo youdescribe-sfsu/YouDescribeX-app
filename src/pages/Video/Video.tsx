@@ -1,4 +1,4 @@
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
 import ShareBar from '@/features/Video/ShareBar/ShareBar'
 import Button from '@/shared/components/Button/Button'
 import Spinner from '@/shared/components/Spinner/Spinner'
@@ -853,6 +853,43 @@ const Video = () => {
     return describerCards
   }
 
+  const upVote = () => {
+    if (!userDataStore.getState().isSignedIn) {
+      alert(translate('You have to be logged in in order to vote'))
+    } else {
+      const url = `${apiUrl}/wishlist`
+      ourFetch(url, true, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          youTubeId: videoId,
+          userId: userDataStore.getState().userId,
+          userToken: userDataStore.getState().userToken,
+        }),
+      })
+        .then((res) => {
+          console.log('Success upVote')
+        })
+        .catch((err) => {
+          switch (err.code) {
+            case 67:
+              alert(
+                translate('It is not possible to vote again for this video.'),
+              )
+              break
+            default:
+              alert(
+                translate(
+                  'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
+                ),
+              )
+          }
+        })
+    }
+  }
+
   return (
     <div id="video-page" className="video-page">
       <main role="main" className="video-page-main" title="Video page">
@@ -934,7 +971,7 @@ const Video = () => {
               <h3 className="classic-h3">
                 {translate('Other description options')}
               </h3>
-              {/* {describerCards.slice(1)} */}
+              {getDescriberCards().slice(1)}
               <Button
                 title={translate('Turn off descriptions for this video')}
                 text={translate('Turn off descriptions')}
@@ -979,7 +1016,7 @@ const Video = () => {
                 ariaLabel="Request an audio description for this video"
                 text={translate('Add to wish list')}
                 color="w3-indigo w3-block w3-margin-top"
-                // onClick={() => this.upVote()}
+                onClick={() => upVote()}
               />
               <Button
                 title={translate('Add a new description for this video')}

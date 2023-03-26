@@ -1,13 +1,18 @@
 import React from 'react'
 import Button from '../../Button/Button'
+import { translate } from '@/App'
 
-const SignInButton = () => (
+interface Props {
+  newGoogleAuth: () => void
+}
+
+const SignInButton = ({ newGoogleAuth }: Props) => (
   <Button
     id="btn-sign-in"
     color="w3-indigo"
     ariaLabel="Sign in with Google"
-    // TODO: ADD TRANSLATE
-    text={'Sign in with Google'}
+    onClick={newGoogleAuth}
+    text={translate('Sign in with Google')}
   />
 )
 

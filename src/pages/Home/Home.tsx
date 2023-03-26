@@ -1,4 +1,4 @@
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
 import Spinner from '@/shared/components/Spinner/Spinner'
 import { apiUrl } from '@/shared/config'
 import ourFetch from '@/shared/utils/ourFetch'
@@ -10,19 +10,23 @@ import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardForma
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import Button from '@/shared/components/Button/Button'
+import { useNavigate } from 'react-router-dom'
 
 const Home = () => {
   const [dbResult, setDbResult] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const [videos, setVideos] = useState<any[]>([])
-  const [showSpinner, setShowSpinner] = useState(true)
+  const [showSpinner, setShowSpinner] = useState(false)
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     document.title = translate(
       'YouDescribe - Audio Description for YouTube Videos',
     )
     fetchingVideosToHome()
+    checkUserPolicyReview()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -113,6 +117,23 @@ const Home = () => {
     fetchingVideosToHome(currentPage + 1)
   }
 
+  const checkUserPolicyReview = () => {
+    const isSignedIn = userDataStore.getState().isSignedIn
+    const userId = userDataStore.getState().userId
+    if (isSignedIn) {
+      const url = `${apiUrl}/users/${userId}`
+      ourFetch(url).then((response) => {
+        const user = response.result
+        if (user.policy_review === '') {
+          alert(
+            'YouDescribe has been updated, please update your notification preferences in the next page.',
+          )
+          navigate(`/profile/` + userDataStore.getState().userId)
+        }
+      })
+    }
+  }
+
   const YDLoadMoreButton =
     videos.length >= 20 ? (
       <div className="w3-margin-top w3-center load-more">
@@ -138,7 +159,6 @@ const Home = () => {
 
   return (
     <main id="home" title="YouDescribe home page">
-      {/* TODO: ADD POLICY REVIEW LOGIC */}
       {/* <Announcement
           text={
             "Attention: YouDescribe will be down on for maintenance. We apologize for any inconvenience."

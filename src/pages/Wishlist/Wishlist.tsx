@@ -1,4 +1,4 @@
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import Spinner from '@/shared/components/Spinner/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
@@ -113,12 +113,13 @@ const Wishlist = () => {
   ]
 
   const describeThisVideo = (youTubeId: string) => {
-    // Handle User login state
-    // if () {
-    //   navigate('/authoring-tool/' + youtubeId)
-    // } else {
-    alert(translate('You have to be logged in in order to describe this video'))
-    // }
+    if (userDataStore.getState().isSignedIn) {
+      navigate('/authoring-tool/' + youTubeId)
+    } else {
+      alert(
+        translate('You have to be logged in in order to describe this video'),
+      )
+    }
   }
 
   useEffect(() => {

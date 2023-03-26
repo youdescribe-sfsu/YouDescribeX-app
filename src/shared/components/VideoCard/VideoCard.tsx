@@ -1,14 +1,12 @@
-import React from 'react'
 import ourFetch from '../../utils/ourFetch'
 import { apiUrl } from '../../config'
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../Button/Button'
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
 import './VideoCard.css'
 
 interface Props {
   youTubeId: string
-  getAppState?: () => any
   description?: string
   buttons: string
   votes?: number
@@ -33,16 +31,9 @@ const VideoCard = ({
   time,
 }: Props) => {
   const navigate = useNavigate()
-  const getAppState = () => {
-    return {
-      isSignedIn: true,
-      userId: '123',
-      userToken: '123',
-    }
-  }
 
   const upVote = (e: any) => {
-    if (!getAppState().isSignedIn) {
+    if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
     } else {
       e.currentTarget.className =
@@ -55,8 +46,8 @@ const VideoCard = ({
         },
         body: JSON.stringify({
           youTubeId: youTubeId,
-          userId: getAppState().userId,
-          userToken: getAppState().userToken,
+          userId: userDataStore.getState().userId,
+          userToken: userDataStore.getState().userToken,
         }),
       })
         .then((res) => {
@@ -81,7 +72,7 @@ const VideoCard = ({
   }
 
   const describeThisVideo = () => {
-    if (getAppState().isSignedIn) {
+    if (userDataStore.getState().isSignedIn) {
       navigate('/authoring-tool/' + youTubeId)
     } else {
       alert(

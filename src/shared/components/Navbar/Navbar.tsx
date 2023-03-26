@@ -4,13 +4,15 @@ import path from 'path-browserify'
 import './Navbar.css'
 import clsx from 'clsx'
 import SignInButton from './SignInButton/SignInButton'
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
+import UserAvatar from './UserAvatar/UserAvatar'
 
-// interface Props {}
+interface Props {
+  newGoogleAuth: () => void
+  signOut: () => void
+}
 
-const Navbar = () => {
-  const [isSignedIn, setSignedIn] = useState(false)
-
+const Navbar = ({ newGoogleAuth, signOut }: Props) => {
   const navMenuOpen = () => {
     const mySidenav = document.getElementById('mySidenav')
     if (mySidenav) {
@@ -39,19 +41,13 @@ const Navbar = () => {
     }
   }
 
-  const signInComponent = isSignedIn ? (
-    // TODO: Add a User Avatar
-    // <UserAvatar
-    //   translate={translate}
-    //   //   signOut={signOut}
-    //   userMenuToggle={userMenuToggle}
-    //   //   getAppState={this.props.getAppState}
-    // />
-    <div>Already Signed In</div>
-  ) : (
-    // TODO: Add a Sign in Button
-    <SignInButton />
-  )
+  const signInComponent = () => {
+    if (userDataStore.getState().isSignedIn) {
+      return <UserAvatar userMenuToggle={userMenuToggle} signOut={signOut} />
+    } else {
+      return <SignInButton newGoogleAuth={newGoogleAuth} />
+    }
+  }
 
   return (
     <nav id="navbar" className="classic-nav navbar">
@@ -134,7 +130,7 @@ const Navbar = () => {
               className="w3-bar-item"
               style={{ position: 'relative', top: '2px' }}
             >
-              {signInComponent}
+              {signInComponent()}
             </div>
           </div>
 
@@ -174,7 +170,7 @@ const Navbar = () => {
           <i className="fa fa-heart" aria-hidden="true" />{' '}
           {translate('WISH LIST')}
         </Link>
-        {signInComponent}
+        {signInComponent()}
       </div>
     </nav>
   )
