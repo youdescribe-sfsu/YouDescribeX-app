@@ -9,14 +9,14 @@ interface Props {
 }
 
 const UserAvatar = ({ userMenuToggle, signOut }: Props) => {
+  const userPicture = userDataStore.getState().userPicture
   return (
     <div id="user-avatar" className="user-avatar">
       <button onClick={userMenuToggle} className="avatar-button">
         <img
           aria-label={`Logged in as ${userDataStore.getState().userName}`}
           alt={`Logged in as ${userDataStore.getState().userName}`}
-          title={`Logged in as ${userDataStore.getState().userName}`}
-          src={`${userDataStore.getState().userPicture}`}
+          src={`${userPicture}`}
           height="33px"
           className="avatar-img"
         />

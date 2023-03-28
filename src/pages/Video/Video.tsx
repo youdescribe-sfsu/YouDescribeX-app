@@ -21,10 +21,8 @@ import { ToastContainer } from 'react-toastify'
 import YouTube from 'react-youtube'
 import { Options, YouTubePlayer } from 'youtube-player/dist/types'
 import './video.scss'
-import { create } from 'zustand'
-import { devtools } from 'zustand/middleware'
 import { Howl } from 'howler'
-import convertClipObject, {
+import {
   Clip,
   convertClassicClipObject,
 } from '@/shared/utils/convertClipObject'
@@ -35,34 +33,6 @@ import YTInfoCard from '@/features/Video/YTInfoCard/YTInfoCard'
 import { convertLikesToCardFormat } from '@/shared/utils/convertLikesToCardFormat'
 import { convertISO8601ToDate } from '@/shared/utils/convertISO8601ToDate'
 import DescriberCard from '@/features/Video/DescriberCard/DescriberCard'
-
-interface YDXVideoState {
-  clipID: string
-  currentTime: number
-  previousTime: number
-  currentClipIndex: number
-  setClipID: (clipID: string) => void
-  setStoreCurrentTime: (time: number) => void
-  setStorePreviousTime: (time: number) => void
-  setCurrentClipIndex: (newIndex: number) => void
-}
-
-const useVideoStore = create<YDXVideoState>()(
-  devtools((set) => ({
-    clipID: '',
-    currentTime: 0.0,
-    previousTime: 0.0,
-    currentClipIndex: 0,
-    setClipID: (clipID: string) =>
-      set((state) => ({ ...state, clipID: clipID })),
-    setStoreCurrentTime: (time: number) =>
-      set((state) => ({ ...state, currentTime: time })),
-    setStorePreviousTime: (time: number) =>
-      set((state) => ({ ...state, previousTime: time })),
-    setCurrentClipIndex: (newIndex: number) =>
-      set((state) => ({ ...state, currentClipIndex: newIndex })),
-  })),
-)
 
 const Video = () => {
   const { videoId } = useParams()
@@ -91,8 +61,14 @@ const Video = () => {
   const [videoDurationToDisplay, setVideoDurationToDisplay] = useState('')
 
   // Balancer value for volume controls
-  const [descriptionVolume, setDescriptionVolume] = useState(50)
-  const [youTubeVolume, setYouTubeVolume] = useState(50)
+  const [descriptionVolume, setDescriptionVolume] = useState(
+    parseInt(localStorage.getItem('descriptionVolume') || '50'),
+  )
+  const [youTubeVolume, setYouTubeVolume] = useState(
+    parseInt(localStorage.getItem('youTubeVolume') || '100'),
+  )
+  const descriptionVolumeRef = useRef(descriptionVolume)
+  const youTubeVolumeRef = useRef(youTubeVolume)
 
   //
   // YDX STATE VARIABLES
@@ -113,65 +89,58 @@ const Video = () => {
   const [playedClipPath, setPlayedClipPath] = useState('') // store clip_audio_path of the audio clip that is already played.
 
   const [isActive, setIsActive] = useState(false)
-  const [samplingRate, setSamplingRate] = useState(100)
+  const [samplingRate, setSamplingRate] = useState(200)
 
-  // Zustand State
   const [previousTime, setPreviousTime] = useState(0.0)
   const [clipStack, setClipStack] = useState<Clip[]>([])
   const [clipStackSize, setClipStackSize] = useState<number>(5)
+  const [currentClipIndex, setCurrentClipIndex] = useState<number>(0)
 
   const clipStackRef = useRef(clipStack)
+  const clipIDRef = useRef(playedAudioClip)
 
-  const setClipID = useVideoStore((state) => state.setClipID)
-  const clipIDRef = useRef(useVideoStore.getState().clipID)
+  // Time Refs
+  const currentTimeRef = useRef(currentTime)
+  const previousTimeRef = useRef(previousTime)
 
-  const currentTimeRef = useRef(useVideoStore.getState().currentTime)
-  const setStoreCurrentTime = useVideoStore(
-    (state) => state.setStoreCurrentTime,
-  )
-
-  const previousTimeRef = useRef(useVideoStore.getState().previousTime)
-  const setStorePreviousTime = useVideoStore(
-    (state) => state.setStorePreviousTime,
-  )
-
-  const currentClipIndexRef = useRef(useVideoStore.getState().currentClipIndex)
-  const setCurrentClipIndex = useVideoStore(
-    (state) => state.setCurrentClipIndex,
-  )
-
-  const currentInlineACRef = useRef(currInlineAC)
-  const currentExtendedACRef = useRef(currExtendedAC)
+  const currentClipIndexRef = useRef(currentClipIndex)
+  // const setCurrentClipIndex = useClipIDStore(
+  //   (state) => state.setCurrentClipIndex,
+  // )
 
   const currentEventRef = useRef(currentEvent)
+  const currentInlineACRef = useRef(currInlineAC)
+  const currentExtendedACRef = useRef(currExtendedAC)
 
   const [previousYTTime, setPreviousYTTime] = useState(0.0)
 
   // Update Refs
+  useEffect(() => {
+    currentInlineACRef.current = currInlineAC
+    currentExtendedACRef.current = currExtendedAC
+  }, [currInlineAC, currExtendedAC])
 
-  useEffect(
-    () =>
-      useVideoStore.subscribe((state) => {
-        clipIDRef.current = state.clipID
-        currentTimeRef.current = state.currentTime
-        previousTimeRef.current = state.previousTime
-        currentClipIndexRef.current = state.currentClipIndex
-      }),
-    [],
-  )
+  useEffect(() => {
+    currentTimeRef.current = currentTime
+    previousTimeRef.current = previousTime
+  }, [currentTime, previousTime])
+
+  useEffect(() => {
+    clipIDRef.current = playedAudioClip
+  }, [playedAudioClip])
+
+  useEffect(() => {
+    currentClipIndexRef.current = currentClipIndex
+  }, [currentClipIndex])
 
   useEffect(() => {
     clipStackRef.current = clipStack
+    console.log('New Clip Stack', clipStack)
   }, [clipStack])
 
   useEffect(() => {
     currentEventRef.current = currentEvent
   }, [currentEvent])
-
-  useEffect(() => {
-    currentInlineACRef.current = currInlineAC
-    currentExtendedACRef.current = currExtendedAC
-  }, [currInlineAC, currExtendedAC])
 
   useEffect(() => {
     if (currentInlineACRef.current?.playing()) {
@@ -180,13 +149,16 @@ const Video = () => {
     if (currentExtendedACRef.current?.playing()) {
       currentExtendedACRef.current?.volume(descriptionVolume / 100)
     }
+    localStorage.setItem('descriptionVolume', descriptionVolume.toString())
   }, [descriptionVolume])
 
   useEffect(() => {
     if (currentEventRef && currentInlineACRef.current?.playing()) {
       currentEventRef.current?.setVolume(youTubeVolume)
     }
+    localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume])
+
   //
   // END OF YDX STATE VARIABLES
   //
@@ -339,6 +311,7 @@ const Video = () => {
         clipStackData.push(clip)
       }
     }
+    // console.log('Clip Stack', clipStackData)
     setClipStack(clipStackData)
     getYTVideoInfo()
   }
@@ -405,14 +378,12 @@ const Video = () => {
     playedClipPath: string,
   ) => {
     setCurrentTime(time)
-    setStoreCurrentTime(time)
     // check if the audio is not played recently. do not play it again.
     if (recentAudioPlayedTime !== time) {
       // To Play audio files based on current time
       playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
     }
     setPreviousTime(time)
-    setStorePreviousTime(time)
   }
 
   // To Play audio files based on current time
@@ -425,6 +396,7 @@ const Video = () => {
     if (currentState === 1) {
       // If all clips have been played, skip check
       if (clipStackRef.current.length === 0) {
+        console.log('No Clips left to play')
         return
       }
 
@@ -440,60 +412,127 @@ const Video = () => {
       // If an inline clip is supposed to be playing right now but the user has either skipped to a time in the middle of the clip
       // Or there was an overlap which caused the start time of the clip to be skipped
       // Play the clip by seeking to the current time
-      if (
-        clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
-        clipStackRef.current[0].clip_end_time >= currentTimeRef.current
-      ) {
-        console.warn('An inline clip is supposed to be playing right now')
-        if (currentInlineACRef.current?.playing()) {
-          console.info('An inline clip is already playing')
-          return
-        }
-        console.info('Playing inline clip by Seeking to current time')
-        // Play Inline Clip
-        const currentFilteredClip = clipStackRef.current[0]
-        setCurrentClipIndex(currentClipIndexRef.current + 1)
-        setPlayedAudioClip(currentFilteredClip.clip_id)
-        //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
-        setRecentAudioPlayedTime(currentTimeRef.current)
-        const clipAudioPath = currentFilteredClip.clip_audio_path
-        // play along with the video if the clip is an inline clip
-        if (currentFilteredClip.playback_type === 'inline') {
+      if (clipStackRef.current[0].playback_type === 'inline') {
+        if (
+          (clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
+            clipStackRef.current[0].clip_end_time >= currentTimeRef.current) ||
+          (clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
+            clipStackRef.current[0].clip_start_time >= previousTimeRef.current)
+        ) {
+          console.warn(
+            'An inline clip is supposed to be playing right now',
+            currentTimeRef.current,
+          )
+
+          // If an Inline Clip is Playing - Return
+          if (currentInlineACRef.current?.playing()) {
+            console.info('An inline clip is already playing')
+            return
+          }
+          // If the clip is not playing, play it
+          console.info('Playing clip by Seeking to current time')
+          // Play Inline Clip
+          const currentFilteredClip = clipStackRef.current[0]
+          console.log('Clip to be Played', currentFilteredClip)
+
+          setPlayedAudioClip(currentFilteredClip.clip_id)
+          //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
+          setRecentAudioPlayedTime(currentTimeRef.current)
+          const clipAudioPath = currentFilteredClip.clip_audio_path
           if (clipAudioPath !== playedClipPath) {
+            console.log('Updating Clip Index (inline clip)')
+            setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
             // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
             const currentAudio = currentFilteredClip.clip_audio
+            console.log('Playing inline clip')
             if (
               currentAudio?.playing() ||
-              currentFilteredClip.clip_id === clipIDRef.current
+              currentInlineACRef.current?.playing()
+              // currentFilteredClip.clip_id === clipIDRef.current
             ) {
+              console.log('Clip is already playing')
               return
             }
+            console.log(
+              'Seeking to',
+              currentTimeRef.current - currentFilteredClip.clip_start_time,
+              'seconds',
+            )
+
             currentAudio?.seek(
               currentTimeRef.current - currentFilteredClip.clip_start_time,
             )
             currentAudio?.play()
             // see onStateChange() - storing current inline clip.
             setCurrInlineAC(currentAudio)
-            // Old YouTube Volume
-            const oldVolume = await currentEvent?.getVolume()
+
+            // Load a new clip and add it to the stack
+            console.log('Current Clip Index', currentClipIndexRef.current)
+
+            const newClip =
+              audioClips[currentClipIndexRef.current + clipStackSize - 1]
+            console.log('New CLIP (seeked inline) => ', newClip)
+            if (newClip) {
+              newClip.clip_audio = new Howl({
+                src: newClip.clip_audio_path,
+                html5: true,
+              })
+              setClipStack([
+                ...clipStackRef.current.slice(1, clipStackSize),
+                newClip,
+              ])
+            } else {
+              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+            }
+
             // ended event listener, to set the currInlineAC back to null
             currentAudio?.once('play', function () {
-              setClipID(currentFilteredClip.clip_id)
-              // Audio Ducking
-              currentAudio.volume(descriptionVolume / 100)
-              currentEvent?.setVolume(youTubeVolume)
+              setPlayedAudioClip(currentFilteredClip.clip_id)
+              // Set AD Volume
+              currentAudio.volume(descriptionVolumeRef.current / 100)
             })
-            currentAudio?.on('end', function () {
+            currentAudio?.once('end', function () {
               setCurrInlineAC(undefined)
-              // Restore old volume
-              currentEvent?.setVolume(oldVolume ?? 100)
               // Unload current clip
               currentAudio.unload()
-              // Load a new clip and add it to the stack
+            })
+          }
+        }
+      }
+      // Case for playing extended clips when the player come across their start or end times
+      // Compare current window with clip at current clip index
+      else {
+        if (
+          clipStackRef.current[0].clip_start_time <=
+            currentTimeRef.current + 0.1 &&
+          clipStackRef.current[0].clip_start_time >=
+            previousTimeRef.current - 0.1
+        ) {
+          const currentFilteredClip = clipStackRef.current[0]
+          console.log('Updating Clip Index')
+          setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
+          // Play the clip only if it wasn't played recently
+          if (playedAudioClip !== currentFilteredClip.clip_id) {
+            setPlayedAudioClip(currentFilteredClip.clip_id)
+            //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
+            setRecentAudioPlayedTime(currentTimeRef.current)
+            const clipAudioPath = currentFilteredClip.clip_audio_path
+            if (clipAudioPath !== playedClipPath) {
+              setPlayedClipPath(clipAudioPath)
+              // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
+              const currentAudio = currentFilteredClip.clip_audio
+              currentEvent?.pauseVideo()
+              if (!currentAudio?.playing()) {
+                currentAudio?.play()
+              }
+              // see onStateChange() - storing current Extended Clip
+              setCurrExtendedAC(currentAudio)
+              // Add a new clip to the stack
+              console.log('Current Clip Index', currentClipIndexRef.current)
               const newClip =
-                audioClips[currentClipIndexRef.current + clipStackSize - 1]
-              console.log('New CLIP => ', newClip)
+                audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+              console.log('New CLIP (normal extended) => ', newClip)
               if (newClip) {
                 newClip.clip_audio = new Howl({
                   src: newClip.clip_audio_path,
@@ -506,168 +545,47 @@ const Video = () => {
               } else {
                 setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
               }
-            })
-          } else {
-            if (
-              clipAudioPath !== playedClipPath &&
-              currentTimeRef.current <=
-                currentFilteredClip.clip_start_time + 1.0
-            ) {
-              // Play extended clip if overlap is less than 1 second
-              setPlayedClipPath(clipAudioPath)
-              // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-              const currentAudio = currentFilteredClip.clip_audio
-              currentEvent?.pauseVideo()
-              if (!currentAudio?.playing()) {
-                currentAudio?.play()
-              }
-              // see onStateChange() - storing current Extended Clip
-              setCurrExtendedAC(currentAudio)
-              currentAudio?.once('play', function () {
-                currentAudio.volume(descriptionVolume / 100)
-              })
               // youtube video should be played after the clip has finished playing
               // eslint-disable-next-line no-loop-func
-              currentAudio?.on('end', function () {
+              currentAudio?.once('play', function () {
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+              })
+              currentAudio?.once('end', function () {
                 setCurrExtendedAC(undefined) // setting back to null, as it is played completely.
                 currentEvent?.playVideo()
                 // Unload current clip
                 currentAudio.unload()
                 setCurrentExtACPaused(false) // reset the play/pause state
-                // Add a new clip to the stack
-                const newClip = audioClips[currentClipIndexRef.current + 4]
-                console.log('New CLIP => ', newClip)
-                if (newClip) {
-                  newClip.clip_audio = new Howl({
-                    src: newClip.clip_audio_path,
-                    html5: true,
-                  })
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                    newClip,
-                  ])
-                } else {
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                  ])
-                }
               })
             }
           }
         }
       }
-      // Case for playing inline and extended clips when the player come across their start or end times
-      // Compare current window with clip at current clip index
+      // Check for Skips - This usually occurs when an extended clip was overlapped by an inline clip
       if (
-        clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
-        clipStackRef.current[0].clip_start_time >= previousTimeRef.current
+        clipStackRef.current[0].playback_type === 'extended' &&
+        !currentInlineACRef.current?.playing() &&
+        !currentExtendedACRef.current?.playing() &&
+        clipStackRef.current[0].clip_start_time <= currentTimeRef.current
       ) {
-        console.log('Current Clip Stack', clipStackRef.current)
-
-        const currentFilteredClip = clipStackRef.current[0]
-        setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
-        // Play the clip only if it wasn't played recently
-        if (playedAudioClip !== currentFilteredClip.clip_id) {
-          setPlayedAudioClip(currentFilteredClip.clip_id)
-          //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
-          setRecentAudioPlayedTime(currentTimeRef.current)
-          const clipAudioPath = currentFilteredClip.clip_audio_path
-          // play along with the video if the clip is an inline clip
-          if (currentFilteredClip.playback_type === 'inline') {
-            if (clipAudioPath !== playedClipPath) {
-              setPlayedClipPath(clipAudioPath)
-              // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-              const currentAudio = currentFilteredClip.clip_audio
-              if (
-                currentAudio?.playing() ||
-                currentFilteredClip.clip_id === clipIDRef.current
-              ) {
-                return
-              }
-              currentAudio?.play()
-              // see onStateChange() - storing current inline clip.
-              setCurrInlineAC(currentAudio)
-              // Old YouTube Volume
-              const oldVolume = await currentEvent?.getVolume()
-              // ended event listener, to set the currInlineAC back to null
-              currentAudio?.once('play', function () {
-                setClipID(currentFilteredClip.clip_id)
-                // Audio Ducking
-                currentAudio.volume(descriptionVolume / 100)
-                currentEvent?.setVolume(youTubeVolume)
-              })
-              currentAudio?.on('end', function () {
-                setCurrInlineAC(undefined)
-                // Restore old volume
-                currentEvent?.setVolume(oldVolume ?? 100)
-                // Unload current clip
-                currentAudio.unload()
-                // Load a new clip and add it to the stack
-                const newClip =
-                  audioClips[currentClipIndexRef.current + clipStackSize - 1]
-                console.log('New CLIP => ', newClip)
-                if (newClip) {
-                  newClip.clip_audio = new Howl({
-                    src: newClip.clip_audio_path,
-                    html5: true,
-                  })
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                    newClip,
-                  ])
-                } else {
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                  ])
-                }
-              })
-            }
-          }
-          // play after pausing the youtube video if the clip is an extended clip
-          else if (currentFilteredClip.playback_type === 'extended') {
-            if (clipAudioPath !== playedClipPath) {
-              setPlayedClipPath(clipAudioPath)
-              // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-              const currentAudio = currentFilteredClip.clip_audio
-              currentEvent?.pauseVideo()
-              currentAudio?.volume(descriptionVolume / 100)
-              if (!currentAudio?.playing()) {
-                currentAudio?.play()
-              }
-              // see onStateChange() - storing current Extended Clip
-              setCurrExtendedAC(currentAudio)
-              currentAudio?.once('play', function () {
-                currentAudio.volume(descriptionVolume / 100)
-              })
-              // youtube video should be played after the clip has finished playing
-              // eslint-disable-next-line no-loop-func
-              currentAudio?.on('end', function () {
-                setCurrExtendedAC(undefined) // setting back to null, as it is played completely.
-                currentEvent?.playVideo()
-                // Unload current clip
-                currentAudio.unload()
-                setCurrentExtACPaused(false) // reset the play/pause state
-                // Add a new clip to the stack
-                const newClip =
-                  audioClips[currentClipIndexRef.current + clipStackSize - 1]
-                console.log('New CLIP => ', newClip)
-                if (newClip) {
-                  newClip.clip_audio = new Howl({
-                    src: newClip.clip_audio_path,
-                    html5: true,
-                  })
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                    newClip,
-                  ])
-                } else {
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                  ])
-                }
-              })
-            }
-          }
+        // A skip has most likely occurred
+        console.error('SKIP DETECTED', clipStackRef.current[0])
+        // Add a new clip to the stack
+        console.log('Current Clip Index', currentClipIndexRef.current)
+        const newClip =
+          audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+        console.log('New CLIP (normal extended) => ', newClip)
+        if (newClip) {
+          newClip.clip_audio = new Howl({
+            src: newClip.clip_audio_path,
+            html5: true,
+          })
+          setClipStack([
+            ...clipStackRef.current.slice(1, clipStackSize),
+            newClip,
+          ])
+        } else {
+          setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
         }
       }
     }
@@ -678,7 +596,6 @@ const Video = () => {
     const currentTime = event.target.getCurrentTime()
     setCurrentEvent(event.target)
     setCurrentTime(currentTime)
-    setStoreCurrentTime(currentTime)
     setCurrentState(event.data)
     switch (event.data) {
       case 0: // end of the video
@@ -739,7 +656,6 @@ const Video = () => {
         // so that when user wants to go back and play the same clip again, recentAudioPlayedTime will be reset to 0.
         setPlayedClipPath('')
         setPlayedAudioClip('')
-        setClipID('')
         console.info('Buffering (on seek)')
         setRecentAudioPlayedTime(0.0)
         clearInterval(timer)
@@ -758,7 +674,6 @@ const Video = () => {
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
     setCurrentTime(event.target.getCurrentTime())
-    setStoreCurrentTime(event.target.getCurrentTime())
     // pass the current time & recentAudioPlayedTime - to avoid playing same clip multiple times
     setTimer(
       setInterval(
@@ -787,6 +702,7 @@ const Video = () => {
           clip.clip_end_time > currentTimeRef.current),
     )
     setCurrentClipIndex(newClipIndex)
+    console.log('Current Clip Index', newClipIndex)
 
     // slice audio clips from newClipIndex to newClipIndex + 5
     const clipStackData = []

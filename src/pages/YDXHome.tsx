@@ -13,8 +13,6 @@ import InsertPublish from '../features/Describe/InsertPublish/InsertPublish'
 import Buttons from '../features/Describe/Buttons/Buttons'
 import Spinner from '../shared/components/Spinner/Spinner'
 import { Howl } from 'howler'
-import { create } from 'zustand'
-import { devtools } from 'zustand/middleware'
 import { debounce } from 'debounce'
 import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
@@ -140,8 +138,12 @@ const YDXHome = () => {
   const [currentClipIndex, setCurrentClipIndex] = useState<number>(0)
 
   // Balancer value for volume controls
-  const [descriptionVolume, setDescriptionVolume] = useState(50)
-  const [youTubeVolume, setYouTubeVolume] = useState(50)
+  const [descriptionVolume, setDescriptionVolume] = useState(
+    parseInt(localStorage.getItem('descriptionVolume') || '50'),
+  )
+  const [youTubeVolume, setYouTubeVolume] = useState(
+    parseInt(localStorage.getItem('youTubeVolume') || '100'),
+  )
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
 
@@ -187,6 +189,7 @@ const YDXHome = () => {
       currentExtendedACRef.current?.volume(descriptionVolume / 100)
     }
     descriptionVolumeRef.current = descriptionVolume
+    localStorage.setItem('descriptionVolume', descriptionVolume.toString())
   }, [descriptionVolume])
 
   useEffect(() => {
@@ -194,6 +197,7 @@ const YDXHome = () => {
       currentEventRef.current?.setVolume(youTubeVolume)
     }
     youTubeVolumeRef.current = youTubeVolume
+    localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
 
   function toggle() {
@@ -582,8 +586,10 @@ const YDXHome = () => {
       // Compare current window with clip at current clip index
       else {
         if (
-          clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
-          clipStackRef.current[0].clip_start_time >= previousTimeRef.current
+          clipStackRef.current[0].clip_start_time <=
+            currentTimeRef.current + 0.1 &&
+          clipStackRef.current[0].clip_start_time >=
+            previousTimeRef.current - 0.1
         ) {
           const currentFilteredClip = clipStackRef.current[0]
           console.log('Updating Clip Index')
@@ -608,6 +614,23 @@ const YDXHome = () => {
               }
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
+              // Add a new clip to the stack
+              console.log('Current Clip Index', currentClipIndexRef.current)
+              const newClip =
+                audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+              console.log('New CLIP (normal extended) => ', newClip)
+              if (newClip) {
+                newClip.clip_audio = new Howl({
+                  src: newClip.clip_audio_path,
+                  html5: true,
+                })
+                setClipStack([
+                  ...clipStackRef.current.slice(1, clipStackSize),
+                  newClip,
+                ])
+              } else {
+                setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+              }
               // youtube video should be played after the clip has finished playing
               // eslint-disable-next-line no-loop-func
               currentAudio?.once('play', function () {
@@ -619,25 +642,6 @@ const YDXHome = () => {
                 // Unload current clip
                 currentAudio.unload()
                 setCurrentExtACPaused(false) // reset the play/pause state
-                // Add a new clip to the stack
-                console.log('Current Clip Index', currentClipIndexRef.current)
-                const newClip =
-                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-                console.log('New CLIP (normal extended) => ', newClip)
-                if (newClip) {
-                  newClip.clip_audio = new Howl({
-                    src: newClip.clip_audio_path,
-                    html5: true,
-                  })
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                    newClip,
-                  ])
-                } else {
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                  ])
-                }
               })
             }
           }
