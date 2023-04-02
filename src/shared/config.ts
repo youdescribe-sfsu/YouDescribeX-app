@@ -28,7 +28,7 @@ const seekToPositionDelayFix = 1 // Seconds.
 const nudgeIncrementDecrementValue = 0.15 // Seconds.
 
 // User feedbacks data source.
-const audioDescriptionFeedbacks = {
+const audioDescriptionFeedbacks: { [key: number]: string } = {
   1: 'Needs better audio quality',
   2: 'Needs better diction',
   3: 'Needs more inline descriptions',

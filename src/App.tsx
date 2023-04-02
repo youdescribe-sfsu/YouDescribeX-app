@@ -20,6 +20,7 @@ import Wishlist from './pages/Wishlist/Wishlist'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { apiUrl } from './shared/config'
+import Search from './pages/Search/Search'
 
 const polyglot = new Polyglot({
   locale: getLanguage(),
@@ -204,6 +205,7 @@ const App = () => {
             <Route path="/home" element={<Home />} />
             <Route path="/video/:videoId" element={<Video />} />
             <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/search" element={<Search />} />
             <Route path="/" element={<Navigate to="/home" />} />
             <Route path="/*" element={<PageNotFound />} />
             <Route

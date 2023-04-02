@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import SignInButton from './SignInButton/SignInButton'
 import { translate, userDataStore } from '@/App'
 import UserAvatar from './UserAvatar/UserAvatar'
+import SearchBar from './SearchBar/SearchBar'
 
 interface Props {
   newGoogleAuth: () => void
@@ -85,13 +86,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
           </Link>
 
           <div className="w3-left">
-            {/* TODO: Add a Search Bar */}
-            {/* <SearchBar
-              updateSearch={(searchValue) =>
-                this.props.updateSearch(searchValue)
-              }
-              translate={this.props.translate}
-            /> */}
+            <SearchBar />
           </div>
 
           {/* Right-sided navbar links */}

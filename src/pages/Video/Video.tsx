@@ -5,6 +5,7 @@ import Spinner from '@/shared/components/Spinner/Spinner'
 import {
   apiUrl,
   audioClipsUploadsPath,
+  audioDescriptionFeedbacks,
   youTubeApiKey,
   youTubeApiUrl,
 } from '@/shared/config'
@@ -33,12 +34,19 @@ import YTInfoCard from '@/features/Video/YTInfoCard/YTInfoCard'
 import { convertLikesToCardFormat } from '@/shared/utils/convertLikesToCardFormat'
 import { convertISO8601ToDate } from '@/shared/utils/convertISO8601ToDate'
 import DescriberCard from '@/features/Video/DescriberCard/DescriberCard'
+import RatingPopup from '@/features/Video/RatingPopup/RatingPopup'
+import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
+import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 
 const Video = () => {
   const { videoId } = useParams()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedADId, setSelectedADId] = useState<string>('')
+
+  const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
+  const [descriptionsActive, setDescriptionsActive] = useState(true)
+  const [rating, setRating] = useState<number>(0)
 
   // Loading Spinner
   const [showSpinner, setShowSpinner] = useState(true)
@@ -104,9 +112,6 @@ const Video = () => {
   const previousTimeRef = useRef(previousTime)
 
   const currentClipIndexRef = useRef(currentClipIndex)
-  // const setCurrentClipIndex = useClipIDStore(
-  //   (state) => state.setCurrentClipIndex,
-  // )
 
   const currentEventRef = useRef(currentEvent)
   const currentInlineACRef = useRef(currInlineAC)
@@ -140,6 +145,8 @@ const Video = () => {
 
   useEffect(() => {
     currentEventRef.current = currentEvent
+    currentEventRef.current?.setVolume(youTubeVolume)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEvent])
 
   useEffect(() => {
@@ -439,6 +446,8 @@ const Video = () => {
           //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
+          console.log('PLaying clip', clipAudioPath)
+
           if (clipAudioPath !== playedClipPath) {
             console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
@@ -675,18 +684,20 @@ const Video = () => {
     setCurrentEvent(event.target)
     setCurrentTime(event.target.getCurrentTime())
     // pass the current time & recentAudioPlayedTime - to avoid playing same clip multiple times
-    setTimer(
-      setInterval(
-        () =>
-          updateTime(
-            event.target.getCurrentTime(),
-            playedAudioClip,
-            recentAudioPlayedTime,
-            playedClipPath,
-          ),
-        samplingRate,
-      ),
-    )
+    if (descriptionsActive) {
+      setTimer(
+        setInterval(
+          () =>
+            updateTime(
+              event.target.getCurrentTime(),
+              playedAudioClip,
+              recentAudioPlayedTime,
+              playedClipPath,
+            ),
+          samplingRate,
+        ),
+      )
+    }
   }
   const onPause = (event: any) => {
     event.target.pauseVideo()
@@ -727,7 +738,8 @@ const Video = () => {
   //
   //
 
-  const getDescriberCards = () => {
+  useEffect(() => {
+    console.log('Updating describer Cards')
     const describers = audioDescriptionsIdsUsers
     const describerCards: ReactNode[] = []
     let describerIds = Object.keys(describers)
@@ -746,12 +758,8 @@ const Video = () => {
       describerCards.push(
         <DescriberCard
           key={i}
-          handleDescriberChange={() => {
-            console.log('Handle Describer change')
-          }}
-          handleRatingPopup={() => {
-            console.log('Handle Rating Popup')
-          }}
+          handleDescriberChange={handleDescriberChange}
+          handleRatingPopup={handleRatingPopup}
           describerId={describerId}
           selectedDescriberId={selectedADId}
           picture={describers[describerId].picture}
@@ -766,8 +774,8 @@ const Video = () => {
       )
     })
 
-    return describerCards
-  }
+    setDescriberCards(describerCards)
+  }, [audioDescriptionsIdsUsers, selectedADId])
 
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
@@ -806,6 +814,215 @@ const Video = () => {
     }
   }
 
+  const handleDescriberChange = (describerId: string) => {
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.pause()
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.pause()
+    }
+    setCurrExtendedAC(undefined)
+    setCurrInlineAC(undefined)
+    currentEventRef.current?.pauseVideo()
+    setSelectedADId(describerId)
+    setSearchParams((params) => {
+      if (describerId) params.set('ad', describerId)
+      return params
+    })
+    setAudioDescriptionActive(
+      audioDescriptionsIdsUsers,
+      audioDescriptionsIdsAudioClips,
+    )
+  }
+
+  const handleTurnOffDescriptions = () => {
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.pause()
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.pause()
+    }
+    setCurrExtendedAC(undefined)
+    setCurrInlineAC(undefined)
+    currentEventRef.current?.pauseVideo()
+    setDescriptionsActive(false)
+  }
+
+  const handleTurnOnDescriptions = () => {
+    currentEventRef.current?.pauseVideo()
+    setDescriptionsActive(true)
+  }
+
+  const handleRatingSubmit = (rating: number) => {
+    if (rating === 0) alert('You must select a rating')
+    else if (userDataStore.getState().isSignedIn) {
+      alert(translate('You have to be logged in in order to vote'))
+    } else {
+      const url = `${apiUrl}/audiodescriptionsrating/${selectedADId}`
+      setRating(rating)
+      ourFetch(url, true, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userDataStore.getState().userId,
+          userToken: userDataStore.getState().userToken,
+          rating,
+        }),
+      })
+        .then((res) => {
+          if (rating === 5) {
+            // alert(`You have successfully given this description a rating of ${rating}`);
+            const ratingPopup = document.getElementById('rating-popup')
+            const ratingSuccess = document.getElementById('rating-success')
+            if (ratingPopup) {
+              ratingPopup.style.display = 'none'
+            }
+            if (ratingSuccess) {
+              ratingSuccess.style.display = 'block'
+              ratingSuccess.focus()
+              setTimeout(() => (ratingSuccess.style.display = 'none'), 1000)
+            }
+
+            /* start of email */
+            sendOptInEmail(2, rating, [])
+            /* end of email */
+          } else {
+            // this.handleFeedbackPopup();
+          }
+          const describers = { ...audioDescriptionsIdsUsers }
+          const selectedId = selectedADId
+
+          if (!describers[selectedId].overall_rating_votes_sum) {
+            describers[selectedId].overall_rating_votes_sum = 0
+          }
+          if (!describers[selectedId].overall_rating_votes_counter) {
+            describers[selectedId].overall_rating_votes_counter = 0
+          }
+          if (!describers[selectedId].overall_rating_average) {
+            describers[selectedId].overall_rating_average = 0
+          }
+
+          describers[selectedId].overall_rating_votes_sum += rating
+          describers[selectedId].overall_rating_votes_counter += 1
+          describers[selectedId].overall_rating_average =
+            describers[selectedId].overall_rating_votes_sum /
+            describers[selectedId].overall_rating_votes_counter
+
+          setAudioDescriptionsIdsUsers(describers)
+        })
+        .catch((err) => {
+          console.log(err)
+          alert(
+            translate(
+              'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
+            ),
+          )
+        })
+    }
+  }
+
+  const handleFeedbackSubmit = (feedback: any) => {
+    const url = `${apiUrl}/audiodescriptionsrating/${selectedADId}`
+
+    ourFetch(url, true, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: userDataStore.getState().userId,
+        userToken: userDataStore.getState().userToken,
+        rating: rating,
+        feedback,
+      }),
+    })
+      .then((res) => {
+        const feedbackPopup = document.getElementById('feedback-popup')
+        const feedbackSuccess = document.getElementById('feedback-success')
+        if (feedbackPopup) {
+          feedbackPopup.style.display = 'none'
+        }
+        if (feedbackSuccess) {
+          feedbackSuccess.style.display = 'block'
+          feedbackSuccess.focus()
+          setTimeout(() => (feedbackSuccess.style.display = 'none'), 1000)
+        }
+        // alert('Thanks for your feedback!');
+
+        /* start of email */
+        sendOptInEmail(2, rating, feedback)
+        /* end of email */
+      })
+      .catch((err) => {
+        console.log(err)
+        alert(
+          translate(
+            'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
+          ),
+        )
+      })
+  }
+
+  const sendOptInEmail = (optIn: number, rating = 0, feedback = []) => {
+    let emailBody = ''
+    if (optIn == 1) {
+      emailBody = `Your audio description for ${videoTitle} has been viewed. 
+      View it here:  ${window.location.href}`
+    } else if (optIn == 2) {
+      emailBody = `Your audio description for  ${videoTitle} has been rated as ${rating}.
+      View it here: ${window.location.href}`
+      emailBody +=
+        feedback.length > 0 ? ', with the following comment(s):' : '.'
+      feedback.forEach((index) => {
+        emailBody += `\n${audioDescriptionFeedbacks[index]}`
+      })
+    }
+
+    const url = `${apiUrl}/users/sendoptinemail`
+    const optionObj = {
+      method: 'POST' as const,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: selectedADId,
+        optin: optIn,
+        emailbody: emailBody,
+      }),
+    }
+    ourFetch(url, true, optionObj).then((response) => {
+      console.log(response)
+    })
+  }
+
+  const handleRatingPopup = () => {
+    if (!userDataStore.getState().isSignedIn) {
+      alert(translate('You have to be logged in in order to vote'))
+    } else {
+      const ratingPopup = document.getElementById('rating-popup')
+      if (ratingPopup) {
+        ratingPopup.style.display = 'block'
+        ratingPopup.focus()
+      }
+    }
+  }
+
+  const handleRatingPopupClose = () => {
+    const ratingPopup = document.getElementById('rating-popup')
+    if (ratingPopup) {
+      ratingPopup.style.display = 'none'
+    }
+  }
+
+  const handleFeedbackPopupClose = () => {
+    const feedbackPopup = document.getElementById('feedback-popup')
+    if (feedbackPopup) {
+      feedbackPopup.style.display = 'none'
+    }
+  }
+
   return (
     <div id="video-page" className="video-page">
       <main role="main" className="video-page-main" title="Video page">
@@ -835,19 +1052,19 @@ const Video = () => {
           id="video-info"
           className="classic-container w3-row video-info"
         >
-          {/* <RatingPopup
-            translate={this.props.translate}
-            handleRatingSubmit={this.handleRatingSubmit}
-            handleRatingPopupClose={this.handleRatingPopupClose}
-          /> */}
+          <RatingPopup
+            rating={rating}
+            setRating={setRating}
+            handleRatingSubmit={handleRatingSubmit}
+            handleRatingPopupClose={handleRatingPopupClose}
+          />
           <div id="rating-success" className="rating-success" tabIndex={-1}>
             {translate('Thanks for rating this description!')}
           </div>
-          {/* <FeedbackPopup
-            translate={this.props.translate}
-            handleFeedbackSubmit={this.handleFeedbackSubmit}
-            handleFeedbackPopupClose={this.handleFeedbackPopupClose}
-          /> */}
+          <FeedbackPopup
+            handleFeedbackSubmit={handleFeedbackSubmit}
+            handleFeedbackPopupClose={handleFeedbackPopupClose}
+          />
           <div id="feedback-success" className="feedback-success" tabIndex={-1}>
             {translate('Thank you for your feedback!')}
           </div>
@@ -859,63 +1076,66 @@ const Video = () => {
               videoPublishedAt={videoPublishedAt}
               videoLikes={videoLikes}
             />
-            {/* {this.props.location.query.show && (
+            {searchParams.get('show') && (
               <RatingsInfoCard
-                translate={this.props.translate}
-                selectedAudioDescriptionId={
-                  this.state.selectedAudioDescriptionId
-                }
-                audioDescriptionsIdsUsers={this.state.audioDescriptionsIdsUsers}
+                selectedAudioDescriptionId={selectedADId}
+                audioDescriptionsIdsUsers={audioDescriptionsIdsUsers}
               />
-            )} */}
+            )}
           </div>
-          <div
-            id="describers"
-            className="w3-col l4 m4 describers"
-            style={{
-              display: Object.keys(audioDescriptionsIdsUsers).length
-                ? 'block'
-                : 'none',
-            }}
-          >
-            <div className="w3-card-2">
-              <h3 className="classic-h3">
-                {translate('Selected description')}
-              </h3>
-              {getDescriberCards()[0]}
-              <hr aria-hidden="true" />
-              <h3 className="classic-h3">
-                {translate('Other description options')}
-              </h3>
-              {getDescriberCards().slice(1)}
-              <Button
-                title={translate('Turn off descriptions for this video')}
-                text={translate('Turn off descriptions')}
-                color="w3-indigo w3-block w3-margin-top"
-                ariaLabel="Turn off descriptions for this video"
-                // onClick={() => this.handleTurnOffDescriptions()}
-              />
-              <Button
-                title={translate('Add a new description for this video')}
-                ariaLabel="Add a new description for this video"
-                text={translate('Add description')}
-                color="w3-indigo w3-block w3-margin-top"
-                // onClick={() => this.handleAddDescription()}
-              />
+          {descriptionsActive ? (
+            <div
+              id="describers"
+              className="w3-col l4 m4 describers"
+              style={{
+                display: Object.keys(audioDescriptionsIdsUsers).length
+                  ? 'block'
+                  : 'none',
+              }}
+            >
+              <div className="w3-card-2">
+                <h3 className="classic-h3">
+                  {translate('Selected description')}
+                </h3>
+                {describerCards[0]}
+                <hr aria-hidden="true" />
+                <h3 className="classic-h3">
+                  {translate('Other description options')}
+                </h3>
+                {describerCards.slice(1)}
+                <Button
+                  title={translate('Turn off descriptions for this video')}
+                  text={translate('Turn off descriptions')}
+                  color="w3-indigo w3-block w3-margin-top"
+                  ariaLabel="Turn off descriptions for this video"
+                  onClick={handleTurnOffDescriptions}
+                />
+                <Button
+                  title={translate('Add a new description for this video')}
+                  ariaLabel="Add a new description for this video"
+                  text={translate('Add description')}
+                  color="w3-indigo w3-block w3-margin-top"
+                  // onClick={() => this.handleAddDescription()}
+                />
+              </div>
             </div>
-          </div>
-          <div id="descriptions-off" className="w3-col l4 m4 descriptions-off">
-            <div className="w3-card-2">
-              <h3 className="classic-h3">{translate('Descriptions off')}</h3>
-              <Button
-                title={translate('Turn on descriptions for this video')}
-                ariaLabel="Turn on descriptions for this video"
-                text={translate('Turn on descriptions')}
-                color="w3-indigo w3-block w3-margin-top"
-                // onClick={() => this.handleTurnOnDescriptions()}
-              />
+          ) : (
+            <div
+              id="descriptions-off"
+              className="w3-col l4 m4 descriptions-off"
+            >
+              <div className="w3-card-2">
+                <h3 className="classic-h3">{translate('Descriptions off')}</h3>
+                <Button
+                  title={translate('Turn on descriptions for this video')}
+                  ariaLabel="Turn on descriptions for this video"
+                  text={translate('Turn on descriptions')}
+                  color="w3-indigo w3-block w3-margin-top"
+                  onClick={handleTurnOnDescriptions}
+                />
+              </div>
             </div>
-          </div>
+          )}
           <div
             id="no-descriptions"
             className="w3-col l4 m4"

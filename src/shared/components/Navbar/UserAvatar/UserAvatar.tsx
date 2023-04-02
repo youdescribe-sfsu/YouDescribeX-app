@@ -1,5 +1,4 @@
 import { userDataStore } from '@/App'
-import React from 'react'
 import UserMenu from '../UserMenu/UserMenu'
 import './userAvatar.scss'
 
@@ -10,13 +9,14 @@ interface Props {
 
 const UserAvatar = ({ userMenuToggle, signOut }: Props) => {
   const userPicture = userDataStore.getState().userPicture
+
   return (
     <div id="user-avatar" className="user-avatar">
       <button onClick={userMenuToggle} className="avatar-button">
         <img
           aria-label={`Logged in as ${userDataStore.getState().userName}`}
           alt={`Logged in as ${userDataStore.getState().userName}`}
-          src={`${userPicture}`}
+          src={userPicture}
           height="33px"
           className="avatar-img"
         />

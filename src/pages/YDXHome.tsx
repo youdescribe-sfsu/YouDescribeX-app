@@ -19,34 +19,6 @@ import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
 import { Options } from 'youtube-player/dist/types'
 import VideoPlayerControls from '@/shared/components/VideoPlayerControls/VideoPlayerControls'
 
-// interface YDXDescribeState {
-//   clipID: string
-//   currentTime: number
-//   previousTime: number
-//   currentClipIndex: number
-//   setClipID: (clipID: string) => void
-//   setStoreCurrentTime: (time: number) => void
-//   setStorePreviousTime: (time: number) => void
-//   setCurrentClipIndex: (newIndex: number) => void
-// }
-
-// const useClipIDStore = create<YDXDescribeState>()(
-//   devtools((set) => ({
-//     clipID: '',
-//     currentTime: 0.0,
-//     previousTime: 0.0,
-//     currentClipIndex: 0,
-//     setClipID: (clipID: string) =>
-//       set((state) => ({ ...state, clipID: clipID })),
-//     setStoreCurrentTime: (time: number) =>
-//       set((state) => ({ ...state, currentTime: time })),
-//     setStorePreviousTime: (time: number) =>
-//       set((state) => ({ ...state, previousTime: time })),
-//     setCurrentClipIndex: (newIndex: number) =>
-//       set((state) => ({ ...state, currentClipIndex: newIndex })),
-//   })),
-// )
-
 const YDXHome = () => {
   /* to use params on the url and get userId & youtubeVideoId */
   const { userId, youtubeVideoId } = useParams()
