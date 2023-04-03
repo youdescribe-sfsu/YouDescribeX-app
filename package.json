@@ -11,6 +11,7 @@
     "bootstrap": "^5.2.2",
     "clsx": "^1.2.1",
     "debounce": "^1.2.1",
+    "detect-browser": "^5.3.0",
     "howler": "^2.2.3",
     "logrocket": "^3.0.1",
     "node-polyglot": "^2.5.0",

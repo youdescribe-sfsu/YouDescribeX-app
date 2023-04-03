@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import YDXHome from './pages/YDXHome'
-import PageNotFound from './pages/PageNotFound'
+import PageNotFound from './pages/NotFound/PageNotFound'
 import UserStudyHome from './pages/UserStudyHome'
 import PlayVideo from './pages/PlayVideo'
 import './assets/css/index.css'
@@ -21,6 +21,8 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { apiUrl } from './shared/config'
 import Search from './pages/Search/Search'
+import UnsupportedBrowser from './pages/UnsupportedBrowser/UnsupportedBrowser'
+import { detect } from 'detect-browser'
 
 const polyglot = new Polyglot({
   locale: getLanguage(),
@@ -72,6 +74,7 @@ const App = () => {
       }
     },
   )
+  const navigate = useNavigate()
 
   const {
     setSignedIn,
@@ -92,6 +95,15 @@ const App = () => {
   })
 
   useEffect(() => {
+    const browser = detect()
+    const unsupportedOs = ['ios', 'Android OS']
+    const supportedBrowsers = ['chrome', 'firefox']
+    if (
+      (browser?.os && unsupportedOs.indexOf(browser.os) !== -1) ||
+      (browser?.name && supportedBrowsers.indexOf(browser.name) === -1)
+    ) {
+      navigate(`/unsupported-browser`)
+    }
     if (process.env.REACT_APP_ENVIRONMENT === 'production') {
       LogRocket.init(process.env.REACT_APP_LOGROCKET_ID || '', {
         mergeIframes: true,
@@ -197,36 +209,32 @@ const App = () => {
 
   return (
     <html className="classic-html">
-      <BrowserRouter>
-        <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
-        <body className="classic-body">
-          <Routes>
-            <Route path="/:youtubeVideoId/:userId" element={<YDXHome />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/video/:videoId" element={<Video />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/" element={<Navigate to="/home" />} />
-            <Route path="/*" element={<PageNotFound />} />
-            <Route
-              path="/userstudy/:participantId"
-              element={<UserStudyHome />}
-            />
-            <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
-          </Routes>
-        </body>
-        <ToastContainer
-          className="toast-btn"
-          position="top-center"
-          autoClose={1000}
-          closeOnClick
-          draggable
-          pauseOnFocusLoss
-          pauseOnHover
-          theme="colored"
-        />
-        <Footer />
-      </BrowserRouter>
+      <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
+      <body className="classic-body">
+        <Routes>
+          <Route path="/editor/:youtubeVideoId/:userId" element={<YDXHome />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/video/:videoId" element={<Video />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/unsupported-browser" element={<UnsupportedBrowser />} />
+          <Route path="/" element={<Navigate to="/home" />} />
+          <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
+          <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
+          <Route path="/*" element={<PageNotFound />} />
+        </Routes>
+      </body>
+      <ToastContainer
+        className="toast-btn"
+        position="top-center"
+        autoClose={1000}
+        closeOnClick
+        draggable
+        pauseOnFocusLoss
+        pauseOnHover
+        theme="colored"
+      />
+      <Footer />
     </html>
   )
 }
