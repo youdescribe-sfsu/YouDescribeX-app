@@ -1,0 +1,32 @@
+#credits {
+  background-color: #fff;
+  // min-height: 100vh;
+  /* Firefox */
+  min-height: -moz-calc(100vh - 54px);
+  /* WebKit */
+  min-height: -webkit-calc(100vh - 54px);
+  /* Opera */
+  min-height: -o-calc(100vh - 54px);
+  /* Standard */
+  min-height: calc(100vh - 54px);
+  main {
+    width: 416px;
+    padding: 0px 8px;
+    margin: 0 auto;
+    @media (min-width: 601px) {
+      width: 601px;
+    }
+    @media screen and (min-width: 993px) {
+      width: 993px;
+    }
+  }
+}
+
+.member {
+  width: auto;
+  margin: 0px !important;
+}
+.member-card-column {
+  display: flex;
+  flex-direction: column;
+}

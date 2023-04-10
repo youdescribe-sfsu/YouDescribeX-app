@@ -23,6 +23,8 @@ import { apiUrl } from './shared/config'
 import Search from './pages/Search/Search'
 import UnsupportedBrowser from './pages/UnsupportedBrowser/UnsupportedBrowser'
 import { detect } from 'detect-browser'
+import Credits from './pages/Credits/Credits'
+import CreditsDetails from './pages/CreditsDetails/CreditsDetails'
 
 const polyglot = new Polyglot({
   locale: getLanguage(),
@@ -217,6 +219,8 @@ const App = () => {
           <Route path="/video/:videoId" element={<Video />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/search" element={<Search />} />
+          <Route path="/credits" element={<Credits />} />
+          <Route path="/credits-details" element={<CreditsDetails />} />
           <Route path="/unsupported-browser" element={<UnsupportedBrowser />} />
           <Route path="/" element={<Navigate to="/home" />} />
           <Route path="/userstudy/:participantId" element={<UserStudyHome />} />

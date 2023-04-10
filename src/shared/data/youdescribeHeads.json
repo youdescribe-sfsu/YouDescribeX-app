@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Dr. Joshua Miele",
+    "designation": "YouDescribe Creator",
+    "tenure": "2013 - Present",
+    "year": "present",
+    "img": "Josh.jpeg",
+    "description": "Photo of Josh Miele, a white man with curly brown hair. He has a blue left eye and scars covering his face and right eye. He is smiling at the camera and wearing a blue sweater. He is outside with greenery in the background.",
+    "bio": "",
+    "pdf": ""
+  },
+  {
+    "name": "Charity Pitcher-Cooper",
+    "designation": "Product Manager",
+    "tenure": "2017 - Present",
+    "year": "present",
+    "img": "Charity.jpg",
+    "description": "Photo of Charity Pitcher-Cooper, a light skinned woman with long brown hair with heavy bangs smiles warmly from her home office. She wears a headset with a microphone, and her chin rests casually on her hand.",
+    "bio": "",
+    "pdf": ""
+  },
+  {
+    "name": "Rodrigo Leme de Mello",
+    "designation": "Principal Engineer",
+    "tenure": "2017 - 2020",
+    "year": 2020,
+    "img": "rodrigo-2022.png",
+    "description": " Photo of Rodrigo Leme de Mello. A light-skinned man with a sparse, close-cropped beard crouches on a frozen lake. He wears a grey knit beanie, black jacket, jeans, and grey sneakers.",
+    "bio": "Rodrigo Leme de Mello, Principal Software Engineer, was the main member of the original Codesmith team that rebuilt from the ground-up YouDescribe in 2017. His career-long passion for accessibility led him to volunteer with the project after the launch, expanding YouDescribe's capabilities and keeping the code running smoothly. Thank you, Rodrigo, for your many long volunteer hours. We are grateful. Rodrigo is currently a Trainer at Amazon/AWS.",
+    "pdf": ""
+  }
+]
