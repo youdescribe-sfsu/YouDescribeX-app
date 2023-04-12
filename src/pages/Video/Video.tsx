@@ -306,7 +306,8 @@ const Video = () => {
     // console.log('Sorted Clips', sortedClipData)
 
     setAudioClips([...sortedClipData])
-    const maxStackSize = sortedClipData.length > 100 ? 10 : 5
+    const maxStackSize =
+      sortedClipData.length > 100 ? 10 : Math.min(sortedClipData.length, 5)
     const clipStackData = []
     for (let i = 0; i < maxStackSize; i++) {
       const clip = sortedClipData[i]
