@@ -367,6 +367,7 @@ const YDXHome = () => {
         }
         audioClipsData.forEach((clip, i) => {
           // add a sequence number for every audio clip
+          console.log(clip)
           clip.clip_sequence_number = i + 1
           clip.clip_audio_path = clip.clip_audio_path.replace(
             '.',
@@ -397,7 +398,8 @@ const YDXHome = () => {
         console.log(audioClipsData)
         // console.log("Audio Clips", audioClips);
         setNotesData(notesData)
-        const maxStackSize = audioClipsData.length > 100 ? 10 : 5
+        const maxStackSize =
+          audioClipsData.length > 100 ? 10 : Math.min(audioClipsData.length, 5)
         const clipStackData = []
         for (let i = 0; i < maxStackSize; i++) {
           const clip = audioClipsData[i]
