@@ -116,13 +116,24 @@ const App = () => {
   }, [])
 
   const newGoogleAuth = () => {
-    const url = `${apiUrl}/auth/google`
+    let url
+    if (process.env.REACT_APP_USE_YDX) {
+      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google`
+    } else {
+      url = `${apiUrl}/auth/google`
+    }
     window.open(url, '_self')
   }
 
   const newGoogleLogin = async () => {
     try {
-      const url = `${apiUrl}/auth/login/success`
+      let url
+      if (process.env.REACT_APP_USE_YDX) {
+        url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/login/success`
+      } else {
+        url = `${apiUrl}/auth/login/success`
+      }
+      console.log(url)
       const response = await fetch(url, { credentials: 'include' })
       const data = await response.json()
       setUserName(data.result.name)

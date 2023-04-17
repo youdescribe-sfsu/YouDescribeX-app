@@ -12,14 +12,13 @@ const audioClipsUploadsPath = `${process.env.REACT_APP_CLASSIC_BACKEND_URL}/audi
 //   "https://api.youdescribe.org/audio-descriptions-files";
 //let apiUrl = `http://localhost:8080/${apiVersion}`;
 //let audioClipsUploadsPath = "https://api.youdescribe.org/audio-descriptions-files";
-const youTubeApiUrl = 'https://www.googleapis.com/youtube/v3'
+const youTubeApiUrl = process.env.REACT_APP_YOUTUBE_API_URL
 
 // YouDescribe APIKey
-const youTubeApiKey = 'AIzaSyDV8QMir3NE8S2jA1GyXvLXyTuSq72FPyE'
+const youTubeApiKey = process.env.REACT_APP_YOUTUBE_API_KEY
 
 // YouDescribe Google Client Id
-const googleClientId =
-  '1061361249208-9799kv6172rjgmk4gad077639dfrck82.apps.googleusercontent.com'
+const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID
 
 // Video player setup.
 const seekToPositionDelayFix = 1 // Seconds.
