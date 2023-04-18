@@ -552,7 +552,7 @@ const YDXHome = () => {
             })
           }
           const element = document.getElementById(currentFilteredClip.clip_id)
-          // element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
           element?.classList.add('green-border')
         }
       }
@@ -620,7 +620,7 @@ const YDXHome = () => {
             }
           }
           const element = document.getElementById(currentFilteredClip.clip_id)
-          // element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
           element?.classList.add('green-border')
         }
       }
@@ -671,6 +671,7 @@ const YDXHome = () => {
         // User plays the YT Video. Extended is still played along with the video. Overlapping with Dialogs &/ other audio clips
         // Work around - add current extended audio clip to a state variable & check if YT state is changed to playing i.e. 1
         // if yes, stop playing the extended audio clip & set the state back to null
+        currentEvent?.setVolume(youTubeVolume)
         if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
         if (currExtendedAC) {
           // to stop playing -> pause and set time to 0

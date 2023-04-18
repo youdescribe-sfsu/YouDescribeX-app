@@ -101,6 +101,8 @@ const VideoPlayerControls = ({
           </div>
           <div className="col-sm-6 col-md-6 col-lg-4">
             <Form.Range
+              aria-label="Audio Description Volume Slider"
+              aria-roledescription="This slider controls the volume of the audio description. The volume can be adjusted from 0 to 100."
               className=""
               value={descriptionValue}
               onChange={handleDescriptionVolumeChange}
@@ -117,6 +119,8 @@ const VideoPlayerControls = ({
           </div>
           <div className="col-sm-6 col-md-6 col-lg-4">
             <Form.Range
+              aria-label="YouTube Video Volume Slider"
+              aria-roledescription="This slider controls the volume of the YouTube video. The volume can be adjusted from 0 to 100."
               className="form-range"
               value={YTValue}
               onChange={handleYouTubeVolumeChange}

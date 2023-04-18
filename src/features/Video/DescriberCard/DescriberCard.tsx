@@ -77,7 +77,7 @@ const DescriberCard = ({
       <div className="w3-card-2">
         <div className="w3-row">
           <div className="w3-col l3 m5 s3">
-            <img src={picture} />
+            <img src={picture} alt={`Profile picture of ${name}`} />
           </div>
           <div className="w3-col l9 m7 s9">
             {name}

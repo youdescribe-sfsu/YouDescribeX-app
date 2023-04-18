@@ -10,16 +10,6 @@
     "description": "Photo os Ilmi Yoon, an asian woman with fair skin and with long wavy brown hair. She is smiling brightly at the camera."
   },
   {
-    "name": "Rupal Khilari",
-    "bio": "Rupal Khilari is a software developer and an alumni of San Francisco State University. With a keen interest in art and music, she continues to pursue problems that lie at the intersection of art, media and technology.",
-    "designation": "iOS App",
-    "img": "rupal.png",
-    "pdf": "Rupal-Khilari-Final-report.pdf",
-    "tenure": "2016 - 2017",
-    "year": 2017,
-    "description": "Photo of Rupal Khilari, a light skinned woman with brown hair. She is smiling at the camera. there is a lake and greenery in the background."
-  },
-  {
     "name": "Andrew Taylor Scott",
     "bio": "Andrew Taylor Scott is currently the Linux HPC Administrator at Blue River Technology. He is interested in computer vision, machine learning, and high performance computing. He has worked in tech in the San Francisco Bay Area since the late 90's and he is currently completing a Masters degree in Computer Science at San Francisco State University. He previously completed a Bachelors degree in Computer Science at San Francisco State University and an Associates degree in Computer Science at City College of San Francisco.",
     "img": "andrew.jpg",
@@ -28,6 +18,52 @@
     "tenure": "2019 - Present",
     "year": "present",
     "description": "Photo of Andrew Taylor Scott, a white man with a beard and his hair is tied behiend his head. He is smiling at the camera. there are some trees in the background."
+  },
+  {
+    "name": "Benjamin Kao",
+    "bio": "Benjamin Kao received his Bachelor's and Master's Degree in Computer Science from San Francisco State University. He was the team lead of YouDescribe in the 2022-2023 school year. He is working in the Bay Area as a Software Engineer.",
+    "img": "benjamin.jpg",
+    "designation": "Team Lead",
+    "year": 2023,
+    "tenure": "2022-2023",
+    "description": "Photo of Benjamin Kao, he is wearing spectacles and smiling at the camera. He is also wearing a black suit with a back bow-tie"
+  },
+  {
+    "name": "Vishal Sharma",
+    "bio": "As a skilled engineer, I specialize in optimizing GPU pipeline modules through algorithm optimization and parallelization techniques. My expertise in this area allows me to identify and eliminate bottlenecks that impede performance, resulting in faster and more efficient processing. \nIn addition to my work on GPU pipeline modules, I am also a seasoned backend developer, having successfully migrated code from JavaScript to TypeScript. I bring a wealth of knowledge and experience to bear on backend development projects, ensuring that systems are robust, reliable, and scalable. \nThrough my passion for technology and my relentless focus on achieving excellence, I am committed to delivering high-quality results that exceed expectations. Whether working independently or as part of a team, I am dedicated to using my skills and expertise to help clients and colleagues achieve their goals and succeed in their endeavors.",
+    "img": "vishal.png",
+    "designation": "GPU Accelerated Backend Developer",
+    "year": 2023,
+    "tenure": "2022-2023",
+    "description": "Photo of Vishal Sharma, This picture was taken at the Golden Gate Bridge. Vishal is standing on the footpath that runs along the side of the bridge and is wearing a blue t-shirt and a black hoodie."
+  },
+  {
+    "name": "Manali Seth",
+    "bio": "Manali Seth is working as a data engineer for the YouDescribe project. She is a graduate student pursuing Master of Science in Computer Science at San Francisco State University. She completed her Bachelor’s in Information Technology from Charotar University of Science and Technology, India. Her interests lies in software development, data analysis and machine learning. She has co-authored a data paper on “You Described, We Archived: A Rich Audio Description dataset” for Journal on Technology and Persons with Disabilities by CSUN expected to be published in May 2023. ",
+    "img": "manali.jpg",
+    "designation": "Data Engineer",
+    "year": 2023,
+    "tenure": "2022-2023",
+    "description": "Photo of Manali Seth, Manali is smiling while waiting for food in the restaurant."
+  },
+  {
+    "name": "Hirva Patel",
+    "bio": "Hirva is currently working at the Smith-Kettlewell Eye Research Institute. She is an upcoming Software Development Engineer at Amazon. She completed her Master’s degree in Computer Science from San Francisco State University. She worked in the development of YouDescribeX system and conducted a user study with sighted describers to examine the effectiveness of the interface. ",
+    "img": "hirva.jpeg",
+    "designation": "YouDescribeX Software Engineer",
+    "year": 2023,
+    "tenure": "2022-2023",
+    "description": "Photo of Hirva Patel, This picture was taken in Seattle when I was interning at Amazon in Summer 2022."
+  },
+  {
+    "name": "Rupal Khilari",
+    "bio": "Rupal Khilari is a software developer and an alumni of San Francisco State University. With a keen interest in art and music, she continues to pursue problems that lie at the intersection of art, media and technology.",
+    "designation": "iOS App",
+    "img": "rupal.png",
+    "pdf": "Rupal-Khilari-Final-report.pdf",
+    "tenure": "2016 - 2017",
+    "year": 2017,
+    "description": "Photo of Rupal Khilari, a light skinned woman with brown hair. She is smiling at the camera. there is a lake and greenery in the background."
   },
   {
     "name": "Abhishek Das",
@@ -112,11 +148,11 @@
   {
     "name": "Jose Castanon",
     "bio": "Jose is pursuing his master's in Computer Science at San Francisco State University after finishing his undergraduate studies in Spring 2020. He has an interest in full stack web development. He currently works on site maintenance and development for YouDescribe.",
-    "img": "noImage.jpg",
+    "img": "jose.jpg",
     "designation": "YouDescribe",
     "pdf": "895Report_Poorva.pdf",
-    "tenure": "2018 - Present",
-    "year": "present",
+    "tenure": "2018 - 2022",
+    "year": 2022,
     "description": "No image available. A silhouette image of a guy"
   },
   {

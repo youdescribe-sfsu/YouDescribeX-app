@@ -6,8 +6,10 @@
     "year": "present",
     "img": "Josh.jpeg",
     "description": "Photo of Josh Miele, a white man with curly brown hair. He has a blue left eye and scars covering his face and right eye. He is smiling at the camera and wearing a blue sweater. He is outside with greenery in the background.",
-    "bio": "",
-    "pdf": ""
+    "bio": "Dr. Joshua Miele has been a creative leader in the area of blindness accessibility for over thirty years. He is a respected member of the blind community with significant contributions to such technologies as screen readers, auditory displays, audio/tactile maps and graphics, wayfinding, braille input, and video description. His work is characterized by the imaginative use of low-cost, mainstream technologies to address significant challenges in information accessibility. Read more about his research and accomplishments here: ",
+    "pdf": "",
+    "externalLink": "https://en.m.wikipedia.org/wiki/Joshua_Miele",
+    "externalLinkTitle": "Wikipedia"
   },
   {
     "name": "Charity Pitcher-Cooper",
@@ -16,8 +18,10 @@
     "year": "present",
     "img": "Charity.jpg",
     "description": "Photo of Charity Pitcher-Cooper, a light skinned woman with long brown hair with heavy bangs smiles warmly from her home office. She wears a headset with a microphone, and her chin rests casually on her hand.",
-    "bio": "",
-    "pdf": ""
+    "bio": "Charity Pitcher-Cooper, BSN, RN, PHN, has been the Project Manager of YouDescribe sicne 2019, and is a trained audio describer. Her background in theater, extensive experience in the education of adult and teen learners, and a keen interest in accessibility made her the perfect fit for YouDescribe. She helps design detailed effective guidelines for audio description creation and gives expert feedback on the audio description user interface for describers and viewers. ",
+    "pdf": "",
+    "externalLink": "https://www.ski.org/users/charity-pitcher-cooper",
+    "externalLinkTitle": "Learn More"
   },
   {
     "name": "Rodrigo Leme de Mello",
@@ -27,6 +31,8 @@
     "img": "rodrigo-2022.png",
     "description": " Photo of Rodrigo Leme de Mello. A light-skinned man with a sparse, close-cropped beard crouches on a frozen lake. He wears a grey knit beanie, black jacket, jeans, and grey sneakers.",
     "bio": "Rodrigo Leme de Mello, Principal Software Engineer, was the main member of the original Codesmith team that rebuilt from the ground-up YouDescribe in 2017. His career-long passion for accessibility led him to volunteer with the project after the launch, expanding YouDescribe's capabilities and keeping the code running smoothly. Thank you, Rodrigo, for your many long volunteer hours. We are grateful. Rodrigo is currently a Trainer at Amazon/AWS.",
-    "pdf": ""
+    "pdf": "",
+    "externalLink": "",
+    "externalLinkTitle": ""
   }
 ]

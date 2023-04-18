@@ -49,6 +49,21 @@ const Wishlist = () => {
   )
   const [showSpinner, setShowSpinner] = useState(true)
 
+  const caseInsensitiveSort = (rowA: any, rowB: any) => {
+    const a = rowA.title.toLowerCase()
+    const b = rowB.title.toLowerCase()
+
+    if (a > b) {
+      return 1
+    }
+
+    if (b > a) {
+      return -1
+    }
+
+    return 0
+  }
+
   const columns: TableColumn<any>[] = [
     {
       name: 'Thumbnail',
@@ -68,6 +83,7 @@ const Wishlist = () => {
       grow: 3,
       sortable: true,
       wrap: true,
+      sortFunction: caseInsensitiveSort,
     },
     {
       name: 'Author',
@@ -75,6 +91,7 @@ const Wishlist = () => {
       grow: 1,
       sortable: true,
       wrap: true,
+      sortFunction: caseInsensitiveSort,
     },
     {
       name: 'Category',
@@ -83,11 +100,12 @@ const Wishlist = () => {
       sortable: true,
       wrap: true,
       hide: 'sm' as Media,
+      sortFunction: caseInsensitiveSort,
     },
     {
-      name: 'Last Voted',
+      name: 'Recent Request',
       selector: (row) => row.lastVoted,
-      grow: 1,
+      grow: 1.2,
       sortable: true,
       wrap: true,
       hide: 'md' as Media,
@@ -348,24 +366,30 @@ const Wishlist = () => {
         {videoCardsComponents}
       </div>
       <div className="w3-row-padding classic-container search-container">
+        <span className="search-label">Wishlist Search</span>
         <input
           type="text"
-          placeholder="Search"
+          placeholder="Search Wishlist"
           className="search-input"
           value={search}
           onChange={handleChange}
         />
+        <span className="category-label">Category</span>
         <div className="category-select">
-          <span className="category-label">Category</span>
           <Select
             options={allCategories.map((category) => {
               const option = { value: category, label: category }
+              if (category === 'How-To & Style') {
+                option.value = 'Howto & Style'
+              }
               return option
             })}
             isMulti
             onChange={handleCategoryChange}
           />
         </div>
+      </div>
+      <div className="search-button-container">
         <button
           className="w3-btn w3-indigo search-button"
           onClick={() => loadTableVideos(0, perPage)}

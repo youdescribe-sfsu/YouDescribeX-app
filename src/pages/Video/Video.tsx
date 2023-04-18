@@ -37,6 +37,7 @@ import DescriberCard from '@/features/Video/DescriberCard/DescriberCard'
 import RatingPopup from '@/features/Video/RatingPopup/RatingPopup'
 import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
 import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
+import { ProgressBar } from 'react-bootstrap'
 
 const Video = () => {
   const { videoId } = useParams()
@@ -331,6 +332,10 @@ const Video = () => {
     // Use custom fetch for cross-browser compatability
     ourFetch(url)
       .then((data: any) => {
+        console.log(
+          'Current Video Duration',
+          data.items[0].contentDetails.duration,
+        )
         const videoDurationInSeconds = convertISO8601ToSeconds(
           data.items[0].contentDetails.duration,
         )
@@ -1024,6 +1029,30 @@ const Video = () => {
     }
   }
 
+  console.log(videoDurationInSeconds)
+
+  const getAudioSegments = () => {
+    return audioClips.map((ad) => {
+      return (
+        <div
+          key={ad.clip_id}
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            backgroundColor:
+              ad.playback_type === 'extended' ? '#9c27b0' : '#ffeb3b',
+            left: `${(ad.clip_start_time / videoDurationInSeconds) * 100}%`,
+            width:
+              ad.playback_type === 'extended'
+                ? `0.5%`
+                : `${(ad.clip_duration / videoDurationInSeconds) * 100}%`,
+          }}
+        />
+      )
+    })
+  }
+
   return (
     <div id="video-page" className="video-page">
       <main role="main" className="video-page-main" title="Video page">
@@ -1048,6 +1077,32 @@ const Video = () => {
             youTubeVideoVolume={youTubeVolume}
             setYouTubeVideoVolume={setYouTubeVolume}
           />
+          <div className="classic-container video-timeline" aria-hidden="true">
+            <ProgressBar
+              style={{
+                position: 'relative',
+                height: '15px',
+                backgroundColor: '#f5f5f5',
+                borderRadius: '7px',
+                overflow: 'hidden',
+              }}
+            >
+              {getAudioSegments()}
+            </ProgressBar>
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                zIndex: 20,
+                height: '28px',
+                backgroundColor: 'red',
+                left: `${
+                  (currentTimeRef.current / videoDurationInSeconds) * 100
+                }%`,
+                width: '0.2%',
+              }}
+            />
+          </div>
         </section>
         <section
           id="video-info"

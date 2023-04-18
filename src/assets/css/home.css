@@ -78,7 +78,7 @@
 }
 
 .audio-desc-component-list {
-  overflow-y: scroll;
+  overflow-y: auto;
   height: 45vh;
   margin-bottom: 1rem;
 }

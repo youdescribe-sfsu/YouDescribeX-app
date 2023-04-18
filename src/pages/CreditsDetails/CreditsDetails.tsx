@@ -5,10 +5,12 @@ import projects from '../../shared/data/projects.json'
 import publications from '../../shared/data/publications.json'
 import youdescribeHeads from '../../shared/data/youdescribeHeads.json'
 import youdescribeMembers from '../../shared/data/youdescribeMembers.json'
+import { MemberData } from '@/shared/types/memberData'
 
 const CreditsDetails = () => {
-  const getSortedCredits = () => {
-    const sortedHeads = youdescribeHeads.sort((a, b) => {
+  const getSortedCredits = (): MemberData[] => {
+    const heads = JSON.parse(JSON.stringify(youdescribeHeads)) as MemberData[]
+    const sortedHeads = heads.sort((a, b) => {
       if (a.year === 'present') {
         a.year = new Date().getFullYear()
       }
@@ -17,7 +19,10 @@ const CreditsDetails = () => {
       }
       return a.year > b.year ? -1 : 1
     })
-    const sortedMembers = youdescribeMembers.sort((a, b) => {
+    const members = JSON.parse(
+      JSON.stringify(youdescribeMembers),
+    ) as MemberData[]
+    const sortedMembers = members.sort((a, b) => {
       if (a.year === 'present') {
         a.year = new Date().getFullYear()
       }
@@ -101,7 +106,10 @@ const CreditsDetails = () => {
         </div>
       </div>
       <div>
-        <h1 style={{ textAlign: 'center', paddingTop: '20px' }}>
+        <h1
+          style={{ textAlign: 'center', paddingTop: '20px' }}
+          className="classic-h1"
+        >
           <u>Publications</u>
         </h1>
         <div style={{ marginLeft: '50px', marginRight: '50px' }}>
@@ -127,10 +135,9 @@ const CreditsDetails = () => {
               <th style={{ width: '200px' }}>Name</th>
               <th style={{ width: '150px' }}>Image</th>
               <th style={{ width: '1000px' }}>Description</th>
-              <th style={{ width: '100px' }}>Paper</th>
             </tr>
           </thead>
-          {getSortedCredits().map((home, index) => (
+          {getSortedCredits().map((person, index) => (
             <div key={index}>
               <tbody className="w3-striped tbody">
                 <tr style={{ paddingTop: '10px', height: '200px' }}>
@@ -141,41 +148,35 @@ const CreditsDetails = () => {
                       marginRight: 'auto',
                     }}
                   >
-                    {home.name}
-                    <p>{home.tenure}</p>
+                    {person.name}
+                    <p>{person.tenure}</p>
                   </td>
 
                   <td style={{ width: '150px' }} className="w3-card-2">
                     <img
-                      alt={home.description}
+                      alt={person.description}
                       className="w3-image"
                       src={path.join(
                         __dirname,
                         'assets',
                         'img',
                         'creditPage',
-                        `${home.img}`,
+                        `${person.img}`,
                       )}
                     />
                   </td>
-                  <td style={{ width: '1000px' }}>{home.bio}</td>
-                  <td style={{ width: '100px' }}>
-                    {/* <a href={home.pdf} class="fa fa-file-pdf-o" target="_blank" style={{fontSize:"48px",color:"red"}} download></a> */}
-                    {home.pdf && (
+                  <td style={{ width: '1000px' }}>
+                    {person.bio}
+                    {person.externalLink ? (
                       <a
-                        href={path.join(
-                          __dirname,
-                          'assets',
-                          'img',
-                          'creditPage',
-                          `${home.pdf}`,
-                        )}
-                        className="fa fa-file-pdf-o"
+                        className="classic-link"
                         target="_blank"
-                        style={{ fontSize: '48px', color: 'red' }}
+                        href={person.externalLink}
                         rel="noreferrer"
-                      ></a>
-                    )}
+                      >
+                        {person.externalLinkTitle}
+                      </a>
+                    ) : null}
                   </td>
                 </tr>
               </tbody>
