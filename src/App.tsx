@@ -160,7 +160,12 @@ const App = () => {
     setUserToken('')
     setUserAdmin(0)
     resetCookie()
-    const url = `${apiUrl}/auth/logout`
+    let url
+    if (process.env.REACT_APP_USE_YDX) {
+      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/logout`
+    } else {
+      url = `${apiUrl}/auth/logout`
+    }
     window.open(url, '_self')
   }
 
