@@ -251,7 +251,7 @@ const AudioClip = ({
   return (
     <React.Fragment>
       {/* React Fragments allow you to wrap or group multiple elements without adding an extra node to the DOM. */}
-      <div id={clipID}>
+      <div id={`audio-clip-card-${clipID}`}>
         <div className="text-white component mt-2 rounded">
           <div className="row align-items-center">
             <div className="col-2" style={{ width: divWidths.divRef1 }}>

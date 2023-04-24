@@ -60,7 +60,7 @@ const YDXHome = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPublished, setIsPublished] = useState(false) // holds the published state of the Video & Audio Description
   const [audioClips, setAudioClips] = useState<Clip[]>([]) // stores list of Audio Clips data for a video from backend db
-
+  const audioClipsListRef = useRef<HTMLDivElement>(null)
   // store current extended & inline Audio Clips to pause/play based on the YT video current state
   const [currExtendedAC, setCurrExtendedAC] = useState<Howl>() // see onStateChange() - stop extended ac, when Video is played.
   const [currInlineAC, setCurrInlineAC] = useState<Howl>() // see onStateChange() - stop Inline ac, when Video is paused.
@@ -551,9 +551,7 @@ const YDXHome = () => {
               currentAudio.unload()
             })
           }
-          const element = document.getElementById(currentFilteredClip.clip_id)
-          element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          element?.classList.add('green-border')
+          scrollToAudioClipCard(currentFilteredClip.clip_id)
         }
       }
       // Case for playing extended clips when the player come across their start or end times
@@ -619,9 +617,7 @@ const YDXHome = () => {
               })
             }
           }
-          const element = document.getElementById(currentFilteredClip.clip_id)
-          element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          element?.classList.add('green-border')
+          scrollToAudioClipCard(currentFilteredClip.clip_id)
         }
       }
       // Check for Skips - This usually occurs when an extended clip was overlapped by an inline clip
@@ -650,6 +646,20 @@ const YDXHome = () => {
         } else {
           setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
         }
+      }
+    }
+  }
+
+  const scrollToAudioClipCard = (clipId: string) => {
+    const element = document.getElementById(`audio-clip-card-${clipId}`)
+    if (element) {
+      const list = audioClipsListRef.current
+      element?.classList.add('green-border')
+      if (list) {
+        const listTop = list.getBoundingClientRect().top
+        const elementTop = element.offsetTop + 60
+        const scrollTop = elementTop - listTop - list.clientTop
+        list.scrollTo({ top: scrollTop, behavior: 'smooth' })
       }
     }
   }
@@ -877,25 +887,6 @@ const YDXHome = () => {
       {/* Spinner div - displayed based on showSpinner */}
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
-        <div className="app">
-          <div className="col">
-            <div className="time">
-              User Study Timer : {seconds}s
-              <button
-                className={`button button-primary ydx-button button-primary-${
-                  isActive ? 'active' : 'inactive'
-                }`}
-                onClick={toggle}
-              >
-                {isActive ? 'Pause' : 'Start'}
-              </button>
-              <button className="button ydx-button" onClick={reset}>
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-        <hr className="m-2 ydx-hr" />
         {/* Youtube Iframe & Notes Component Container */}
         <div className="d-flex justify-content-around">
           <div className="text-white">
@@ -997,7 +988,11 @@ const YDXHome = () => {
           </div>
         </div> */}
         {/* Map Audio Clips Component */}
-        <div className="audio-desc-component-list" id="audio-list">
+        <div
+          className="audio-desc-component-list"
+          id="audio-list"
+          ref={audioClipsListRef}
+        >
           {audioClips.map((clip, key) => (
             <AudioClip
               key={key}
