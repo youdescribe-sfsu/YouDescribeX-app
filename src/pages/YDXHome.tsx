@@ -75,9 +75,9 @@ const YDXHome = () => {
 
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
-  const [editComponentToggleList, setEditComponentToggleList] = useState<any[]>(
-    [],
-  )
+  const [editComponentToggleList, setEditComponentToggleList] = useState<
+    { clipId: string; showEditComponent: boolean }[]
+  >([])
 
   // handle clicks of new Inline & New Extended buttons placed beside Notes
   // pass as props to ButtonsComponent & InsertPublishComponent'
@@ -172,10 +172,6 @@ const YDXHome = () => {
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
 
-  function toggle() {
-    setIsActive(!isActive)
-  }
-
   function reset() {
     setSeconds(0)
     setIsActive(false)
@@ -198,15 +194,21 @@ const YDXHome = () => {
     document.addEventListener('keyup', () => {
       setIsPlaying((prevIsPlaying) => !prevIsPlaying)
     })
-    let interval: any = null
+    let interval: NodeJS.Timer | null = null
     if (isActive) {
       interval = setInterval(() => {
         setSeconds((seconds) => seconds + 1)
       }, 1000)
     } else if (!isActive && seconds !== 0) {
-      clearInterval(interval)
+      if (interval !== null) {
+        clearInterval(interval)
+      }
     }
-    return () => clearInterval(interval)
+    return () => {
+      if (interval !== null) {
+        clearInterval(interval)
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isActive,
@@ -359,7 +361,7 @@ const YDXHome = () => {
         // data is nested - so Notes data is in res.data.Notes
         const notesData = data.Notes[0]
         // update the audio path for every clip row - the path might change later- TODO: change the server IP
-        const tempArray: any[] = []
+        const tempArray: { clipId: string; showEditComponent: boolean }[] = []
         const date = new Date()
         const ONE_MIN = 1 * 60 * 1000
         if (audioClipsData.length > 100) {
