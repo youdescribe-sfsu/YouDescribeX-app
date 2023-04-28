@@ -1,4 +1,5 @@
 import ourFetch from '../../utils/ourFetch'
+import axios from 'axios'
 import { apiUrl } from '../../config'
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../Button/Button'
@@ -73,7 +74,27 @@ const VideoCard = ({
 
   const describeThisVideo = () => {
     if (userDataStore.getState().isSignedIn) {
-      navigate('/authoring-tool/' + youTubeId)
+      axios
+        .post(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`,
+          {
+            youtubeVideoId: youTubeId,
+          },
+          {
+            withCredentials: true,
+          },
+        )
+        .then((res) => {
+          if (res.status != 201) {
+            alert(
+              translate(
+                'Something went wrong or you may already have described this video. Please try again later!',
+              ),
+            )
+            return
+          }
+          navigate('/editor/' + res.data.url)
+        })
     } else {
       alert(
         translate('You have to be logged in in order to describe this video'),

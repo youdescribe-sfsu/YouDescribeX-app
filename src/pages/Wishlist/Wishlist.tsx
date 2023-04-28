@@ -3,6 +3,7 @@ import Button from '@/shared/components/Button/Button'
 import Spinner from '@/shared/components/Spinner/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import { apiUrl } from '@/shared/config'
+import axios from 'axios'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import getTimeZoneOffset from '@/shared/utils/getTimeZoneOffset'
@@ -132,7 +133,27 @@ const Wishlist = () => {
 
   const describeThisVideo = (youTubeId: string) => {
     if (userDataStore.getState().isSignedIn) {
-      navigate('/authoring-tool/' + youTubeId)
+      axios
+        .post(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`,
+          {
+            youtubeVideoId: youTubeId,
+          },
+          {
+            withCredentials: true,
+          },
+        )
+        .then((res) => {
+          if (res.status != 201) {
+            alert(
+              translate(
+                'Something went wrong or you may already have described this video. Please try again later!',
+              ),
+            )
+            return
+          }
+          navigate('/editor/' + res.data.url)
+        })
     } else {
       alert(
         translate('You have to be logged in in order to describe this video'),
