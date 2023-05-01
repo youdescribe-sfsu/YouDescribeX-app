@@ -906,19 +906,15 @@ const YDXHome = () => {
             setHandleClicksFromParent={setHandleClicksFromParent}
             handlePlayPause={handlePlayPause}
             isGloballyPaused={isGloballyPaused}
+            descriptionVolume={descriptionVolume}
+            setDescriptionVolume={setDescriptionVolume}
+            setYouTubeVolume={setYouTubeVolume}
+            youTubeVolume={youTubeVolume}
           />
           <Notes
             currentTime={convertSecondsToCardFormat(currentTime)}
             audioDescriptionId={audioDescriptionId}
             notesData={notesData}
-          />
-        </div>
-        <div className="text-white d-inline-flex ms-4">
-          <VideoPlayerControls
-            descriptionVolume={descriptionVolume}
-            setDescriptionVolume={setDescriptionVolume}
-            youTubeVideoVolume={youTubeVolume}
-            setYouTubeVideoVolume={setYouTubeVolume}
           />
         </div>
         <hr className="m-2 ydx-hr" />

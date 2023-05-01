@@ -99,7 +99,7 @@ const VideoPlayerControls = ({
               </h6>
             </OverlayTrigger>
           </div>
-          <div className="col-sm-6 col-md-6 col-lg-4">
+          <div className="col-sm-6 col-md-6 col-lg-6">
             <Form.Range
               aria-label="Audio Description Volume Slider"
               aria-roledescription="This slider controls the volume of the audio description. The volume can be adjusted from 0 to 100."
@@ -108,7 +108,7 @@ const VideoPlayerControls = ({
               onChange={handleDescriptionVolumeChange}
             />
           </div>
-          <div className="col-sm-6 col-md-6 col-lg-8">
+          <div className="col-sm-6 col-md-6 col-lg-6">
             <OverlayTrigger
               placement="top"
               delay={{ show: 250, hide: 400 }}
@@ -117,7 +117,7 @@ const VideoPlayerControls = ({
               <Form.Label className="">Description Volume</Form.Label>
             </OverlayTrigger>
           </div>
-          <div className="col-sm-6 col-md-6 col-lg-4">
+          <div className="col-sm-6 col-md-6 col-lg-6">
             <Form.Range
               aria-label="YouTube Video Volume Slider"
               aria-roledescription="This slider controls the volume of the YouTube video. The volume can be adjusted from 0 to 100."
@@ -126,7 +126,7 @@ const VideoPlayerControls = ({
               onChange={handleYouTubeVolumeChange}
             />
           </div>
-          <div className="col-sm-6 col-md-6 col-lg-8">
+          <div className="col-sm-6 col-md-6 col-lg-6">
             <OverlayTrigger
               placement="top"
               delay={{ show: 250, hide: 400 }}
