@@ -509,7 +509,7 @@ const EditClip = ({
                 Clip Description: {isRecorded ? '(Recorded)' : ''}
               </h6>
               <TextareaAutosize
-                className="form-control form-control-sm border rounded text-center description-textarea"
+                className="form-control form-control-sm border rounded text-justify description-textarea"
                 id="description"
                 name="description"
                 value={clipDescriptionText}
