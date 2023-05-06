@@ -102,6 +102,12 @@ const EditClip = ({
   const [readySetGo, setReadySetGo] = useState('')
 
   useEffect(() => {
+    handleClipStartTimeInputsRender()
+    handleClipEndTimeInputsRender()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clipStartTime, clipEndTime])
+
+  useEffect(() => {
     // setClipDescriptionText(initialClipDescriptionText);
     // set the button text & state based on YouTube Player's currentState
     setIsYoutubeVideoPlaying(
