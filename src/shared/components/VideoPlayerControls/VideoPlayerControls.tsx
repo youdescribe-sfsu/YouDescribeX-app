@@ -88,16 +88,10 @@ const VideoPlayerControls = ({
         <div className="range-container row">
           {/* <PlayPauseButton {...props} /> */}
           <div className="col-12">
-            <OverlayTrigger
-              placement="top"
-              delay={{ show: 250, hide: 400 }}
-              overlay={showAudioDuckingTooltip}
-            >
-              <h6 className="classic-h6">
-                Audio Ducking{' '}
-                {/* <i className="fa fa-question-circle question-font" /> */}
-              </h6>
-            </OverlayTrigger>
+            <h6 className="classic-h6">
+              Audio Ducking{' '}
+              {/* <i className="fa fa-question-circle question-font" /> */}
+            </h6>
           </div>
           <div className="col-sm-6 col-md-6 col-lg-6">
             <Form.Range
@@ -109,13 +103,7 @@ const VideoPlayerControls = ({
             />
           </div>
           <div className="col-sm-6 col-md-6 col-lg-6">
-            <OverlayTrigger
-              placement="top"
-              delay={{ show: 250, hide: 400 }}
-              overlay={showDescriptionVolumeTooltip}
-            >
-              <Form.Label className="">Description Volume</Form.Label>
-            </OverlayTrigger>
+            <Form.Label className="">Description Volume</Form.Label>
           </div>
           <div className="col-sm-6 col-md-6 col-lg-6">
             <Form.Range
@@ -127,13 +115,7 @@ const VideoPlayerControls = ({
             />
           </div>
           <div className="col-sm-6 col-md-6 col-lg-6">
-            <OverlayTrigger
-              placement="top"
-              delay={{ show: 250, hide: 400 }}
-              overlay={showVideoVolumeTooltip}
-            >
-              <Form.Label className="form-range-label">Video Volume</Form.Label>
-            </OverlayTrigger>
+            <Form.Label className="form-range-label">Video Volume</Form.Label>
           </div>
           {/* <FullscreenButton playFullscreen={props.playFullscreen} />
       <VideoTimer {...props} /> */}

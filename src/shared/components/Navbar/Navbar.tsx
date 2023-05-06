@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import path from 'path-browserify'
 import './Navbar.css'
 import clsx from 'clsx'
@@ -14,6 +14,8 @@ interface Props {
 }
 
 const Navbar = ({ newGoogleAuth, signOut }: Props) => {
+  const location = useLocation()
+
   const navMenuOpen = () => {
     const mySidenav = document.getElementById('mySidenav')
     if (mySidenav) {
@@ -53,7 +55,14 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
   return (
     <nav id="navbar" className="classic-nav navbar">
       {/* Navbar (sit on top) */}
-      <div className="w3-top">
+      <div
+        className=""
+        style={{
+          position: location.pathname.includes('editor') ? undefined : 'fixed',
+          width: '100%',
+          zIndex: 1,
+        }}
+      >
         <div className="w3-bar w3-white w3-card-2 w3-text-indigo">
           <Link
             to="/home"

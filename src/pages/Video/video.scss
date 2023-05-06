@@ -61,6 +61,14 @@
           }
         }
       }
+      .audio-ducking-container {
+        width: 100%;
+        position: relative;
+        @media screen and (min-width: 601px) {
+          bottom: 0px;
+          width: 640px;
+        }
+      }
       .video-timeline {
         width: 100%;
         padding-top: 6px;

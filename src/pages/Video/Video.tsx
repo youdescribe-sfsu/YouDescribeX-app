@@ -1071,12 +1071,14 @@ const Video = () => {
               onReady={onReady}
             />
           </div>
-          <VideoPlayerControls
-            descriptionVolume={descriptionVolume}
-            setDescriptionVolume={setDescriptionVolume}
-            youTubeVideoVolume={youTubeVolume}
-            setYouTubeVideoVolume={setYouTubeVolume}
-          />
+          <div className="classic-container audio-ducking-container">
+            <VideoPlayerControls
+              descriptionVolume={descriptionVolume}
+              setDescriptionVolume={setDescriptionVolume}
+              youTubeVideoVolume={youTubeVolume}
+              setYouTubeVideoVolume={setYouTubeVolume}
+            />
+          </div>
           <div className="classic-container video-timeline" aria-hidden="true">
             <ProgressBar
               style={{

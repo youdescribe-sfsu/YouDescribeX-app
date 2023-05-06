@@ -1,5 +1,11 @@
 import React, { useEffect } from 'react'
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom'
 import YDXHome from './pages/YDXHome'
 import PageNotFound from './pages/NotFound/PageNotFound'
 import UserStudyHome from './pages/UserStudyHome'
@@ -77,6 +83,7 @@ const App = () => {
     },
   )
   const navigate = useNavigate()
+  const location = useLocation()
 
   const {
     setSignedIn,
@@ -228,7 +235,12 @@ const App = () => {
   return (
     <html className="classic-html">
       <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
-      <body className="classic-body">
+      <body
+        className="classic-body"
+        style={{
+          paddingTop: location.pathname.includes('editor') ? '0px' : '54px',
+        }}
+      >
         <Routes>
           <Route path="/editor/:youtubeVideoId/:userId" element={<YDXHome />} />
           <Route path="/home" element={<Home />} />
