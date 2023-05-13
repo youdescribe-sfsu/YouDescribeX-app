@@ -122,7 +122,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
             </Link>
             <a
               href={`${process.env.REACT_APP_REDIRECT_URL}/support`}
-              target="_blank"
+              target="_self"
               className="classic-link w3-bar-item w3-small"
               style={{ position: 'relative', top: '11px', padding: '8px' }}
               rel="noreferrer"

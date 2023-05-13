@@ -33,7 +33,7 @@ const Footer = () => {
         </Link>
         <a
           href={`${process.env.REACT_APP_REDIRECT_URL}/contact`}
-          target="_blank"
+          target="_self"
           className="footer-links"
           rel="noreferrer"
         >
@@ -41,7 +41,7 @@ const Footer = () => {
         </a>
         <a
           href={`${process.env.REACT_APP_REDIRECT_URL}/support`}
-          target="_blank"
+          target="_self"
           className="footer-links"
           rel="noreferrer"
         >

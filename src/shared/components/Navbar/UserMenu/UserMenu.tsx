@@ -21,7 +21,7 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
         <div className="my-described-videos-button">
           <a
             href={`${process.env.REACT_APP_REDIRECT_URL}${myVideosUrl}`}
-            target="_blank"
+            target="_self"
             title={translate('View my described videos')}
             onClick={userMenuToggle}
             className="usermenu-link"
@@ -42,7 +42,7 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
             href={`${process.env.REACT_APP_REDIRECT_URL}/profile/${
               userDataStore.getState().userId
             }`}
-            target="_blank"
+            target="_self"
             title="View my profile"
             onClick={userMenuToggle}
             className="usermenu-link"
@@ -60,7 +60,7 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
           <div className="my-described-videos-button">
             <a
               href={`${process.env.REACT_APP_REDIRECT_URL}/admin`}
-              target="_blank"
+              target="_self"
               title="Admin"
               onClick={userMenuToggle}
               rel="noreferrer"

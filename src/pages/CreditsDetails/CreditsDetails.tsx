@@ -54,7 +54,7 @@ const CreditsDetails = () => {
               <li key={award.headline} style={{ paddingTop: '0px' }}>
                 <a
                   href={award.link}
-                  target="_blank"
+                  target="_self"
                   className="classic-link"
                   rel="noreferrer"
                 >
@@ -93,7 +93,7 @@ const CreditsDetails = () => {
                       'creditPage',
                       `${project.pdf}`,
                     )}
-                    target="_blank"
+                    target="_self"
                     className="classic-link"
                     rel="noreferrer"
                   >
@@ -170,7 +170,7 @@ const CreditsDetails = () => {
                     {person.externalLink ? (
                       <a
                         className="classic-link"
-                        target="_blank"
+                        target="_self"
                         href={person.externalLink}
                         rel="noreferrer"
                       >

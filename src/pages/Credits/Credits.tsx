@@ -62,7 +62,7 @@ const Credits = () => {
           ))}
       </div>
       <div className="w3-margin-top w3-center load-more">
-        <Link to="/credits-details" target="_blank" className="footer-links">
+        <Link to="/credits-details" target="_self" className="footer-links">
           <Button
             id="know-more"
             color="w3-indigo"
