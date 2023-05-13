@@ -120,16 +120,18 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
               </i>
               {translate('WISH LIST')}
             </Link>
-            <Link
-              to="/support"
+            <a
+              href={`${process.env.REACT_APP_REDIRECT_URL}/support`}
+              target="_blank"
               className="classic-link w3-bar-item w3-small"
               style={{ position: 'relative', top: '11px', padding: '8px' }}
+              rel="noreferrer"
             >
               <i className="fa fa-question-circle" aria-hidden="true">
                 &nbsp;&nbsp;
               </i>
               {translate('SUPPORT')}
-            </Link>
+            </a>
             <div
               className="w3-bar-item"
               style={{ position: 'relative', top: '2px' }}

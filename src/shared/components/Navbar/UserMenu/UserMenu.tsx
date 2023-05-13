@@ -19,11 +19,13 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
           <span aria-hidden="true">{userDataStore.getState().userName}</span>
         </div>
         <div className="my-described-videos-button">
-          <Link
-            to={myVideosUrl}
+          <a
+            href={`${process.env.REACT_APP_REDIRECT_URL}${myVideosUrl}`}
+            target="_blank"
             title={translate('View my described videos')}
             onClick={userMenuToggle}
             className="usermenu-link"
+            rel="noreferrer"
           >
             <i
               style={{ width: 50 }}
@@ -33,14 +35,18 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
             <span className="usermenu-span">
               {translate('My descriptions')}
             </span>
-          </Link>
+          </a>
         </div>
         <div className="my-described-videos-button">
-          <Link
-            to={`/profile/${userDataStore.getState().userId}`}
+          <a
+            href={`${process.env.REACT_APP_REDIRECT_URL}/profile/${
+              userDataStore.getState().userId
+            }`}
+            target="_blank"
             title="View my profile"
             onClick={userMenuToggle}
             className="usermenu-link"
+            rel="noreferrer"
           >
             <i
               style={{ width: 50 }}
@@ -48,18 +54,24 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
               aria-hidden="true"
             ></i>
             <span className="usermenu-span">{translate('My profile')}</span>
-          </Link>
+          </a>
         </div>
         {userDataStore.getState().userAdmin ? (
           <div className="my-described-videos-button">
-            <Link to={`/admin`} title="Admin" onClick={userMenuToggle}>
+            <a
+              href={`${process.env.REACT_APP_REDIRECT_URL}/admin`}
+              target="_blank"
+              title="Admin"
+              onClick={userMenuToggle}
+              rel="noreferrer"
+            >
               <i
                 style={{ width: 50 }}
                 className="fa fa-user"
                 aria-hidden="true"
               ></i>
               <span className="usermenu-span">{translate('Admin')}</span>
-            </Link>
+            </a>
           </div>
         ) : (
           ''
