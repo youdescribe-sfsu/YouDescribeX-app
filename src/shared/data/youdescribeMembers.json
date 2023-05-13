@@ -38,6 +38,15 @@
     "description": "Photo of Vishal Sharma, This picture was taken at the Golden Gate Bridge. Vishal is standing on the footpath that runs along the side of the bridge and is wearing a blue t-shirt and a black hoodie."
   },
   {
+    "name": "Sanket Naik",
+    "bio": "Sanket was the Frontend Developer for YouDescribe and received his Master's Degree in Computer Science from San Francisco State University. He was responsible for improvements to the audio clip playback algorithm and was involved in the migration to YouDescribeX.",
+    "img": "sanket.JPG",
+    "designation": "Frontend Developer",
+    "year": 2023,
+    "tenure": "2022-2023",
+    "description": "Photo of Sanket Naik, This picture was taken in front of the Golden Gate Bridge. Sanket is standing in front of the Golden Gate Bridge at the end of the Baker Beach Trail. He is wearing a black hoodie"
+  },
+  {
     "name": "Manali Seth",
     "bio": "Manali Seth is working as a data engineer for the YouDescribe project. She is a graduate student pursuing Master of Science in Computer Science at San Francisco State University. She completed her Bachelor’s in Information Technology from Charotar University of Science and Technology, India. Her interests lies in software development, data analysis and machine learning. She has co-authored a data paper on “You Described, We Archived: A Rich Audio Description dataset” for Journal on Technology and Persons with Disabilities by CSUN expected to be published in May 2023. ",
     "img": "manali.jpg",
