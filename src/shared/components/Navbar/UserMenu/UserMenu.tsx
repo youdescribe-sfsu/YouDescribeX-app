@@ -19,13 +19,11 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
           <span aria-hidden="true">{userDataStore.getState().userName}</span>
         </div>
         <div className="my-described-videos-button">
-          <a
-            href={`${process.env.REACT_APP_REDIRECT_URL}${myVideosUrl}`}
-            target="_self"
+          <Link
+            to={myVideosUrl}
             title={translate('View my described videos')}
             onClick={userMenuToggle}
             className="usermenu-link"
-            rel="noreferrer"
           >
             <i
               style={{ width: 50 }}
@@ -35,7 +33,7 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
             <span className="usermenu-span">
               {translate('My descriptions')}
             </span>
-          </a>
+          </Link>
         </div>
         <div className="my-described-videos-button">
           <a
