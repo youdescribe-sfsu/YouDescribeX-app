@@ -31,6 +31,7 @@ import UnsupportedBrowser from './pages/UnsupportedBrowser/UnsupportedBrowser'
 import { detect } from 'detect-browser'
 import Credits from './pages/Credits/Credits'
 import CreditsDetails from './pages/CreditsDetails/CreditsDetails'
+import UserDescribedVideos from './pages/UserDescribedVideos/UserDescribedVideos'
 
 const polyglot = new Polyglot({
   locale: getLanguage(),
@@ -250,6 +251,10 @@ const App = () => {
           <Route path="/credits" element={<Credits />} />
           <Route path="/credits-details" element={<CreditsDetails />} />
           <Route path="/unsupported-browser" element={<UnsupportedBrowser />} />
+          <Route
+            path="/videos/user/:userId"
+            element={<UserDescribedVideos />}
+          />
           <Route path="/" element={<Navigate to="/home" />} />
           <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
           <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />

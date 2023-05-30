@@ -13,6 +13,7 @@ import DataTable, { Media, TableColumn } from 'react-data-table-component'
 import { useNavigate } from 'react-router-dom'
 import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
+import { Dropdown } from 'react-bootstrap'
 
 const allCategories = [
   'Film & Animation',
@@ -81,7 +82,7 @@ const Wishlist = () => {
     {
       name: 'Title',
       selector: (row) => row.title,
-      grow: 3,
+      grow: 2,
       sortable: true,
       wrap: true,
       sortFunction: caseInsensitiveSort,
@@ -119,13 +120,20 @@ const Wishlist = () => {
     },
     {
       cell: (row) => (
-        <Button
-          ariaLabel={translate('Create an audio description for this video')}
-          text={translate('Describe')}
-          color="w3-indigo w3-right"
-          onClick={() => describeThisVideo(row.youTubeId)}
-        />
+        <Dropdown>
+          <Dropdown.Toggle variant="primary" id="dropdown-basic">
+            Describe
+          </Dropdown.Toggle>
+
+          <Dropdown.Menu>
+            <Dropdown.Item href="#/action-1">Describe</Dropdown.Item>
+            <Dropdown.Item href="#/action-2">
+              Describe w/ AI Description
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
       ),
+      grow: 2,
       button: true,
       width: '90px',
     },
