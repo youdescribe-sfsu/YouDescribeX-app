@@ -8,6 +8,7 @@ import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardForma
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import ourFetch from '@/shared/utils/ourFetch'
+import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 
@@ -31,23 +32,28 @@ const UserDescribedVideos = () => {
 
   const getUserVideos = async () => {
     let youTubeIds = ''
-    let sortedIds = []
     const youTubeVideoIds: string[] = []
     const youDescribeVideosIds: string[] = []
-    const url = `${apiUrl}/videos/user/${userId}`
-    ourFetch(url)
+    const audioDescriptionIds: string[] = []
+    let url
+    if (process.env.REACT_APP_USE_YDX) {
+      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
+    } else {
+      url = `${apiUrl}/videos/user/${userId}`
+    }
+    axios
+      .get(url)
       .then((response) => {
-        const videosArray = response.result
+        const videosArray = response.data
         setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
-          youTubeVideoIds.push(videosArray[i].youtube_id)
-          youDescribeVideosIds.push(videosArray[i]._id)
+          youTubeVideoIds.push(videosArray[i].youtube_video_id)
+          youDescribeVideosIds.push(videosArray[i].video_id)
+          audioDescriptionIds.push(videosArray[i].audio_description_id)
         }
         youTubeIds = youTubeVideoIds.join(',')
-        console.log('here')
       })
       .then(() => {
-        sortedIds = youTubeVideoIds.sort()
         const url = `${youTubeApiUrl}/videos?id=${youTubeIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
         ourFetch(url).then((data) => {
           window.localStorage.setItem(
@@ -55,9 +61,11 @@ const UserDescribedVideos = () => {
             JSON.stringify(data),
           )
           const youTubeVideosArray = data
-          console.log('here4')
-
-          parseResponseData(youTubeVideosArray, youDescribeVideosIds)
+          parseResponseData(
+            youTubeVideosArray,
+            youDescribeVideosIds,
+            audioDescriptionIds,
+          )
         })
       })
   }
@@ -65,11 +73,13 @@ const UserDescribedVideos = () => {
   const parseResponseData = (
     youTubeVideosArray: any,
     youDescribeVideosIds: string[],
+    audioDescriptionIds: string[],
   ) => {
     const videoComponents = []
     for (let i = 0; i < youTubeVideosArray.items.length; i += 1) {
       const item = youTubeVideosArray.items[i]
       const youDescribeVideoId = youDescribeVideosIds[i]
+      const audioDescriptionId = audioDescriptionIds[i]
       const youTubeId = item.id
       const thumbnail = item.snippet.thumbnails.medium
       const duration = convertSecondsToCardFormat(
@@ -87,6 +97,7 @@ const UserDescribedVideos = () => {
           <VideoCard
             key={youTubeId}
             youTubeId={youTubeId}
+            audioDescriptionId={audioDescriptionId}
             thumbnailMediumUrl={thumbnail.url}
             duration={duration}
             title={title}
@@ -95,11 +106,9 @@ const UserDescribedVideos = () => {
             time={time}
             buttons="edit"
           />
-          ,
         </div>,
       )
     }
-    console.log('here4')
     setShowSpinner(false)
     setVideos(videoComponents)
   }

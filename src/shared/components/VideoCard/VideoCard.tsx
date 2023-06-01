@@ -8,6 +8,7 @@ import './VideoCard.css'
 
 interface Props {
   youTubeId: string
+  audioDescriptionId?: string
   description?: string
   buttons: string
   votes?: number
@@ -21,6 +22,7 @@ interface Props {
 
 const VideoCard = ({
   description,
+  audioDescriptionId,
   youTubeId,
   buttons,
   votes,
@@ -102,6 +104,23 @@ const VideoCard = ({
     }
   }
 
+  const editThisVideo = () => {
+    if (userDataStore.getState().isSignedIn) {
+      if (audioDescriptionId == null || audioDescriptionId.length <= 0) {
+        alert(
+          translate(
+            'Something went wrong when attempting to edit audio description.',
+          ),
+        )
+      }
+      navigate(`/editor/${youTubeId}/${audioDescriptionId}`)
+    } else {
+      alert(
+        translate('You have to be logged in in order to describe this video'),
+      )
+    }
+  }
+
   const buttonElements =
     buttons === 'upvote-describe' ? (
       <div>
@@ -129,7 +148,7 @@ const VideoCard = ({
           ariaLabel={translate('Edit the audio description for this video')}
           text={translate('Edit')}
           color="w3-indigo w3-block"
-          onClick={describeThisVideo}
+          onClick={editThisVideo}
           classNames="card-button"
         />
       </div>
