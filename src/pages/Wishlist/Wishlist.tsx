@@ -120,20 +120,13 @@ const Wishlist = () => {
     },
     {
       cell: (row) => (
-        <Dropdown>
-          <Dropdown.Toggle variant="primary" id="dropdown-basic">
-            Describe
-          </Dropdown.Toggle>
-
-          <Dropdown.Menu>
-            <Dropdown.Item href="#/action-1">Describe</Dropdown.Item>
-            <Dropdown.Item href="#/action-2">
-              Describe w/ AI Description
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
+        <Button
+          ariaLabel={translate('Create an audio description for this video')}
+          text={translate('Describe')}
+          color="w3-indigo w3-right"
+          onClick={() => describeThisVideo(row.youTubeId)}
+        />
       ),
-      grow: 2,
       button: true,
       width: '90px',
     },
