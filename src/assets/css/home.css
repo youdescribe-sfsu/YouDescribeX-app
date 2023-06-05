@@ -79,6 +79,7 @@
 
 .audio-desc-component-list {
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   height: 45vh;
   margin-bottom: 1rem;
 }

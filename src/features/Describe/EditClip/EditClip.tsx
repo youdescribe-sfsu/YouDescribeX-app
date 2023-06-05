@@ -120,13 +120,13 @@ const EditClip = ({
     // scrolls to the latest clip when a new clip is added
     const date = new Date()
     const TEN_SEC = 10 * 1000
-    if (date.getTime() - new Date(clipCreatedAt).getTime() <= TEN_SEC) {
-      ref.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-        inline: 'nearest',
-      })
-    }
+    // if (date.getTime() - new Date(clipCreatedAt).getTime() <= TEN_SEC) {
+    //   ref.current?.scrollIntoView({
+    //     behavior: 'smooth',
+    //     block: 'start',
+    //     inline: 'start',
+    //   })
+    // }
 
     // following statements execute whenever mediaBlobUrl is updated.. used it in the dependency array
     if (mediaBlobUrl !== null) {
