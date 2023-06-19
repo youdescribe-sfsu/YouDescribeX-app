@@ -1,0 +1,11 @@
+.video-player-controls {
+  padding-top: 6px;
+  margin: 0 auto;
+  @media screen and (min-width: 601px) {
+    bottom: 0px;
+  }
+}
+
+.question-font {
+  font-size: 16px;
+}

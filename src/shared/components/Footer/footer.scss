@@ -1,0 +1,28 @@
+.footer {
+  padding-top: 32px !important;
+  padding-bottom: 32px !important;
+  h5,
+  h6,
+  a {
+    color: #ccc;
+  }
+  h5,
+  div a {
+    font-size: 14px !important;
+  }
+  div a {
+    margin: 0 10px 0 10px !important;
+  }
+  h6 {
+    font-size: 11px !important;
+  }
+  a {
+    text-decoration: underline;
+  }
+  a:hover {
+    color: #eee;
+  }
+  a img {
+    width: 140px !important;
+  }
+}

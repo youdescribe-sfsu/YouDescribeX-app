@@ -1,38 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap');
-body {
+.ydx-body {
   background-color: #383838;
+  padding-top: 10px;
+  padding-bottom: 40px;
   margin: 0;
   line-height: 1.6;
   /* font-family: -apple-system, BlinkMacSystemFont, 'Fira Sans', 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Droid Sans', 'Helvetica Neue',
     sans-serif; */
-    font-family: 'EB Garamond', serif;
+  font-family: 'EB Garamond', serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-html {
+.ydx-html {
   scroll-behavior: smooth;
 }
 
-code {
+.ydx-code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
 
-button {
-  box-shadow: 0px 0px 4px 1px rgb(206, 246, 240)
+.ydx-button {
+  box-shadow: 0px 0px 4px 1px rgb(206, 246, 240);
 }
 
-button:hover {
-  box-shadow: 0px 1px 4px 2px bisque, 0px 1px 2px 2px white
+.ydx-button:hover {
+  box-shadow: 0px 1px 4px 2px bisque, 0px 1px 2px 2px white;
 }
 
 :root {
-  --primary-color: #3F51B5;
-  --extended-color: #9C27B0;
-  --inline-color: #FFEB3B;
-  --success-color: #19887E;  
+  --primary-color: #3f51b5;
+  --extended-color: #9c27b0;
+  --inline-color: #ffeb3b;
+  --success-color: #19887e;
   --inactive-color: #cdcdcd;
 }
 
@@ -49,11 +51,11 @@ button:hover {
   font-style: italic;
 }
 :-moz-placeholder {
-  font-style: italic;  
+  font-style: italic;
 }
 ::-moz-placeholder {
-  font-style: italic;  
+  font-style: italic;
 }
-:-ms-input-placeholder {  
-  font-style: italic; 
+:-ms-input-placeholder {
+  font-style: italic;
 }

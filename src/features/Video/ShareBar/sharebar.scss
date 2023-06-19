@@ -1,0 +1,20 @@
+.share-bar {
+  position: absolute;
+  top: 260px;
+  button {
+    outline: none;
+    border: none;
+  }
+  @media (max-width: 767px) {
+    position: relative;
+    top: auto;
+  }
+}
+
+.embed {
+  width: 46px;
+}
+
+.embed:hover {
+  width: 50px;
+}

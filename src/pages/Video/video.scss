@@ -1,0 +1,117 @@
+.video-page {
+  background-color: #eee;
+  color: #fff;
+  // min-height: 100vh;
+  /* Firefox */
+  min-height: -moz-calc(100vh - 54px);
+  /* WebKit */
+  min-height: -webkit-calc(100vh - 54px);
+  /* Opera */
+  min-height: -o-calc(100vh - 54px);
+  /* Standard */
+  min-height: calc(100vh - 54px);
+  @media screen and (min-width: 601px) {
+    // padding-top: 16px;
+    // background-color: #3B3B3B;
+  }
+  .video-page-main {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    @media screen and (min-width: 601px) {
+      margin: 0 auto;
+    }
+    .video-area {
+      background-color: #000;
+      padding-bottom: 16px;
+      .video {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: 440px;
+        @media screen and (min-width: 601px) {
+          width: 640px;
+          height: 414px;
+          margin: 0 auto;
+        }
+      }
+      .video-controls {
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+        height: 88px;
+        margin: 0 auto;
+        @media screen and (min-width: 601px) {
+          width: 640px;
+          height: 68px;
+        }
+        .play-button,
+        .pause-button {
+          // position: relative;
+          // top: 0px;
+          display: block;
+          border: none;
+          outline: none;
+          background-color: rgba(0, 0, 0, 0);
+          color: white;
+          font-size: 18px;
+          margin-left: 23px;
+          @media screen and (min-width: 601px) {
+            // top: 569px;
+          }
+        }
+      }
+      .audio-ducking-container {
+        width: 100%;
+        position: relative;
+        @media screen and (min-width: 601px) {
+          bottom: 0px;
+          width: 640px;
+        }
+      }
+      .video-timeline {
+        width: 100%;
+        padding-top: 6px;
+        margin-top: 15px;
+        position: relative;
+        @media screen and (min-width: 601px) {
+          bottom: 0px;
+          width: 640px;
+        }
+      }
+    }
+    .video-info {
+      margin-top: 4px;
+      .describers {
+        // display: none;
+        h3 {
+          position: relative;
+          left: 3px;
+        }
+      }
+      .descriptions-off {
+        // display: none;
+      }
+    }
+  }
+  .feedback-success,
+  .rating-success {
+    display: none;
+    position: fixed;
+    background-color: #fff;
+    color: #3f51b5;
+    z-index: 9999;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 20px;
+    outline: 1px solid #3f51b5;
+  }
+  .w3-card-2 {
+    background-color: #fff;
+    color: #000;
+    margin: 4px;
+    padding: 8px;
+  }
+}
