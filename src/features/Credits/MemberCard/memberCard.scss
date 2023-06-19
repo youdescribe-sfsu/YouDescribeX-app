@@ -1,0 +1,28 @@
+.member-card {
+  flex: 1;
+  min-width: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+.member-card-inner {
+  flex: 1;
+}
+#card-title-container {
+  //   height: 100%;
+  #card-title {
+    color: #337ab7;
+    line-height: 18px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; // max nb lines to show
+    -webkit-box-orient: vertical;
+  }
+  #card-bio {
+    color: grey;
+    line-height: 12px;
+    line-height: 21px;
+    margin: 4px 0 0 0;
+    font-size: 11px;
+  }
+}

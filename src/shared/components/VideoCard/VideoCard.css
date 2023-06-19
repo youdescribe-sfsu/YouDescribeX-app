@@ -1,0 +1,75 @@
+.video-card {
+  background-color: #fff;
+  padding: 8px 4px;
+}
+
+@media screen and (min-width: 601px) {
+  .video-card {
+    padding: 16px 8px;
+  }
+  .card-button {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+.card-thumbnail {
+  position: relative;
+}
+
+.card-duration {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 10px;
+  padding: 2px;
+}
+
+.card-title-container {
+  min-height: 120px;
+}
+
+.card-title {
+  color: #337ab7;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* max nb lines to show */
+  -webkit-box-orient: vertical;
+}
+
+.card-h3 {
+  line-height: 17px;
+  margin: 8px 0 0 0;
+  cursor: pointer;
+}
+
+.card-author {
+  padding-bottom: 5px;
+}
+
+.card-stats {
+  height: 12px;
+}
+
+.card-button {
+  outline: 1px solid #475cae;
+  outline-offset: -1px;
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.card-span,
+.card-span a {
+  color: grey;
+  line-height: 11px;
+  margin: 4px 0 0 0;
+  font-size: 11px;
+}
+
+.card-span a:hover {
+  color: #337ab7;
+}

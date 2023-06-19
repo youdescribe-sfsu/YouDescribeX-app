@@ -1,12 +1,12 @@
 .inline-bg {
-    background-color: var(--inline-color);
-  }
-  .extended-bg {
-    background-color: var(--extended-color);
-  }
-  .publish-bg {
-    background-color: var(--success-color);
-  }
-  .play-pause-bg {
-    background-color: var(--success-color);
-  }
+  background-color: var(--inline-color);
+}
+.extended-bg {
+  background-color: var(--extended-color);
+}
+.publish-bg {
+  background-color: var(--success-color);
+}
+.play-pause-bg {
+  background-color: var(--success-color);
+}

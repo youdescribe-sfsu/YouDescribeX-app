@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Andrew Scott",
+    "title": "Transfer Learning for Improved Video Description Performance for Visually Impaired and Blind",
+    "date": "May 2020",
+    "year": 2020,
+    "pdf": "Andrew_thesis.pdf"
+  },
+  {
+    "name": "Poorva Rathi",
+    "title": "Effective Web Interface Design and Development for Video Accessibility Challenges",
+    "date": "Jun. 2020",
+    "year": 2020,
+    "pdf": ""
+  },
+  {
+    "name": "Cheng Li",
+    "title": "YouDescribe Android app - An Accessibility tool for adding Audiodescription to Online videos",
+    "date": "Dec. 2018",
+    "year": 2018,
+    "pdf": "cheng_li.pdf"
+  },
+  {
+    "name": "Jianfei Zhao",
+    "title": "Internet Application Development of YouDescribe Website",
+    "date": "Apr. 2020",
+    "year": 2020,
+    "pdf": "895Report_jianfei zhao.pdf"
+  },
+  {
+    "name": "Madhura Patil",
+    "title": "YouDescribe Android App - An Accessibility Tool for Playing Audio Descriptions with Online Videos",
+    "date": "Jan. 2018",
+    "year": 2018,
+    "pdf": "895Report_Poorva.pdf"
+  },
+  {
+    "name": "Rupal Khilari",
+    "title": "YouDescribe Android App - An Accessibility Tool for Playing Audio Descriptions with Online Videos",
+    "date": "Jan. 2018",
+    "year": 2018,
+    "pdf": "Rupal-Khilari-Final-report.pdf"
+  },
+  {
+    "name": "Umang Mathur",
+    "title": "System Development For Human-In-The-Loop Machine Experiments to increase Video Accessibility for Visually Impaired and Blind Users",
+    "date": "Feb. 2020",
+    "year": 2020,
+    "pdf": "csc_895_umang_mathur.pdf"
+  },
+  {
+    "name": "Vaishali Bisht",
+    "title": "User Study Design and Development for Video Description Application for Visually Impaired Users",
+    "date": "May. 2020",
+    "year": 2020,
+    "pdf": "895Report_VaishaliBisht.pdf"
+  }
+]

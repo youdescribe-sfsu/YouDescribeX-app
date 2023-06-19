@@ -1,0 +1,76 @@
+.user-menu {
+  display: none;
+  .arrow-up {
+    position: absolute;
+    left: 22px;
+    top: 42px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+
+    border-bottom: 10px solid #757575;
+    // border-bottom: 10px solid #9D9D9D;
+  }
+  .w3-card-4 {
+    // z-index: 99!important;
+    // overflow: visible;
+    position: fixed;
+    right: 16px;
+    top: 54px;
+    width: 200px;
+    // height: 120px;
+    background-color: white;
+    // background-color: red;
+    .user-menu-header {
+      background-color: #757575;
+      // background-color: #9D9D9D;
+      width: 100%;
+      // height: 50px;
+      color: white;
+      text-align: center;
+      padding: 4px 0px;
+      .usermenu-h3 {
+        margin: 0px;
+        // padding: 0;
+      }
+    }
+    .my-described-videos-button {
+      position: relative;
+      top: 16px;
+      left: 16px;
+      .usermenu-span {
+        position: relative;
+        top: -5px;
+      }
+    }
+    .fa {
+      font-size: 30px;
+    }
+    .usermenu-hr {
+      position: relative;
+      top: 12px;
+    }
+    .sign-out-button {
+      position: relative;
+      padding-bottom: 8px;
+      // bottom: 0px;
+      // margin: 0 auto;
+      align-content: center;
+      left: 130px;
+    }
+    .w3-indigo {
+      padding: 4px 8px;
+      font-size: 11px;
+      // font-weight: 100;
+    }
+    .usermenu-link {
+      text-decoration: none;
+      color: #3f51b5;
+    }
+    .usermenu-link:hover {
+      color: #757575;
+      // color: #9D9D9D;
+    }
+  }
+}

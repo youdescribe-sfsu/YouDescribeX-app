@@ -1,0 +1,22 @@
+.describer-card {
+  img {
+    width: 50px;
+    border-radius: 50%;
+  }
+  .rating {
+    button {
+      color: grey;
+      background-color: white;
+      border: none;
+      outline: none;
+      margin: 0;
+      padding: 0 2px 0 0;
+    }
+    // button:nth-child(3) ~ button {
+    //   color: grey;
+    // }
+  }
+  @media screen and (min-width: 601px) {
+    // top: 569px;
+  }
+}

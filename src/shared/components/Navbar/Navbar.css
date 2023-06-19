@@ -1,0 +1,17 @@
+.navbar {
+  padding: 0;
+  z-index: 20;
+}
+
+.w3-bar .w3-button {
+  padding: 16px;
+}
+
+.logo {
+  height: 54px;
+  padding: 8px 12px 8px 12px;
+}
+
+.sidenav {
+  background-color: white;
+}

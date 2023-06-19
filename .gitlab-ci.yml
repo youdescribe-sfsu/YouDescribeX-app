@@ -1,0 +1,89 @@
+image:
+  name: node:18-alpine
+
+variables:
+  CI_PROJECT_NAME: youdescribe-app
+
+stages:
+  - build
+  - deploy
+ 
+cache:
+  paths:
+    - node_modules/
+
+build-stage:
+  stage: build
+  tags:
+    - frontend
+    - staging
+
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+      when: always
+
+  script:
+    - echo "Building YouDescribe Frontend in staging" 
+    - docker build 
+      -e REACT_APP_LOGROCKET_ID=$REACT_APP_LOGROCKET_ID
+      -e REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
+      -e REACT_APP_REDIRECT_URL=$REACT_APP_REDIRECT_URL
+      -e REACT_APP_YOUTUBE_API_URL=$REACT_APP_YOUTUBE_API_URL
+      -e REACT_APP_YOUTUBE_API_KEY=$REACT_APP_YOUTUBE_API_KEY
+      -e REACT_APP_GOOGLE_CLIENT_ID=$REACT_APP_GOOGLE_CLIENT_ID
+      -e REACT_APP_USE_YDX=$REACT_APP_USE_YDX
+      -e REACT_APP_YDX_BACKEND_URL=$REACT_APP_YDX_BACKEND_URL
+      -e REACT_APP_CLASSIC_BACKEND_URL=$REACT_APP_CLASSIC_BACKEND_URL
+      -e REACT_APP_CLASSIC_BACKEND_URL_VERSION=$REACT_APP_CLASSIC_BACKEND_URL_VERSION
+      -e PORT=$PORT
+      --build-arg APP_PORT=$PORT
+      -t "${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-1.${CI_PIPELINE_ID}" .
+    - echo "Build complete"
+
+build-prod:
+  stage: build
+  tags:
+    - frontend
+    - prod
+
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: always
+  
+  script:
+    - echo "Building YouDescribe Frontend in prod" 
+    - docker build -t "${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-1.${CI_PIPELINE_ID}" .
+    - echo "Build completed"
+
+deploy-stage:
+  stage: deploy
+  tags:
+    - frontend
+    - staging
+
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+      when: on_success
+    
+  script:
+    - echo "Stopping old YouDescribe Frontend instance"
+    - docker stop ${CI_PROJECT_NAME} || true
+    - echo "Deleting old YouDescribe Frontend container"
+    - docker rm ${CI_PROJECT_NAME} || true
+    - echo "Starting up/Deploying newest YouDescribe Frontend build"
+    - docker run -v /mnt/ebs:/mnt/ebs --name ${CI_PROJECT_NAME} --restart unless-stopped -d -p 0.0.0.0:${PORT}:${PORT} ${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-1.${CI_PIPELINE_ID}
+    - echo "Finished deploying YouDescribe Frontend build to staging"
+
+deploy-prod:
+  stage: deploy
+  tags:
+    - frontend
+    - prod
+
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: on_success
+    
+  script:
+    - echo "Stopping old YouDescribe Frontend instance"
+    - docker stop ${CI_PROJECT_NAME} || true
