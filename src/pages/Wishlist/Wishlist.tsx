@@ -178,7 +178,7 @@ const Wishlist = () => {
   */
   const loadTableVideos = (pageNumber: number, rowsPerPage: number) => {
     const searchString = search.split(' ').join('%20')
-    const categoryString = selectedCategories
+    const categoryString: string = selectedCategories
       .map((category) => category.replace('&', '%26').split(' ').join('%20'))
       .join(',')
     const url = `${apiUrl}/wishlist/search?page=${pageNumber}&per_page=${rowsPerPage}${
@@ -212,6 +212,7 @@ const Wishlist = () => {
           ',',
         )}&key=wishlist`
         ourFetch(url).then((response) => {
+          console.log('YT Response', response)
           parseTableData(
             JSON.parse(response.result),
             votes,
@@ -221,6 +222,7 @@ const Wishlist = () => {
         })
       })
       .catch((err) => {
+        console.log(err)
         setTotalRows(0)
         setRows([])
       })
@@ -233,6 +235,7 @@ const Wishlist = () => {
     updatedAt: any,
   ) => {
     const rows = []
+    console.log('YT Response', youTubeResponse)
     for (let i = 0; i < youTubeResponse.items.length; i += 1) {
       const item = youTubeResponse.items[i]
       if (!item.statistics || !item.snippet) {
@@ -273,6 +276,7 @@ const Wishlist = () => {
       })
     }
     setRows(rows)
+    console.log(rows)
   }
 
   const loadTopVideos = () => {
@@ -381,44 +385,53 @@ const Wishlist = () => {
         </h2>
       </div>
       {showSpinner ? <Spinner /> : null}
-      <div className="w3-row-padding classic-container w3-margin-top">
-        Most Requested Videos
+      <div className="w3-row-padding classic-container w3-margin-top most-requested-title">
+        Top 5 Most Requested Videos
       </div>
       <div className="w3-row-padding classic-container wishlist-video-row">
         {videoCardsComponents}
       </div>
-      <div className="w3-row-padding classic-container search-container">
-        <span className="search-label">Wishlist Search</span>
-        <input
-          type="text"
-          placeholder="Search Wishlist"
-          className="search-input"
-          value={search}
-          onChange={handleChange}
-        />
-        <span className="category-label">Category</span>
-        <div className="category-select">
-          <Select
-            options={allCategories.map((category) => {
-              const option = { value: category, label: category }
-              if (category === 'How-To & Style') {
-                option.value = 'Howto & Style'
-              }
-              return option
-            })}
-            isMulti
-            onChange={handleCategoryChange}
+      <form
+        onSubmit={(e: any) => {
+          e.preventDefault()
+          loadTableVideos(0, perPage)
+        }}
+      >
+        <div className="w3-row-padding classic-container search-container">
+          <span className="category-label">Category</span>
+          <div className="category-select">
+            <Select
+              options={allCategories.map((category) => {
+                const option = { value: category, label: category }
+                if (category === 'How-To & Style') {
+                  option.value = 'Howto & Style'
+                }
+                return option
+              })}
+              placeholder="All"
+              isMulti
+              onChange={handleCategoryChange}
+            />
+          </div>
+          <span className="search-label">Wishlist Search</span>
+          <input
+            type="text"
+            placeholder="Search Wishlist"
+            className="search-input"
+            value={search}
+            onChange={handleChange}
           />
         </div>
-      </div>
-      <div className="search-button-container">
-        <button
-          className="w3-btn w3-indigo search-button"
-          onClick={() => loadTableVideos(0, perPage)}
-        >
-          Search
-        </button>
-      </div>
+        <div className="search-button-container">
+          <button
+            className="w3-btn w3-indigo search-button"
+            onClick={() => loadTableVideos(0, perPage)}
+            type="submit"
+          >
+            Search
+          </button>
+        </div>
+      </form>
       <div className="table-container">
         <DataTable
           title="All Wishlist Videos"
