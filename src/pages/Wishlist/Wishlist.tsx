@@ -83,17 +83,13 @@ const Wishlist = () => {
       name: 'Title',
       selector: (row) => row.title,
       grow: 2,
-      sortable: true,
       wrap: true,
-      sortFunction: caseInsensitiveSort,
     },
     {
       name: 'Author',
       selector: (row) => row.author,
       grow: 1,
-      sortable: true,
       wrap: true,
-      sortFunction: caseInsensitiveSort,
     },
     {
       name: 'Category',
@@ -103,6 +99,7 @@ const Wishlist = () => {
       wrap: true,
       hide: 'sm' as Media,
       sortFunction: caseInsensitiveSort,
+      sortField: 'category',
     },
     {
       name: 'Recent Request',
@@ -111,12 +108,14 @@ const Wishlist = () => {
       sortable: true,
       wrap: true,
       hide: 'md' as Media,
+      sortField: 'lastVoted',
     },
     {
       name: 'Votes',
       selector: (row) => row.votes,
       grow: 0,
       sortable: true,
+      sortField: 'votes',
     },
     {
       cell: (row) => (
@@ -176,18 +175,31 @@ const Wishlist = () => {
       - search: The search string to be passed (joined with the %20 separator)
       - category: The list of categories that the search should be filtered by. Each category is comma separated and joined with the %20 separator.
   */
-  const loadTableVideos = (pageNumber: number, rowsPerPage: number) => {
-    const searchString = search.split(' ').join('%20')
-    const categoryString: string = selectedCategories
-      .map((category) => category.replace('&', '%26').split(' ').join('%20'))
-      .join(',')
-    const url = `${apiUrl}/wishlist/search?page=${pageNumber}&per_page=${rowsPerPage}${
-      search !== '' ? `&search=${searchString}` : ''
-    }${categoryString !== '' ? `&category=${categoryString}` : ''}`
-    ourFetch(url)
+  const loadTableVideos = (
+    pageNumber: number,
+    rowsPerPage: number,
+    column = '',
+    sortDirection = '',
+  ) => {
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-all-wishlist`
+    axios
+      .post(
+        url,
+        {
+          page: pageNumber,
+          limit: rowsPerPage,
+          search: search,
+          category: selectedCategories,
+          sortField: column,
+          sort: sortDirection,
+        },
+        {
+          withCredentials: true,
+        },
+      )
       .then((response) => {
-        const wishListItems = response.result.items
-        setTotalRows(response.result.count)
+        const wishListItems = response.data.data
+        setTotalRows(response.data.totalItems)
         const youTubeIds = []
         const youDescribeIds = []
         const votes = []
@@ -212,7 +224,6 @@ const Wishlist = () => {
           ',',
         )}&key=wishlist`
         ourFetch(url).then((response) => {
-          console.log('YT Response', response)
           parseTableData(
             JSON.parse(response.result),
             votes,
@@ -442,6 +453,10 @@ const Wishlist = () => {
           paginationServer
           paginationTotalRows={totalRows}
           onChangePage={(page) => handlePageChange(page)}
+          onSort={(column, direction) =>
+            loadTableVideos(0, perPage, column.sortField, direction)
+          }
+          sortServer
           onChangeRowsPerPage={(newPerPage) => handlePerRowsChange(newPerPage)}
           customStyles={{
             cells: {
