@@ -108,7 +108,7 @@ const Wishlist = () => {
       sortable: true,
       wrap: true,
       hide: 'md' as Media,
-      sortField: 'lastVoted',
+      sortField: 'updated_at',
     },
     {
       name: 'Votes',
