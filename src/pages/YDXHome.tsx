@@ -915,6 +915,12 @@ const YDXHome = () => {
             currentTime={convertSecondsToCardFormat(currentTime)}
             audioDescriptionId={audioDescriptionId}
             notesData={notesData}
+            handleVideoPause={async () => {
+              const currentState = await currentEvent?.getPlayerState()
+              if (currentState === 1) {
+                handlePlayPause()
+              }
+            }}
           />
         </div>
         <hr className="m-2 ydx-hr" />
