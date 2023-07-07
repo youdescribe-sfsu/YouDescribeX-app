@@ -39,6 +39,7 @@ import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
 import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
+import axios from 'axios'
 
 const Video = () => {
   const { videoId } = useParams()
@@ -1055,16 +1056,25 @@ const Video = () => {
   }
 
   const handleAddDescription = async () => {
+    console.log(userDataStore.getState())
     if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to add a description'))
     } else {
       try {
         const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`
-        const response = await fetch(url, {
-          credentials: 'include',
-          body: JSON.stringify({ youtubeVideoId: videoId }),
-        })
-        const data = await response.json()
+        const response = await axios.post(
+          url,
+          {
+            youtubeVideoId: videoId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        const data = response.data
         console.log(data)
         navigate(`/editor/${data.url}`)
       } catch (error) {
@@ -1238,7 +1248,7 @@ const Video = () => {
                 text={translate('Add description')}
                 ariaLabel="Add a new description for this video"
                 color="w3-indigo w3-block w3-margin-top"
-                // onClick={() => this.handleAddDescription()}
+                onClick={() => handleAddDescription()}
               />
             </div>
           </div>
