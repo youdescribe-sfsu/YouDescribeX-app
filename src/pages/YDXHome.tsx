@@ -18,10 +18,11 @@ import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
 import { Options } from 'youtube-player/dist/types'
 import VideoPlayerControls from '@/shared/components/VideoPlayerControls/VideoPlayerControls'
+import { userDataStore } from '@/App'
 
 const YDXHome = () => {
   /* to use params on the url and get userId & youtubeVideoId */
-  const { userId, youtubeVideoId } = useParams()
+  const { audioDescriptionId, youtubeVideoId } = useParams()
   const participant_id = sessionStorage.getItem('id')
   /* Options for YouTube video API */
   const opts: Options = {
@@ -46,7 +47,7 @@ const YDXHome = () => {
 
   // State Variables
   const [videoId, setVideoId] = useState('') // retrieved from db, stored to fetch audio_descriptions
-  const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
+  // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
   const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
   const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored to display as a label for the dialog timeline
   const [draggableDivWidth, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
@@ -95,7 +96,7 @@ const YDXHome = () => {
     Number.isInteger(storedValueAsNumber) ? storedValueAsNumber : 0,
   )
   const [isActive, setIsActive] = useState(false)
-  const [user, setUser] = useState(sessionStorage.getItem('User'))
+  const [user, setUser] = useState(userDataStore.getState().userId)
 
   const [needRefresh, setNeedRefresh] = useState(false)
   // const [clipDeleted, setClipDeleted] = useState(false);
@@ -178,7 +179,7 @@ const YDXHome = () => {
   }
 
   useEffect(() => {
-    setUser(userId || '')
+    setUser(userDataStore.getState().userId || '')
     setDivWidths({
       divRef1:
         (divRef1.current?.clientWidth ?? 1) / 3 +
@@ -245,8 +246,8 @@ const YDXHome = () => {
 
   useEffect(() => {
     console.log(user)
-    console.log(userId)
-    if (userId !== sessionStorage.getItem('User')) {
+    console.log(userDataStore.getState().userId)
+    if (userDataStore.getState().userId !== sessionStorage.getItem('User')) {
       setSeconds(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -343,11 +344,12 @@ const YDXHome = () => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
     axios
       .get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${videoId}&${userId}`,
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${videoId}&${user}`,
       )
       .then((res) => {
         setShowSpinner(false)
-        setAudioDescriptionId(res.data.ad_id)
+        console.log('Audio Description Data', res.data)
+        // setAudioDescriptionId(res.data.ad_id)
         setIsPublished(res.data.is_published)
         return res.data
       })
@@ -913,7 +915,7 @@ const YDXHome = () => {
           />
           <Notes
             currentTime={convertSecondsToCardFormat(currentTime)}
-            audioDescriptionId={audioDescriptionId}
+            audioDescriptionId={audioDescriptionId || ''}
             notesData={notesData}
             handleVideoPause={async () => {
               const currentState = await currentEvent?.getPlayerState()
@@ -1001,8 +1003,8 @@ const YDXHome = () => {
             <AudioClip
               key={key}
               clip={clip}
-              userId={userId || ''}
-              audioDescriptionId={audioDescriptionId}
+              userId={user || ''}
+              audioDescriptionId={audioDescriptionId || ''}
               youtubeVideoId={youtubeVideoId || ''}
               unitLength={unitLength}
               currentTime={currentTime}
@@ -1024,12 +1026,12 @@ const YDXHome = () => {
         <InsertPublish
           handleClicksFromParent={handleClicksFromParent}
           setHandleClicksFromParent={setHandleClicksFromParent}
-          userId={userId || ''}
+          userId={user || ''}
           setShowSpinner={setShowSpinner}
           youtubeVideoId={youtubeVideoId || ''}
           currentTime={currentTime}
           videoLength={videoLength}
-          audioDescriptionId={audioDescriptionId}
+          audioDescriptionId={audioDescriptionId || ''}
           seconds={seconds}
           reset={reset}
           participantId={participant_id || ''}
