@@ -7,7 +7,7 @@ variables:
 stages:
   - build
   - deploy
- 
+
 cache:
   paths:
     - node_modules/
@@ -23,8 +23,8 @@ build-stage:
       when: always
 
   script:
-    - echo "Building YouDescribe Frontend in staging" 
-    - docker build 
+    - echo "Building YouDescribe Frontend in staging"
+    - docker build
       --build-arg REACT_APP_LOGROCKET_ID=$REACT_APP_LOGROCKET_ID
       --build-arg REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
       --build-arg REACT_APP_REDIRECT_URL=$REACT_APP_REDIRECT_URL
@@ -49,9 +49,9 @@ build-prod:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       when: always
-  
+
   script:
-    - echo "Building YouDescribe Frontend in prod" 
+    - echo "Building YouDescribe Frontend in prod"
     - docker build -t "${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-1.${CI_PIPELINE_ID}" .
     - echo "Build completed"
 
@@ -64,7 +64,7 @@ deploy-stage:
   rules:
     - if: $CI_COMMIT_BRANCH == "dev"
       when: on_success
-    
+
   script:
     - echo "Stopping old YouDescribe Frontend instance"
     - docker stop ${CI_PROJECT_NAME} || true
@@ -83,7 +83,7 @@ deploy-prod:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       when: on_success
-    
+
   script:
     - echo "Stopping old YouDescribe Frontend instance"
     - docker stop ${CI_PROJECT_NAME} || true
