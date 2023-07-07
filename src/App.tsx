@@ -243,7 +243,10 @@ const App = () => {
         }}
       >
         <Routes>
-          <Route path="/editor/:youtubeVideoId/:audioDescriptionId" element={<YDXHome />} />
+          <Route
+            path="/editor/:youtubeVideoId/:audioDescriptionId"
+            element={<YDXHome />}
+          />
           <Route path="/home" element={<Home />} />
           <Route path="/video/:videoId" element={<Video />} />
           <Route path="/wishlist" element={<Wishlist />} />

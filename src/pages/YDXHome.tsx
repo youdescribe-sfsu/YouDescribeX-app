@@ -342,85 +342,95 @@ const YDXHome = () => {
   // use axios to get audio descriptions for the videoId (set in fetchUserVideoData()) & userId passed to the url Params
   const fetchAudioDescriptionData = (isNewClipAdded = false) => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
-    axios
-      .get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${videoId}&${user}`,
-      )
-      .then((res) => {
-        setShowSpinner(false)
-        console.log('Audio Description Data', res.data)
-        // setAudioDescriptionId(res.data.ad_id)
-        setIsPublished(res.data.is_published)
-        return res.data
-      })
-      .then((data) => {
-        console.log('Audio Description Data', data)
-        setShowSpinner(false)
-        // data is nested - so AudioClips data is in res.data.Audio_Clips
-        const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) =>
-          convertClipObject(clip),
+    if (videoId && userDataStore.getState().userId)
+      axios
+        .get(
+          `${
+            process.env.REACT_APP_YDX_BACKEND_URL
+          }/api/audio-descriptions/get-user-ad/${videoId}&${
+            userDataStore.getState().userId
+          }`,
         )
-        // data is nested - so Notes data is in res.data.Notes
-        const notesData = data.Notes[0]
-        // update the audio path for every clip row - the path might change later- TODO: change the server IP
-        const tempArray: { clipId: string; showEditComponent: boolean }[] = []
-        const date = new Date()
-        const ONE_MIN = 1 * 60 * 1000
-        if (audioClipsData.length > 100) {
-          setClipStackSize(10)
-        }
-        audioClipsData.forEach((clip, i) => {
-          // add a sequence number for every audio clip
-          console.log(clip)
-          clip.clip_sequence_number = i + 1
-          clip.clip_audio_path = clip.clip_audio_path.replace(
-            '.',
-            `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
-          )
-
-          // set the showEditComponent of the new clip to true.. compare time
-          if (date.getTime() - new Date(clip.createdAt).getTime() <= ONE_MIN) {
-            // show Edit Component
-            tempArray.push({
-              clipId: clip.clip_id,
-              showEditComponent: true,
-            })
-          } else {
-            // logic to show/hide the edit component and add it to a list along with clip Id
-            // this hides one edit component when the other is opened
-            tempArray.push({
-              clipId: clip.clip_id,
-              showEditComponent: false,
-            })
-          }
+        .then((res) => {
+          setShowSpinner(false)
+          console.log('Audio Description Data', res.data)
+          // setAudioDescriptionId(res.data.ad_id)
+          setIsPublished(res.data.is_published)
+          return res.data
         })
+        .then((data) => {
+          console.log('Audio Description Data', data)
+          setShowSpinner(false)
+          // data is nested - so AudioClips data is in res.data.Audio_Clips
+          const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) =>
+            convertClipObject(clip),
+          )
+          // data is nested - so Notes data is in res.data.Notes
+          const notesData = data.Notes[0]
+          // update the audio path for every clip row - the path might change later- TODO: change the server IP
+          const tempArray: { clipId: string; showEditComponent: boolean }[] = []
+          const date = new Date()
+          const ONE_MIN = 1 * 60 * 1000
+          if (audioClipsData.length > 100) {
+            setClipStackSize(10)
+          }
+          audioClipsData.forEach((clip, i) => {
+            // add a sequence number for every audio clip
+            console.log(clip)
+            clip.clip_sequence_number = i + 1
+            clip.clip_audio_path = clip.clip_audio_path.replace(
+              '.',
+              `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
+            )
 
-        if (editComponentToggleList.length === 0 || isNewClipAdded) {
-          setEditComponentToggleList(tempArray)
-        }
-        setAudioClips([...audioClipsData])
-        console.log(audioClipsData)
-        // console.log("Audio Clips", audioClips);
-        setNotesData(notesData)
-        const maxStackSize =
-          audioClipsData.length > 100 ? 10 : Math.min(audioClipsData.length, 5)
-        const clipStackData = []
-        for (let i = 0; i < maxStackSize; i++) {
-          const clip = audioClipsData[i]
-          clip.clip_audio = new Howl({
-            src: clip.clip_audio_path,
-            html5: true,
+            // set the showEditComponent of the new clip to true.. compare time
+            if (
+              date.getTime() - new Date(clip.createdAt).getTime() <=
+              ONE_MIN
+            ) {
+              // show Edit Component
+              tempArray.push({
+                clipId: clip.clip_id,
+                showEditComponent: true,
+              })
+            } else {
+              // logic to show/hide the edit component and add it to a list along with clip Id
+              // this hides one edit component when the other is opened
+              tempArray.push({
+                clipId: clip.clip_id,
+                showEditComponent: false,
+              })
+            }
           })
-          clipStackData.push(clip)
-        }
-        setClipStack(clipStackData)
-      })
-      .catch((err) => {
-        // console.error(err.response.data);
-        console.error('ERROR in fetchAudioDescriptionData', err)
 
-        setShowSpinner(true)
-      })
+          if (editComponentToggleList.length === 0 || isNewClipAdded) {
+            setEditComponentToggleList(tempArray)
+          }
+          setAudioClips([...audioClipsData])
+          console.log(audioClipsData)
+          // console.log("Audio Clips", audioClips);
+          setNotesData(notesData)
+          const maxStackSize =
+            audioClipsData.length > 100
+              ? 10
+              : Math.min(audioClipsData.length, 5)
+          const clipStackData = []
+          for (let i = 0; i < maxStackSize; i++) {
+            const clip = audioClipsData[i]
+            clip.clip_audio = new Howl({
+              src: clip.clip_audio_path,
+              html5: true,
+            })
+            clipStackData.push(clip)
+          }
+          setClipStack(clipStackData)
+        })
+        .catch((err) => {
+          // console.error(err.response.data);
+          console.error('ERROR in fetchAudioDescriptionData', err)
+
+          setShowSpinner(true)
+        })
   }
 
   // function to update currentime state variable & draggable bar time.
