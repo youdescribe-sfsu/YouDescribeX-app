@@ -863,7 +863,7 @@ const Video = () => {
 
   const handleRatingSubmit = (rating: number) => {
     if (rating === 0) alert('You must select a rating')
-    else if (userDataStore.getState().isSignedIn) {
+    else if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
     } else {
       const url = `${apiUrl}/audiodescriptionsrating/${selectedADId}`
