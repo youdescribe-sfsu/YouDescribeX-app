@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: youdescribe-frontend
+    container_name: youdescribex-frontend
     ports:
       - ${PORT}:${PORT}
     restart: always
@@ -20,3 +20,5 @@ services:
       - REACT_APP_CLASSIC_BACKEND_URL=$REACT_APP_CLASSIC_BACKEND_URL
       - REACT_APP_CLASSIC_BACKEND_URL_VERSION=$REACT_APP_CLASSIC_BACKEND_URL_VERSION
       - PORT=$PORT
+    volumes:
+      - /mnt/ebs:/mnt/ebs

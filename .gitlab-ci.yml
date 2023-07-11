@@ -67,11 +67,10 @@ deploy-stage:
 
   script:
     - echo "Stopping old YouDescribe Frontend instance"
-    - docker stop ${CI_PROJECT_NAME} || true
+    - docker compose down
     - echo "Deleting old YouDescribe Frontend container"
-    - docker rm ${CI_PROJECT_NAME} || true
     - echo "Starting up/Deploying newest YouDescribe Frontend build"
-    - docker run -v /mnt/ebs:/mnt/ebs --name ${CI_PROJECT_NAME} --restart unless-stopped -d -p 0.0.0.0:${PORT}:${PORT} ${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-1.${CI_PIPELINE_ID}
+    - docker compose up -d
     - echo "Finished deploying YouDescribe Frontend build to staging"
 
 deploy-prod:
@@ -86,4 +85,8 @@ deploy-prod:
 
   script:
     - echo "Stopping old YouDescribe Frontend instance"
-    - docker stop ${CI_PROJECT_NAME} || true
+    - docker compose down
+    - echo "Deleting old YouDescribe Frontend container"
+    - echo "Starting up/Deploying newest YouDescribe Frontend build"
+    - docker compose up -d
+    - echo "Finished deploying YouDescribe Frontend build to staging"
