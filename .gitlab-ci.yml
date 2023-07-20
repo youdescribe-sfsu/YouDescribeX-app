@@ -47,7 +47,7 @@ build-prod:
     - prod
 
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == "main"
       when: always
 
   script:
@@ -80,7 +80,7 @@ deploy-prod:
     - prod
 
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == "main"
       when: on_success
 
   script:
