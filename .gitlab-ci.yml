@@ -24,6 +24,9 @@ build-stage:
 
   script:
     - echo "Building YouDescribe Frontend in staging"
+    - echo "PORT $PORT"
+    - echo "REACT_APP_LOGROCKET_ID $REACT_APP_LOGROCKET_ID"
+    - echo "REACT_APP_YDX_BACKEND_URL=$REACT_APP_YDX_BACKEND_URL"
     - docker build
       --build-arg REACT_APP_LOGROCKET_ID=$REACT_APP_LOGROCKET_ID
       --build-arg REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
