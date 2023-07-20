@@ -74,6 +74,10 @@ deploy-stage:
     # - echo "Deleting old YouDescribe Frontend container"
     # - echo "Starting up/Deploying newest YouDescribe Frontend build"
     # - docker compose up -d
+    - docker stop $(docker ps -a -q --filter="name=${CI_PROJECT_NAME}") || true
+    - echo "Deleting old YouDescribe-APP container"
+    # Delete the last YouDescribe-API container if one exists
+    - docker rm $(docker ps -a -q --filter="name=${CI_PROJECT_NAME}") || true
     - docker run -d -p 0.0.0.0:$PORT:$PORT ${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-1.${CI_PIPELINE_ID}
     - echo "Finished deploying YouDescribe Frontend build to staging"
 
