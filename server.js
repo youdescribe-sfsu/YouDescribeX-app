@@ -2,7 +2,7 @@ const express = require('express')
 const path = require('path')
 const httpProxy = require('http-proxy')
 const app = express()
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 3001
 const apiProxy = httpProxy.createProxyServer()
 
 apiProxy.on('error', (err, req, res) => {

@@ -10,6 +10,8 @@ COPY . .
 # Install the application dependencies
 RUN npm install
 
+RUN echo "REACT_APP_LOGROCKET_ID $REACT_APP_LOGROCKET_ID"
+RUN echo "REACT_APP_YDX_BACKEND_URL=$REACT_APP_YDX_BACKEND_URL"
 
 # Build the application
 RUN npm run build
