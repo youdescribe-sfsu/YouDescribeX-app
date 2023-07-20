@@ -38,6 +38,8 @@ import RatingPopup from '@/features/Video/RatingPopup/RatingPopup'
 import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
 import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
+import { toast } from 'react-toastify'
+import axios from 'axios'
 
 const Video = () => {
   const { videoId } = useParams()
@@ -861,7 +863,7 @@ const Video = () => {
 
   const handleRatingSubmit = (rating: number) => {
     if (rating === 0) alert('You must select a rating')
-    else if (userDataStore.getState().isSignedIn) {
+    else if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
     } else {
       const url = `${apiUrl}/audiodescriptionsrating/${selectedADId}`
@@ -1053,6 +1055,35 @@ const Video = () => {
     })
   }
 
+  const handleAddDescription = async () => {
+    console.log(userDataStore.getState())
+    if (!userDataStore.getState().isSignedIn) {
+      alert(translate('You have to be logged in in order to add a description'))
+    } else {
+      try {
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`
+        const response = await axios.post(
+          url,
+          {
+            youtubeVideoId: videoId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        const data = response.data
+        console.log(data)
+        navigate(`/editor/${data.url}`)
+      } catch (error) {
+        console.log(error)
+        toast.error('Something went wrong, please try again later')
+      }
+    }
+  }
+
   return (
     <div id="video-page" className="video-page">
       <main role="main" className="video-page-main" title="Video page">
@@ -1173,7 +1204,7 @@ const Video = () => {
                   ariaLabel="Add a new description for this video"
                   text={translate('Add description')}
                   color="w3-indigo w3-block w3-margin-top"
-                  // onClick={() => this.handleAddDescription()}
+                  onClick={() => handleAddDescription()}
                 />
               </div>
             </div>
@@ -1217,7 +1248,7 @@ const Video = () => {
                 text={translate('Add description')}
                 ariaLabel="Add a new description for this video"
                 color="w3-indigo w3-block w3-margin-top"
-                // onClick={() => this.handleAddDescription()}
+                onClick={() => handleAddDescription()}
               />
             </div>
           </div>

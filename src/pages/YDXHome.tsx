@@ -18,10 +18,11 @@ import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
 import { Options } from 'youtube-player/dist/types'
 import VideoPlayerControls from '@/shared/components/VideoPlayerControls/VideoPlayerControls'
+import { userDataStore } from '@/App'
 
 const YDXHome = () => {
   /* to use params on the url and get userId & youtubeVideoId */
-  const { userId, youtubeVideoId } = useParams()
+  const { audioDescriptionId, youtubeVideoId } = useParams()
   const participant_id = sessionStorage.getItem('id')
   /* Options for YouTube video API */
   const opts: Options = {
@@ -46,7 +47,7 @@ const YDXHome = () => {
 
   // State Variables
   const [videoId, setVideoId] = useState('') // retrieved from db, stored to fetch audio_descriptions
-  const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
+  // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
   const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
   const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored to display as a label for the dialog timeline
   const [draggableDivWidth, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
@@ -95,7 +96,7 @@ const YDXHome = () => {
     Number.isInteger(storedValueAsNumber) ? storedValueAsNumber : 0,
   )
   const [isActive, setIsActive] = useState(false)
-  const [user, setUser] = useState(sessionStorage.getItem('User'))
+  const [user, setUser] = useState(userDataStore.getState().userId)
 
   const [needRefresh, setNeedRefresh] = useState(false)
   // const [clipDeleted, setClipDeleted] = useState(false);
@@ -178,7 +179,7 @@ const YDXHome = () => {
   }
 
   useEffect(() => {
-    setUser(userId || '')
+    setUser(userDataStore.getState().userId || '')
     setDivWidths({
       divRef1:
         (divRef1.current?.clientWidth ?? 1) / 3 +
@@ -245,8 +246,8 @@ const YDXHome = () => {
 
   useEffect(() => {
     console.log(user)
-    console.log(userId)
-    if (userId !== sessionStorage.getItem('User')) {
+    console.log(userDataStore.getState().userId)
+    if (userDataStore.getState().userId !== sessionStorage.getItem('User')) {
       setSeconds(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -341,84 +342,95 @@ const YDXHome = () => {
   // use axios to get audio descriptions for the videoId (set in fetchUserVideoData()) & userId passed to the url Params
   const fetchAudioDescriptionData = (isNewClipAdded = false) => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
-    axios
-      .get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${videoId}&${userId}`,
-      )
-      .then((res) => {
-        setShowSpinner(false)
-        setAudioDescriptionId(res.data.ad_id)
-        setIsPublished(res.data.is_published)
-        return res.data
-      })
-      .then((data) => {
-        console.log('Audio Description Data', data)
-        setShowSpinner(false)
-        // data is nested - so AudioClips data is in res.data.Audio_Clips
-        const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) =>
-          convertClipObject(clip),
+    if (videoId && userDataStore.getState().userId)
+      axios
+        .get(
+          `${
+            process.env.REACT_APP_YDX_BACKEND_URL
+          }/api/audio-descriptions/get-user-ad/${videoId}&${
+            userDataStore.getState().userId
+          }`,
         )
-        // data is nested - so Notes data is in res.data.Notes
-        const notesData = data.Notes[0]
-        // update the audio path for every clip row - the path might change later- TODO: change the server IP
-        const tempArray: { clipId: string; showEditComponent: boolean }[] = []
-        const date = new Date()
-        const ONE_MIN = 1 * 60 * 1000
-        if (audioClipsData.length > 100) {
-          setClipStackSize(10)
-        }
-        audioClipsData.forEach((clip, i) => {
-          // add a sequence number for every audio clip
-          console.log(clip)
-          clip.clip_sequence_number = i + 1
-          clip.clip_audio_path = clip.clip_audio_path.replace(
-            '.',
-            `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
-          )
-
-          // set the showEditComponent of the new clip to true.. compare time
-          if (date.getTime() - new Date(clip.createdAt).getTime() <= ONE_MIN) {
-            // show Edit Component
-            tempArray.push({
-              clipId: clip.clip_id,
-              showEditComponent: true,
-            })
-          } else {
-            // logic to show/hide the edit component and add it to a list along with clip Id
-            // this hides one edit component when the other is opened
-            tempArray.push({
-              clipId: clip.clip_id,
-              showEditComponent: false,
-            })
-          }
+        .then((res) => {
+          setShowSpinner(false)
+          console.log('Audio Description Data', res.data)
+          // setAudioDescriptionId(res.data.ad_id)
+          setIsPublished(res.data.is_published)
+          return res.data
         })
+        .then((data) => {
+          console.log('Audio Description Data', data)
+          setShowSpinner(false)
+          // data is nested - so AudioClips data is in res.data.Audio_Clips
+          const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) =>
+            convertClipObject(clip),
+          )
+          // data is nested - so Notes data is in res.data.Notes
+          const notesData = data.Notes[0]
+          // update the audio path for every clip row - the path might change later- TODO: change the server IP
+          const tempArray: { clipId: string; showEditComponent: boolean }[] = []
+          const date = new Date()
+          const ONE_MIN = 1 * 60 * 1000
+          if (audioClipsData.length > 100) {
+            setClipStackSize(10)
+          }
+          audioClipsData.forEach((clip, i) => {
+            // add a sequence number for every audio clip
+            console.log(clip)
+            clip.clip_sequence_number = i + 1
+            clip.clip_audio_path = clip.clip_audio_path.replace(
+              '.',
+              `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
+            )
 
-        if (editComponentToggleList.length === 0 || isNewClipAdded) {
-          setEditComponentToggleList(tempArray)
-        }
-        setAudioClips([...audioClipsData])
-        console.log(audioClipsData)
-        // console.log("Audio Clips", audioClips);
-        setNotesData(notesData)
-        const maxStackSize =
-          audioClipsData.length > 100 ? 10 : Math.min(audioClipsData.length, 5)
-        const clipStackData = []
-        for (let i = 0; i < maxStackSize; i++) {
-          const clip = audioClipsData[i]
-          clip.clip_audio = new Howl({
-            src: clip.clip_audio_path,
-            html5: true,
+            // set the showEditComponent of the new clip to true.. compare time
+            if (
+              date.getTime() - new Date(clip.createdAt).getTime() <=
+              ONE_MIN
+            ) {
+              // show Edit Component
+              tempArray.push({
+                clipId: clip.clip_id,
+                showEditComponent: true,
+              })
+            } else {
+              // logic to show/hide the edit component and add it to a list along with clip Id
+              // this hides one edit component when the other is opened
+              tempArray.push({
+                clipId: clip.clip_id,
+                showEditComponent: false,
+              })
+            }
           })
-          clipStackData.push(clip)
-        }
-        setClipStack(clipStackData)
-      })
-      .catch((err) => {
-        // console.error(err.response.data);
-        console.error('ERROR in fetchAudioDescriptionData', err)
 
-        setShowSpinner(true)
-      })
+          if (editComponentToggleList.length === 0 || isNewClipAdded) {
+            setEditComponentToggleList(tempArray)
+          }
+          setAudioClips([...audioClipsData])
+          console.log(audioClipsData)
+          // console.log("Audio Clips", audioClips);
+          setNotesData(notesData)
+          const maxStackSize =
+            audioClipsData.length > 100
+              ? 10
+              : Math.min(audioClipsData.length, 5)
+          const clipStackData = []
+          for (let i = 0; i < maxStackSize; i++) {
+            const clip = audioClipsData[i]
+            clip.clip_audio = new Howl({
+              src: clip.clip_audio_path,
+              html5: true,
+            })
+            clipStackData.push(clip)
+          }
+          setClipStack(clipStackData)
+        })
+        .catch((err) => {
+          // console.error(err.response.data);
+          console.error('ERROR in fetchAudioDescriptionData', err)
+
+          setShowSpinner(true)
+        })
   }
 
   // function to update currentime state variable & draggable bar time.
@@ -913,8 +925,14 @@ const YDXHome = () => {
           />
           <Notes
             currentTime={convertSecondsToCardFormat(currentTime)}
-            audioDescriptionId={audioDescriptionId}
+            audioDescriptionId={audioDescriptionId || ''}
             notesData={notesData}
+            handleVideoPause={async () => {
+              const currentState = await currentEvent?.getPlayerState()
+              if (currentState === 1) {
+                handlePlayPause()
+              }
+            }}
           />
         </div>
         <hr className="m-2 ydx-hr" />
@@ -995,8 +1013,8 @@ const YDXHome = () => {
             <AudioClip
               key={key}
               clip={clip}
-              userId={userId || ''}
-              audioDescriptionId={audioDescriptionId}
+              userId={user || ''}
+              audioDescriptionId={audioDescriptionId || ''}
               youtubeVideoId={youtubeVideoId || ''}
               unitLength={unitLength}
               currentTime={currentTime}
@@ -1018,12 +1036,12 @@ const YDXHome = () => {
         <InsertPublish
           handleClicksFromParent={handleClicksFromParent}
           setHandleClicksFromParent={setHandleClicksFromParent}
-          userId={userId || ''}
+          userId={user || ''}
           setShowSpinner={setShowSpinner}
           youtubeVideoId={youtubeVideoId || ''}
           currentTime={currentTime}
           videoLength={videoLength}
-          audioDescriptionId={audioDescriptionId}
+          audioDescriptionId={audioDescriptionId || ''}
           seconds={seconds}
           reset={reset}
           participantId={participant_id || ''}

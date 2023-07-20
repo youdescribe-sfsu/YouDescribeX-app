@@ -83,17 +83,13 @@ const Wishlist = () => {
       name: 'Title',
       selector: (row) => row.title,
       grow: 2,
-      sortable: true,
       wrap: true,
-      sortFunction: caseInsensitiveSort,
     },
     {
       name: 'Author',
       selector: (row) => row.author,
       grow: 1,
-      sortable: true,
       wrap: true,
-      sortFunction: caseInsensitiveSort,
     },
     {
       name: 'Category',
@@ -103,6 +99,7 @@ const Wishlist = () => {
       wrap: true,
       hide: 'sm' as Media,
       sortFunction: caseInsensitiveSort,
+      sortField: 'category',
     },
     {
       name: 'Recent Request',
@@ -111,12 +108,14 @@ const Wishlist = () => {
       sortable: true,
       wrap: true,
       hide: 'md' as Media,
+      sortField: 'updated_at',
     },
     {
       name: 'Votes',
       selector: (row) => row.votes,
       grow: 0,
       sortable: true,
+      sortField: 'votes',
     },
     {
       cell: (row) => (
@@ -176,18 +175,31 @@ const Wishlist = () => {
       - search: The search string to be passed (joined with the %20 separator)
       - category: The list of categories that the search should be filtered by. Each category is comma separated and joined with the %20 separator.
   */
-  const loadTableVideos = (pageNumber: number, rowsPerPage: number) => {
-    const searchString = search.split(' ').join('%20')
-    const categoryString = selectedCategories
-      .map((category) => category.replace('&', '%26').split(' ').join('%20'))
-      .join(',')
-    const url = `${apiUrl}/wishlist/search?page=${pageNumber}&per_page=${rowsPerPage}${
-      search !== '' ? `&search=${searchString}` : ''
-    }${categoryString !== '' ? `&category=${categoryString}` : ''}`
-    ourFetch(url)
+  const loadTableVideos = (
+    pageNumber: number,
+    rowsPerPage: number,
+    column = '',
+    sortDirection = '',
+  ) => {
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-all-wishlist`
+    axios
+      .post(
+        url,
+        {
+          page: pageNumber,
+          limit: rowsPerPage,
+          search: search,
+          category: selectedCategories,
+          sortField: column,
+          sort: sortDirection,
+        },
+        {
+          withCredentials: true,
+        },
+      )
       .then((response) => {
-        const wishListItems = response.result.items
-        setTotalRows(response.result.count)
+        const wishListItems = response.data.data
+        setTotalRows(response.data.totalItems)
         const youTubeIds = []
         const youDescribeIds = []
         const votes = []
@@ -221,6 +233,7 @@ const Wishlist = () => {
         })
       })
       .catch((err) => {
+        console.log(err)
         setTotalRows(0)
         setRows([])
       })
@@ -233,6 +246,7 @@ const Wishlist = () => {
     updatedAt: any,
   ) => {
     const rows = []
+    console.log('YT Response', youTubeResponse)
     for (let i = 0; i < youTubeResponse.items.length; i += 1) {
       const item = youTubeResponse.items[i]
       if (!item.statistics || !item.snippet) {
@@ -273,6 +287,7 @@ const Wishlist = () => {
       })
     }
     setRows(rows)
+    console.log(rows)
   }
 
   const loadTopVideos = () => {
@@ -381,44 +396,53 @@ const Wishlist = () => {
         </h2>
       </div>
       {showSpinner ? <Spinner /> : null}
-      <div className="w3-row-padding classic-container w3-margin-top">
-        Most Requested Videos
+      <div className="w3-row-padding classic-container w3-margin-top most-requested-title">
+        Top 5 Most Requested Videos
       </div>
       <div className="w3-row-padding classic-container wishlist-video-row">
         {videoCardsComponents}
       </div>
-      <div className="w3-row-padding classic-container search-container">
-        <span className="search-label">Wishlist Search</span>
-        <input
-          type="text"
-          placeholder="Search Wishlist"
-          className="search-input"
-          value={search}
-          onChange={handleChange}
-        />
-        <span className="category-label">Category</span>
-        <div className="category-select">
-          <Select
-            options={allCategories.map((category) => {
-              const option = { value: category, label: category }
-              if (category === 'How-To & Style') {
-                option.value = 'Howto & Style'
-              }
-              return option
-            })}
-            isMulti
-            onChange={handleCategoryChange}
+      <form
+        onSubmit={(e: any) => {
+          e.preventDefault()
+          loadTableVideos(0, perPage)
+        }}
+      >
+        <div className="w3-row-padding classic-container search-container">
+          <span className="category-label">Category</span>
+          <div className="category-select">
+            <Select
+              options={allCategories.map((category) => {
+                const option = { value: category, label: category }
+                if (category === 'How-To & Style') {
+                  option.value = 'Howto & Style'
+                }
+                return option
+              })}
+              placeholder="All"
+              isMulti
+              onChange={handleCategoryChange}
+            />
+          </div>
+          <span className="search-label">Wishlist Search</span>
+          <input
+            type="text"
+            placeholder="Search Wishlist"
+            className="search-input"
+            value={search}
+            onChange={handleChange}
           />
         </div>
-      </div>
-      <div className="search-button-container">
-        <button
-          className="w3-btn w3-indigo search-button"
-          onClick={() => loadTableVideos(0, perPage)}
-        >
-          Search
-        </button>
-      </div>
+        <div className="search-button-container">
+          <button
+            className="w3-btn w3-indigo search-button"
+            onClick={() => loadTableVideos(0, perPage)}
+            type="submit"
+          >
+            Search
+          </button>
+        </div>
+      </form>
       <div className="table-container">
         <DataTable
           title="All Wishlist Videos"
@@ -429,6 +453,10 @@ const Wishlist = () => {
           paginationServer
           paginationTotalRows={totalRows}
           onChangePage={(page) => handlePageChange(page)}
+          onSort={(column, direction) =>
+            loadTableVideos(0, perPage, column.sortField, direction)
+          }
+          sortServer
           onChangeRowsPerPage={(newPerPage) => handlePerRowsChange(newPerPage)}
           customStyles={{
             cells: {

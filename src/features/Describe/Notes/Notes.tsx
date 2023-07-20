@@ -9,9 +9,15 @@ interface Props {
   currentTime: string
   audioDescriptionId: string
   notesData: any
+  handleVideoPause: () => void
 }
 
-const Notes = ({ currentTime, audioDescriptionId, notesData }: Props) => {
+const Notes = ({
+  currentTime,
+  audioDescriptionId,
+  notesData,
+  handleVideoPause,
+}: Props) => {
   // React State Variables
   const [noteValue, setNoteValue] = useState('') // to store Notes text
   const [noteId, setNoteId] = useState('') // to store Note Id - for POST requests later
@@ -40,6 +46,7 @@ const Notes = ({ currentTime, audioDescriptionId, notesData }: Props) => {
 
   const handleNoteChange = (e: any) => {
     let updatedNoteValue = ''
+    handleVideoPause()
     if (noteValue === '') {
       // insert current time if all notes is cleared and didn't lose focus
       updatedNoteValue = currentTime + ' - ' + e.target.value
