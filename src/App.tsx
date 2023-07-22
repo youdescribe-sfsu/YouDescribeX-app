@@ -32,6 +32,25 @@ import { detect } from 'detect-browser'
 import Credits from './pages/Credits/Credits'
 import CreditsDetails from './pages/CreditsDetails/CreditsDetails'
 import UserDescribedVideos from './pages/UserDescribedVideos/UserDescribedVideos'
+import ReactGA from 'react-ga'
+import ReactGA4 from 'react-ga4'
+import { createBrowserHistory } from 'history'
+
+const history = createBrowserHistory()
+//const trackingId = "UA-171142756-3"; //live site key
+const trackingIdUA = 'UA-174046676-1' //dev key
+const trackingIdGA = 'G-TZJSBYYKYP' // GA4 key
+ReactGA.initialize(trackingIdUA)
+ReactGA4.initialize(trackingIdGA)
+
+history.listen((location) => {
+  ReactGA.set({ page: location.location.pathname }) // Update the user's current page
+  ReactGA.pageview(location.location.pathname) // Record a pageview for the given page
+
+  // Google Analytics 4
+  ReactGA4.set({ page: location.location.pathname }) // Update the user's current page
+  ReactGA4.send(location.location.pathname) // Record a pageview for the given page
+})
 
 const polyglot = new Polyglot({
   locale: getLanguage(),
