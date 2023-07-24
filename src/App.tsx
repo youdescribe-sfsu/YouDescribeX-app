@@ -39,7 +39,7 @@ import { createBrowserHistory } from 'history'
 const history = createBrowserHistory()
 //const trackingId = "UA-171142756-3"; //live site key
 const trackingIdUA = 'UA-174046676-1' //dev key
-const trackingIdGA = 'G-TZJSBYYKYP' // GA4 key
+const trackingIdGA = 'G-46Y1989R9T' // GA4 key
 ReactGA.initialize(trackingIdUA)
 ReactGA4.initialize(trackingIdGA)
 
