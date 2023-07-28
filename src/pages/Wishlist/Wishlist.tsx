@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom'
 import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
 import { Dropdown } from 'react-bootstrap'
+import encryptData from '@/shared/utils/encrypt'
 
 const allCategories = [
   'Film & Animation',
@@ -295,9 +296,14 @@ const Wishlist = () => {
     axios
       .get(url, {
         withCredentials: true,
+        headers: {
+          user_creds: encryptData(userDataStore().userId),
+        },
       })
       .then((response) => {
-        const wishListItems = response.data.results
+        console.log('response')
+        console.log(response)
+        const wishListItems = response.data.result
         const topYouTubeIds = []
         const topYouDescribeIds = []
         const topVotes = []
