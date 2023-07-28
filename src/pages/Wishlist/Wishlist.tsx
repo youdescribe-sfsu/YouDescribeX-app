@@ -292,9 +292,11 @@ const Wishlist = () => {
 
   const loadTopVideos = () => {
     const url = `${apiUrl}/wishlist/top/`
-    ourFetch(url)
+    axios.get(url,{
+      withCredentials:true
+    })
       .then((response) => {
-        const wishListItems = response.result
+        const wishListItems = response.data.results
         const topYouTubeIds = []
         const topYouDescribeIds = []
         const topVotes = []
