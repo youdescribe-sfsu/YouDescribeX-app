@@ -293,11 +293,12 @@ const Wishlist = () => {
 
   const loadTopVideos = () => {
     const url = `${apiUrl}/wishlist/top/`
+    console.log(userDataStore.getState())
     axios
       .get(url, {
         withCredentials: true,
         headers: {
-          user_creds: encryptData(userDataStore().userId),
+          user_creds: encryptData(userDataStore.getState().userId),
         },
       })
       .then((response) => {

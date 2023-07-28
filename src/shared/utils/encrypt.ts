@@ -1,9 +1,12 @@
 import CryptoJS from 'crypto-js'
 
-const encryptData = (userDataString: string) =>
-  CryptoJS.AES.encrypt(
-    userDataString,
-    '8c628449c5102aeabd49b5dc3a2a516ea6',
+const encryptData = (userDataString: string) => {
+  const encryptedData: string = CryptoJS.AES.encrypt(
+    'userDataString',
+    '050cf42ee14d597188b0695a94df5e866d7eda5d06af32ff3ac329ddbcf7ca8a',
   ).toString()
+  console.log('encryptedData::', encryptedData)
+  return encryptedData
+}
 
 export default encryptData
