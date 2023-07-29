@@ -298,7 +298,7 @@ const Wishlist = () => {
       .get(url, {
         withCredentials: true,
         headers: {
-          user_creds: encryptData(userDataStore.getState().userId),
+          authorization: encryptData(userDataStore.getState().userId),
         },
       })
       .then((response) => {
