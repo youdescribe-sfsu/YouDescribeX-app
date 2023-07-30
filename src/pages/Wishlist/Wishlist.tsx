@@ -303,19 +303,24 @@ const Wishlist = () => {
       })
       .then((response) => {
         console.log('response')
-        console.log(response)
+        console.log(response.data.result)
         const wishListItems = response.data.result
         const topYouTubeIds = []
         const topYouDescribeIds = []
         const topVotes = []
+        const votedArr = []
         for (let i = 0; i < wishListItems.length; i += 1) {
           topYouTubeIds.push(wishListItems[i].youtube_id)
           topYouDescribeIds.push(wishListItems[i]._id)
           topVotes.push(wishListItems[i].votes)
+          votedArr.push({
+            id: wishListItems[i]._id,
+            voted: wishListItems[i].voted,
+          })
         }
-        return { topYouTubeIds, topYouDescribeIds, topVotes }
+        return { topYouTubeIds, topYouDescribeIds, topVotes, votedArr }
       })
-      .then(({ topYouTubeIds, topYouDescribeIds, topVotes }) => {
+      .then(({ topYouTubeIds, topYouDescribeIds, topVotes, votedArr }) => {
         const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
           ',',
         )}&key=wishlist`
@@ -325,6 +330,7 @@ const Wishlist = () => {
             topYouDescribeIds,
             topYouTubeIds,
             topVotes,
+            votedArr,
           )
         })
       })
@@ -335,6 +341,7 @@ const Wishlist = () => {
     topYouDescribeIds: any,
     topYouTubeIds: any,
     topVotes: any,
+    votedArr: any,
   ) => {
     const videoCardsComponents = []
     for (let i = 0; i < youTubeResponse.items.length; i += 1) {
@@ -355,6 +362,9 @@ const Wishlist = () => {
       const time = convertTimeToCardFormat(
         Number(now - publishedAt.getMilliseconds()),
       )
+      console.log('votes', item)
+      const voted = votedArr[i].voted
+      console.log('voteds', votedArr[i])
 
       videoCardsComponents.push(
         <div className="wishlist-video-card" key={_id}>
@@ -368,6 +378,7 @@ const Wishlist = () => {
             time={time}
             votes={votes}
             buttons="upvote-describe"
+            voted={voted}
             //   getAppState={this.props.getAppState}
           />
         </div>,

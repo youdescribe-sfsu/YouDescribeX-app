@@ -2158,3 +2158,6 @@ input[type='radio'].w3-radio:disabled + .w3-validate {
   top: 30px;
   padding-bottom: 50px;
 }
+.heart-selected {
+  color: red !important; /* Change the color to the desired color when the icon is selected */
+}

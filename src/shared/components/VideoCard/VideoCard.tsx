@@ -18,6 +18,7 @@ interface Props {
   duration?: string
   views?: string
   time: string
+  voted?: boolean
 }
 
 const VideoCard = ({
@@ -32,6 +33,7 @@ const VideoCard = ({
   duration,
   views,
   time,
+  voted = false,
 }: Props) => {
   const navigate = useNavigate()
 
@@ -39,6 +41,10 @@ const VideoCard = ({
     if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
     } else {
+      if (voted) {
+        alert(translate('It is not possible to vote again for this video.'))
+        return
+      }
       e.currentTarget.className =
         'w3-btn w3-white w3-text-indigo w3-left w3-text-red'
       const url = `${apiUrl}/wishlist`
@@ -126,10 +132,13 @@ const VideoCard = ({
       <div>
         <Button
           ariaLabel={translate('Request an audio description for this video')}
-          text={<i className="fa fa-heart" />}
+          // text={<i className="fa fa-heart" />}
           classNames="card-button"
-          color="w3-white w3-text-indigo w3-left"
+          color={'w3-white w3-text-indigo w3-left'}
           onClick={upVote}
+          text={
+            <i className={`fa fa-heart ${voted ? 'heart-selected' : ''}`} />
+          } // Conditional class name based on isSelected
         />
         {/* <span id="vote-count">
           <div>{votes}</div>
