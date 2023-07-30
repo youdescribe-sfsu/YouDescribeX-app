@@ -166,7 +166,7 @@ const Wishlist = () => {
     document.title = translate('YouDescribe - Wish List')
     loadTableVideos(currentPageNumber, perPage)
     loadTopVideos()
-  }, [])
+  }, [userDataStore])
 
   /*
     Loads data for the table using the /wishlist/search endpoint
