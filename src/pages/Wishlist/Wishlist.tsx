@@ -8,7 +8,13 @@ import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import getTimeZoneOffset from '@/shared/utils/getTimeZoneOffset'
 import ourFetch from '@/shared/utils/ourFetch'
-import React, { ChangeEvent, ReactNode, useEffect, useState } from 'react'
+import React, {
+  ChangeEvent,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import DataTable, { Media, TableColumn } from 'react-data-table-component'
 import { useNavigate } from 'react-router-dom'
 import Select, { MultiValue } from 'react-select'
@@ -52,8 +58,7 @@ const Wishlist = () => {
   )
   const [showSpinner, setShowSpinner] = useState(true)
 
-  let cancelRequest: CancelTokenSource | null = null
-  const source = axios.CancelToken.source()
+  const cancelRequest = useRef<CancelTokenSource | null>(null)
 
   const caseInsensitiveSort = (rowA: any, rowB: any) => {
     const a = rowA.title.toLowerCase()
@@ -297,17 +302,17 @@ const Wishlist = () => {
   const loadTopVideos = () => {
     const url = `${apiUrl}/wishlist/top/`
     // console.log(userDataStore.getState())
-    if (cancelRequest) {
-      cancelRequest.cancel()
+    if (cancelRequest.current) {
+      cancelRequest.current.cancel()
     }
-    cancelRequest = axios.CancelToken.source()
+    cancelRequest.current = axios.CancelToken.source()
     axios
       .get(url, {
         withCredentials: true,
         headers: {
           authorization: encryptData(userDataStore.getState().userId),
         },
-        cancelToken: cancelRequest.token,
+        cancelToken: cancelRequest.current.token,
       })
       .then((response) => {
         // console.log('response')
