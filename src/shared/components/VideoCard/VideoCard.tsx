@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Button from '../Button/Button'
 import { translate, userDataStore } from '@/App'
 import './VideoCard.css'
+import React from 'react'
 
 interface Props {
   youTubeId: string
@@ -18,7 +19,7 @@ interface Props {
   duration?: string
   views?: string
   time: string
-  voted?: boolean
+  userVote?: boolean
 }
 
 const VideoCard = ({
@@ -33,20 +34,51 @@ const VideoCard = ({
   duration,
   views,
   time,
-  voted = false,
+  userVote = false,
 }: Props) => {
   const navigate = useNavigate()
+  const [voted, setVoted] = React.useState(userVote)
 
   const upVote = (e: any) => {
     if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
     } else {
       if (voted) {
-        alert(translate('It is not possible to vote again for this video.'))
+        const url = `${apiUrl}/wishlist/removeone`
+        ourFetch(url, true, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            youTubeId: youTubeId,
+            userId: userDataStore.getState().userId,
+            userToken: userDataStore.getState().userToken,
+          }),
+        })
+          .then((res) => {
+            setVoted(false)
+            console.log('Succes remove', res)
+          })
+          .catch((err) => {
+            switch (err.code) {
+              case 67:
+                alert(
+                  translate('It is not possible to vote again for this video.'),
+                )
+                break
+              default:
+                alert(
+                  translate(
+                    'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
+                  ),
+                )
+            }
+          })
         return
       }
-      e.currentTarget.className =
-        'w3-btn w3-white w3-text-indigo w3-left w3-text-red'
+      // e.currentTarget.className =
+      //   'w3-btn w3-white w3-text-indigo w3-left w3-text-red'
       const url = `${apiUrl}/wishlist`
       ourFetch(url, true, {
         method: 'POST',
@@ -60,6 +92,7 @@ const VideoCard = ({
         }),
       })
         .then((res) => {
+          setVoted(true)
           console.log('Success upVote', res)
         })
         .catch((err) => {

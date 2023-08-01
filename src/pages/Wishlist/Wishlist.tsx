@@ -378,7 +378,7 @@ const Wishlist = () => {
             time={time}
             votes={votes}
             buttons="upvote-describe"
-            voted={voted}
+            userVote={voted}
             //   getAppState={this.props.getAppState}
           />
         </div>,

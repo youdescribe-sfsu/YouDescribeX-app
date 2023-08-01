@@ -10,7 +10,7 @@ const ourFetch = (
   url: string,
   JSONparsing = true,
   optionObj: {
-    method: 'GET' | 'POST' | 'DELETE ' | 'PUT'
+    method: 'GET' | 'POST' | 'DELETE' | 'PUT'
     headers?: { [key: string]: string }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body?: any
