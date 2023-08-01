@@ -3,7 +3,7 @@ import Button from '@/shared/components/Button/Button'
 import Spinner from '@/shared/components/Spinner/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import { apiUrl } from '@/shared/config'
-import axios from 'axios'
+import axios, { CancelTokenSource } from 'axios'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import getTimeZoneOffset from '@/shared/utils/getTimeZoneOffset'
@@ -51,6 +51,9 @@ const Wishlist = () => {
     [],
   )
   const [showSpinner, setShowSpinner] = useState(true)
+
+  let cancelRequest: CancelTokenSource | null = null
+  const source = axios.CancelToken.source()
 
   const caseInsensitiveSort = (rowA: any, rowB: any) => {
     const a = rowA.title.toLowerCase()
@@ -293,17 +296,22 @@ const Wishlist = () => {
 
   const loadTopVideos = () => {
     const url = `${apiUrl}/wishlist/top/`
-    console.log(userDataStore.getState())
+    // console.log(userDataStore.getState())
+    if (cancelRequest) {
+      cancelRequest.cancel()
+    }
+    cancelRequest = axios.CancelToken.source()
     axios
       .get(url, {
         withCredentials: true,
         headers: {
           authorization: encryptData(userDataStore.getState().userId),
         },
+        cancelToken: cancelRequest.token,
       })
       .then((response) => {
-        console.log('response')
-        console.log(response.data.result)
+        // console.log('response')
+        // console.log(response.data.result)
         const wishListItems = response.data.result
         const topYouTubeIds = []
         const topYouDescribeIds = []
