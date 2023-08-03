@@ -1084,6 +1084,31 @@ const Video = () => {
     }
   }
 
+  const handleGenerateAIDescriptions = async () => {
+    if (!userDataStore.getState().isSignedIn) {
+      alert(
+        translate(
+          'You have to be logged in in order to ask for AI Descriptions',
+        ),
+      )
+    }
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-ai-description`
+    const response = await axios.post(
+      url,
+      {
+        youtube_id: videoId,
+      },
+      {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+    const data = response.data
+    console.log('data, :: ', data)
+  }
+
   return (
     <div id="video-page" className="video-page">
       <main role="main" className="video-page-main" title="Video page">
@@ -1205,6 +1230,13 @@ const Video = () => {
                   text={translate('Add description')}
                   color="w3-indigo w3-block w3-margin-top"
                   onClick={() => handleAddDescription()}
+                />
+                <Button
+                  title={translate('Generate AI Descriptions')}
+                  ariaLabel="Generate AI Descriptions"
+                  text={translate('Generate AI Descriptions')}
+                  color="w3-indigo w3-block w3-margin-top"
+                  onClick={() => handleGenerateAIDescriptions()}
                 />
               </div>
             </div>
