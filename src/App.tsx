@@ -160,21 +160,49 @@ const App = () => {
       } else {
         url = `${apiUrl}/auth/login/success`
       }
-      console.log(url)
-      const response = await fetch(url, { credentials: 'include' })
-      const data = await response.json()
-      setUserName(data.result.name)
-      setUserId(data.result._id)
-      setUserToken(data.result.token)
-      setUserPicture(data.result.picture)
-      setUserAdmin(data.result.admin)
-      setSignedIn(true)
-      setCookie(
-        data.result._id,
-        data.result.token,
-        data.result.name,
-        data.result.picture,
-      )
+      if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+        url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google/localhost`
+        console.log('url: ', url)
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Authorization: ``, // Custom header with the user ID
+          },
+          credentials: 'include',
+        })
+        const data = await response.json()
+        console.log('data: ', data)
+        setUserName(data.result.name)
+        setUserId(data.result._id)
+        setUserToken(data.result.token)
+        setUserPicture(data.result.picture)
+        setUserAdmin(data.result.admin)
+        setSignedIn(true)
+        setCookie(
+          data.result._id,
+          data.result.token,
+          data.result.name,
+          data.result.picture,
+        )
+      } else {
+        console.log('url: ', url)
+        const response = await fetch(url, {
+          credentials: 'include',
+        })
+        const data = await response.json()
+        setUserName(data.result.name)
+        setUserId(data.result._id)
+        setUserToken(data.result.token)
+        setUserPicture(data.result.picture)
+        setUserAdmin(data.result.admin)
+        setSignedIn(true)
+        setCookie(
+          data.result._id,
+          data.result.token,
+          data.result.name,
+          data.result.picture,
+        )
+      }
     } catch (error) {
       console.log(error)
     }
