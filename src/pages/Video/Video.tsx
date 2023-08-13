@@ -881,7 +881,6 @@ const Video = () => {
       })
         .then((res) => {
           // if (rating === 5) {
-
           // alert(`You have successfully given this description a rating of ${rating}`);
           const ratingPopup = document.getElementById('rating-popup')
           const ratingSuccess = document.getElementById('rating-success')
