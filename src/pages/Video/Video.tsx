@@ -149,7 +149,6 @@ const Video = () => {
   useEffect(() => {
     currentEventRef.current = currentEvent
     currentEventRef.current?.setVolume(youTubeVolume)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEvent])
 
   useEffect(() => {
@@ -862,6 +861,7 @@ const Video = () => {
   }
 
   const handleRatingSubmit = (rating: number) => {
+    console.log('test*** ' + rating)
     if (rating === 0) alert('You must select a rating')
     else if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
@@ -880,25 +880,28 @@ const Video = () => {
         }),
       })
         .then((res) => {
-          if (rating === 5) {
-            // alert(`You have successfully given this description a rating of ${rating}`);
-            const ratingPopup = document.getElementById('rating-popup')
-            const ratingSuccess = document.getElementById('rating-success')
-            if (ratingPopup) {
-              ratingPopup.style.display = 'none'
-            }
-            if (ratingSuccess) {
-              ratingSuccess.style.display = 'block'
-              ratingSuccess.focus()
-              setTimeout(() => (ratingSuccess.style.display = 'none'), 1000)
-            }
+          // if (rating === 5) {
 
-            /* start of email */
-            sendOptInEmail(2, rating, [])
-            /* end of email */
-          } else {
-            // this.handleFeedbackPopup();
+          // alert(`You have successfully given this description a rating of ${rating}`);
+          const ratingPopup = document.getElementById('rating-popup')
+          const ratingSuccess = document.getElementById('rating-success')
+          if (ratingPopup) {
+            ratingPopup.style.display = 'none'
           }
+          if (ratingSuccess) {
+            ratingSuccess.style.display = 'block'
+            ratingSuccess.focus()
+            setTimeout(() => (ratingSuccess.style.display = 'none'), 1000)
+          }
+
+          /* start of email */
+          sendOptInEmail(2, rating, [])
+          /* end of email */
+
+          // }
+          // else {
+          //   // this.handleFeedbackPopup();
+          // }
           const describers = { ...audioDescriptionsIdsUsers }
           const selectedId = selectedADId
 
