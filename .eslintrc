@@ -24,7 +24,8 @@
       "error",
       { "extensions": [".ts", ".tsx"] }
     ],
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
+    "@typescript-eslint/no-explicit-any": "off" // Allow the use of 'any'
   },
   "settings": {
     "react": {

@@ -1,12 +1,10 @@
-import React, { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import path from 'path-browserify'
-import './Navbar.css'
-import clsx from 'clsx'
-import SignInButton from './SignInButton/SignInButton'
 import { translate, userDataStore } from '@/App'
-import UserAvatar from './UserAvatar/UserAvatar'
+import path from 'path-browserify'
+import { Link, useLocation } from 'react-router-dom'
+import './Navbar.css'
 import SearchBar from './SearchBar/SearchBar'
+import SignInButton from './SignInButton/SignInButton'
+import UserAvatar from './UserAvatar/UserAvatar'
 
 interface Props {
   newGoogleAuth: () => void
