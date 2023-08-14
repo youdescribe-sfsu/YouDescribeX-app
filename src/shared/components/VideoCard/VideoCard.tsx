@@ -23,7 +23,7 @@ interface Props {
 }
 
 const VideoCard = ({
-  description,
+  // description,
   audioDescriptionId,
   youTubeId,
   buttons,
@@ -32,14 +32,14 @@ const VideoCard = ({
   thumbnailMediumUrl,
   author,
   duration,
-  views,
-  time,
+  // views,
+  // time,
   userVote = false,
 }: Props) => {
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
 
-  const upVote = (e: any) => {
+  const upVote = (_e: any) => {
     if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
     } else {
