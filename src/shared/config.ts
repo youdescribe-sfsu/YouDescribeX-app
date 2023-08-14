@@ -6,6 +6,7 @@ const apiVersion = 'v1'
 const apiUrl = `${process.env.REACT_APP_CLASSIC_BACKEND_URL}/${apiVersion}`
 // let apiUrl = `http://localhost:8080/${apiVersion}`;
 // let apiUrl = `https://test-api.youdescribe.org/${apiVersion}`;
+// const apiUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/${apiVersion}`
 
 const audioClipsUploadsPath = `${process.env.REACT_APP_CLASSIC_BACKEND_URL}/audio-descriptions-files`
 // let audioClipsUploadsPath =
