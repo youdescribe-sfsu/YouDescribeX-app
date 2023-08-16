@@ -1094,7 +1094,7 @@ const Video = () => {
         ),
       )
     }
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-ai-description`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
     const response = await axios.post(
       url,
       {
