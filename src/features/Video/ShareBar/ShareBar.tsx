@@ -81,11 +81,10 @@ const ShareBar = ({ videoTitle }: Props) => {
         aria-label="Embed this video, the snippet will be copied to the clipboard"
         onClick={() => {
           navigator.clipboard.writeText(
-            '<iframe ' +
-              'width="56s "' +
-              'height="315 "' +
-              'class="leftSide "' +
-              `src=${window.location.href.replace('video', 'embed')} />`,
+            `<iframe width="560" height="315" src="${window.location.href.replace(
+              'video',
+              'embed',
+            )}"></iframe>`,
           )
 
           toast.info('The snippet has been copied to your clipboard!', {
