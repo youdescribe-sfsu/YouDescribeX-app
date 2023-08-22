@@ -16,6 +16,7 @@ import { ToastContainer } from 'react-toastify' // for toast messages
 import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
 import Home from './pages/Home/Home'
+import VideoEmbed from './pages/VideoEmbed/VideoEmbed'
 import Navbar from './shared/components/Navbar/Navbar'
 import Polyglot from 'node-polyglot'
 import getLanguage from './shared/utils/getLanguage'
@@ -280,13 +281,21 @@ const App = () => {
     return ''
   }
 
+  const isEmbedRoute = window.location.pathname.includes('/embed/')
+
   return (
     <html className="classic-html">
-      <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
+      {!isEmbedRoute && (
+        <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
+      )}
       <body
         className="classic-body"
         style={{
-          paddingTop: location.pathname.includes('editor') ? '0px' : '54px',
+          paddingTop:
+            location.pathname.includes('editor') ||
+            location.pathname.includes('embed')
+              ? '0px'
+              : '54px',
         }}
       >
         <Routes>
@@ -296,6 +305,7 @@ const App = () => {
           />
           <Route path="/home" element={<Home />} />
           <Route path="/video/:videoId" element={<Video />} />
+          <Route path="/embed/:videoId" element={<VideoEmbed />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/search" element={<Search />} />
           <Route path="/credits" element={<Credits />} />
@@ -321,7 +331,7 @@ const App = () => {
         pauseOnHover
         theme="colored"
       />
-      <Footer />
+      {!isEmbedRoute && <Footer />}
     </html>
   )
 }

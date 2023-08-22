@@ -1,0 +1,22 @@
+.video-embed-area {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 10px;
+}
+.video-youtube {
+  height: 100%;
+  flex: 95;
+}
+
+.video-youtube .rounded {
+  height: 100%;
+}
+
+.video-youtube iframe {
+  height: 100%;
+}
+
+.video-player {
+  flex: 5;
+}
