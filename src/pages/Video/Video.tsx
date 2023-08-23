@@ -1229,14 +1229,14 @@ const Video = () => {
                 <Button
                   title={translate('Add a new description for this video')}
                   ariaLabel="Add a new description for this video"
-                  text={translate('Add description')}
+                  text={translate('Freestyle Description')}
                   color="w3-indigo w3-block w3-margin-top"
                   onClick={() => handleAddDescription()}
                 />
                 <Button
-                  title={translate('Generate AI Descriptions')}
-                  ariaLabel="Generate AI Descriptions"
-                  text={translate('Generate AI Descriptions')}
+                  title={translate('Request AI Descriptions')}
+                  ariaLabel="Request AI Descriptions"
+                  text={translate('Request AI Descriptions')}
                   color="w3-indigo w3-block w3-margin-top"
                   onClick={() => handleGenerateAIDescriptions()}
                 />
