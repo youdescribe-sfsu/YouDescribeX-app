@@ -122,6 +122,8 @@ const Video = () => {
 
   const [previousYTTime, setPreviousYTTime] = useState(0.0)
 
+  const [requestAiDescription, setRequestAiDescription] = useState(false)
+
   // Update Refs
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -195,6 +197,34 @@ const Video = () => {
       fetchVideoData()
     }
   }, [])
+
+  useEffect(() => {
+    console.log('Requesting AI Descriptions')
+    console.log(userDataStore.getState())
+    if (userDataStore.getState().isSignedIn) {
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/ai-description-status`
+
+      axios
+        .post(
+          url,
+          {
+            youtube_id: videoId,
+            user_id: userDataStore.getState().userId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        .then((response) => {
+          const data = response.data
+          toast.success('AI Descriptions have been requested')
+          setRequestAiDescription(data)
+        })
+    }
+  }, [userDataStore.getState().isSignedIn])
 
   const fetchVideoData = () => {
     const url = `${apiUrl}/videos/${videoId}`
@@ -1088,27 +1118,36 @@ const Video = () => {
 
   const handleGenerateAIDescriptions = async () => {
     if (!userDataStore.getState().isSignedIn) {
-      alert(
+      toast.error(
         translate(
           'You have to be logged in in order to ask for AI Descriptions',
         ),
       )
     }
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
-    const response = await axios.post(
-      url,
-      {
-        youtube_id: videoId,
-      },
-      {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
+
+    try {
+      setRequestAiDescription(true)
+      const response = await axios.post(
+        url,
+        {
+          youtube_id: videoId,
         },
-      },
-    )
-    const data = response.data
-    console.log('data, :: ', data)
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = response.data
+      toast.success('AI Descriptions have been requested')
+      console.log('data for asdasd:: ', data)
+    } catch (error) {
+      console.log(error)
+      setRequestAiDescription(false)
+      toast.error('Something went wrong, please try again later')
+    }
   }
 
   return (
@@ -1232,12 +1271,14 @@ const Video = () => {
                   text={translate('Freestyle Description')}
                   color="w3-indigo w3-block w3-margin-top"
                   onClick={() => handleAddDescription()}
+                  disabled={requestAiDescription}
                 />
                 <Button
                   title={translate('Request AI Descriptions')}
                   ariaLabel="Request AI Descriptions"
                   text={translate('Request AI Descriptions')}
                   color="w3-indigo w3-block w3-margin-top"
+                  disabled={requestAiDescription}
                   onClick={() => handleGenerateAIDescriptions()}
                 />
               </div>

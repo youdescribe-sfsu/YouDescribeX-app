@@ -317,6 +317,8 @@ const strings = {
     'Description Detail': 'Description Detail',
     'My profile': 'My profile',
     Admin: 'Admin',
+    'Freestyle Description': 'Freestyle Description',
+    'Request AI Descriptions': 'Request AI Descriptions',
   },
 }
 
