@@ -199,8 +199,6 @@ const Video = () => {
   }, [])
 
   useEffect(() => {
-    console.log('Requesting AI Descriptions')
-    console.log(userDataStore.getState())
     if (userDataStore.getState().isSignedIn) {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/ai-description-status`
 
@@ -220,7 +218,6 @@ const Video = () => {
         )
         .then((response) => {
           const data = response.data
-          toast.success('AI Descriptions have been requested')
           setRequestAiDescription(data)
         })
     }
