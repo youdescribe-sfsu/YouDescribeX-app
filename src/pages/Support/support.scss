@@ -1,0 +1,39 @@
+#support {
+  background-color: #fff;
+  main {
+    padding: 20px 30px 50px 30px;
+    margin: 0 auto;
+    @media (min-width: 601px) {
+      width: 601px;
+    }
+    @media screen and (min-width: 993px) {
+      width: 993px;
+    }
+
+    p {
+      margin: 0 0 20px 0;
+      padding: 0;
+      font-size: 15px;
+    }
+
+    h2 a.anchor {
+      margin: 0 0 15px 0 !important;
+      display: block;
+    }
+
+    h3 {
+      font-weight: bold;
+      font-size: 15px;
+      padding: 0 !important;
+      margin: 0 0 0 0 !important;
+    }
+
+    .anchor {
+      color: #000000;
+    }
+
+    .anchor:hover {
+      text-decoration: none;
+    }
+  }
+}

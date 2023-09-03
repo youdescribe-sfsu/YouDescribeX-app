@@ -1,5 +1,6 @@
 import { translate, userDataStore } from '@/App'
 import path from 'path-browserify'
+import { apiUrl } from '../../../shared/config'
 import { Link, useLocation } from 'react-router-dom'
 import './Navbar.css'
 import SearchBar from './SearchBar/SearchBar'
@@ -118,8 +119,9 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
               </i>
               {translate('WISH LIST')}
             </Link>
-            <a
-              href={`${process.env.REACT_APP_REDIRECT_URL}/support`}
+            {/* <a
+              // href={`${process.env.REACT_APP_REDIRECT_URL}support`}
+              href={`${apiUrl}support`}
               target="_self"
               className="classic-link w3-bar-item w3-small"
               style={{ position: 'relative', top: '11px', padding: '8px' }}
@@ -129,7 +131,17 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
                 &nbsp;&nbsp;
               </i>
               {translate('SUPPORT')}
-            </a>
+            </a> */}
+            <Link
+              to="/support"
+              className="classic-link w3-bar-item w3-small"
+              style={{ position: 'relative', top: '11px', padding: '8px' }}
+            >
+              <i className="fa fa-question-circle" aria-hidden="true">
+                &nbsp;&nbsp;
+              </i>
+              {translate('SUPPORT')}
+            </Link>
             <div
               className="w3-bar-item"
               style={{ position: 'relative', top: '2px' }}
