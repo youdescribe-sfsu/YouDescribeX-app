@@ -756,7 +756,6 @@ const VideoEmbed = () => {
               <img
                 id="youDescribeImage"
                 alt="Watch this video on YouDescribe"
-                // src="/assets/img/youdescribe_logo_full_(indigo_and_grey).png"
                 src="/assets/img/youdescribe_logo_full_(indigo_and_grey).png"
               />
             </a>
