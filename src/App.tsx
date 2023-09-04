@@ -28,6 +28,14 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { apiUrl } from './shared/config'
 import Search from './pages/Search/Search'
+import Support from './pages/Support/Support'
+import About from './pages/Support/About'
+import Describers from './pages/Support/Describers'
+import EmbedTutorial from './pages/Support/EmbedTutorial'
+import Tutorial from './pages/Support/Tutorial'
+import Viewers from './pages/Support/Viewers'
+import Privacy from './pages/Support/Privacy'
+import SystemUpgradeWarning from './pages/Support/SystemUpgradeWarning'
 import UnsupportedBrowser from './pages/UnsupportedBrowser/UnsupportedBrowser'
 import { detect } from 'detect-browser'
 import Credits from './pages/Credits/Credits'
@@ -308,6 +316,7 @@ const App = () => {
           <Route path="/embed/:videoId" element={<VideoEmbed />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/search" element={<Search />} />
+          <Route path="/support" element={<Support />} />
           <Route path="/credits" element={<Credits />} />
           <Route path="/credits-details" element={<CreditsDetails />} />
           <Route path="/unsupported-browser" element={<UnsupportedBrowser />} />
@@ -319,6 +328,16 @@ const App = () => {
           <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
           <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
           <Route path="/*" element={<PageNotFound />} />
+          <Route path="/support/about" element={<About />} />
+          <Route path="/support/describers" element={<Describers />} />
+          <Route path="/support/tutorial" element={<Tutorial />} />
+          <Route path="/support/embed_tutorial" element={<EmbedTutorial />} />
+          <Route path="/support/viewers" element={<Viewers />} />
+          <Route path="/support/privacy" element={<Privacy />} />
+          <Route
+            path="/support/system-upgrade-warning"
+            element={<SystemUpgradeWarning />}
+          />
         </Routes>
       </body>
       <ToastContainer
