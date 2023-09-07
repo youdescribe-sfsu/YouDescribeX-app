@@ -123,8 +123,8 @@ const Video = () => {
   const [previousYTTime, setPreviousYTTime] = useState(0.0)
 
   const [requestAiDescription, setRequestAiDescription] = useState<{
-    status: string,
-    requested: boolean,
+    status: string
+    requested: boolean
   }>({
     status: '',
     requested: false,
@@ -210,8 +210,8 @@ const Video = () => {
 
       axios
         .post<{
-          status: string,
-          requested: boolean,
+          status: string
+          requested: boolean
         }>(
           url,
           {
