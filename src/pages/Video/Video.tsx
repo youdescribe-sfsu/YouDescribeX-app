@@ -125,6 +125,7 @@ const Video = () => {
   const [requestAiDescription, setRequestAiDescription] = useState<{
     status: string
     requested: boolean
+    url?: string
   }>({
     status: '',
     requested: false,
@@ -1162,6 +1163,55 @@ const Video = () => {
     }
   }
 
+  const DescriptionButtons = () => {
+    if (!requestAiDescription.requested) {
+      return (
+        <>
+          <Button
+            title={translate('Add a new description for this video')}
+            ariaLabel="Add a new description for this video"
+            text={translate('Freestyle Description')}
+            color="w3-indigo w3-block w3-margin-top"
+            onClick={() => handleAddDescription()}
+            disabled={requestAiDescription.requested}
+          />
+          <Button
+            title={translate('Request AI Descriptions')}
+            ariaLabel="Request AI Descriptions"
+            text={translate('Request AI Descriptions')}
+            color="w3-indigo w3-block w3-margin-top"
+            disabled={requestAiDescription.requested}
+            onClick={() => handleGenerateAIDescriptions()}
+          />
+        </>
+      )
+    } else if (requestAiDescription.requested) {
+      return (
+        <Button
+          title={translate('AI Descriptions requested')}
+          ariaLabel="AI Descriptions requested"
+          text={translate('AI Descriptions requested')}
+          color="w3-indigo w3-block w3-margin-top"
+          onClick={() => handleGenerateAIDescriptions()}
+          disabled={requestAiDescription.requested}
+        />
+      )
+    } else if (requestAiDescription.url) {
+      // Go to descriptions with url
+      return (
+        <Button
+          title={translate('Go to descriptions')}
+          ariaLabel="Go to descriptions"
+          text={translate('Go to descriptions')}
+          color="w3-indigo w3-block w3-margin-top"
+          onClick={() => navigate(`/editor/${requestAiDescription.url}`)}
+        />
+      )
+    } else {
+      return <></>
+    }
+  }
+
   return (
     <div id="video-page" className="video-page">
       <main role="main" className="video-page-main" title="Video page">
@@ -1277,22 +1327,7 @@ const Video = () => {
                   ariaLabel="Turn off descriptions for this video"
                   onClick={handleTurnOffDescriptions}
                 />
-                <Button
-                  title={translate('Add a new description for this video')}
-                  ariaLabel="Add a new description for this video"
-                  text={translate('Freestyle Description')}
-                  color="w3-indigo w3-block w3-margin-top"
-                  onClick={() => handleAddDescription()}
-                  disabled={requestAiDescription.requested}
-                />
-                <Button
-                  title={translate('Request AI Descriptions')}
-                  ariaLabel="Request AI Descriptions"
-                  text={translate('Request AI Descriptions')}
-                  color="w3-indigo w3-block w3-margin-top"
-                  disabled={requestAiDescription.requested}
-                  onClick={() => handleGenerateAIDescriptions()}
-                />
+                <DescriptionButtons />
               </div>
             </div>
           ) : (
