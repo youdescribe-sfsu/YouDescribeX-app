@@ -1164,7 +1164,29 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
-    if (!requestAiDescription.requested) {
+    if (requestAiDescription.url) {
+      // Go to descriptions with url
+      return (
+        <Button
+          title={translate('Go to descriptions')}
+          ariaLabel="Go to descriptions"
+          text={translate('Go to descriptions')}
+          color="w3-indigo w3-block w3-margin-top"
+          onClick={() => navigate(`/editor/${requestAiDescription.url}`)}
+        />
+      )
+    } else if (requestAiDescription.requested) {
+      return (
+        <Button
+          title={translate('AI Descriptions requested')}
+          ariaLabel="AI Descriptions requested"
+          text={translate('AI Descriptions requested')}
+          color="w3-indigo w3-block w3-margin-top"
+          onClick={() => handleGenerateAIDescriptions()}
+          disabled={requestAiDescription.requested}
+        />
+      )
+    } else if (!requestAiDescription.requested) {
       return (
         <>
           <Button
@@ -1184,28 +1206,6 @@ const Video = () => {
             onClick={() => handleGenerateAIDescriptions()}
           />
         </>
-      )
-    } else if (requestAiDescription.requested) {
-      return (
-        <Button
-          title={translate('AI Descriptions requested')}
-          ariaLabel="AI Descriptions requested"
-          text={translate('AI Descriptions requested')}
-          color="w3-indigo w3-block w3-margin-top"
-          onClick={() => handleGenerateAIDescriptions()}
-          disabled={requestAiDescription.requested}
-        />
-      )
-    } else if (requestAiDescription.url) {
-      // Go to descriptions with url
-      return (
-        <Button
-          title={translate('Go to descriptions')}
-          ariaLabel="Go to descriptions"
-          text={translate('Go to descriptions')}
-          color="w3-indigo w3-block w3-margin-top"
-          onClick={() => navigate(`/editor/${requestAiDescription.url}`)}
-        />
       )
     } else {
       return <></>
