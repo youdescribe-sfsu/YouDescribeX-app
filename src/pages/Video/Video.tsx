@@ -39,7 +39,7 @@ import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
 import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 
 const Video = () => {
   const { videoId } = useParams()
@@ -122,7 +122,13 @@ const Video = () => {
 
   const [previousYTTime, setPreviousYTTime] = useState(0.0)
 
-  const [requestAiDescription, setRequestAiDescription] = useState(false)
+  const [requestAiDescription, setRequestAiDescription] = useState<{
+    status: string,
+    requested: boolean,
+  }>({
+    status: '',
+    requested: false,
+  })
 
   // Update Refs
   useEffect(() => {
@@ -203,7 +209,10 @@ const Video = () => {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/ai-description-status`
 
       axios
-        .post(
+        .post<{
+          status: string,
+          requested: boolean,
+        }>(
           url,
           {
             youtube_id: videoId,
@@ -1124,7 +1133,10 @@ const Video = () => {
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
 
     try {
-      setRequestAiDescription(true)
+      setRequestAiDescription({
+        status: 'pending',
+        requested: true,
+      })
       const response = await axios.post(
         url,
         {
@@ -1142,7 +1154,10 @@ const Video = () => {
       console.log('data for asdasd:: ', data)
     } catch (error) {
       console.log(error)
-      setRequestAiDescription(false)
+      setRequestAiDescription({
+        status: '',
+        requested: false,
+      })
       toast.error('Something went wrong, please try again later')
     }
   }
@@ -1268,14 +1283,14 @@ const Video = () => {
                   text={translate('Freestyle Description')}
                   color="w3-indigo w3-block w3-margin-top"
                   onClick={() => handleAddDescription()}
-                  disabled={requestAiDescription}
+                  disabled={requestAiDescription.requested}
                 />
                 <Button
                   title={translate('Request AI Descriptions')}
                   ariaLabel="Request AI Descriptions"
                   text={translate('Request AI Descriptions')}
                   color="w3-indigo w3-block w3-margin-top"
-                  disabled={requestAiDescription}
+                  disabled={requestAiDescription.requested}
                   onClick={() => handleGenerateAIDescriptions()}
                 />
               </div>
