@@ -74,7 +74,7 @@ const EmbedTutorial = () => {
           step by step:
         </p>
         <video width="700" height="500" controls>
-          <source src="/embed_tutorial.mp4" type="video/mp4" />
+          <source src="/embedded_tutorial.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </main>
