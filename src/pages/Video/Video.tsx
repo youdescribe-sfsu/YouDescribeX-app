@@ -1344,7 +1344,6 @@ const Video = () => {
                   color="w3-indigo w3-block w3-margin-top"
                   onClick={handleTurnOnDescriptions}
                 />
-                <DescriptionButtons />
               </div>
             </div>
           )}
@@ -1373,6 +1372,7 @@ const Video = () => {
                 color="w3-indigo w3-block w3-margin-top"
                 onClick={() => handleAddDescription()}
               />
+              <DescriptionButtons />
             </div>
           </div>
         </section>
