@@ -345,7 +345,11 @@ const YDXHome = () => {
     if (videoId && userDataStore.getState().userId)
       axios
         .get(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${videoId}&${audioDescriptionId}`,
+          `${
+            process.env.REACT_APP_YDX_BACKEND_URL
+          }/api/audio-descriptions/get-user-ad/${videoId}&${
+            userDataStore.getState().userId
+          }`,
         )
         .then((res) => {
           setShowSpinner(false)
