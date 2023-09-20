@@ -352,7 +352,7 @@ const YDXHome = () => {
           }`,
           {
             headers: {
-              audio_description_id: audioDescriptionId,
+              audiodescription: audioDescriptionId,
             },
           },
         )
