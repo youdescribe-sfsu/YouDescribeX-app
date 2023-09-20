@@ -342,7 +342,7 @@ const YDXHome = () => {
   // use axios to get audio descriptions for the videoId (set in fetchUserVideoData()) & userId passed to the url Params
   const fetchAudioDescriptionData = (isNewClipAdded = false) => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
-    if (videoId && userDataStore.getState().userId)
+    if (videoId && userDataStore.getState().userId && audioDescriptionId)
       axios
         .get(
           `${
@@ -350,6 +350,11 @@ const YDXHome = () => {
           }/api/audio-descriptions/get-user-ad/${videoId}&${
             userDataStore.getState().userId
           }`,
+          {
+            headers: {
+              audio_description_id: audioDescriptionId,
+            },
+          },
         )
         .then((res) => {
           setShowSpinner(false)
