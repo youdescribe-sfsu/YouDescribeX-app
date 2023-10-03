@@ -131,6 +131,8 @@ const Video = () => {
     requested: false,
   })
 
+  const [buttonLoading, setButtonLoading] = useState(false)
+
   // Update Refs
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -1125,21 +1127,30 @@ const Video = () => {
 
   const handleGetAIAudioDescription = async () => {
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-ai-descriptions`
-    const response = await axios.post(
-      url,
-      {
-        youtube_id: videoId,
-      },
-      {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
+    try {
+      setButtonLoading(true)
+      toast.info('Generating AI Descriptions')
+      const response = await axios.post(
+        url,
+        {
+          youtube_id: videoId,
         },
-      },
-    )
-    const data = response.data
-    console.log(data)
-    navigate(`/editor/${data.url}`)
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = response.data
+      console.log(data)
+      navigate(`/editor/${data.url}`)
+    } catch (error) {
+      toast.error('Something went wrong, please try again later')
+      console.log(error)
+    } finally {
+      setButtonLoading(false)
+    }
   }
 
   const handleGenerateAIDescriptions = async () => {
@@ -1202,7 +1213,7 @@ const Video = () => {
           text={translate('AI Descriptions Available')}
           color="w3-indigo w3-block w3-margin-top"
           onClick={() => handleGetAIAudioDescription()}
-          disabled={requestAiDescription.requested}
+          disabled={requestAiDescription.requested || buttonLoading}
         />
       )
     } else if (requestAiDescription.requested) {
