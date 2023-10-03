@@ -1,6 +1,5 @@
 import { translate, userDataStore } from '@/App'
 import path from 'path-browserify'
-import { apiUrl } from '../../../shared/config'
 import { Link, useLocation } from 'react-router-dom'
 import './Navbar.css'
 import SearchBar from './SearchBar/SearchBar'

@@ -6,20 +6,13 @@ import { apiUrl } from '@/shared/config'
 import axios, { CancelTokenSource } from 'axios'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
-import getTimeZoneOffset from '@/shared/utils/getTimeZoneOffset'
+// import getTimeZoneOffset from '@/shared/utils/getTimeZoneOffset'
 import ourFetch from '@/shared/utils/ourFetch'
-import React, {
-  ChangeEvent,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
+import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react'
 import DataTable, { Media, TableColumn } from 'react-data-table-component'
 import { useNavigate } from 'react-router-dom'
 import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
-import { Dropdown } from 'react-bootstrap'
 import encryptData from '@/shared/utils/encrypt'
 
 const allCategories = [
@@ -47,11 +40,11 @@ const Wishlist = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [perPage, setPerPage] = useState(10)
   const [totalRows, setTotalRows] = useState(0)
-  const [youTubeIds, setYouTubeIds] = useState<string[]>([])
-  const [youDescribeIds, setYouDescribeIds] = useState<string[]>([])
-  const [votes, setVotes] = useState<number[]>([])
-  const [updatedAt, setUpdatedAt] = useState<string[]>([])
-  const [categories, setCategories] = useState<string[]>([])
+  // const [youTubeIds, setYouTubeIds] = useState<string[]>([])
+  // const [youDescribeIds, setYouDescribeIds] = useState<string[]>([])
+  // const [votes, setVotes] = useState<number[]>([])
+  // const [updatedAt, setUpdatedAt] = useState<string[]>([])
+  // const [categories, setCategories] = useState<string[]>([])
   const [rows, setRows] = useState<any[]>([])
   const [videoCardsComponents, setVideoCardsComponents] = useState<ReactNode[]>(
     [],
@@ -221,11 +214,11 @@ const Wishlist = () => {
           updatedAt.push(wishListItems[i].updated_at)
           categories.push(wishListItems[i].category)
         }
-        setYouTubeIds(youTubeIds)
-        setYouDescribeIds(youDescribeIds)
-        setVotes(votes)
-        setUpdatedAt(updatedAt)
-        setCategories(categories)
+        // setYouTubeIds(youTubeIds)
+        // setYouDescribeIds(youDescribeIds)
+        // setVotes(votes)
+        // setUpdatedAt(updatedAt)
+        // setCategories(categories)
         return { youTubeIds, votes, categories, updatedAt }
       })
       .then(({ youTubeIds, votes, categories, updatedAt }) => {

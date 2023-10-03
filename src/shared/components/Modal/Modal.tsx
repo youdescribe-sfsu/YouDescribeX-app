@@ -11,7 +11,6 @@ interface Props {
 }
 
 const ModalComponent = ({
-  id,
   title,
   text,
   modalTask,

@@ -17,10 +17,9 @@ import { debounce } from 'debounce'
 import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
 import { Options } from 'youtube-player/dist/types'
-import VideoPlayerControls from '@/shared/components/VideoPlayerControls/VideoPlayerControls'
 import { userDataStore } from '@/App'
 
-const YDXHome = () => {
+const YDXHome = (): React.ReactElement => {
   /* to use params on the url and get userId & youtubeVideoId */
   const { audioDescriptionId, youtubeVideoId } = useParams()
   const participant_id = sessionStorage.getItem('id')

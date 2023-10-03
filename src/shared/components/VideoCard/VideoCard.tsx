@@ -39,7 +39,7 @@ const VideoCard = ({
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
 
-  const upVote = (_e: any) => {
+  const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
     } else {
