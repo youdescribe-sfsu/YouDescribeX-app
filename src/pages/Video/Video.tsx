@@ -1123,6 +1123,25 @@ const Video = () => {
     }
   }
 
+  const handleGetAIAudioDescription = async () => {
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-ai-descriptions`
+    const response = await axios.post(
+      url,
+      {
+        youtube_id: videoId,
+      },
+      {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+    const data = response.data
+    console.log(data)
+    navigate(`/editor/${data.url}`)
+  }
+
   const handleGenerateAIDescriptions = async () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
@@ -1173,6 +1192,17 @@ const Video = () => {
           text={translate('Go to descriptions')}
           color="w3-indigo w3-block w3-margin-top"
           onClick={() => navigate(`/editor/${requestAiDescription.url}`)}
+        />
+      )
+    } else if (requestAiDescription.status === 'available') {
+      return (
+        <Button
+          title={translate('AI Descriptions Available')}
+          ariaLabel="AI Descriptions Available"
+          text={translate('AI Descriptions Available')}
+          color="w3-indigo w3-block w3-margin-top"
+          onClick={() => handleGetAIAudioDescription()}
+          disabled={requestAiDescription.requested}
         />
       )
     } else if (requestAiDescription.requested) {
