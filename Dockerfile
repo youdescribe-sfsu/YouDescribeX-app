@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as the base image
-FROM node:18-alpine
+FROM node:18-alpine AS build
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -57,14 +57,20 @@ RUN echo "REACT_APP_YDX_BACKEND_URL=$REACT_APP_YDX_BACKEND_URL"
 # Build the application
 RUN npm run build
 
-# Remove the Node modules
-# RUN rm -rf node_modules
+# Stage 2: Create the production image
+FROM node:18-alpine
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the build output from the previous stage
+COPY --from=build /app/build ./build
+COPY --from=build /app/server.js .
 
 # Install the production dependencies
 RUN npm install express http-proxy
 
-# Remove the development dependencies
-RUN npm prune --production
+ENV PORT=$PORT
 
 ARG APP_PORT
 ENV APP_PORT=${APP_PORT}
