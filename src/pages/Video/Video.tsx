@@ -18,7 +18,7 @@ import React, {
   useState,
 } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify'
+import { Id, ToastContainer } from 'react-toastify'
 import YouTube from 'react-youtube'
 import { Options, YouTubePlayer } from 'youtube-player/dist/types'
 import './video.scss'
@@ -132,6 +132,7 @@ const Video = () => {
   })
 
   const [buttonLoading, setButtonLoading] = useState(false)
+  const toastId = React.useRef<null | Id>(null)
 
   // Update Refs
   useEffect(() => {
@@ -1129,7 +1130,9 @@ const Video = () => {
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-ai-descriptions`
     try {
       setButtonLoading(true)
-      toast.info('Generating AI Descriptions')
+      toastId.current = toast.info('Generating AI Descriptions', {
+        autoClose: false,
+      })
       const response = await axios.post(
         url,
         {
@@ -1144,8 +1147,10 @@ const Video = () => {
       )
       const data = response.data
       console.log(data)
+      toast.dismiss(toastId.current)
       navigate(`/editor/${data.url}`)
     } catch (error) {
+      if (toastId.current) toast.dismiss(toastId.current)
       toast.error('Something went wrong, please try again later')
       console.log(error)
     } finally {
@@ -1208,9 +1213,9 @@ const Video = () => {
     } else if (requestAiDescription.status === 'available') {
       return (
         <Button
-          title={translate('AI Descriptions Available')}
-          ariaLabel="AI Descriptions Available"
-          text={translate('AI Descriptions Available')}
+          title={translate('Go to Available Descriptions')}
+          ariaLabel="Go to Available Descriptions"
+          text={translate('Got to Available Descriptions')}
           color="w3-indigo w3-block w3-margin-top"
           onClick={() => handleGetAIAudioDescription()}
           disabled={requestAiDescription.requested || buttonLoading}
