@@ -27,7 +27,7 @@ build-stage:
     - echo "PORT $PORT"
     - echo "REACT_APP_LOGROCKET_ID $REACT_APP_LOGROCKET_ID"
     - echo "REACT_APP_YDX_BACKEND_URL=$REACT_APP_YDX_BACKEND_URL"
-    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t "${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-1.${CI_PIPELINE_ID}" .
+    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t "${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-app.${CI_PIPELINE_ID}" .
     - echo "Build complete"
 
 build-prod:
@@ -64,7 +64,7 @@ deploy-stage:
     - docker stop $(docker ps -a -q --filter="name=${CI_PROJECT_NAME}") || true
     - echo "Deleting old YouDescribe-APP container"
     # Delete the last YouDescribe-API container if one exists
-    - docker rm $(docker ps -a -q --filter="name=${CI_PROJECT_NAME}") || true
+    - docker rmi $(docker ps -a -q --filter="name=${CI_PROJECT_NAME}") || true
     - docker run -d --restart=always --name ${CI_PROJECT_NAME} -p 0.0.0.0:$PORT:$PORT ${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-1.${CI_PIPELINE_ID}
     - echo "Finished deploying YouDescribe Frontend build to staging"
 
