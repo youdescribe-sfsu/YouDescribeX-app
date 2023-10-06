@@ -277,37 +277,38 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   // use axios and get dialog timestamps for the Dialog Timeline
   const fetchDialogData = () => {
-    axios
-      .get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/dialog-timestamps/get-video-dialog/${videoId}`,
-      )
-      .then((res) => {
-        setShowSpinner(false)
-        const dialogData = res.data
-        return dialogData
-      })
-      .then((dialogData) => {
-        setShowSpinner(false)
-        const updatedDialogData: any[] = []
-        dialogData.forEach((dialog: any) => {
-          const x = dialog.dialog_start_time * unitLength
-          const width = dialog.dialog_duration * unitLength
-          const dialog_start_time = {
-            dialog_seq_no: dialog.dialog_sequence_num,
-            // dialog_end_time: dialog.dialog_end_time,
-            controlledPosition: { x: x, y: 0 },
-            width: width,
-          }
-          updatedDialogData.push(dialog_start_time)
+    if (videoId)
+      axios
+        .get(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/dialog-timestamps/get-video-dialog/${videoId}`,
+        )
+        .then((res) => {
+          setShowSpinner(false)
+          const dialogData = res.data
+          return dialogData
         })
-        setVideoDialogTimestamps(updatedDialogData)
-      })
-      .catch((err) => {
-        // console.error(err.response.data);
-        console.error('ERROR in fetchDialogData', err)
+        .then((dialogData) => {
+          setShowSpinner(false)
+          const updatedDialogData: any[] = []
+          dialogData.forEach((dialog: any) => {
+            const x = dialog.dialog_start_time * unitLength
+            const width = dialog.dialog_duration * unitLength
+            const dialog_start_time = {
+              dialog_seq_no: dialog.dialog_sequence_num,
+              // dialog_end_time: dialog.dialog_end_time,
+              controlledPosition: { x: x, y: 0 },
+              width: width,
+            }
+            updatedDialogData.push(dialog_start_time)
+          })
+          setVideoDialogTimestamps(updatedDialogData)
+        })
+        .catch((err) => {
+          // console.error(err.response.data);
+          console.error('ERROR in fetchDialogData', err)
 
-        setShowSpinner(true)
-      })
+          setShowSpinner(true)
+        })
   }
 
   // fetch videoId based on the youtubeVideoId which is later used to get audioClips
@@ -350,8 +351,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     if (audioDescriptionId)
       axios
         .get(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-audio-description/${audioDescriptionId}
-          }`,
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-audio-description/${audioDescriptionId}`,
           {
             headers: {
               audiodescription: audioDescriptionId,
@@ -1049,44 +1049,6 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             />
           ))}
         </div>
-        {!isPublished && (
-          <InsertPublish
-            handleClicksFromParent={handleClicksFromParent}
-            setHandleClicksFromParent={setHandleClicksFromParent}
-            userId={user || ''}
-            setShowSpinner={setShowSpinner}
-            youtubeVideoId={youtubeVideoId || ''}
-            currentTime={currentTime}
-            videoLength={videoLength}
-            audioDescriptionId={audioDescriptionId || ''}
-            seconds={seconds}
-            reset={reset}
-            participantId={participant_id || ''}
-            setNeedRefresh={setNeedRefresh}
-          />
-        )}
-        {isPublished && (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              marginBottom: '20px',
-              marginRight: '20px',
-            }}
-          >
-            <button
-              className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
-              onClick={() => {
-                handleCopyClick(`
-                ${window.location.origin}/audio-description/${audioDescriptionId}}`)
-              }}
-            >
-              <i className="fa fa-copy" /> {'   '}
-              Copy Published Link
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )
