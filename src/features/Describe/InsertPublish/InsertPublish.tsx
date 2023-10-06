@@ -5,6 +5,7 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import NewAudioClipComponent from '../NewAudioClip/NewAudioClip'
 import ModalComponent from '../../../shared/components/Modal/Modal'
+import { toast } from 'react-toastify'
 
 interface Props {
   handleClicksFromParent: string
@@ -76,23 +77,27 @@ const InsertPublish = ({
 
   const handlePublish = async (e: any) => {
     console.log('publish')
+
     axios
       .post(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/add-timedata-to-db/addtimedata`,
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/publish-audio-description`,
         {
-          participant_id: participantId,
-          time: seconds,
-          video_id: youtubeVideoId,
+          audioDescriptionId,
+          youtube_id: youtubeVideoId,
+        },
+        {
+          withCredentials: true,
         },
       )
       .then(function (response) {
-        reset()
+        setNeedRefresh(true)
+        toast.success('Audio description published successfully!')
         console.log(response)
       })
       .catch(function (error) {
         console.log(error)
+        toast.error('Error publishing audio description!')
       })
-    navigate(`/userstudy/${participantId}`)
   }
 
   useEffect(() => {

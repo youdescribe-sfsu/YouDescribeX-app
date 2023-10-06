@@ -338,6 +338,10 @@ const App = () => {
             path="/support/system-upgrade-warning"
             element={<SystemUpgradeWarning />}
           />
+          <Route
+            path="/audio-description/:audioDescriptionId"
+            element={<SystemUpgradeWarning />}
+          />
         </Routes>
       </body>
       <ToastContainer

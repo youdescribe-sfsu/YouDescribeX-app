@@ -6,23 +6,23 @@ import YouTube, { YouTubePlayer } from 'react-youtube'
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
 import '../assets/css/home.css'
 import '../assets/css/timer.css'
-import AudioClip from '../features/Describe/AudioClip/AudioClip'
-import Notes from '../features/Describe/Notes/Notes'
-import convertSecondsToCardFormat from '../shared/utils/convertSecondsToCardFormat'
-import InsertPublish from '../features/Describe/InsertPublish/InsertPublish'
-import Buttons from '../features/Describe/Buttons/Buttons'
-import Spinner from '../shared/components/Spinner/Spinner'
+import AudioClip from '../../features/Describe/AudioClip/AudioClip'
+import Notes from '../../features/Describe/Notes/Notes'
+import convertSecondsToCardFormat from '../../shared/utils/convertSecondsToCardFormat'
+import InsertPublish from '../../features/Describe/InsertPublish/InsertPublish'
+import Buttons from '../../features/Describe/Buttons/Buttons'
+import Spinner from '../../shared/components/Spinner/Spinner'
 import { Howl } from 'howler'
 import { debounce } from 'debounce'
 import { useMemo } from 'react'
-import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
+import convertClipObject, { Clip } from '../../shared/utils/convertClipObject'
 import { Options } from 'youtube-player/dist/types'
 import { userDataStore } from '@/App'
 import { toast } from 'react-toastify'
 
 const YDXHome = (): React.ReactElement => {
   /* to use params on the url and get userId & youtubeVideoId */
-  const { audioDescriptionId, youtubeVideoId } = useParams()
+  const { audioDescriptionId } = useParams()
   const participant_id = sessionStorage.getItem('id')
   /* Options for YouTube video API */
   const opts: Options = {
@@ -117,6 +117,9 @@ const YDXHome = (): React.ReactElement => {
   const [youTubeVolume, setYouTubeVolume] = useState(
     parseInt(localStorage.getItem('youTubeVolume') || '100'),
   )
+
+  const [youtubeVideoId, setYoutubeVideoId] = useState('') // retrieved from db, stored to fetch videoId
+
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
 
@@ -216,7 +219,7 @@ const YDXHome = (): React.ReactElement => {
     draggableDivWidth,
     unitLength,
     videoId,
-    youtubeVideoId,
+    // youtubeVideoId,
     // changing this state variable, will fetch user data again
     updateData, // to fetch data whenever updateData state is changed.
     setEditComponentToggleList,
@@ -311,7 +314,7 @@ const YDXHome = (): React.ReactElement => {
   const fetchUserVideoData = () => {
     axios
       .get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${youtubeVideoId}`,
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${audioDescriptionId}`,
       )
       .then((res) => {
         setShowSpinner(false)
@@ -345,10 +348,7 @@ const YDXHome = (): React.ReactElement => {
     if (videoId && userDataStore.getState().userId && audioDescriptionId)
       axios
         .get(
-          `${
-            process.env.REACT_APP_YDX_BACKEND_URL
-          }/api/audio-descriptions/get-user-ad/${videoId}&${
-            userDataStore.getState().userId
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-audio-description/${audioDescriptionId}
           }`,
           {
             headers: {
@@ -357,16 +357,13 @@ const YDXHome = (): React.ReactElement => {
           },
         )
         .then((res) => {
-          setShowSpinner(false)
-          console.log('Audio Description Data', res.data)
-          // setAudioDescriptionId(res.data.ad_id)
-          setIsPublished(res.data.is_published)
           return res.data
         })
         .then((data) => {
           console.log('Audio Description Data', data)
           setShowSpinner(false)
           setIsPublished(data.is_published)
+          setYoutubeVideoId(data.youtube_id)
           // data is nested - so AudioClips data is in res.data.Audio_Clips
           const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) =>
             convertClipObject(clip),
@@ -916,7 +913,7 @@ const YDXHome = (): React.ReactElement => {
   return (
     <div className="ydx-body ydx-html">
       {/* Spinner div - displayed based on showSpinner */}
-      {showSpinner ? <Spinner /> : <></>}
+      {/* {showSpinner ? <Spinner /> : <></>} */}
       <div className="container home-container">
         {/* Youtube Iframe & Notes Component Container */}
         <div className="d-flex justify-content-around">
