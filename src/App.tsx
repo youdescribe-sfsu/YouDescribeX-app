@@ -44,6 +44,7 @@ import UserDescribedVideos from './pages/UserDescribedVideos/UserDescribedVideos
 import ReactGA from 'react-ga'
 import ReactGA4 from 'react-ga4'
 import { createBrowserHistory } from 'history'
+import PublishedAudioDescriptions from './pages/PublishedAudioDescriptions/PublishedAudioDescriptions'
 
 const history = createBrowserHistory()
 //const trackingId = "UA-171142756-3"; //live site key
@@ -340,7 +341,7 @@ const App = () => {
           />
           <Route
             path="/audio-description/:audioDescriptionId"
-            element={<SystemUpgradeWarning />}
+            element={<PublishedAudioDescriptions />}
           />
         </Routes>
       </body>

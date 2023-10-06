@@ -4,8 +4,8 @@ import { useParams } from 'react-router-dom' /* to use params on the url */
 import axios from 'axios'
 import YouTube, { YouTubePlayer } from 'react-youtube'
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
-import '../assets/css/home.css'
-import '../assets/css/timer.css'
+import '../../assets/css/home.css'
+import '../../assets/css/timer.css'
 import AudioClip from '../../features/Describe/AudioClip/AudioClip'
 import Notes from '../../features/Describe/Notes/Notes'
 import convertSecondsToCardFormat from '../../shared/utils/convertSecondsToCardFormat'
@@ -20,7 +20,7 @@ import { Options } from 'youtube-player/dist/types'
 import { userDataStore } from '@/App'
 import { toast } from 'react-toastify'
 
-const YDXHome = (): React.ReactElement => {
+const PublishedAudioDescriptions = (): React.ReactElement => {
   /* to use params on the url and get userId & youtubeVideoId */
   const { audioDescriptionId } = useParams()
   const participant_id = sessionStorage.getItem('id')
@@ -1090,4 +1090,4 @@ const YDXHome = (): React.ReactElement => {
   )
 }
 
-export default YDXHome
+export default PublishedAudioDescriptions
