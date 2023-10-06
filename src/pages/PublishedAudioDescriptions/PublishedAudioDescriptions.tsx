@@ -219,7 +219,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     draggableDivWidth,
     unitLength,
     videoId,
-    // youtubeVideoId,
+    youtubeVideoId,
     // changing this state variable, will fetch user data again
     updateData, // to fetch data whenever updateData state is changed.
     setEditComponentToggleList,
@@ -312,40 +312,42 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   // fetch videoId based on the youtubeVideoId which is later used to get audioClips
   const fetchUserVideoData = () => {
-    axios
-      .get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${audioDescriptionId}`,
-      )
-      .then((res) => {
-        setShowSpinner(false)
-        const video_id = res.data.video_id
-        const video_length = res.data.video_length
-        setVideoLength(video_length)
-        setVideoId(video_id)
-        return video_length
-      })
-      .then((video_length) => {
-        setShowSpinner(false)
-        // order of the below function calls is important
-        calculateDraggableDivWidth() // for calculating the draggable-div width of the timeline
-        calculateUnitLength(video_length) // calculate unit length of the timeline width based on video length
-        setShowSpinner(true)
-        fetchDialogData() // use axios and get dialog timestamps for the Dialog Timeline});
-        setShowSpinner(true)
-        fetchAudioDescriptionData()
-      })
-      .catch((err) => {
-        // console.error(err.response.data);
-        console.error('ERROR in fetchUserVideoData', err)
+    if (youtubeVideoId) {
+      axios
+        .get(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${youtubeVideoId}`,
+        )
+        .then((res) => {
+          setShowSpinner(false)
+          const video_id = res.data.video_id
+          const video_length = res.data.video_length
+          setVideoLength(video_length)
+          setVideoId(video_id)
+          return video_length
+        })
+        .then((video_length) => {
+          setShowSpinner(false)
+          // order of the below function calls is important
+          calculateDraggableDivWidth() // for calculating the draggable-div width of the timeline
+          calculateUnitLength(video_length) // calculate unit length of the timeline width based on video length
+          setShowSpinner(true)
+          fetchDialogData() // use axios and get dialog timestamps for the Dialog Timeline});
+          setShowSpinner(true)
+          fetchAudioDescriptionData()
+        })
+        .catch((err) => {
+          // console.error(err.response.data);
+          console.error('ERROR in fetchUserVideoData', err)
 
-        setShowSpinner(true)
-      })
+          setShowSpinner(true)
+        })
+    }
   }
 
   // use axios to get audio descriptions for the videoId (set in fetchUserVideoData()) & userId passed to the url Params
   const fetchAudioDescriptionData = (isNewClipAdded = false) => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
-    if (videoId && userDataStore.getState().userId && audioDescriptionId)
+    if (audioDescriptionId)
       axios
         .get(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-audio-description/${audioDescriptionId}
