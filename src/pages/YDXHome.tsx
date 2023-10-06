@@ -1080,7 +1080,7 @@ const YDXHome = (): React.ReactElement => {
               className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
               onClick={() => {
                 handleCopyClick(`
-                ${window.location.origin}/audio-description/${audioDescriptionId}`)
+                ${window.location.origin}/audio-description/${youtubeVideoId}/${audioDescriptionId}`)
               }}
             >
               <i className="fa fa-copy" /> {'   '}

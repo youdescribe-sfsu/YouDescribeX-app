@@ -22,7 +22,7 @@ import { toast } from 'react-toastify'
 
 const PublishedAudioDescriptions = (): React.ReactElement => {
   /* to use params on the url and get userId & youtubeVideoId */
-  const { audioDescriptionId } = useParams()
+  const { youtubeVideoId, audioDescriptionId } = useParams()
   const participant_id = sessionStorage.getItem('id')
   /* Options for YouTube video API */
   const opts: Options = {
@@ -118,7 +118,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     parseInt(localStorage.getItem('youTubeVolume') || '100'),
   )
 
-  const [youtubeVideoId, setYoutubeVideoId] = useState('') // retrieved from db, stored to fetch videoId
+  // const [youtubeVideoId, setYoutubeVideoId] = useState('') // retrieved from db, stored to fetch videoId
 
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
@@ -365,7 +365,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           console.log('Audio Description Data', data)
           setShowSpinner(false)
           setIsPublished(data.is_published)
-          setYoutubeVideoId(data.youtube_id)
+          // setYoutubeVideoId(data.youtube_id)
           // data is nested - so AudioClips data is in res.data.Audio_Clips
           const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) =>
             convertClipObject(clip),

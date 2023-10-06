@@ -340,7 +340,7 @@ const App = () => {
             element={<SystemUpgradeWarning />}
           />
           <Route
-            path="/audio-description/:audioDescriptionId"
+            path="/audio-description/:youtubeVideoId/:audioDescriptionId"
             element={<PublishedAudioDescriptions />}
           />
         </Routes>
