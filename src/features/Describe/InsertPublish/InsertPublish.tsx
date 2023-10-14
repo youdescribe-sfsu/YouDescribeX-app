@@ -75,7 +75,7 @@ const InsertPublish = ({
       })
   }
 
-  const handlePublish = async (e: any) => {
+  const handlePublish = async (e: any, checkbox: boolean | undefined) => {
     console.log('publish')
 
     axios
@@ -84,6 +84,7 @@ const InsertPublish = ({
         {
           audioDescriptionId,
           youtube_id: youtubeVideoId,
+          enrolled_in_collaborative_editing: checkbox,
         },
         {
           withCredentials: true,
@@ -176,6 +177,8 @@ const InsertPublish = ({
         modalTask={handlePublish}
         show={isModal}
         handleClose={() => setIsModal(false)}
+        showCheckbox={true}
+        checkBoxText="Enroll in Collaborative Editing"
       />
     </React.Fragment>
   )
