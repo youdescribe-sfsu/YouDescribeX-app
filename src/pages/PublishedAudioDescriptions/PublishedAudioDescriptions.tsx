@@ -431,6 +431,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           setClipStack(clipStackData)
         })
         .catch((err) => {
+          toast.error('Audio Description not published')
           // console.error(err.response.data);
           console.error('ERROR in fetchAudioDescriptionData', err)
 

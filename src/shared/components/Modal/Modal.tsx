@@ -1,13 +1,17 @@
+import React, { useState } from 'react' // Import the useState hook
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
+import Form from 'react-bootstrap/Form'
 
 interface Props {
   id: string
   title: string
   text: string
-  modalTask: (e: any) => void
+  modalTask: (e: any, checkbox?: boolean) => void
   show: boolean
   handleClose: () => void
+  showCheckbox?: boolean // Conditionally show the checkbox
+  checkBoxText?: string // Customize checkbox text
 }
 
 const ModalComponent = ({
@@ -16,13 +20,20 @@ const ModalComponent = ({
   modalTask,
   show,
   handleClose,
+  showCheckbox = false, // Default to false if not provided
+  checkBoxText = 'Include additional information', // Default text
 }: Props) => {
+  const [isChecked, setIsChecked] = useState(false) // Add a checkbox state
+
+  // Function to handle checkbox change
+  const handleCheckboxChange = () => {
+    setIsChecked(!isChecked)
+  }
+
   return (
-    // <div className="modal fade text-dark" id={modalId}>
     <Modal show={show} onHide={handleClose}>
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content mx-auto w-75">
-          {/* <!-- Modal Header --> */}
           <div className="modal-header">
             <h4 className="modal-title">{title}</h4>
             <Button
@@ -30,14 +41,24 @@ const ModalComponent = ({
               onClick={handleClose}
             ></Button>
           </div>
-          {/* <!-- Modal body --> */}
-          <div className="modal-body text-center">{text}</div>
-          {/* <!-- Modal footer --> */}
+          <div className="modal-body text-center">
+            {text}
+            {showCheckbox && ( // Conditionally render the checkbox
+              <Form>
+                <Form.Check
+                  type="checkbox"
+                  label={checkBoxText} // Use the provided or default text
+                  checked={isChecked} // Bind the checkbox to the state
+                  onChange={handleCheckboxChange} // Handle checkbox change
+                />
+              </Form>
+            )}
+          </div>
           <div className="modal-footer d-flex justify-content-evenly align-items-center">
             <Button
               className="btn primary-btn-color text-center m-1 text-white w-25 ydx-button"
               onClick={(e) => {
-                modalTask(e)
+                modalTask(e, isChecked)
                 handleClose()
               }}
             >
@@ -53,7 +74,6 @@ const ModalComponent = ({
           </div>
         </div>
       </div>
-      {/* </div> */}
     </Modal>
   )
 }
