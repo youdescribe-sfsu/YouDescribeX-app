@@ -147,10 +147,10 @@ const Wishlist = () => {
   const totalVideoSlides = Math.ceil(videoCardsComponents.length / itemsPerPage)
 
   // Initialize active slide state
-  const [activeVideoAISlide, setActiveVideoAISlide] = useState(0)
+  const [activeVideoSlide, setActiveVideoAISlide] = useState(0)
 
   // Function to handle slide change for videosAI
-  const handleVideoAISlideChange = (selectedIndex: number) => {
+  const handleVideoSlideChange = (selectedIndex: number) => {
     setActiveVideoAISlide(selectedIndex)
     // // Check if there are videos in the next slide
     // if (selectedIndex < totalVideoAISlides - 1) {
@@ -196,14 +196,14 @@ const Wishlist = () => {
       )
     }
   }
-  function renderCarouselIndicators() {
+  function renderCarouselIndicators(totalSlides: number, activeSlide: number) {
     return (
       <ol className="carousel-indicators">
-        {Array.from({ length: totalVideoSlides }).map((_, index) => (
+        {Array.from({ length: totalSlides }).map((_, index) => (
           <li
             key={index}
             onClick={() => setActiveVideoAISlide(index)}
-            className={index === activeVideoAISlide ? 'active' : ''}
+            className={index === activeSlide ? 'active' : ''}
           ></li>
         ))}
       </ol>
@@ -213,7 +213,7 @@ const Wishlist = () => {
   // const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
   // console.log({ videosAIToDisplay })
   // Calculate the range of videos to display on the current slide
-  const videoStartIndex = activeVideoAISlide * itemsPerPage
+  const videoStartIndex = activeVideoSlide * itemsPerPage
   const videoEndIndex = videoStartIndex + itemsPerPage
 
   const videosToDisplay = videoCardsComponents.slice(
@@ -490,22 +490,39 @@ const Wishlist = () => {
       <header className="w3-container w3-indigo">
         <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
       </header>
-      <Carousel
-        activeIndex={activeVideoAISlide}
-        onSelect={handleVideoAISlideChange}
-        className="w-100 custom-carousel"
-        interval={null}
-        wrap={false}
-      >
-        {Array.from({ length: totalVideoSlides }).map((_, index) => (
-          <Carousel.Item key={index}>
+      <div className="d-flex justify-content-center custom-carousel">
+        {videosToDisplay.length > 0 && ( // Check if there are videos to display
+          <>
+            {/* Custom previous button */}
+            <button
+              className="prev-icon"
+              onClick={() => handleVideoSlideChange(activeVideoSlide - 1)}
+              disabled={activeVideoSlide === 0}
+            >
+              &lt;
+            </button>
+
+            {/* Content for displaying videos */}
             <div className="w3-row classic-container row">
               {videosToDisplay}
             </div>
-          </Carousel.Item>
-        ))}
-        {renderCarouselIndicators()}
-      </Carousel>
+            {renderCarouselIndicators(totalVideoSlides, activeVideoSlide)}
+
+            {/* Custom next button */}
+            <button
+              className="next-icon"
+              onClick={() => handleVideoSlideChange(activeVideoSlide + 1)}
+              disabled={activeVideoSlide === totalVideoSlides - 1}
+            >
+              &gt;
+            </button>
+          </>
+        )}
+
+        {videosToDisplay.length === 0 && (
+          <p className="history-text">No history to view.</p>
+        )}
+      </div>
       <form
         onSubmit={(e: any) => {
           e.preventDefault()
