@@ -50,6 +50,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
       return <SignInButton newGoogleAuth={newGoogleAuth} />
     }
   }
+  const myHistoryUrl = `/videos/history/${userDataStore.getState().userId}`
 
   return (
     <nav id="navbar" className="classic-nav navbar">
@@ -100,14 +101,14 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
           {/* Right-sided navbar links */}
           <div className="w3-right w3-hide-small w3-hide-medium">
             <Link
-              to="/home"
+              to={myHistoryUrl}
               className="classic-link w3-bar-item w3-small"
               style={{ position: 'relative', top: '11px', padding: '8px' }}
             >
               <i className="fa fa-home" aria-hidden="true">
                 &nbsp;&nbsp;
               </i>
-              {translate('RECENT DESCRIPTIONS')}
+              {translate('HISTORY')}
             </Link>
             <Link
               to="/wishlist"

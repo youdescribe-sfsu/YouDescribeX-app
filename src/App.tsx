@@ -41,6 +41,7 @@ import { detect } from 'detect-browser'
 import Credits from './pages/Credits/Credits'
 import CreditsDetails from './pages/CreditsDetails/CreditsDetails'
 import UserDescribedVideos from './pages/UserDescribedVideos/UserDescribedVideos'
+import History from './pages/History/History'
 import ReactGA from 'react-ga'
 import ReactGA4 from 'react-ga4'
 import { createBrowserHistory } from 'history'
@@ -175,7 +176,7 @@ const App = () => {
         const response = await fetch(url, {
           method: 'GET',
           headers: {
-            Authorization: ``, // Custom header with the user ID
+            Authorization: '5cedd767a774ac520ff93e60', // Custom header with the user ID
           },
           credentials: 'include',
         })
@@ -324,6 +325,7 @@ const App = () => {
             path="/videos/user/:userId"
             element={<UserDescribedVideos />}
           />
+          <Route path="/videos/history/:userId" element={<History />} />
           <Route path="/" element={<Navigate to="/home" />} />
           <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
           <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
