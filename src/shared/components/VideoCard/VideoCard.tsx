@@ -18,6 +18,7 @@ interface Props {
   author: string
   duration?: string
   views?: string
+  statusVal?: string
   time: string
   userVote?: boolean
 }
@@ -32,6 +33,7 @@ const VideoCard = ({
   thumbnailMediumUrl,
   author,
   duration,
+  statusVal,
   // views,
   // time,
   userVote = false,
@@ -232,9 +234,22 @@ const VideoCard = ({
                 {translate('Author')}: {author}
               </span>
               <br />
-              <span className="card-span">
+              {votes ? (
+                <span className="card-span">
+                  {'Votes'}: {votes}
+                </span>
+              ) : null}
+              {/* <span className="card-span">
                 {'Votes'}: {votes}
-              </span>
+              </span> */}
+              {statusVal ? (
+                <span className="w3-btn w3-indigo card-button ">
+                  {'Status'}: {statusVal}
+                </span>
+              ) : null}
+              {/* <span className="w3-btn w3-indigo w3-right card-button">
+                {'Status'}: {statusVal}
+              </span> */}
               {/* <a href="#">{this.props.describer}</a> */}
             </div>
           </div>

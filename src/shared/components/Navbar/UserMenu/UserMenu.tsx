@@ -10,6 +10,7 @@ interface Props {
 
 const UserMenu = ({ userMenuToggle, signOut }: Props) => {
   const myVideosUrl = `/videos/user/${userDataStore.getState().userId}`
+  const myHistoryUrl = `/videos/history/${userDataStore.getState().userId}`
 
   return (
     <div id="user-menu" tabIndex={-1} className="user-menu">
@@ -35,6 +36,21 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
             </span>
           </Link>
         </div>
+        {/* <div className="my-described-videos-button">
+          <Link
+            to={myHistoryUrl}
+            title={translate('View my historty')}
+            onClick={userMenuToggle}
+            className="usermenu-link"
+          >
+            <i
+              style={{ width: 50 }}
+              className="fa fa-audio-description"
+              aria-hidden="true"
+            ></i>
+            <span className="usermenu-span">{translate('History')}</span>
+          </Link>
+        </div> */}
         <div className="my-described-videos-button">
           <a
             href={`${process.env.REACT_APP_REDIRECT_URL}/profile/${

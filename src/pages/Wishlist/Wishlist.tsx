@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom'
 import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
 import encryptData from '@/shared/utils/encrypt'
+import Carousel from 'react-bootstrap/Carousel'
 
 const allCategories = [
   'Film & Animation',
@@ -133,6 +134,32 @@ const Wishlist = () => {
     },
   ]
 
+  const itemsPerPage = 5 // Change this as per your requirements
+
+  // Calculate the total number of slides for videosAI
+  const totalVideoSlides = Math.ceil(videoCardsComponents.length / itemsPerPage)
+
+  // Initialize active slide state
+  const [activeVideoSlide, setActiveVideoAISlide] = useState(0)
+
+  // Function to handle slide change for videosAI
+  const handleVideoSlideChange = (selectedIndex: number) => {
+    setActiveVideoAISlide(selectedIndex)
+    // // Check if there are videos in the next slide
+    // if (selectedIndex < totalVideoAISlides - 1) {
+    //   setHasNextVideos(true)
+    // } else {
+    //   setHasNextVideos(false)
+    // }
+
+    // // Check if there are videos in the previous slide
+    // if (selectedIndex > 0) {
+    //   setHasPreviousVideos(true)
+    // } else {
+    //   setHasPreviousVideos(false)
+    // }
+  }
+
   const describeThisVideo = (youTubeId: string) => {
     if (userDataStore.getState().isSignedIn) {
       axios
@@ -162,6 +189,30 @@ const Wishlist = () => {
       )
     }
   }
+  function renderCarouselIndicators(totalSlides: number, activeSlide: number) {
+    return (
+      <ol className="carousel-indicators">
+        {Array.from({ length: totalSlides }).map((_, index) => (
+          <li
+            key={index}
+            onClick={() => setActiveVideoAISlide(index)}
+            className={index === activeSlide ? 'active' : ''}
+          ></li>
+        ))}
+      </ol>
+    )
+  }
+  // // Slice the videosAI array to display only the videos for the active page
+  // const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
+  // console.log({ videosAIToDisplay })
+  // Calculate the range of videos to display on the current slide
+  const videoStartIndex = activeVideoSlide * itemsPerPage
+  const videoEndIndex = videoStartIndex + itemsPerPage
+
+  const videosToDisplay = videoCardsComponents.slice(
+    videoStartIndex,
+    videoEndIndex,
+  )
 
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
@@ -428,6 +479,42 @@ const Wishlist = () => {
       </div>
       <div className="w3-row-padding classic-container wishlist-video-row">
         {videoCardsComponents}
+      </div>
+      <header className="w3-container w3-indigo">
+        <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
+      </header>
+      <div className="d-flex justify-content-center custom-carousel">
+        {videosToDisplay.length > 0 && ( // Check if there are videos to display
+          <>
+            {/* Custom previous button */}
+            <button
+              className="prev-icon"
+              onClick={() => handleVideoSlideChange(activeVideoSlide - 1)}
+              disabled={activeVideoSlide === 0}
+            >
+              &lt;
+            </button>
+
+            {/* Content for displaying videos */}
+            <div className="w3-row classic-container row">
+              {videosToDisplay}
+            </div>
+            {renderCarouselIndicators(totalVideoSlides, activeVideoSlide)}
+
+            {/* Custom next button */}
+            <button
+              className="next-icon"
+              onClick={() => handleVideoSlideChange(activeVideoSlide + 1)}
+              disabled={activeVideoSlide === totalVideoSlides - 1}
+            >
+              &gt;
+            </button>
+          </>
+        )}
+
+        {videosToDisplay.length === 0 && (
+          <p className="history-text">No history to view.</p>
+        )}
       </div>
       <form
         onSubmit={(e: any) => {

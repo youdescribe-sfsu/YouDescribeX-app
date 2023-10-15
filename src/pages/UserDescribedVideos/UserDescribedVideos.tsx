@@ -17,6 +17,7 @@ const UserDescribedVideos = () => {
   const [userName, setUserName] = useState('')
   const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
+  const [videosAI, setAIVideos] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const { userId } = useParams()
 
@@ -30,22 +31,21 @@ const UserDescribedVideos = () => {
     })
   }
 
-  const getUserVideos = async () => {
+  const getUserVideos = async (
+    url: string,
+    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
+  ) => {
     let youTubeIds = ''
     const youTubeVideoIds: string[] = []
     const youDescribeVideosIds: string[] = []
     const audioDescriptionIds: string[] = []
-    let url
-    if (process.env.REACT_APP_USE_YDX) {
-      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
-    } else {
-      url = `${apiUrl}/videos/user/${userId}`
-    }
+
     axios
       .get(url)
       .then((response) => {
         const videosArray = response.data
-        setUserVideosArray(videosArray)
+        console.log({ videosArray })
+        // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
           youTubeVideoIds.push(videosArray[i].youtube_video_id)
           youDescribeVideosIds.push(videosArray[i].video_id)
@@ -65,6 +65,7 @@ const UserDescribedVideos = () => {
             youTubeVideosArray,
             youDescribeVideosIds,
             audioDescriptionIds,
+            setStateFunction,
           )
         })
       })
@@ -74,6 +75,7 @@ const UserDescribedVideos = () => {
     youTubeVideosArray: any,
     youDescribeVideosIds: string[],
     audioDescriptionIds: string[],
+    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
   ) => {
     const videoComponents = []
     for (let i = 0; i < youTubeVideosArray.items.length; i += 1) {
@@ -104,6 +106,7 @@ const UserDescribedVideos = () => {
             author={author}
             views={views}
             time={time}
+            // buttons={setStateFunction === setVideos ? 'edit' : ''}
             buttons="edit"
           />
         </div>,
@@ -111,6 +114,7 @@ const UserDescribedVideos = () => {
     }
     setShowSpinner(false)
     setVideos(videoComponents)
+    setStateFunction(videoComponents)
   }
 
   const loadMoreResults = () => {
@@ -143,7 +147,17 @@ const UserDescribedVideos = () => {
   useEffect(() => {
     if (userId) {
       getUserInfo()
-      getUserVideos()
+      // Fetch and process My Described Videos
+      const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
+        : `${apiUrl}/videos/user/${userId}`
+      getUserVideos(myDescribedVideosUrl, setVideos)
+
+      // Fetch and process AI Requested Videos
+      const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
+        : `${apiUrl}/videos/user/${userId}`
+      getUserVideos(aiRequestedVideosUrl, setAIVideos)
     }
   }, [userId])
 
@@ -180,6 +194,17 @@ const UserDescribedVideos = () => {
             {showSpinner ? <Spinner /> : null}
 
             <div className="w3-row classic-container row">{videos}</div>
+
+            {YDLoadMoreButton}
+          </section>
+          <section>
+            <header className="w3-container w3-indigo">
+              <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
+            </header>
+
+            {showSpinner ? <Spinner /> : null}
+
+            <div className="w3-row classic-container row">{videosAI}</div>
 
             {YDLoadMoreButton}
           </section>
