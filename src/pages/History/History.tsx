@@ -84,13 +84,9 @@ const History = () => {
     axios
       .get(url)
       .then((response) => {
-        console.log({ url })
-        console.log(response)
         const responseData = response.data
-        console.log({ responseData })
-        const videosArray = responseData
 
-        console.log({ videosArray })
+        const videosArray = responseData
         // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
           youTubeVideoIds.push(videosArray[i].youtube_video_id)
@@ -99,7 +95,6 @@ const History = () => {
           status.push(videosArray[i].status)
         }
         youTubeIds = youTubeVideoIds.join(',')
-        console.log({ youTubeIds })
       })
       .then(() => {
         const url = `${youTubeApiUrl}/videos?id=${youTubeIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
@@ -109,7 +104,7 @@ const History = () => {
             JSON.stringify(data),
           )
           const youTubeVideosArray = data
-          console.log({ youTubeVideosArray })
+
           parseResponseData(
             youTubeVideosArray,
             youDescribeVideosIds,
@@ -214,7 +209,7 @@ const History = () => {
       const userHistoryUrl = process.env.REACT_APP_USE_YDX
         ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
         : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
-      console.log({ userHistoryUrl })
+
       getUserVideos(userHistoryUrl, setHistory)
 
       // Fetch and process AI Requested Videos
@@ -222,14 +217,14 @@ const History = () => {
         ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
         : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
       // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
-      console.log({ aiRequestedVideosUrl })
+
       getUserVideos(aiRequestedVideosUrl, setAIVideos)
     }
     // Fetch and process Recent Descripton Videos
     const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions`
       : `${apiUrl}/api/audio-descriptions/get-recent-descriptions`
-    console.log({ recentDescriptionsUrl })
+
     getUserVideos(recentDescriptionsUrl, setVideos)
   }, [userId])
 
