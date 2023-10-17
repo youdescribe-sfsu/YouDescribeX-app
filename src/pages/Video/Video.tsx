@@ -233,6 +233,17 @@ const Video = () => {
           const data = response.data
           setRequestAiDescription(data)
         })
+        .catch((error) => {
+          if (error.response && error.response.status === 500) {
+            // Handle the 500 Internal Server Error here
+            const errorMessage =
+              'Internal Server Error: Something went wrong on the server side.Please try again later! '
+            toast.error(errorMessage)
+          } else {
+            // Handle other errors here
+            toast.error('An error occurred. Please try again later.')
+          }
+        })
     }
   }, [userDataStore.getState().isSignedIn])
 
