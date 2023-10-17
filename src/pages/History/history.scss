@@ -143,4 +143,35 @@
   font-size: 25px;
   line-height: 1.5;
   margin-top: 40px;
+  text-align: center;
+}
+/* For larger screens (e.g., desktops) */
+:root {
+  --items-per-page: 4;
+}
+
+/* Define your media queries as before */
+@media (min-width: 1024px) {
+  :root {
+    --items-per-page: 4;
+  }
+}
+
+/* For medium-sized screens (e.g., tablets) */
+@media (max-width: 1023px) and (min-width: 768px) {
+  :root {
+    --items-per-page: 3;
+  }
+}
+
+/* For small screens (e.g., mobile devices) */
+@media (max-width: 767px) {
+  :root {
+    --items-per-page: 2;
+  }
+}
+@media (max-width: 700px) {
+  :root {
+    --items-per-page: 1;
+  }
 }
