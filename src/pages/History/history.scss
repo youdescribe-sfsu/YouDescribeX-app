@@ -66,12 +66,56 @@
   position: relative;
 }
 
+.custom-carousel-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+// .custom-carousel .prev-icon {
+//   left: 13%;
+// }
+
+// .custom-carousel .next-icon {
+//   right: 13%;
+// }
+
 .custom-carousel .prev-icon {
-  left: 15%;
+  left: 5%; /* Adjust the left position for smaller screens */
 }
 
 .custom-carousel .next-icon {
-  right: 15%;
+  right: 5%; /* Adjust the right position for smaller screens */
+}
+
+@media (min-width: 768px) and (max-width: 1150px) {
+  .custom-carousel .prev-icon {
+    left: 2%; /* Adjust the left position for medium-sized screens */
+  }
+
+  .custom-carousel .next-icon {
+    right: 2%; /* Adjust the right position for medium-sized screens */
+  }
+}
+@media (min-width: 1150px) and (max-width: 1250px) {
+  .custom-carousel .prev-icon {
+    left: 4%; /* Adjust the left position for medium-sized screens */
+  }
+
+  .custom-carousel .next-icon {
+    right: 4%; /* Adjust the right position for medium-sized screens */
+  }
+}
+
+@media (min-width: 1300px) {
+  .custom-carousel .prev-icon {
+    left: 8%; /* Adjust the left position for larger screens */
+  }
+
+  .custom-carousel .next-icon {
+    right: 8%; /* Adjust the right position for larger screens */
+  }
 }
 
 /* Style for carousel indicators */

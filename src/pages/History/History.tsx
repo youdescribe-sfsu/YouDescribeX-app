@@ -31,10 +31,6 @@ const History = () => {
   // Calculate the total number of pages for videosAI
   const totalVideoPages = Math.ceil(videos.length / itemsPerPage)
 
-  console.log({ videos })
-  console.log({ videosAI })
-  console.log({ history })
-
   // Initialize active page state
   const [activeVideoPage, setActiveVideoPage] = useState(0)
 
@@ -88,13 +84,9 @@ const History = () => {
     axios
       .get(url)
       .then((response) => {
-        console.log({ url })
-        console.log(response)
         const responseData = response.data
-        console.log({ responseData })
-        const videosArray = responseData
 
-        console.log({ videosArray })
+        const videosArray = responseData
         // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
           youTubeVideoIds.push(videosArray[i].youtube_video_id)
@@ -103,7 +95,6 @@ const History = () => {
           status.push(videosArray[i].status)
         }
         youTubeIds = youTubeVideoIds.join(',')
-        console.log({ youTubeIds })
       })
       .then(() => {
         const url = `${youTubeApiUrl}/videos?id=${youTubeIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
@@ -113,7 +104,7 @@ const History = () => {
             JSON.stringify(data),
           )
           const youTubeVideosArray = data
-          console.log({ youTubeVideosArray })
+
           parseResponseData(
             youTubeVideosArray,
             youDescribeVideosIds,
@@ -173,13 +164,17 @@ const History = () => {
     // setVideos(videoComponents)
     setStateFunction(videoComponents)
   }
-  function renderCarouselIndicators(totalSlides: number, activeSlide: number) {
+  function renderCarouselIndicators(
+    totalSlides: number,
+    activeSlide: number,
+    setActive: React.Dispatch<React.SetStateAction<number>>,
+  ) {
     return (
       <ol className="carousel-indicators">
         {Array.from({ length: totalSlides }).map((_, index) => (
           <li
             key={index}
-            onClick={() => setActiveVideoAISlide(index)}
+            onClick={() => setActive(index)}
             className={index === activeSlide ? 'active' : ''}
           ></li>
         ))}
@@ -214,7 +209,7 @@ const History = () => {
       const userHistoryUrl = process.env.REACT_APP_USE_YDX
         ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
         : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
-      console.log({ userHistoryUrl })
+
       getUserVideos(userHistoryUrl, setHistory)
 
       // Fetch and process AI Requested Videos
@@ -222,14 +217,14 @@ const History = () => {
         ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
         : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
       // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
-      console.log({ aiRequestedVideosUrl })
+
       getUserVideos(aiRequestedVideosUrl, setAIVideos)
     }
     // Fetch and process Recent Descripton Videos
     const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions`
       : `${apiUrl}/api/audio-descriptions/get-recent-descriptions`
-    console.log({ recentDescriptionsUrl })
+
     getUserVideos(recentDescriptionsUrl, setVideos)
   }, [userId])
 
@@ -264,9 +259,9 @@ const History = () => {
             </header>
 
             {showSpinner ? <Spinner /> : null}
-            <div className="d-flex justify-content-center custom-carousel">
-              {videosToDisplay.length > 0 && ( // Check if there are videos to display
-                <>
+            <div className="custom-carousel">
+              {videosToDisplay.length > 0 && (
+                <div className="d-flex justify-content-between align-items-center">
                   {/* Custom previous button */}
                   <button
                     className="prev-icon"
@@ -280,7 +275,12 @@ const History = () => {
                   <div className="w3-row classic-container row">
                     {videosToDisplay}
                   </div>
-                  {renderCarouselIndicators(totalVideoPages, activeVideoPage)}
+
+                  {renderCarouselIndicators(
+                    totalVideoPages,
+                    activeVideoPage,
+                    setActiveVideoPage,
+                  )}
 
                   {/* Custom next button */}
                   <button
@@ -290,11 +290,11 @@ const History = () => {
                   >
                     &gt;
                   </button>
-                </>
+                </div>
               )}
 
               {videosToDisplay.length === 0 && (
-                <p className="history-text">No Recent descriptions to view </p>
+                <p className="history-text">No Recent descriptions to view</p>
               )}
             </div>
           </section>
@@ -305,9 +305,9 @@ const History = () => {
             </header>
 
             {showSpinner ? <Spinner /> : null}
-            <div className="d-flex justify-content-center custom-carousel">
-              {videosAIToDisplay.length > 0 && ( // Check if there are videos to display
-                <>
+            <div className="custom-carousel">
+              {videosAIToDisplay.length > 0 && (
+                <div className="d-flex justify-content-between align-items-center">
                   {/* Custom previous button */}
                   <button
                     className="prev-icon"
@@ -326,8 +326,8 @@ const History = () => {
                   {renderCarouselIndicators(
                     totalVideoAISlides,
                     activeVideoAISlide,
+                    setActiveVideoAISlide,
                   )}
-
                   {/* Custom next button */}
                   <button
                     className="next-icon"
@@ -338,7 +338,7 @@ const History = () => {
                   >
                     &gt;
                   </button>
-                </>
+                </div>
               )}
 
               {videosAIToDisplay.length === 0 && (
@@ -375,6 +375,7 @@ const History = () => {
                   {renderCarouselIndicators(
                     totalVideoHistorySlides,
                     activeVideoHistorySlide,
+                    setActiveVideoHistorySlide,
                   )}
 
                   {/* Custom next button */}
