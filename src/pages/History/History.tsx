@@ -12,8 +12,6 @@ import ourFetch from '@/shared/utils/ourFetch'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import Pagination from 'react-bootstrap/Pagination'
-import Carousel from 'react-bootstrap/Carousel'
 import './history.scss'
 
 const History = () => {
@@ -26,7 +24,17 @@ const History = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const { userId } = useParams()
 
-  const itemsPerPage = 4 // Change this as per your requirements
+  // const itemsPerPage = 4 // Change this as per your requirements
+  const [itemsPerPage, setItemsPerPage] = useState(
+    parseInt(
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--items-per-page')
+        .trim(),
+      10,
+    ),
+  )
+
+  console.log({ itemsPerPage })
 
   // Calculate the total number of pages for videosAI
   const totalVideoPages = Math.ceil(videos.length / itemsPerPage)
@@ -203,6 +211,20 @@ const History = () => {
   )
 
   useEffect(() => {
+    const updateItemsPerPage = () => {
+      setItemsPerPage(
+        parseInt(
+          getComputedStyle(document.documentElement)
+            .getPropertyValue('--items-per-page')
+            .trim(),
+          10,
+        ),
+      )
+    }
+
+    // Attach the event listener to window resize
+    window.addEventListener('resize', updateItemsPerPage)
+
     if (userId) {
       getUserInfo()
       // Fetch and process History Videos
@@ -220,12 +242,16 @@ const History = () => {
 
       getUserVideos(aiRequestedVideosUrl, setAIVideos)
     }
+
     // Fetch and process Recent Descripton Videos
     const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions`
       : `${apiUrl}/api/audio-descriptions/get-recent-descriptions`
 
     getUserVideos(recentDescriptionsUrl, setVideos)
+    return () => {
+      window.removeEventListener('resize', updateItemsPerPage)
+    }
   }, [userId])
 
   if (
