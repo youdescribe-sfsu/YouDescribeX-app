@@ -177,7 +177,7 @@ const App = () => {
         const response = await fetch(url, {
           method: 'GET',
           headers: {
-            Authorization: ``, // Custom header with the user ID
+            Authorization: '5cedd767a774ac520ff93e60', // Custom header with the user ID
           },
           credentials: 'include',
         })
