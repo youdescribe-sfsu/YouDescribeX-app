@@ -31,10 +31,6 @@ const History = () => {
   // Calculate the total number of pages for videosAI
   const totalVideoPages = Math.ceil(videos.length / itemsPerPage)
 
-  console.log({ videos })
-  console.log({ videosAI })
-  console.log({ history })
-
   // Initialize active page state
   const [activeVideoPage, setActiveVideoPage] = useState(0)
 
@@ -173,13 +169,17 @@ const History = () => {
     // setVideos(videoComponents)
     setStateFunction(videoComponents)
   }
-  function renderCarouselIndicators(totalSlides: number, activeSlide: number) {
+  function renderCarouselIndicators(
+    totalSlides: number,
+    activeSlide: number,
+    setActive: React.Dispatch<React.SetStateAction<number>>,
+  ) {
     return (
       <ol className="carousel-indicators">
         {Array.from({ length: totalSlides }).map((_, index) => (
           <li
             key={index}
-            onClick={() => setActiveVideoAISlide(index)}
+            onClick={() => setActive(index)}
             className={index === activeSlide ? 'active' : ''}
           ></li>
         ))}
@@ -264,9 +264,9 @@ const History = () => {
             </header>
 
             {showSpinner ? <Spinner /> : null}
-            <div className="d-flex justify-content-center custom-carousel">
-              {videosToDisplay.length > 0 && ( // Check if there are videos to display
-                <>
+            <div className="custom-carousel">
+              {videosToDisplay.length > 0 && (
+                <div className="d-flex justify-content-between align-items-center">
                   {/* Custom previous button */}
                   <button
                     className="prev-icon"
@@ -280,7 +280,12 @@ const History = () => {
                   <div className="w3-row classic-container row">
                     {videosToDisplay}
                   </div>
-                  {renderCarouselIndicators(totalVideoPages, activeVideoPage)}
+
+                  {renderCarouselIndicators(
+                    totalVideoPages,
+                    activeVideoPage,
+                    setActiveVideoPage,
+                  )}
 
                   {/* Custom next button */}
                   <button
@@ -290,11 +295,11 @@ const History = () => {
                   >
                     &gt;
                   </button>
-                </>
+                </div>
               )}
 
               {videosToDisplay.length === 0 && (
-                <p className="history-text">No Recent descriptions to view </p>
+                <p className="history-text">No Recent descriptions to view</p>
               )}
             </div>
           </section>
@@ -305,9 +310,9 @@ const History = () => {
             </header>
 
             {showSpinner ? <Spinner /> : null}
-            <div className="d-flex justify-content-center custom-carousel">
-              {videosAIToDisplay.length > 0 && ( // Check if there are videos to display
-                <>
+            <div className="custom-carousel">
+              {videosAIToDisplay.length > 0 && (
+                <div className="d-flex justify-content-between align-items-center">
                   {/* Custom previous button */}
                   <button
                     className="prev-icon"
@@ -326,8 +331,8 @@ const History = () => {
                   {renderCarouselIndicators(
                     totalVideoAISlides,
                     activeVideoAISlide,
+                    setActiveVideoAISlide,
                   )}
-
                   {/* Custom next button */}
                   <button
                     className="next-icon"
@@ -338,7 +343,7 @@ const History = () => {
                   >
                     &gt;
                   </button>
-                </>
+                </div>
               )}
 
               {videosAIToDisplay.length === 0 && (
@@ -375,6 +380,7 @@ const History = () => {
                   {renderCarouselIndicators(
                     totalVideoHistorySlides,
                     activeVideoHistorySlide,
+                    setActiveVideoHistorySlide,
                   )}
 
                   {/* Custom next button */}
