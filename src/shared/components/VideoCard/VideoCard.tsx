@@ -60,8 +60,8 @@ const VideoCard = ({
       const data = response.data
       console.log(data)
     } catch (error) {
-        console.log(error)
-        toast.error('Something went wrong, please try again later')
+      console.log(error)
+      toast.error('Something went wrong, please try again later')
     }
   }
   const upVote = () => {
