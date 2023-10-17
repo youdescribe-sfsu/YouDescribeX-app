@@ -44,7 +44,7 @@ const VideoCard = ({
   const handleVideoClick = async () => {
     try {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/save-Visited-Videos-History`
-
+      console.log("BACKEND URL", url)
       const response = await axios.post(
         url,
         {
@@ -56,9 +56,19 @@ const VideoCard = ({
             'Content-Type': 'application/json',
           },
         },
-      )
-      const data = response.data
-      console.log('video click data => ', data)
+      ).then((res) => {
+        const data = res.data
+        console.log('video click data => ', data)
+        if (res.status != 201) {
+          alert(
+            translate(
+              'Something went wrong or you may already have described this video. Please try again later!',
+            ),
+          )
+          return
+        }
+        navigate('/editor/' + res.data.url)
+      })
     } catch (error) {
       console.log(error)
       toast.error('Something went wrong, please try again later')
