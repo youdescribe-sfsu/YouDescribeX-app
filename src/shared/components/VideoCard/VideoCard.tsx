@@ -44,31 +44,32 @@ const VideoCard = ({
   const handleVideoClick = async () => {
     try {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/save-Visited-Videos-History`
-      console.log("BACKEND URL", url)
-      const response = await axios.post(
-        url,
-        {
-          youtube_id: youTubeId,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
+      console.log('BACKEND URL', url)
+      const response = await axios
+        .post(
+          url,
+          {
+            youtube_id: youTubeId,
           },
-        },
-      ).then((res) => {
-        const data = res.data
-        console.log('video click data => ', data)
-        if (res.status != 201) {
-          alert(
-            translate(
-              'Something went wrong or you may already have described this video. Please try again later!',
-            ),
-          )
-          return
-        }
-        navigate('/editor/' + res.data.url)
-      })
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        .then((res) => {
+          const data = res.data
+          console.log('video click data => ', data)
+          if (res.status != 201) {
+            alert(
+              translate(
+                'Something went wrong, please try again later',
+              ),
+            )
+            return
+          }
+        })
     } catch (error) {
       console.log(error)
       toast.error('Something went wrong, please try again later')
