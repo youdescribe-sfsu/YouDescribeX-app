@@ -58,7 +58,7 @@ const VideoCard = ({
         },
       )
       const data = response.data
-      console.log(data)
+      console.log("video click data => ", data)
     } catch (error) {
       console.log(error)
       toast.error('Something went wrong, please try again later')
