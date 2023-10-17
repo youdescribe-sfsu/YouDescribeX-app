@@ -47,10 +47,10 @@
     "build": "craco build",
     "test": "craco test",
     "eject": "craco eject",
-    "lint": "eslint \"**/*.{ts, tsx}\"",
-    "lint:fix": "eslint \"**/*.{ts, tsx}\" --fix",
-    "format": "prettier --write './**/*.{js, jsx, ts, tsx, css, md, json}' --config .prettierrc",
-    "format:win": "prettier --write \"./**/*.{js, jsx, ts, tsx, css, md, json}\" --config .prettierrc",
+    "lint": "eslint \"**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"**/*.{ts,tsx}\" --fix",
+    "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config .prettierrc",
+    "format:win": "prettier --write \"./**/*.{js,jsx,ts,tsx,css,md,json}\" --config .prettierrc",
     "prepare": "husky install"
   },
   "eslintConfig": {
