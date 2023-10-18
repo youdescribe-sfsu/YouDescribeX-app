@@ -51,7 +51,7 @@ const VideoCard = ({
           url,
           {
             youtube_id: youTubeId,
-            userId: userDataStore.getState().userId
+            userId: userDataStore.getState().userId,
           },
           {
             withCredentials: true,
