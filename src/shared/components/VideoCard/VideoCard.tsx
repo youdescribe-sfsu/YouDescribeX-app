@@ -45,7 +45,6 @@ const VideoCard = ({
     console.log('INSIDE HANDLECLICK')
     try {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/save-Visited-Videos-History`
-<<<<<<< HEAD
       console.log('BACKEND URL', url)
       axios
         .post(
