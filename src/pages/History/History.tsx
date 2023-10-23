@@ -102,7 +102,9 @@ const History = () => {
     const status: string[] = []
 
     axios
-      .get(url)
+      .get(url,{
+        withCredentials: true,
+      })
       .then((response) => {
         // console.log({ response: response.data })
         const responseData = response.data.result
