@@ -10,7 +10,7 @@ interface Props {
 
 const UserMenu = ({ userMenuToggle, signOut }: Props) => {
   const myVideosUrl = `/videos/user/${userDataStore.getState().userId}`
-  const myHistoryUrl = `/videos/history/${userDataStore.getState().userId}`
+  const myHistoryUrl = `/videos/history`
 
   return (
     <div id="user-menu" tabIndex={-1} className="user-menu">

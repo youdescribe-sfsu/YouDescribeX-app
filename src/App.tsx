@@ -326,7 +326,7 @@ const App = () => {
             path="/videos/user/:userId"
             element={<UserDescribedVideos />}
           />
-          <Route path="/videos/history/:userId" element={<History />} />
+          <Route path="/videos/history" element={<History />} />
           <Route path="/" element={<Navigate to="/home" />} />
           <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
           <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />

@@ -49,7 +49,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
       return <SignInButton newGoogleAuth={newGoogleAuth} />
     }
   }
-  const myHistoryUrl = `/videos/history/${userDataStore.getState().userId}`
+  const myHistoryUrl = `/videos/history`
 
   return (
     <nav id="navbar" className="classic-nav navbar">
