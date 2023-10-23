@@ -23,10 +23,8 @@ const History = () => {
   const [history, setHistory] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalVideos, setTotalVideos] = useState(0)
-  const [totalVideoPages, setTotalVideoPages] = useState(0)
+  const [totalVideoPages, setTotalVideoPages] = useState(1)
   const { userId } = useParams()
-  // let totalVideoPages = 0
-
   // const itemsPerPage = 4 // Change this as per your requirements
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(
@@ -39,8 +37,6 @@ const History = () => {
 
   // Calculate the total number of pages for videosAI
   // totalVideoPages = Math.ceil(totalVideos / itemsPerPage)
-  // console.log({ totalVideoPagesHere: totalVideoPages })
-
   // Initialize active page state
   const [activeVideoPage, setActiveVideoPage] = useState(0)
 
@@ -73,7 +69,8 @@ const History = () => {
 
   const handleNextPage = () => {
     if (currentPage < totalVideoPages - 1) {
-      // setActiveVideoPage(activeVideoPage + 1)
+      setCurrentPage(currentPage + 1)
+    } else if (currentPage == 1) {
       setCurrentPage(currentPage + 1)
     }
   }
@@ -92,9 +89,11 @@ const History = () => {
 
     axios.get(recentDescriptionsUrl).then((response) => {
       const totalVideosLength = response.data.totalVideos
-
       setTotalVideos(totalVideosLength)
-      setTotalVideoPages(Math.ceil(totalVideos / itemsPerPage))
+      const calculatedTotalVideoPages = Math.ceil(
+        totalVideosLength / itemsPerPage,
+      )
+      setTotalVideoPages(calculatedTotalVideoPages)
     })
   }, [])
 
@@ -209,11 +208,6 @@ const History = () => {
   //     </ol>
   //   )
   // }
-
-  // Calculate the range of videos to display on the current page
-  // const videoStartIndex = activeVideoPage * itemsPerPage
-  // const videoEndIndex = videoStartIndex + itemsPerPage
-
   // Calculate the range of videos to display on the current slide
   const videoAIStartIndex = activeVideoAISlide * itemsPerPage
   const videoAIEndIndex = videoAIStartIndex + itemsPerPage
@@ -241,7 +235,6 @@ const History = () => {
         ),
       )
     }
-
     // Attach the event listener to window resize
     window.addEventListener('resize', updateItemsPerPage)
     // Fetch and process History Videos
@@ -263,11 +256,12 @@ const History = () => {
     const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
       : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
+
     getUserVideos(recentDescriptionsUrl, setVideos)
     return () => {
       window.removeEventListener('resize', updateItemsPerPage)
     }
-  }, [userId, currentPage])
+  }, [currentPage])
 
   // if (
   //   !userDataStore.getState().isSignedIn ||
@@ -314,13 +308,6 @@ const History = () => {
 
                 {/* Content for displaying videos */}
                 <div className="w3-row classic-container row">{videos}</div>
-
-                {/* {renderCarouselIndicators(
-                  totalVideoPages,
-                  currentPage,
-                  setActiveVideoPage,
-                )} */}
-
                 {/* Custom next button */}
                 <button
                   className="next-icon"
