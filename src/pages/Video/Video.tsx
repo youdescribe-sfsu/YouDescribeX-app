@@ -170,15 +170,17 @@ const Video = () => {
     if (currentExtendedACRef.current?.playing()) {
       currentExtendedACRef.current?.volume(descriptionVolume / 100)
     }
+    descriptionVolumeRef.current = descriptionVolume
     localStorage.setItem('descriptionVolume', descriptionVolume.toString())
   }, [descriptionVolume])
 
   useEffect(() => {
-    if (currentEventRef && currentInlineACRef.current?.playing()) {
+    if (currentEventRef) {
       currentEventRef.current?.setVolume(youTubeVolume)
     }
+    youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
-  }, [youTubeVolume])
+  }, [youTubeVolume, currentEventRef])
 
   //
   // END OF YDX STATE VARIABLES
@@ -203,6 +205,7 @@ const Video = () => {
 
   // Fetch Data on Page Load
   useEffect(() => {
+    console.log(videoId)
     if (videoId) {
       fetchVideoData()
     }
@@ -239,9 +242,6 @@ const Video = () => {
             const errorMessage =
               'Internal Server Error: Something went wrong on the server side.Please try again later! '
             toast.error(errorMessage)
-          } else {
-            // Handle other errors here
-            toast.error('An error occurred. Please try again later.')
           }
         })
     }
