@@ -17,14 +17,15 @@ import './history.scss'
 const History = () => {
   const [showSpinner, setShowSpinner] = useState(true)
   const [userName, setUserName] = useState('')
+  const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
   const [history, setHistory] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalVideos, setTotalVideos] = useState(0)
-  const [totalVideoPages, setTotalVideoPages] = useState(0)
+  const [totalVideoPages, setTotalVideoPages] = useState(1)
   const { userId } = useParams()
-
+  // const itemsPerPage = 4 // Change this as per your requirements
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(
       getComputedStyle(document.documentElement)
@@ -33,6 +34,16 @@ const History = () => {
       10,
     ),
   )
+
+  // Calculate the total number of pages for videosAI
+  // totalVideoPages = Math.ceil(totalVideos / itemsPerPage)
+  // Initialize active page state
+  const [activeVideoPage, setActiveVideoPage] = useState(0)
+
+  // // Function to handle page change for videosAI
+  // const handleVideoPageChange = (selectedIndex: number) => {
+  //   setActiveVideoPage(selectedIndex)
+  // }
 
   // Calculate the total number of slides for videosAI
   const totalVideoAISlides = Math.ceil(videosAI.length / itemsPerPage)
@@ -59,23 +70,16 @@ const History = () => {
   const handleNextPage = () => {
     if (currentPage < totalVideoPages - 1) {
       setCurrentPage(currentPage + 1)
+    } else if (currentPage == 1) {
+      setCurrentPage(currentPage + 1)
     }
   }
 
   const handlePreviousPage = () => {
     if (currentPage > 0) {
+      // handleVideoPageChange(activeVideoPage - 1)
       setCurrentPage(currentPage - 1)
     }
-  }
-
-  const getUserInfo = async () => {
-    const url = `${apiUrl}/users/${userId}`
-    ourFetch(url).then((response) => {
-      if (response.result) {
-        const user = response.result
-        setUserName(user.name)
-      }
-    })
   }
 
   useEffect(() => {
@@ -86,7 +90,10 @@ const History = () => {
     axios.get(recentDescriptionsUrl).then((response) => {
       const totalVideosLength = response.data.totalVideos
       setTotalVideos(totalVideosLength)
-      setTotalVideoPages(Math.ceil(totalVideos / itemsPerPage))
+      const calculatedTotalVideoPages = Math.ceil(
+        totalVideosLength / itemsPerPage,
+      )
+      setTotalVideoPages(calculatedTotalVideoPages)
     })
   }, [])
 
@@ -106,7 +113,6 @@ const History = () => {
         withCredentials: true,
       })
       .then((response) => {
-        // console.log({ response: response.data })
         const responseData = response.data.result
         totalVideosLength = response.data.totalVideos
         const videosArray = responseData
@@ -184,6 +190,7 @@ const History = () => {
       )
     }
     setShowSpinner(false)
+    // setVideos(videoComponents)
     setStateFunction(videoComponents)
   }
   // function renderCarouselIndicators(
@@ -203,7 +210,6 @@ const History = () => {
   //     </ol>
   //   )
   // }
-
   // Calculate the range of videos to display on the current slide
   const videoAIStartIndex = activeVideoAISlide * itemsPerPage
   const videoAIEndIndex = videoAIStartIndex + itemsPerPage
@@ -214,7 +220,7 @@ const History = () => {
 
   // Slice the videosAI array to display only the videos for the active slide
   const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
-  // const videosToDisplay = videos
+  // const videosToDisplay = videos.slice(videoStartIndex, videoEndIndex)
   const videosHistoryToDisplay = history.slice(
     videoHistoryStartIndex,
     videoHistoryEndIndex,
@@ -231,38 +237,56 @@ const History = () => {
         ),
       )
     }
-
     // Attach the event listener to window resize
     window.addEventListener('resize', updateItemsPerPage)
+    // Fetch and process History Videos
+    const userHistoryUrl = process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
+      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
 
-    if (userId) {
-      getUserInfo()
-      // Fetch and process History Videos
-      const userHistoryUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
-        : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
+    getUserVideos(userHistoryUrl, setHistory)
 
-      getUserVideos(userHistoryUrl, setHistory)
+    // Fetch and process AI Requested Videos
+    const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
+      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
+    // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
 
-      // Fetch and process AI Requested Videos
-      const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
-        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
-      // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
-
-      getUserVideos(aiRequestedVideosUrl, setAIVideos)
-    }
+    getUserVideos(aiRequestedVideosUrl, setAIVideos)
 
     // Fetch and process Recent Descripton Videos
     const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
       : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
+
     getUserVideos(recentDescriptionsUrl, setVideos)
     return () => {
       window.removeEventListener('resize', updateItemsPerPage)
     }
-  }, [userId, currentPage])
+  }, [currentPage])
 
+  // if (
+  //   !userDataStore.getState().isSignedIn ||
+  //   userId !== userDataStore.getState().userId
+  // ) {
+  //   return (
+  //     <div id="user-videos-page" title="User described videos page">
+  //       <main>
+  //         <section>
+  //           <header className="w3-container w3-indigo">
+  //             <h2 className="classic-h2">{translate('HISTORY')}</h2>
+  //           </header>
+  //           <h2 className="classic-h2">Sign In Required</h2>
+  //           <p>
+  //             Sorry! The link you followed points to a YouDescribe page that
+  //             requires you to sign in to your account
+  //           </p>
+  //           <p>Please Sign In using your google account to access this page.</p>
+  //         </section>
+  //       </main>
+  //     </div>
+  //   )
+  // } else {
   return (
     <div id="user-videos-page" title="User described videos page">
       <main>
@@ -286,13 +310,6 @@ const History = () => {
 
                 {/* Content for displaying videos */}
                 <div className="w3-row classic-container row">{videos}</div>
-
-                {/* {renderCarouselIndicators(
-                  totalVideoPages,
-                  currentPage,
-                  setCurrentPage,
-                )} */}
-
                 {/* Custom next button */}
                 <button
                   className="next-icon"
