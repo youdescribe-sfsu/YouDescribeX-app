@@ -237,15 +237,15 @@ const History = () => {
       getUserInfo()
       // Fetch and process History Videos
       const userHistoryUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
-        : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
+        : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
 
       getUserVideos(userHistoryUrl, setHistory)
 
       // Fetch and process AI Requested Videos
       const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
-        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
+        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
       // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
 
       getUserVideos(aiRequestedVideosUrl, setAIVideos)
