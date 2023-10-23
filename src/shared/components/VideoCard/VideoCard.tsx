@@ -6,6 +6,7 @@ import Button from '../Button/Button'
 import { translate, userDataStore } from '@/App'
 import './VideoCard.css'
 import React from 'react'
+import { toast } from 'react-toastify'
 
 interface Props {
   youTubeId: string
@@ -40,7 +41,40 @@ const VideoCard = ({
 }: Props) => {
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
-
+  const handleVideoClick = async () => {
+    console.log("INSIDE HANDLECLICK")
+    try {
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/save-Visited-Videos-History`
+      console.log('BACKEND URL', url)
+      axios.post(
+          url,
+          {
+            youtube_id: youTubeId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        .then((res) => {
+          const data = res.data
+          console.log('video click data => ', data)
+          if (res.status != 201) {
+            alert(
+              translate(
+                'Something went wrong, please try again later',
+              ),
+            )
+            return
+          }
+        })
+    } catch (error) {
+      console.log(error)
+      toast.error('Something went wrong, please try again later')
+    }
+  }
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
@@ -199,7 +233,12 @@ const VideoCard = ({
     ) : null
 
   return (
-    <div id="video-card" className="w3-left video-card h-100 w-100" title="">
+    <div
+      id="video-card"
+      className="w3-left video-card h-100 w-100"
+      title=""
+      onClick={handleVideoClick}
+    >
       <div className="w3-card-2 w3-hover-shadow h-100">
         <div id="card-thumbnail" className="card-thumbnail" aria-hidden="true">
           <Link
