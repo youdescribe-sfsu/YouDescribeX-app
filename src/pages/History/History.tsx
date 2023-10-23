@@ -92,10 +92,12 @@ const History = () => {
 
     axios.get(recentDescriptionsUrl).then((response) => {
       const totalVideosLength = response.data.totalVideos
+      console.log({ totalVideosLength })
+
       setTotalVideos(totalVideosLength)
       setTotalVideoPages(Math.ceil(totalVideos / itemsPerPage))
     })
-  }, [])
+  })
 
   const getUserVideos = async (
     url: string,
@@ -113,9 +115,9 @@ const History = () => {
       .then((response) => {
         // console.log({ response: response.data })
         const responseData = response.data.result
-
+        console.log({ responseData })
         totalVideosLength = response.data.totalVideos
-
+        console.log({ totalVideosLength })
         // setTotalVideos(totalVideosLength)
 
         const videosArray = responseData
@@ -267,6 +269,9 @@ const History = () => {
     const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
       : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
+
+    console.log('inside useeffect')
+    console.log({ currentPage })
 
     getUserVideos(recentDescriptionsUrl, setVideos)
     return () => {
