@@ -87,8 +87,6 @@ const History = () => {
 
     axios.get(recentDescriptionsUrl).then((response) => {
       const totalVideosLength = response.data.totalVideos
-      console.log({ totalVideosLength })
-
       setTotalVideos(totalVideosLength)
       setTotalVideoPages(Math.ceil(totalVideos / itemsPerPage))
     })
@@ -110,11 +108,7 @@ const History = () => {
       .then((response) => {
         // console.log({ response: response.data })
         const responseData = response.data.result
-        console.log({ responseData })
         totalVideosLength = response.data.totalVideos
-        console.log({ totalVideosLength })
-        // setTotalVideos(totalVideosLength)
-
         const videosArray = responseData
         // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
