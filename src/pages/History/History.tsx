@@ -102,7 +102,7 @@ const History = () => {
     const status: string[] = []
 
     axios
-      .get(url,{
+      .get(url, {
         withCredentials: true,
       })
       .then((response) => {
