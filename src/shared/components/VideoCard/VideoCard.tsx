@@ -42,11 +42,12 @@ const VideoCard = ({
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
   const handleVideoClick = async () => {
-    console.log("INSIDE HANDLECLICK")
+    console.log('INSIDE HANDLECLICK')
     try {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/save-Visited-Videos-History`
       console.log('BACKEND URL', url)
-      axios.post(
+      axios
+        .post(
           url,
           {
             youtube_id: youTubeId,
@@ -62,11 +63,7 @@ const VideoCard = ({
           const data = res.data
           console.log('video click data => ', data)
           if (res.status != 201) {
-            alert(
-              translate(
-                'Something went wrong, please try again later',
-              ),
-            )
+            alert(translate('Something went wrong, please try again later'))
             return
           }
         })
