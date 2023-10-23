@@ -24,9 +24,7 @@ const History = () => {
   const [totalVideos, setTotalVideos] = useState(0)
   const [totalVideoPages, setTotalVideoPages] = useState(0)
   const { userId } = useParams()
-  // let totalVideoPages = 0
 
-  // const itemsPerPage = 4 // Change this as per your requirements
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(
       getComputedStyle(document.documentElement)
