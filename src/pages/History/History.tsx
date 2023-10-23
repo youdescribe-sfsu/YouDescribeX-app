@@ -16,15 +16,15 @@ import './history.scss'
 
 const History = () => {
   const [showSpinner, setShowSpinner] = useState(true)
-  // const [userName, setUserName] = useState('')
-  const [userVideosArray, setUserVideosArray] = useState([])
+  const [userName, setUserName] = useState('')
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
   const [history, setHistory] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalVideos, setTotalVideos] = useState(0)
+  const [totalVideoPages, setTotalVideoPages] = useState(0)
   const { userId } = useParams()
 
-  // const itemsPerPage = 4 // Change this as per your requirements
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(
       getComputedStyle(document.documentElement)
@@ -33,19 +33,6 @@ const History = () => {
       10,
     ),
   )
-
-  console.log({ itemsPerPage })
-
-  // Calculate the total number of pages for videosAI
-  const totalVideoPages = Math.ceil(videos.length / itemsPerPage)
-
-  // Initialize active page state
-  const [activeVideoPage, setActiveVideoPage] = useState(0)
-
-  // Function to handle page change for videosAI
-  const handleVideoPageChange = (selectedIndex: number) => {
-    setActiveVideoPage(selectedIndex)
-  }
 
   // Calculate the total number of slides for videosAI
   const totalVideoAISlides = Math.ceil(videosAI.length / itemsPerPage)
@@ -69,33 +56,57 @@ const History = () => {
     setActiveVideoHistorySlide(selectedIndex)
   }
 
-  // const getUserInfo = async () => {
-  //   const url = `${apiUrl}/users/${userId}`
-  //   ourFetch(url).then((response) => {
-  //     if (response.result) {
-  //       const user = response.result
-  //       setUserName(user.name)
-  //     }
-  //   })
-  // }
+  const handleNextPage = () => {
+    if (currentPage < totalVideoPages - 1) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+
+  const handlePreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  const getUserInfo = async () => {
+    const url = `${apiUrl}/users/${userId}`
+    ourFetch(url).then((response) => {
+      if (response.result) {
+        const user = response.result
+        setUserName(user.name)
+      }
+    })
+  }
+
+  useEffect(() => {
+    const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=1`
+      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=1`
+
+    axios.get(recentDescriptionsUrl).then((response) => {
+      const totalVideosLength = response.data.totalVideos
+      setTotalVideos(totalVideosLength)
+      setTotalVideoPages(Math.ceil(totalVideos / itemsPerPage))
+    })
+  }, [])
 
   const getUserVideos = async (
     url: string,
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
   ) => {
     let youTubeIds = ''
+    let totalVideosLength = 0
     const youTubeVideoIds: string[] = []
     const youDescribeVideosIds: string[] = []
     const audioDescriptionIds: string[] = []
     const status: string[] = []
 
     axios
-      .get(url, {
-        withCredentials: true,
-      })
+      .get(url)
       .then((response) => {
-        const responseData = response.data
-
+        // console.log({ response: response.data })
+        const responseData = response.data.result
+        totalVideosLength = response.data.totalVideos
         const videosArray = responseData
         // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
@@ -171,30 +182,25 @@ const History = () => {
       )
     }
     setShowSpinner(false)
-    // setVideos(videoComponents)
     setStateFunction(videoComponents)
   }
-  function renderCarouselIndicators(
-    totalSlides: number,
-    activeSlide: number,
-    setActive: React.Dispatch<React.SetStateAction<number>>,
-  ) {
-    return (
-      <ol className="carousel-indicators">
-        {Array.from({ length: totalSlides }).map((_, index) => (
-          <li
-            key={index}
-            onClick={() => setActive(index)}
-            className={index === activeSlide ? 'active' : ''}
-          ></li>
-        ))}
-      </ol>
-    )
-  }
-
-  // Calculate the range of videos to display on the current page
-  const videoStartIndex = activeVideoPage * itemsPerPage
-  const videoEndIndex = videoStartIndex + itemsPerPage
+  // function renderCarouselIndicators(
+  //   totalSlides: number,
+  //   activeSlide: number,
+  //   setActive: React.Dispatch<React.SetStateAction<number>>,
+  // ) {
+  //   return (
+  //     <ol className="carousel-indicators">
+  //       {Array.from({ length: totalSlides }).map((_, index) => (
+  //         <li
+  //           key={index}
+  //           onClick={() => setActive(index)}
+  //           className={index === activeSlide ? 'active' : ''}
+  //         ></li>
+  //       ))}
+  //     </ol>
+  //   )
+  // }
 
   // Calculate the range of videos to display on the current slide
   const videoAIStartIndex = activeVideoAISlide * itemsPerPage
@@ -206,7 +212,7 @@ const History = () => {
 
   // Slice the videosAI array to display only the videos for the active slide
   const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
-  const videosToDisplay = videos.slice(videoStartIndex, videoEndIndex)
+  // const videosToDisplay = videos
   const videosHistoryToDisplay = history.slice(
     videoHistoryStartIndex,
     videoHistoryEndIndex,
@@ -228,18 +234,18 @@ const History = () => {
     window.addEventListener('resize', updateItemsPerPage)
 
     if (userId) {
-      // getUserInfo()
+      getUserInfo()
       // Fetch and process History Videos
       const userHistoryUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
-        : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
+        : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
 
       getUserVideos(userHistoryUrl, setHistory)
 
       // Fetch and process AI Requested Videos
       const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
-        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
+        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
       // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
 
       getUserVideos(aiRequestedVideosUrl, setAIVideos)
@@ -247,189 +253,163 @@ const History = () => {
 
     // Fetch and process Recent Descripton Videos
     const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions`
-      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions`
-
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
+      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
     getUserVideos(recentDescriptionsUrl, setVideos)
     return () => {
       window.removeEventListener('resize', updateItemsPerPage)
     }
-  }, [userId])
+  }, [userId, currentPage])
 
-  if (
-    !userDataStore.getState().isSignedIn ||
-    userId !== userDataStore.getState().userId
-  ) {
-    return (
-      <div id="user-videos-page" title="User described videos page">
-        <main>
-          <section>
-            <header className="w3-container w3-indigo">
-              <h2 className="classic-h2">{translate('HISTORY')}</h2>
-            </header>
-            <h2 className="classic-h2">Sign In Required</h2>
-            <p>
-              Sorry! The link you followed points to a YouDescribe page that
-              requires you to sign in to your account
-            </p>
-            <p>Please Sign In using your google account to access this page.</p>
-          </section>
-        </main>
-      </div>
-    )
-  } else {
-    return (
-      <div id="user-videos-page" title="User described videos page">
-        <main>
-          <section>
-            <header className="w3-container w3-indigo">
-              <h2 className="classic-h2">{translate('RECENT DESCRIPTIONS')}</h2>
-            </header>
+  return (
+    <div id="user-videos-page" title="User described videos page">
+      <main>
+        <section>
+          <header className="w3-container w3-indigo">
+            <h2 className="classic-h2">{translate('RECENT DESCRIPTIONS')}</h2>
+          </header>
 
-            {showSpinner ? <Spinner /> : null}
-            <div className="custom-carousel">
-              {videosToDisplay.length > 0 && (
-                <div className="d-flex justify-content-between align-items-center">
-                  {/* Custom previous button */}
-                  <button
-                    className="prev-icon"
-                    onClick={() => handleVideoPageChange(activeVideoPage - 1)}
-                    disabled={activeVideoPage === 0}
-                  >
-                    &lt;
-                  </button>
+          {showSpinner ? <Spinner /> : null}
+          <div className="custom-carousel">
+            {videos.length > 0 && (
+              <div className="d-flex justify-content-between align-items-center">
+                {/* Custom previous button */}
+                <button
+                  className="prev-icon"
+                  onClick={() => handlePreviousPage()}
+                  disabled={currentPage === 0}
+                >
+                  &lt;
+                </button>
 
-                  {/* Content for displaying videos */}
-                  <div className="w3-row classic-container row">
-                    {videosToDisplay}
-                  </div>
+                {/* Content for displaying videos */}
+                <div className="w3-row classic-container row">{videos}</div>
 
-                  {renderCarouselIndicators(
-                    totalVideoPages,
-                    activeVideoPage,
-                    setActiveVideoPage,
-                  )}
+                {/* {renderCarouselIndicators(
+                  totalVideoPages,
+                  currentPage,
+                  setCurrentPage,
+                )} */}
 
-                  {/* Custom next button */}
-                  <button
-                    className="next-icon"
-                    onClick={() => handleVideoPageChange(activeVideoPage + 1)}
-                    disabled={activeVideoPage === totalVideoPages - 1}
-                  >
-                    &gt;
-                  </button>
+                {/* Custom next button */}
+                <button
+                  className="next-icon"
+                  onClick={() => handleNextPage()}
+                  disabled={currentPage === totalVideoPages - 1}
+                >
+                  &gt;
+                </button>
+              </div>
+            )}
+
+            {videos.length === 0 && (
+              <p className="history-text">No Recent descriptions to view</p>
+            )}
+          </div>
+        </section>
+
+        <section>
+          <header className="w3-container w3-indigo">
+            <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
+          </header>
+
+          {showSpinner ? <Spinner /> : null}
+          <div className="custom-carousel">
+            {videosAIToDisplay.length > 0 && (
+              <div className="d-flex justify-content-between align-items-center">
+                {/* Custom previous button */}
+                <button
+                  className="prev-icon"
+                  onClick={() =>
+                    handleVideoAISlideChange(activeVideoAISlide - 1)
+                  }
+                  disabled={activeVideoAISlide === 0}
+                >
+                  &lt;
+                </button>
+
+                {/* Content for displaying videos */}
+                <div className="w3-row classic-container row">
+                  {videosAIToDisplay}
                 </div>
-              )}
+                {/* {renderCarouselIndicators(
+                  totalVideoAISlides,
+                  activeVideoAISlide,
+                  setActiveVideoAISlide,
+                )} */}
+                {/* Custom next button */}
+                <button
+                  className="next-icon"
+                  onClick={() =>
+                    handleVideoAISlideChange(activeVideoAISlide + 1)
+                  }
+                  disabled={activeVideoAISlide === totalVideoAISlides - 1}
+                >
+                  &gt;
+                </button>
+              </div>
+            )}
 
-              {videosToDisplay.length === 0 && (
-                <p className="history-text">No Recent descriptions to view</p>
-              )}
-            </div>
-          </section>
+            {videosAIToDisplay.length === 0 && (
+              <p className="history-text">
+                Please request AI descriptions to view AI Requested videos.
+              </p>
+            )}
+          </div>
+        </section>
+        <section>
+          <header className="w3-container w3-indigo">
+            <h2 className="classic-h2">{translate('HISTORY')}</h2>
+          </header>
 
-          <section>
-            <header className="w3-container w3-indigo">
-              <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
-            </header>
+          {showSpinner ? <Spinner /> : null}
+          <div className="d-flex justify-content-center custom-carousel">
+            {videosHistoryToDisplay.length > 0 && ( // Check if there are videos to display
+              <>
+                {/* Custom previous button */}
+                <button
+                  className="prev-icon"
+                  onClick={() =>
+                    handleVideoHistorySlideChange(activeVideoHistorySlide - 1)
+                  }
+                  disabled={activeVideoHistorySlide === 0}
+                >
+                  &lt;
+                </button>
 
-            {showSpinner ? <Spinner /> : null}
-            <div className="custom-carousel">
-              {videosAIToDisplay.length > 0 && (
-                <div className="d-flex justify-content-between align-items-center">
-                  {/* Custom previous button */}
-                  <button
-                    className="prev-icon"
-                    onClick={() =>
-                      handleVideoAISlideChange(activeVideoAISlide - 1)
-                    }
-                    disabled={activeVideoAISlide === 0}
-                  >
-                    &lt;
-                  </button>
-
-                  {/* Content for displaying videos */}
-                  <div className="w3-row classic-container row">
-                    {videosAIToDisplay}
-                  </div>
-                  {renderCarouselIndicators(
-                    totalVideoAISlides,
-                    activeVideoAISlide,
-                    setActiveVideoAISlide,
-                  )}
-                  {/* Custom next button */}
-                  <button
-                    className="next-icon"
-                    onClick={() =>
-                      handleVideoAISlideChange(activeVideoAISlide + 1)
-                    }
-                    disabled={activeVideoAISlide === totalVideoAISlides - 1}
-                  >
-                    &gt;
-                  </button>
+                {/* Content for displaying videos */}
+                <div className="w3-row classic-container row">
+                  {videosHistoryToDisplay}
                 </div>
-              )}
+                {/* {renderCarouselIndicators(
+                  totalVideoHistorySlides,
+                  activeVideoHistorySlide,
+                  setActiveVideoHistorySlide,
+                )} */}
 
-              {videosAIToDisplay.length === 0 && (
-                <p className="history-text">
-                  Please request AI descriptions to view AI Requested videos.
-                </p>
-              )}
-            </div>
-          </section>
-          <section>
-            <header className="w3-container w3-indigo">
-              <h2 className="classic-h2">{translate('HISTORY')}</h2>
-            </header>
+                {/* Custom next button */}
+                <button
+                  className="next-icon"
+                  onClick={() =>
+                    handleVideoHistorySlideChange(activeVideoHistorySlide + 1)
+                  }
+                  disabled={
+                    activeVideoHistorySlide === totalVideoHistorySlides - 1
+                  }
+                >
+                  &gt;
+                </button>
+              </>
+            )}
 
-            {showSpinner ? <Spinner /> : null}
-            <div className="d-flex justify-content-center custom-carousel">
-              {videosHistoryToDisplay.length > 0 && ( // Check if there are videos to display
-                <>
-                  {/* Custom previous button */}
-                  <button
-                    className="prev-icon"
-                    onClick={() =>
-                      handleVideoHistorySlideChange(activeVideoHistorySlide - 1)
-                    }
-                    disabled={activeVideoHistorySlide === 0}
-                  >
-                    &lt;
-                  </button>
-
-                  {/* Content for displaying videos */}
-                  <div className="w3-row classic-container row">
-                    {videosHistoryToDisplay}
-                  </div>
-                  {renderCarouselIndicators(
-                    totalVideoHistorySlides,
-                    activeVideoHistorySlide,
-                    setActiveVideoHistorySlide,
-                  )}
-
-                  {/* Custom next button */}
-                  <button
-                    className="next-icon"
-                    onClick={() =>
-                      handleVideoHistorySlideChange(activeVideoHistorySlide + 1)
-                    }
-                    disabled={
-                      activeVideoHistorySlide === totalVideoHistorySlides - 1
-                    }
-                  >
-                    &gt;
-                  </button>
-                </>
-              )}
-
-              {videosHistoryToDisplay.length === 0 && (
-                <p className="history-text">No history to view.</p>
-              )}
-            </div>
-          </section>
-        </main>
-      </div>
-    )
-  }
+            {videosHistoryToDisplay.length === 0 && (
+              <p className="history-text">No history to view.</p>
+            )}
+          </div>
+        </section>
+      </main>
+    </div>
+  )
 }
 
 export default History
