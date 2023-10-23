@@ -92,12 +92,11 @@ const History = () => {
 
     axios.get(recentDescriptionsUrl).then((response) => {
       const totalVideosLength = response.data.totalVideos
-      console.log({ totalVideosLength })
 
       setTotalVideos(totalVideosLength)
       setTotalVideoPages(Math.ceil(totalVideos / itemsPerPage))
     })
-  })
+  }, [])
 
   const getUserVideos = async (
     url: string,
@@ -113,13 +112,8 @@ const History = () => {
     axios
       .get(url)
       .then((response) => {
-        // console.log({ response: response.data })
         const responseData = response.data.result
-        console.log({ responseData })
         totalVideosLength = response.data.totalVideos
-        console.log({ totalVideosLength })
-        // setTotalVideos(totalVideosLength)
-
         const videosArray = responseData
         // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
@@ -198,23 +192,23 @@ const History = () => {
     // setVideos(videoComponents)
     setStateFunction(videoComponents)
   }
-  function renderCarouselIndicators(
-    totalSlides: number,
-    activeSlide: number,
-    setActive: React.Dispatch<React.SetStateAction<number>>,
-  ) {
-    return (
-      <ol className="carousel-indicators">
-        {Array.from({ length: totalSlides }).map((_, index) => (
-          <li
-            key={index}
-            onClick={() => setActive(index)}
-            className={index === activeSlide ? 'active' : ''}
-          ></li>
-        ))}
-      </ol>
-    )
-  }
+  // function renderCarouselIndicators(
+  //   totalSlides: number,
+  //   activeSlide: number,
+  //   setActive: React.Dispatch<React.SetStateAction<number>>,
+  // ) {
+  //   return (
+  //     <ol className="carousel-indicators">
+  //       {Array.from({ length: totalSlides }).map((_, index) => (
+  //         <li
+  //           key={index}
+  //           onClick={() => setActive(index)}
+  //           className={index === activeSlide ? 'active' : ''}
+  //         ></li>
+  //       ))}
+  //     </ol>
+  //   )
+  // }
 
   // Calculate the range of videos to display on the current page
   // const videoStartIndex = activeVideoPage * itemsPerPage
@@ -269,10 +263,6 @@ const History = () => {
     const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
       : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
-
-    console.log('inside useeffect')
-    console.log({ currentPage })
-
     getUserVideos(recentDescriptionsUrl, setVideos)
     return () => {
       window.removeEventListener('resize', updateItemsPerPage)
@@ -325,11 +315,11 @@ const History = () => {
                 {/* Content for displaying videos */}
                 <div className="w3-row classic-container row">{videos}</div>
 
-                {renderCarouselIndicators(
+                {/* {renderCarouselIndicators(
                   totalVideoPages,
                   currentPage,
                   setActiveVideoPage,
-                )}
+                )} */}
 
                 {/* Custom next button */}
                 <button
@@ -372,11 +362,11 @@ const History = () => {
                 <div className="w3-row classic-container row">
                   {videosAIToDisplay}
                 </div>
-                {renderCarouselIndicators(
+                {/* {renderCarouselIndicators(
                   totalVideoAISlides,
                   activeVideoAISlide,
                   setActiveVideoAISlide,
-                )}
+                )} */}
                 {/* Custom next button */}
                 <button
                   className="next-icon"
@@ -421,11 +411,11 @@ const History = () => {
                 <div className="w3-row classic-container row">
                   {videosHistoryToDisplay}
                 </div>
-                {renderCarouselIndicators(
+                {/* {renderCarouselIndicators(
                   totalVideoHistorySlides,
                   activeVideoHistorySlide,
                   setActiveVideoHistorySlide,
-                )}
+                )} */}
 
                 {/* Custom next button */}
                 <button
