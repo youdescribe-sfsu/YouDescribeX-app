@@ -818,6 +818,7 @@ const Video = () => {
           key={i}
           handleDescriberChange={handleDescriberChange}
           handleRatingPopup={handleRatingPopup}
+          handleFeedbackPopup={handleFeedbackPopup}
           describerId={describerId}
           selectedDescriberId={selectedADId}
           picture={describers[describerId].picture}
@@ -912,7 +913,6 @@ const Video = () => {
   }
 
   const handleRatingSubmit = (rating: number) => {
-    console.log('test*** ' + rating)
     if (rating === 0) alert('You must select a rating')
     else if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
@@ -1066,6 +1066,17 @@ const Video = () => {
       if (ratingPopup) {
         ratingPopup.style.display = 'block'
         ratingPopup.focus()
+      }
+    }
+  }
+  const handleFeedbackPopup = () => {
+    if (!userDataStore.getState().isSignedIn) {
+      alert(translate('You have to be logged in in order to give feedback'))
+    } else {
+      const feedbackPopup = document.getElementById('feedback-popup')
+      if (feedbackPopup) {
+        feedbackPopup.style.display = 'block'
+        feedbackPopup.focus()
       }
     }
   }

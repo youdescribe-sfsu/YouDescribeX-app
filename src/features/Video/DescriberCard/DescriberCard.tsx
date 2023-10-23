@@ -12,6 +12,7 @@ interface Props {
   handleDescriberChange: (describerId: string) => void
   handleRating: (rating: number) => void
   handleRatingPopup: () => void
+  handleFeedbackPopup: () => void
 }
 
 const DescriberCard = ({
@@ -23,17 +24,27 @@ const DescriberCard = ({
   handleDescriberChange,
   handleRating,
   handleRatingPopup,
+  handleFeedbackPopup,
 }: Props) => {
   const getButton = (): ReactNode => {
     if (describerId === selectedDescriberId) {
       return (
-        <Button
-          ariaLabel={translate("Rate this describer's audio description")}
-          title={translate("Rate this describer's audio description")}
-          text={translate('Rate description')}
-          color="w3-indigo w3-block"
-          onClick={() => handleRatingPopup()}
-        />
+        <>
+          <Button
+            ariaLabel={translate("Rate this describer's audio description")}
+            title={translate("Rate this describer's audio description")}
+            text={translate('Rate description')}
+            color="w3-indigo w3-block w3-margin-top"
+            onClick={() => handleRatingPopup()}
+          />
+          <Button
+            ariaLabel={translate('Provide feedback for this describer')}
+            title={translate('Provide feedback for this describer')}
+            text={translate('Optional feedback')}
+            color="w3-indigo w3-block w3-margin-top"
+            onClick={() => handleFeedbackPopup()}
+          />
+        </>
       )
     }
     return (
