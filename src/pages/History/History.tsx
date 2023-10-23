@@ -17,7 +17,6 @@ import './history.scss'
 const History = () => {
   const [showSpinner, setShowSpinner] = useState(true)
   const [userName, setUserName] = useState('')
-  const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
   const [history, setHistory] = useState<any[]>([])
@@ -36,10 +35,6 @@ const History = () => {
       10,
     ),
   )
-
-  // Calculate the total number of pages for videosAI
-  // totalVideoPages = Math.ceil(totalVideos / itemsPerPage)
-  console.log({ totalVideoPagesHere: totalVideoPages })
 
   // Calculate the total number of slides for videosAI
   const totalVideoAISlides = Math.ceil(videosAI.length / itemsPerPage)
@@ -197,23 +192,23 @@ const History = () => {
     setShowSpinner(false)
     setStateFunction(videoComponents)
   }
-  function renderCarouselIndicators(
-    totalSlides: number,
-    activeSlide: number,
-    setActive: React.Dispatch<React.SetStateAction<number>>,
-  ) {
-    return (
-      <ol className="carousel-indicators">
-        {Array.from({ length: totalSlides }).map((_, index) => (
-          <li
-            key={index}
-            onClick={() => setActive(index)}
-            className={index === activeSlide ? 'active' : ''}
-          ></li>
-        ))}
-      </ol>
-    )
-  }
+  // function renderCarouselIndicators(
+  //   totalSlides: number,
+  //   activeSlide: number,
+  //   setActive: React.Dispatch<React.SetStateAction<number>>,
+  // ) {
+  //   return (
+  //     <ol className="carousel-indicators">
+  //       {Array.from({ length: totalSlides }).map((_, index) => (
+  //         <li
+  //           key={index}
+  //           onClick={() => setActive(index)}
+  //           className={index === activeSlide ? 'active' : ''}
+  //         ></li>
+  //       ))}
+  //     </ol>
+  //   )
+  // }
 
   // Calculate the range of videos to display on the current slide
   const videoAIStartIndex = activeVideoAISlide * itemsPerPage
@@ -298,11 +293,11 @@ const History = () => {
                 {/* Content for displaying videos */}
                 <div className="w3-row classic-container row">{videos}</div>
 
-                {renderCarouselIndicators(
+                {/* {renderCarouselIndicators(
                   totalVideoPages,
                   currentPage,
                   setCurrentPage,
-                )}
+                )} */}
 
                 {/* Custom next button */}
                 <button
@@ -345,11 +340,11 @@ const History = () => {
                 <div className="w3-row classic-container row">
                   {videosAIToDisplay}
                 </div>
-                {renderCarouselIndicators(
+                {/* {renderCarouselIndicators(
                   totalVideoAISlides,
                   activeVideoAISlide,
                   setActiveVideoAISlide,
-                )}
+                )} */}
                 {/* Custom next button */}
                 <button
                   className="next-icon"
@@ -394,11 +389,11 @@ const History = () => {
                 <div className="w3-row classic-container row">
                   {videosHistoryToDisplay}
                 </div>
-                {renderCarouselIndicators(
+                {/* {renderCarouselIndicators(
                   totalVideoHistorySlides,
                   activeVideoHistorySlide,
                   setActiveVideoHistorySlide,
-                )}
+                )} */}
 
                 {/* Custom next button */}
                 <button
