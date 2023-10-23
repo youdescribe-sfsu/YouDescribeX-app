@@ -16,7 +16,7 @@ import './history.scss'
 
 const History = () => {
   const [showSpinner, setShowSpinner] = useState(true)
-  const [userName, setUserName] = useState('')
+  // const [userName, setUserName] = useState('')
   const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
@@ -69,15 +69,15 @@ const History = () => {
     setActiveVideoHistorySlide(selectedIndex)
   }
 
-  const getUserInfo = async () => {
-    const url = `${apiUrl}/users/${userId}`
-    ourFetch(url).then((response) => {
-      if (response.result) {
-        const user = response.result
-        setUserName(user.name)
-      }
-    })
-  }
+  // const getUserInfo = async () => {
+  //   const url = `${apiUrl}/users/${userId}`
+  //   ourFetch(url).then((response) => {
+  //     if (response.result) {
+  //       const user = response.result
+  //       setUserName(user.name)
+  //     }
+  //   })
+  // }
 
   const getUserVideos = async (
     url: string,
@@ -90,7 +90,9 @@ const History = () => {
     const status: string[] = []
 
     axios
-      .get(url)
+      .get(url, {
+        withCredentials: true,
+      })
       .then((response) => {
         const responseData = response.data
 
@@ -226,18 +228,18 @@ const History = () => {
     window.addEventListener('resize', updateItemsPerPage)
 
     if (userId) {
-      getUserInfo()
+      // getUserInfo()
       // Fetch and process History Videos
       const userHistoryUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
-        : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?user=${userId}`
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
+        : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
 
       getUserVideos(userHistoryUrl, setHistory)
 
       // Fetch and process AI Requested Videos
       const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
-        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
+        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
       // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
 
       getUserVideos(aiRequestedVideosUrl, setAIVideos)
