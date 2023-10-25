@@ -120,7 +120,7 @@ const History = () => {
         for (let i = 0; i < videosArray.length; i += 1) {
           youTubeVideoIds.push(videosArray[i].youtube_video_id)
           youDescribeVideosIds.push(videosArray[i].video_id)
-          audioDescriptionIds.push(videosArray[i].audio_description_id)
+          // audioDescriptionIds.push(videosArray[i].audio_description_id)
           status.push(videosArray[i].status)
         }
         youTubeIds = youTubeVideoIds.join(',')
@@ -137,7 +137,7 @@ const History = () => {
           parseResponseData(
             youTubeVideosArray,
             youDescribeVideosIds,
-            audioDescriptionIds,
+            // audioDescriptionIds,
             status,
             setStateFunction,
           )
@@ -148,7 +148,7 @@ const History = () => {
   const parseResponseData = (
     youTubeVideosArray: any,
     youDescribeVideosIds: string[],
-    audioDescriptionIds: string[],
+    // audioDescriptionIds: string[],
     status: string[],
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
   ) => {
@@ -156,7 +156,7 @@ const History = () => {
     for (let i = 0; i < youTubeVideosArray.items.length; i += 1) {
       const item = youTubeVideosArray.items[i]
       const youDescribeVideoId = youDescribeVideosIds[i]
-      const audioDescriptionId = audioDescriptionIds[i]
+      // const audioDescriptionId = audioDescriptionIds[i]
       const statusVal = status[i]
       const youTubeId = item.id
       const thumbnail = item.snippet.thumbnails.medium
@@ -175,7 +175,7 @@ const History = () => {
           <VideoCard
             key={youTubeId}
             youTubeId={youTubeId}
-            audioDescriptionId={audioDescriptionId}
+            // audioDescriptionId={audioDescriptionId}
             thumbnailMediumUrl={thumbnail.url}
             duration={duration}
             title={title}
