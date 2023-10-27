@@ -274,6 +274,7 @@ const YDXHome = (): React.ReactElement => {
 
   // use axios and get dialog timestamps for the Dialog Timeline
   const fetchDialogData = () => {
+    if (!videoId) return
     axios
       .get(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/dialog-timestamps/get-video-dialog/${videoId}`,
@@ -1080,7 +1081,7 @@ const YDXHome = (): React.ReactElement => {
               className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
               onClick={() => {
                 handleCopyClick(`
-                ${window.location.origin}/audio-description/${youtubeVideoId}/${audioDescriptionId}`)
+                ${window.location.origin}/video/v2/${youtubeVideoId}?ad=${audioDescriptionId}`)
               }}
             >
               <i className="fa fa-copy" /> {'   '}

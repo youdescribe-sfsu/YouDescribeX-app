@@ -319,6 +319,9 @@ const strings = {
     Admin: 'Admin',
     'Freestyle Description': 'Freestyle Description',
     'Request AI Descriptions': 'Request AI Descriptions',
+    HISTORY: 'HISTORY',
+    'AI REQUESTED VIDEOS': 'AI REQUESTED VIDEOS',
+    'Go to descriptions': 'Go to descriptions',
   },
 }
 

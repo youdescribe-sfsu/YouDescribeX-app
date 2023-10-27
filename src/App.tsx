@@ -46,6 +46,7 @@ import ReactGA from 'react-ga'
 import ReactGA4 from 'react-ga4'
 import { createBrowserHistory } from 'history'
 import PublishedAudioDescriptions from './pages/PublishedAudioDescriptions/PublishedAudioDescriptions'
+import Video_v2 from './pages/Video/Video_v2'
 
 const history = createBrowserHistory()
 //const trackingId = "UA-171142756-3"; //live site key
@@ -315,6 +316,7 @@ const App = () => {
           />
           <Route path="/home" element={<Home />} />
           <Route path="/video/:videoId" element={<Video />} />
+          <Route path="/video/v2/:videoId" element={<Video_v2 />} />
           <Route path="/embed/:videoId" element={<VideoEmbed />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/search" element={<Search />} />
