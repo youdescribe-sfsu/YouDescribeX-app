@@ -134,40 +134,39 @@ const Video = () => {
   const [buttonLoading, setButtonLoading] = useState(false)
   const toastId = React.useRef<null | Id>(null)
 
-  //  useEffect(() => {
-  //    // Pause and unload current inline audio clip
-  //    if (currentInlineACRef.current) {
-  //      currentInlineACRef.current.pause()
-  //      currentInlineACRef.current.unload()
-  //    }
-  //    // Pause and unload current extended audio clip
-  //    if (currentExtendedACRef.current) {
-  //      currentExtendedACRef.current.pause()
-  //      currentExtendedACRef.current.unload()
-  //    }
+  useEffect(() => {
+    // Pause and unload current inline audio clip
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.pause()
+      currentInlineACRef.current.unload()
+    }
+    // Pause and unload current extended audio clip
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.pause()
+      currentExtendedACRef.current.unload()
+    }
 
-  //    // Clear the timer for audio clip updates
-  //    if (timer) {
-  //      clearInterval(timer)
-  //    }
+    // Clear the timer for audio clip updates
+    if (timer) {
+      clearInterval(timer)
+    }
 
-  //    // Cleanup selected audio description and its related data
-  //    return () => {
-  //      // Add cleanup logic for the audio descriptions here
-  //      // Make sure to clear any intervals or timeouts as well
-  //      if (currentInlineACRef.current) {
-  //        currentInlineACRef.current.stop()
-  //        setCurrInlineAC(undefined)
-  //      }
-  //      if (currentExtendedACRef.current) {
-  //        currentExtendedACRef.current.stop()
-  //        setCurrExtendedAC(undefined)
-  //      }
-  //      if (timer) {
-  //        clearInterval(timer)
-  //      }
-  //    }
-  //  }, [])
+    // Cleanup selected audio description and its related data
+    return () => {
+      // Make sure to clear any intervals or timeouts as well
+      if (currentInlineACRef.current) {
+        currentInlineACRef.current.stop()
+        setCurrInlineAC(undefined)
+      }
+      if (currentExtendedACRef.current) {
+        currentExtendedACRef.current.stop()
+        setCurrExtendedAC(undefined)
+      }
+      if (timer) {
+        clearInterval(timer)
+      }
+    }
+  }, [])
 
   // Update Refs
   useEffect(() => {
