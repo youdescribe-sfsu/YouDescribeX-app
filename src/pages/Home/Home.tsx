@@ -13,9 +13,9 @@ import Button from '@/shared/components/Button/Button'
 import { useNavigate } from 'react-router-dom'
 
 const Home = () => {
-  const [dbResult, setDbResult] = useState<any[]>([])
+  // const [dbResult, setDbResult] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const [searchQuery, setSearchQuery] = useState('')
+  // const [searchQuery, setSearchQuery] = useState('')
   const [videos, setVideos] = useState<any[]>([])
   const [showSpinner, setShowSpinner] = useState(false)
 
@@ -39,13 +39,25 @@ const Home = () => {
     const url = `${apiUrl}/videos?page=${page}`
     ourFetch(url)
       .then((response) => {
-        setDbResult(response.result)
+        // setDbResult(response.result)
         const result = response.result
         for (let i = 0; i < result.length; i += 1) {
           youTubeVideosIds.push(result[i].youtube_id)
           youDescribeVideosIds.push(result[i]._id)
         }
         ids = youTubeVideosIds.join(',')
+      })
+      .then(() => {
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-all-videos`
+        setShowSpinner(true)
+        ourFetch(url).then((response) => {
+          const result = response.result
+          for (let i = 0; i < result.length; i += 1) {
+            youTubeVideosIds.push(result[i].youtube_id)
+            youDescribeVideosIds.push(result[i]._id)
+          }
+          ids = youTubeVideosIds.join(',')
+        })
       })
       .then(() => {
         const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${ids}&key=home`
