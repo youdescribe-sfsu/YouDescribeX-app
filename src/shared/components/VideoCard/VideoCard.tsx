@@ -22,6 +22,7 @@ interface Props {
   statusVal?: string
   time: string
   userVote?: boolean
+  url?: string
 }
 
 const VideoCard = ({
@@ -35,10 +36,12 @@ const VideoCard = ({
   author,
   duration,
   statusVal,
+  url,
   // views,
   // time,
   userVote = false,
 }: Props) => {
+  console.log('url', url)
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
   const handleVideoClick = async () => {
@@ -242,7 +245,7 @@ const VideoCard = ({
           <Link
             role="link"
             aria-hidden="true"
-            to={'/video/' + youTubeId}
+            to={url ? '/editor/' + url : '/video/' + youTubeId}
             className=""
           >
             <img alt={title} src={thumbnailMediumUrl} width="100%" />
@@ -259,7 +262,7 @@ const VideoCard = ({
               <h3 className="card-h3 classic-h3">
                 <Link
                   role="link"
-                  to={'/video/' + youTubeId}
+                  to={url ? '/editor/' + url : '/video/' + youTubeId}
                   className="classic-link"
                 >
                   {title}

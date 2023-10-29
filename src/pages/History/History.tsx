@@ -107,6 +107,7 @@ const History = () => {
     const youDescribeVideosIds: string[] = []
     const audioDescriptionIds: string[] = []
     const status: string[] = []
+    const urls: string[] = []
 
     axios
       .get(url, {
@@ -122,6 +123,7 @@ const History = () => {
           youDescribeVideosIds.push(videosArray[i].video_id)
           // audioDescriptionIds.push(videosArray[i].audio_description_id)
           status.push(videosArray[i].status)
+          urls.push(videosArray[i].url)
         }
         youTubeIds = youTubeVideoIds.join(',')
       })
@@ -139,6 +141,7 @@ const History = () => {
             youDescribeVideosIds,
             // audioDescriptionIds,
             status,
+            urls,
             setStateFunction,
           )
         })
@@ -150,6 +153,7 @@ const History = () => {
     youDescribeVideosIds: string[],
     // audioDescriptionIds: string[],
     status: string[],
+    urls: string[],
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
   ) => {
     const videoComponents = []
@@ -163,6 +167,10 @@ const History = () => {
       const duration = convertSecondsToCardFormat(
         convertISO8601ToSeconds(item.contentDetails.duration),
       )
+      let url
+      if (statusVal === 'completed') {
+        url = urls[i]
+      }
       const title = item.snippet.title
       const author = item.snippet.channelTitle
       const views = convertViewsToCardFormat(Number(item.statistics.viewCount))
@@ -185,6 +193,7 @@ const History = () => {
             statusVal={statusVal}
             // buttons={setStateFunction === setVideos ? 'edit' : ''}
             buttons="none"
+            url={url}
           />
         </div>,
       )
@@ -249,7 +258,7 @@ const History = () => {
     // Fetch and process AI Requested Videos
     const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
-      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
+      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=${currentPage}`
     // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
 
     getUserVideos(aiRequestedVideosUrl, setAIVideos)
