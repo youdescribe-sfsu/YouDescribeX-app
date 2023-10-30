@@ -35,31 +35,49 @@ const Home = () => {
     const youDescribeVideosIds: any[] = []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const youTubeVideosIds: any[] = []
+    const allResults: any[] = []
     let ids = ''
     const url = `${apiUrl}/videos?page=${page}`
     ourFetch(url)
       .then((response) => {
         // setDbResult(response.result)
         const result = response.result
-        for (let i = 0; i < result.length; i += 1) {
-          youTubeVideosIds.push(result[i].youtube_id)
-          youDescribeVideosIds.push(result[i]._id)
-        }
-        ids = youTubeVideosIds.join(',')
+        allResults.push(result)
+        // for (let i = 0; i < result.length; i += 1) {
+        //   youTubeVideosIds.push(result[i].youtube_id)
+        //   youDescribeVideosIds.push(result[i]._id)
+        // }
+        // ids = youTubeVideosIds.join(',')
       })
       .then(() => {
         const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-all-videos`
         setShowSpinner(true)
         ourFetch(url).then((response) => {
           const result = response.result
-          for (let i = 0; i < result.length; i += 1) {
-            youTubeVideosIds.push(result[i].youtube_id)
-            youDescribeVideosIds.push(result[i]._id)
-          }
-          ids = youTubeVideosIds.join(',')
+          allResults.push(result)
+          // for (let i = 0; i < result.length; i += 1) {
+          //   youTubeVideosIds.push(result[i].youtube_id)
+          //   youDescribeVideosIds.push(result[i]._id)
+          // }
+          // ids = youTubeVideosIds.join(',')
         })
       })
       .then(() => {
+        // sort by created_at
+        allResults.sort((a, b) => {
+          let returnValue = 0
+          try {
+            returnValue =
+              new Date(b.updated_at).getTime() -
+              new Date(a.updated_at).getTime()
+          } catch (error) {
+            returnValue = 0
+          }
+          return returnValue
+        })
+        const youDescribeVideosIds = allResults.map((result) => result._id)
+        const youTubeVideosIds = allResults.map((result) => result.youtube_id)
+        ids = youTubeVideosIds.join(',')
         const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${ids}&key=home`
         setShowSpinner(false)
         ourFetch(url).then((response) => {
