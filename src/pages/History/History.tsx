@@ -1,4 +1,6 @@
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
+import Button from '@/shared/components/Button/Button'
+import Spinner from '@/shared/components/Spinner/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import { apiUrl, youTubeApiKey, youTubeApiUrl } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
@@ -12,7 +14,6 @@ import './history.scss'
 
 const History = () => {
   const [showSpinner, setShowSpinner] = useState(true)
-  const [userName, setUserName] = useState('')
   const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
@@ -23,6 +24,9 @@ const History = () => {
   const [currentAIPage, setcurrentAIPage] = useState(1)
   const [totalAIVideos, settotalAIVideos] = useState(0)
   const [totalAIPages, settotalAIPages] = useState(1)
+  const [currentHistoryPage, setcurrentHistoryPage] = useState(1)
+  const [totalHistoryVideos, settotaHistoryVideos] = useState(0)
+  const [totalHistoryPages, settotalHistoryPages] = useState(1)
 
   // const itemsPerPage = 4 // Change this as per your requirements
   const [itemsPerPage, setItemsPerPage] = useState(
@@ -81,6 +85,20 @@ const History = () => {
       setcurrentAIPage(currentAIPage - 1)
     }
   }
+  const handleHistoryNextPage = () => {
+    if (currentHistoryPage < totalHistoryPages - 1) {
+      setcurrentHistoryPage(currentHistoryPage + 1)
+    } else if (currentHistoryPage == 1) {
+      setcurrentHistoryPage(currentHistoryPage + 1)
+    }
+  }
+
+  const handleHistoryPrevPage = () => {
+    if (currentHistoryPage > 0) {
+      // handleVideoPageChange(activeVideoPage - 1)
+      setcurrentHistoryPage(currentHistoryPage - 1)
+    }
+  }
 
   const handleRecentDescNextPage = () => {
     if (currentRecentPage < totalRecentVideoPages - 1) {
@@ -121,6 +139,18 @@ const History = () => {
         totalAIVideosLength / itemsPerPage,
       )
       settotalAIPages(calculatedtotalAIVideoPages)
+    })
+    const historyDescriptionsUrl = process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
+      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
+
+    axios.get(historyDescriptionsUrl).then((response) => {
+      const totalHistoryVideosLength = response.data.totalVideos
+      settotaHistoryVideos(totalHistoryVideosLength)
+      const calculatedtotalHistoryVideoPages = Math.ceil(
+        totalHistoryVideosLength / itemsPerPage,
+      )
+      settotalHistoryPages(calculatedtotalHistoryVideoPages)
     })
   }, [])
 
@@ -275,8 +305,8 @@ const History = () => {
     window.addEventListener('resize', updateItemsPerPage)
     // Fetch and process History Videos
     const userHistoryUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
-      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentAIPage}`
+      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentAIPage}`
 
     getUserVideos(userHistoryUrl, setHistory)
 
@@ -381,9 +411,8 @@ const History = () => {
           </header>
 
           <div className="custom-carousel">
-            {!aiRequestedVideos && <CustomSpinner />}
-            {aiRequestedVideos && aiRequestedVideos?.data.length > 0 && (
-              <div className="d-flex justify-content-between align-items-center h-100">
+            {videosAI.length > 0 && (
+              <div className="d-flex justify-content-between align-items-center">
                 {/* Custom previous button */}
                 <CustomButton
                   className="prev-icon"
@@ -391,28 +420,16 @@ const History = () => {
                   disabled={currentAIPage === 0}
                 >
                   &lt;
-                </CustomButton>
-
-                {/* Content for displaying videos */}
-                <div className="w3-row classic-container row">
-                  {showAiRequestedVideosSpinner ? (
-                    <CustomSpinner />
-                  ) : (
-                    aiRequestedVideos.videoComponentData.map((video: any) => (
-                      <div
-                        className="col-sm-6 col-md-4 col-lg-3"
-                        key={video.youTubeId}
-                      >
-                        <VideoCard {...video} />
-                      </div>
-                    ))
-                  )}
-                </div>
-
+                </button>
+                {/* {renderCarouselIndicators(
+                  totalVideoAISlides,
+                  activeVideoAISlide,
+                  setActiveVideoAISlide,
+                )} */}
                 {/* Custom next button */}
                 <CustomButton
                   className="next-icon"
-                  onClick={() => handleAIPrevPage()}
+                  onClick={() => handleAINextPage()}
                   disabled={currentAIPage === totalAIPages - 1}
                 >
                   &gt;
@@ -420,7 +437,7 @@ const History = () => {
               </div>
             )}
 
-            {aiRequestedVideos?.data.length === 0 && (
+            {videosAI.length === 0 && (
               <p className="history-text">
                 Please request AI descriptions to view AI Requested videos.
               </p>
@@ -434,62 +451,35 @@ const History = () => {
           </header>
 
           <div className="d-flex justify-content-center custom-carousel">
-            {!historyVideos && <CustomSpinner />}
-            {historyVideos && historyVideos?.data.length > 0 && (
+            {history.length > 0 && ( // Check if there are videos to display
               <>
                 {/* Custom previous button */}
                 <CustomButton
                   className="prev-icon"
-                  onClick={() =>
-                    handlePreviousPage(
-                      historyVideos,
-                      setHistoryVideos,
-                      getUserHistoryUrl(),
-                      setShowHistoryVideosSpinner,
-                    )
-                  }
-                  disabled={historyVideos.currentPage === 1}
+                  onClick={() => handleHistoryPrevPage()}
+                  disabled={currentHistoryPage === 0}
                 >
                   &lt;
                 </CustomButton>
 
-                {/* Content for displaying videos */}
-                <div className="w3-row classic-container row">
-                  {showHistoryVideosSpinner ? (
-                    <CustomSpinner />
-                  ) : (
-                    historyVideos.videoComponentData.map((video) => (
-                      <div
-                        className="col-sm-6 col-md-4 col-lg-3"
-                        key={video.youTubeId}
-                      >
-                        <VideoCard {...video} />
-                      </div>
-                    ))
-                  )}
-                </div>
+                {/* {renderCarouselIndicators(
+                  totalVideoHistorySlides,
+                  activeVideoHistorySlide,
+                  setActiveVideoHistorySlide,
+                )} */}
 
                 {/* Custom next button */}
                 <CustomButton
                   className="next-icon"
-                  onClick={() =>
-                    handleNextPage(
-                      historyVideos,
-                      setHistoryVideos,
-                      getUserHistoryUrl(),
-                      setShowHistoryVideosSpinner,
-                    )
-                  }
-                  disabled={
-                    historyVideos.currentPage === historyVideos.totalPages
-                  }
+                  onClick={() => handleHistoryNextPage()}
+                  disabled={currentHistoryPage === totalHistoryPages - 1}
                 >
                   &gt;
                 </CustomButton>
               </>
             )}
 
-            {historyVideos?.data.length === 0 && (
+            {history.length === 0 && (
               <p className="history-text">No history to view.</p>
             )}
           </div>
