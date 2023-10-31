@@ -21,10 +21,13 @@ const History = () => {
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
   const [history, setHistory] = useState<any[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalVideos, setTotalVideos] = useState(0)
-  const [totalVideoPages, setTotalVideoPages] = useState(1)
-  const { userId } = useParams()
+  const [currentRecentPage, setcurrentRecentPage] = useState(1)
+  const [totalRecentDescVideos, settotalRecentDescVideos] = useState(0)
+  const [totalRecentVideoPages, settotalRecentVideoPages] = useState(1)
+  const [currentAIPage, setcurrentAIPage] = useState(1)
+  const [totalAIVideos, settotalAIVideos] = useState(0)
+  const [totalAIPages, settotalAIPages] = useState(1)
+
   // const itemsPerPage = 4 // Change this as per your requirements
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(
@@ -36,7 +39,7 @@ const History = () => {
   )
 
   // Calculate the total number of pages for videosAI
-  // totalVideoPages = Math.ceil(totalVideos / itemsPerPage)
+  // totalRecentVideoPages = Math.ceil(totalRecentDescVideos / itemsPerPage)
   // Initialize active page state
   const [activeVideoPage, setActiveVideoPage] = useState(0)
 
@@ -67,18 +70,33 @@ const History = () => {
     setActiveVideoHistorySlide(selectedIndex)
   }
 
-  const handleNextPage = () => {
-    if (currentPage < totalVideoPages - 1) {
-      setCurrentPage(currentPage + 1)
-    } else if (currentPage == 1) {
-      setCurrentPage(currentPage + 1)
+  const handleAINextPage = () => {
+    if (currentAIPage < totalAIPages - 1) {
+      setcurrentAIPage(currentAIPage + 1)
+    } else if (currentAIPage == 1) {
+      setcurrentAIPage(currentAIPage + 1)
     }
   }
 
-  const handlePreviousPage = () => {
-    if (currentPage > 0) {
+  const handleAIPrevPage = () => {
+    if (currentAIPage > 0) {
       // handleVideoPageChange(activeVideoPage - 1)
-      setCurrentPage(currentPage - 1)
+      setcurrentAIPage(currentAIPage - 1)
+    }
+  }
+
+  const handleRecentDescNextPage = () => {
+    if (currentRecentPage < totalRecentVideoPages - 1) {
+      setcurrentRecentPage(currentRecentPage + 1)
+    } else if (currentRecentPage == 1) {
+      setcurrentRecentPage(currentRecentPage + 1)
+    }
+  }
+
+  const handleRecentDescPrevPage = () => {
+    if (currentRecentPage > 0) {
+      // handleVideoPageChange(activeVideoPage - 1)
+      setcurrentRecentPage(currentRecentPage - 1)
     }
   }
 
@@ -88,12 +106,24 @@ const History = () => {
       : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=1`
 
     axios.get(recentDescriptionsUrl).then((response) => {
-      const totalVideosLength = response.data.totalVideos
-      setTotalVideos(totalVideosLength)
-      const calculatedTotalVideoPages = Math.ceil(
-        totalVideosLength / itemsPerPage,
+      const totalRecentDescVideosLength = response.data.totalVideos
+      settotalRecentDescVideos(totalRecentDescVideosLength)
+      const calculatedtotalRecentVideoPages = Math.ceil(
+        totalRecentDescVideosLength / itemsPerPage,
       )
-      setTotalVideoPages(calculatedTotalVideoPages)
+      settotalRecentVideoPages(calculatedtotalRecentVideoPages)
+    })
+    const aiDescriptionsUrl = process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=1`
+      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=1`
+
+    axios.get(aiDescriptionsUrl).then((response) => {
+      const totalAIVideosLength = response.data.totalVideos
+      settotalAIVideos(totalAIVideosLength)
+      const calculatedtotalAIVideoPages = Math.ceil(
+        totalAIVideosLength / itemsPerPage,
+      )
+      settotalAIPages(calculatedtotalAIVideoPages)
     })
   }, [])
 
@@ -102,7 +132,6 @@ const History = () => {
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
   ) => {
     let youTubeIds = ''
-    let totalVideosLength = 0
     const youTubeVideoIds: string[] = []
     const youDescribeVideosIds: string[] = []
     const audioDescriptionIds: string[] = []
@@ -115,7 +144,6 @@ const History = () => {
       })
       .then((response) => {
         const responseData = response.data.result
-        totalVideosLength = response.data.totalVideos
         const videosArray = responseData
         // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
@@ -257,22 +285,22 @@ const History = () => {
 
     // Fetch and process AI Requested Videos
     const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
-      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=${currentPage}`
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=${currentAIPage}`
+      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=${currentAIPage}`
     // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
 
     getUserVideos(aiRequestedVideosUrl, setAIVideos)
 
     // Fetch and process Recent Descripton Videos
     const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
-      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentPage}`
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentRecentPage}`
+      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentRecentPage}`
 
     getUserVideos(recentDescriptionsUrl, setVideos)
     return () => {
       window.removeEventListener('resize', updateItemsPerPage)
     }
-  }, [currentPage])
+  }, [currentRecentPage])
 
   // if (
   //   !userDataStore.getState().isSignedIn ||
@@ -311,8 +339,8 @@ const History = () => {
                 {/* Custom previous button */}
                 <button
                   className="prev-icon"
-                  onClick={() => handlePreviousPage()}
-                  disabled={currentPage === 0}
+                  onClick={() => handleRecentDescPrevPage()}
+                  disabled={currentRecentPage === 0}
                 >
                   &lt;
                 </button>
@@ -322,8 +350,8 @@ const History = () => {
                 {/* Custom next button */}
                 <button
                   className="next-icon"
-                  onClick={() => handleNextPage()}
-                  disabled={currentPage === totalVideoPages - 1}
+                  onClick={() => handleRecentDescNextPage()}
+                  disabled={currentRecentPage === totalRecentVideoPages - 1}
                 >
                   &gt;
                 </button>
@@ -348,10 +376,8 @@ const History = () => {
                 {/* Custom previous button */}
                 <button
                   className="prev-icon"
-                  onClick={() =>
-                    handleVideoAISlideChange(activeVideoAISlide - 1)
-                  }
-                  disabled={activeVideoAISlide === 0}
+                  onClick={() => handleAIPrevPage()}
+                  disabled={currentAIPage === 0}
                 >
                   &lt;
                 </button>
@@ -368,10 +394,8 @@ const History = () => {
                 {/* Custom next button */}
                 <button
                   className="next-icon"
-                  onClick={() =>
-                    handleVideoAISlideChange(activeVideoAISlide + 1)
-                  }
-                  disabled={activeVideoAISlide === totalVideoAISlides - 1}
+                  onClick={() => handleAIPrevPage()}
+                  disabled={currentAIPage === totalAIPages - 1}
                 >
                   &gt;
                 </button>
