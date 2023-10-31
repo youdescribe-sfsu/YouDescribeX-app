@@ -1,7 +1,6 @@
 import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import Spinner from '@/shared/components/Spinner/Spinner'
-import Slider from 'react-slick'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import { apiUrl, youTubeApiKey, youTubeApiUrl } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
@@ -11,12 +10,10 @@ import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import ourFetch from '@/shared/utils/ourFetch'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
 import './history.scss'
 
 const History = () => {
   const [showSpinner, setShowSpinner] = useState(true)
-  const [userName, setUserName] = useState('')
   const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
@@ -27,6 +24,9 @@ const History = () => {
   const [currentAIPage, setcurrentAIPage] = useState(1)
   const [totalAIVideos, settotalAIVideos] = useState(0)
   const [totalAIPages, settotalAIPages] = useState(1)
+  const [currentHistoryPage, setcurrentHistoryPage] = useState(1)
+  const [totalHistoryVideos, settotaHistoryVideos] = useState(0)
+  const [totalHistoryPages, settotalHistoryPages] = useState(1)
 
   // const itemsPerPage = 4 // Change this as per your requirements
   const [itemsPerPage, setItemsPerPage] = useState(
@@ -84,6 +84,20 @@ const History = () => {
       setcurrentAIPage(currentAIPage - 1)
     }
   }
+  const handleHistoryNextPage = () => {
+    if (currentHistoryPage < totalHistoryPages - 1) {
+      setcurrentHistoryPage(currentHistoryPage + 1)
+    } else if (currentHistoryPage == 1) {
+      setcurrentHistoryPage(currentHistoryPage + 1)
+    }
+  }
+
+  const handleHistoryPrevPage = () => {
+    if (currentHistoryPage > 0) {
+      // handleVideoPageChange(activeVideoPage - 1)
+      setcurrentHistoryPage(currentHistoryPage - 1)
+    }
+  }
 
   const handleRecentDescNextPage = () => {
     if (currentRecentPage < totalRecentVideoPages - 1) {
@@ -124,6 +138,18 @@ const History = () => {
         totalAIVideosLength / itemsPerPage,
       )
       settotalAIPages(calculatedtotalAIVideoPages)
+    })
+    const historyDescriptionsUrl = process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
+      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
+
+    axios.get(historyDescriptionsUrl).then((response) => {
+      const totalHistoryVideosLength = response.data.totalVideos
+      settotaHistoryVideos(totalHistoryVideosLength)
+      const calculatedtotalHistoryVideoPages = Math.ceil(
+        totalHistoryVideosLength / itemsPerPage,
+      )
+      settotalHistoryPages(calculatedtotalHistoryVideoPages)
     })
   }, [])
 
@@ -278,8 +304,8 @@ const History = () => {
     window.addEventListener('resize', updateItemsPerPage)
     // Fetch and process History Videos
     const userHistoryUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
-      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentAIPage}`
+      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentAIPage}`
 
     getUserVideos(userHistoryUrl, setHistory)
 
@@ -371,7 +397,7 @@ const History = () => {
 
           {showSpinner ? <Spinner /> : null}
           <div className="custom-carousel">
-            {videosAIToDisplay.length > 0 && (
+            {videosAI.length > 0 && (
               <div className="d-flex justify-content-between align-items-center">
                 {/* Custom previous button */}
                 <button
@@ -381,11 +407,6 @@ const History = () => {
                 >
                   &lt;
                 </button>
-
-                {/* Content for displaying videos */}
-                <div className="w3-row classic-container row">
-                  {videosAIToDisplay}
-                </div>
                 {/* {renderCarouselIndicators(
                   totalVideoAISlides,
                   activeVideoAISlide,
@@ -394,7 +415,7 @@ const History = () => {
                 {/* Custom next button */}
                 <button
                   className="next-icon"
-                  onClick={() => handleAIPrevPage()}
+                  onClick={() => handleAINextPage()}
                   disabled={currentAIPage === totalAIPages - 1}
                 >
                   &gt;
@@ -402,7 +423,7 @@ const History = () => {
               </div>
             )}
 
-            {videosAIToDisplay.length === 0 && (
+            {videosAI.length === 0 && (
               <p className="history-text">
                 Please request AI descriptions to view AI Requested videos.
               </p>
@@ -416,23 +437,17 @@ const History = () => {
 
           {showSpinner ? <Spinner /> : null}
           <div className="d-flex justify-content-center custom-carousel">
-            {videosHistoryToDisplay.length > 0 && ( // Check if there are videos to display
+            {history.length > 0 && ( // Check if there are videos to display
               <>
                 {/* Custom previous button */}
                 <button
                   className="prev-icon"
-                  onClick={() =>
-                    handleVideoHistorySlideChange(activeVideoHistorySlide - 1)
-                  }
-                  disabled={activeVideoHistorySlide === 0}
+                  onClick={() => handleHistoryPrevPage()}
+                  disabled={currentHistoryPage === 0}
                 >
                   &lt;
                 </button>
 
-                {/* Content for displaying videos */}
-                <div className="w3-row classic-container row">
-                  {videosHistoryToDisplay}
-                </div>
                 {/* {renderCarouselIndicators(
                   totalVideoHistorySlides,
                   activeVideoHistorySlide,
@@ -442,19 +457,15 @@ const History = () => {
                 {/* Custom next button */}
                 <button
                   className="next-icon"
-                  onClick={() =>
-                    handleVideoHistorySlideChange(activeVideoHistorySlide + 1)
-                  }
-                  disabled={
-                    activeVideoHistorySlide === totalVideoHistorySlides - 1
-                  }
+                  onClick={() => handleHistoryNextPage()}
+                  disabled={currentHistoryPage === totalHistoryPages - 1}
                 >
                   &gt;
                 </button>
               </>
             )}
 
-            {videosHistoryToDisplay.length === 0 && (
+            {history.length === 0 && (
               <p className="history-text">No history to view.</p>
             )}
           </div>
