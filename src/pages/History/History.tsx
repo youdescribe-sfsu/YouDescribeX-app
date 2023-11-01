@@ -152,8 +152,6 @@ const History = () => {
         )
         settotalAIPages(calculatedtotalAIVideoPages)
       })
-  }, [])
-  useEffect(() => {
     const historyDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
       : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
@@ -164,12 +162,10 @@ const History = () => {
       })
       .then((response) => {
         const totalHistoryVideosLength = response.data.totalVideos
-        console.log({ totalHistoryVideosLength })
         settotaHistoryVideos(totalHistoryVideosLength)
         const calculatedtotalHistoryVideoPages = Math.ceil(
           totalHistoryVideosLength / itemsPerPage,
         )
-        console.log({ calculatedtotalHistoryVideoPages })
         settotalHistoryPages(calculatedtotalHistoryVideoPages)
       })
   }, [])
