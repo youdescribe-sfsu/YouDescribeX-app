@@ -131,26 +131,34 @@ const History = () => {
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=1`
       : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=1`
 
-    axios.get(aiDescriptionsUrl).then((response) => {
-      const totalAIVideosLength = response.data.totalVideos
-      settotalAIVideos(totalAIVideosLength)
-      const calculatedtotalAIVideoPages = Math.ceil(
-        totalAIVideosLength / itemsPerPage,
-      )
-      settotalAIPages(calculatedtotalAIVideoPages)
-    })
+    axios
+      .get(aiDescriptionsUrl, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        const totalAIVideosLength = response.data.totalVideos
+        settotalAIVideos(totalAIVideosLength)
+        const calculatedtotalAIVideoPages = Math.ceil(
+          totalAIVideosLength / itemsPerPage,
+        )
+        settotalAIPages(calculatedtotalAIVideoPages)
+      })
     const historyDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
       : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
 
-    axios.get(historyDescriptionsUrl).then((response) => {
-      const totalHistoryVideosLength = response.data.totalVideos
-      settotaHistoryVideos(totalHistoryVideosLength)
-      const calculatedtotalHistoryVideoPages = Math.ceil(
-        totalHistoryVideosLength / itemsPerPage,
-      )
-      settotalHistoryPages(calculatedtotalHistoryVideoPages)
-    })
+    axios
+      .get(historyDescriptionsUrl, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        const totalHistoryVideosLength = response.data.totalVideos
+        settotaHistoryVideos(totalHistoryVideosLength)
+        const calculatedtotalHistoryVideoPages = Math.ceil(
+          totalHistoryVideosLength / itemsPerPage,
+        )
+        settotalHistoryPages(calculatedtotalHistoryVideoPages)
+      })
   }, [])
 
   const getUserVideos = async (
