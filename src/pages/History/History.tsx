@@ -84,6 +84,7 @@ const History = () => {
       setcurrentAIPage(currentAIPage - 1)
     }
   }
+  
   const handleHistoryNextPage = () => {
     if (currentHistoryPage < totalHistoryPages - 1) {
       setcurrentHistoryPage(currentHistoryPage + 1)
