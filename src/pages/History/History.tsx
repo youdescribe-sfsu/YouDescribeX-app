@@ -27,6 +27,9 @@ const History = () => {
   const [currentHistoryPage, setcurrentHistoryPage] = useState(1)
   const [totalHistoryVideos, settotaHistoryVideos] = useState(0)
   const [totalHistoryPages, settotalHistoryPages] = useState(1)
+  const [currentHistoryPage, setcurrentHistoryPage] = useState(1)
+  const [totalHistoryVideos, settotaHistoryVideos] = useState(0)
+  const [totalHistoryPages, settotalHistoryPages] = useState(1)
 
   // const itemsPerPage = 4 // Change this as per your requirements
   const [itemsPerPage, setItemsPerPage] = useState(
@@ -42,6 +45,7 @@ const History = () => {
   // totalRecentVideoPages = Math.ceil(totalRecentDescVideos / itemsPerPage)
   // Initialize active page state
   // const [activeVideoPage, setActiveVideoPage] = useState(0)
+  // const [activeVideoPage, setActiveVideoPage] = useState(0)
 
   // // Function to handle page change for videosAI
   // const handleVideoPageChange = (selectedIndex: number) => {
@@ -50,22 +54,32 @@ const History = () => {
 
   // Calculate the total number of slides for videosAI
   // const totalVideoAISlides = Math.ceil(videosAI.length / itemsPerPage)
+  // const totalVideoAISlides = Math.ceil(videosAI.length / itemsPerPage)
 
   // Initialize active slide state
+  // const [activeVideoAISlide, setActiveVideoAISlide] = useState(0)
   // const [activeVideoAISlide, setActiveVideoAISlide] = useState(0)
 
   // Function to handle slide change for videosAI
   // const handleVideoAISlideChange = (selectedIndex: number) => {
   //   setActiveVideoAISlide(selectedIndex)
   // }
+  // const handleVideoAISlideChange = (selectedIndex: number) => {
+  //   setActiveVideoAISlide(selectedIndex)
+  // }
 
   // Calculate the total number of slides for videosAI
+  // const totalVideoHistorySlides = Math.ceil(history.length / itemsPerPage)
   // const totalVideoHistorySlides = Math.ceil(history.length / itemsPerPage)
 
   // Initialize active slide state
   // const [activeVideoHistorySlide, setActiveVideoHistorySlide] = useState(0)
+  // const [activeVideoHistorySlide, setActiveVideoHistorySlide] = useState(0)
 
   // Function to handle slide change for videosAI
+  // const handleVideoHistorySlideChange = (selectedIndex: number) => {
+  //   setActiveVideoHistorySlide(selectedIndex)
+  // }
   // const handleVideoHistorySlideChange = (selectedIndex: number) => {
   //   setActiveVideoHistorySlide(selectedIndex)
   // }
@@ -82,6 +96,24 @@ const History = () => {
     if (currentAIPage > 0) {
       // handleVideoPageChange(activeVideoPage - 1)
       setcurrentAIPage(currentAIPage - 1)
+    }
+  }
+
+  const handleHistoryNextPage = () => {
+    console.log('inside handle history next...')
+    console.log({ currentHistoryPage })
+    console.log({ totalHistoryPages })
+    if (currentHistoryPage < totalHistoryPages - 1) {
+      setcurrentHistoryPage(currentHistoryPage + 1)
+    } else if (currentHistoryPage == 1) {
+      setcurrentHistoryPage(currentHistoryPage + 1)
+    }
+  }
+
+  const handleHistoryPrevPage = () => {
+    if (currentHistoryPage > 0) {
+      // handleVideoPageChange(activeVideoPage - 1)
+      setcurrentHistoryPage(currentHistoryPage - 1)
     }
   }
 
@@ -137,6 +169,20 @@ const History = () => {
       })
   }, [])
   useEffect(() => {
+    axios
+      .get(recentDescriptionsUrl, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        const totalRecentDescVideosLength = response.data.totalVideos
+        settotalRecentDescVideos(totalRecentDescVideosLength)
+        const calculatedtotalRecentVideoPages = Math.ceil(
+          totalRecentDescVideosLength / itemsPerPage,
+        )
+        settotalRecentVideoPages(calculatedtotalRecentVideoPages)
+      })
+  }, [])
+  useEffect(() => {
     const aiDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=1`
       : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=1`
@@ -153,6 +199,8 @@ const History = () => {
         )
         settotalAIPages(calculatedtotalAIVideoPages)
       })
+  }, [])
+  useEffect(() => {
     const historyDescriptionsUrl = process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
       : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
@@ -163,10 +211,12 @@ const History = () => {
       })
       .then((response) => {
         const totalHistoryVideosLength = response.data.totalVideos
+        console.log({ totalHistoryVideosLength })
         settotaHistoryVideos(totalHistoryVideosLength)
         const calculatedtotalHistoryVideoPages = Math.ceil(
           totalHistoryVideosLength / itemsPerPage,
         )
+        console.log({ calculatedtotalHistoryVideoPages })
         settotalHistoryPages(calculatedtotalHistoryVideoPages)
       })
   }, [])
@@ -294,14 +344,23 @@ const History = () => {
   // Calculate the range of videos to display on the current slide
   // const videoAIStartIndex = activeVideoAISlide * itemsPerPage
   // const videoAIEndIndex = videoAIStartIndex + itemsPerPage
+  // const videoAIStartIndex = activeVideoAISlide * itemsPerPage
+  // const videoAIEndIndex = videoAIStartIndex + itemsPerPage
 
   // Calculate the range of videos to display on the current page
+  // const videoHistoryStartIndex = activeVideoHistorySlide * itemsPerPage
+  // const videoHistoryEndIndex = videoHistoryStartIndex + itemsPerPage
   // const videoHistoryStartIndex = activeVideoHistorySlide * itemsPerPage
   // const videoHistoryEndIndex = videoHistoryStartIndex + itemsPerPage
 
   // Slice the videosAI array to display only the videos for the active slide
   // const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
+  // const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
   // const videosToDisplay = videos.slice(videoStartIndex, videoEndIndex)
+  // const videosHistoryToDisplay = history.slice(
+  //   videoHistoryStartIndex,
+  //   videoHistoryEndIndex,
+  // )
   // const videosHistoryToDisplay = history.slice(
   //   videoHistoryStartIndex,
   //   videoHistoryEndIndex,
@@ -322,6 +381,8 @@ const History = () => {
     window.addEventListener('resize', updateItemsPerPage)
     // Fetch and process History Videos
     const userHistoryUrl = process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentHistoryPage}`
+      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentHistoryPage}`
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentHistoryPage}`
       : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentHistoryPage}`
 
@@ -429,6 +490,7 @@ const History = () => {
 
           <div className="custom-carousel">
             {videosAI.length > 0 && (
+            {videosAI.length > 0 && (
               <div className="d-flex justify-content-between align-items-center">
                 {/* Custom previous button */}
                 <CustomButton
@@ -444,9 +506,11 @@ const History = () => {
                   setActiveVideoAISlide,
                 )} */}
                 <div className="w3-row classic-container row">{videosAI}</div>
+                <div className="w3-row classic-container row">{videosAI}</div>
                 {/* Custom next button */}
                 <CustomButton
                   className="next-icon"
+                  onClick={() => handleAINextPage()}
                   onClick={() => handleAINextPage()}
                   disabled={currentAIPage === totalAIPages - 1}
                 >
@@ -455,6 +519,7 @@ const History = () => {
               </div>
             )}
 
+            {videosAI.length === 0 && (
             {videosAI.length === 0 && (
               <p className="history-text">
                 Please request AI descriptions to view AI Requested videos.
@@ -470,10 +535,13 @@ const History = () => {
 
           <div className="d-flex justify-content-center custom-carousel">
             {history.length > 0 && ( // Check if there are videos to display
+            {history.length > 0 && ( // Check if there are videos to display
               <>
                 {/* Custom previous button */}
                 <CustomButton
                   className="prev-icon"
+                  onClick={() => handleHistoryPrevPage()}
+                  disabled={currentHistoryPage === 0}
                   onClick={() => handleHistoryPrevPage()}
                   disabled={currentHistoryPage === 0}
                 >
@@ -486,10 +554,13 @@ const History = () => {
                   setActiveVideoHistorySlide,
                 )} */}
                 <div className="w3-row classic-container row">{history}</div>
+                <div className="w3-row classic-container row">{history}</div>
 
                 {/* Custom next button */}
                 <CustomButton
                   className="next-icon"
+                  onClick={() => handleHistoryNextPage()}
+                  disabled={currentHistoryPage === totalHistoryPages - 1}
                   onClick={() => handleHistoryNextPage()}
                   disabled={currentHistoryPage === totalHistoryPages - 1}
                 >
@@ -498,6 +569,7 @@ const History = () => {
               </>
             )}
 
+            {history.length === 0 && (
             {history.length === 0 && (
               <p className="history-text">No history to view.</p>
             )}
