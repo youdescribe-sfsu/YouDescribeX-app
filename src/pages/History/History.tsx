@@ -84,6 +84,7 @@ const History = () => {
       setcurrentAIPage(currentAIPage - 1)
     }
   }
+
   const handleHistoryNextPage = () => {
     console.log('inside handle history next...')
     console.log({ currentHistoryPage })
