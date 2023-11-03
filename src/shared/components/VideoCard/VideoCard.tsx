@@ -171,7 +171,7 @@ const VideoCard = ({
             )
             return
           }
-          navigate('/editor/' + res.data.url)
+          navigate(url ? '/editor/' + url : '/video/' + youTubeId)
         })
     } else {
       alert(
