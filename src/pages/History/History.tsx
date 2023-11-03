@@ -1,6 +1,4 @@
-import { translate, userDataStore } from '@/App'
-import Button from '@/shared/components/Button/Button'
-import Spinner from '@/shared/components/Spinner/Spinner'
+import { translate } from '@/App'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import { apiUrl, youTubeApiKey, youTubeApiUrl } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
@@ -11,367 +9,266 @@ import ourFetch from '@/shared/utils/ourFetch'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import './history.scss'
+import Spinner from 'react-bootstrap/Spinner'
+
+interface VideosState {
+  data: any[]
+  totalVideos: number
+  totalPages: number
+  currentPage: number
+  videoComponentData: any[]
+}
+
+type SetVideosData = React.Dispatch<React.SetStateAction<VideosState | null>>
+
+type DataState = VideosState | null
+
+type FetchVideosDataFunction = (
+  dataState: DataState,
+  setVideosData: SetVideosData,
+  apiEndpoint: string,
+  setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+) => Promise<void>
+
+const CustomButton = ({
+  className,
+  onClick,
+  disabled,
+  children,
+}: {
+  onClick: () => void
+  className: string
+  disabled: boolean
+  children: React.ReactNode
+}) => {
+  const buttonStyle: React.CSSProperties = {
+    opacity: disabled ? '50%' : '100%',
+  }
+
+  const handleHover = (event: any) => {
+    if (!disabled) {
+      // Add your custom hover style changes here
+      event.target.style.cursor = 'pointer'
+      // Other hover effects
+    } else {
+      event.target.style.cursor = 'not-allowed'
+    }
+  }
+
+  return (
+    <button
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+      style={buttonStyle}
+      onMouseOver={handleHover}
+    >
+      {children}
+    </button>
+  )
+}
+
+const CustomSpinner = () => (
+  <div className="d-flex justify-content-between align-items-center h-100 h-100">
+    <div className="w3-row classic-container row">
+      <Spinner
+        animation="border"
+        role="status"
+        style={{
+          margin: 'auto',
+        }}
+      >
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>
+    </div>
+  </div>
+)
+
+const fetchVideoDetails = async (videoIds: string[]) => {
+  try {
+    const url = `${youTubeApiUrl}/videos?id=${videoIds.join(
+      ',',
+    )}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
+    const data: any = await ourFetch(url)
+    // const jsonData = await data.json();
+    window.localStorage.setItem('userVideosYoutubeData', JSON.stringify(data))
+    return data.items
+  } catch (error) {
+    console.error('Error fetching video details:', error)
+    return []
+  }
+}
 
 const History = () => {
-  const [showSpinner, setShowSpinner] = useState(true)
-  const [userVideosArray, setUserVideosArray] = useState([])
-  const [videos, setVideos] = useState<any[]>([])
-  const [videosAI, setAIVideos] = useState<any[]>([])
-  const [history, setHistory] = useState<any[]>([])
-  const [currentRecentPage, setcurrentRecentPage] = useState(1)
-  const [totalRecentDescVideos, settotalRecentDescVideos] = useState(0)
-  const [totalRecentVideoPages, settotalRecentVideoPages] = useState(1)
-  const [currentAIPage, setcurrentAIPage] = useState(1)
-  const [totalAIVideos, settotalAIVideos] = useState(0)
-  const [totalAIPages, settotalAIPages] = useState(1)
-  const [currentHistoryPage, setcurrentHistoryPage] = useState(1)
-  const [totalHistoryVideos, settotaHistoryVideos] = useState(0)
-  const [totalHistoryPages, settotalHistoryPages] = useState(1)
+  // const [showSpinner, setShowSpinner] = useState(true)
+  // const [videos, setVideos] = useState<any[]>([])
 
-  // const itemsPerPage = 4 // Change this as per your requirements
-  const [itemsPerPage, setItemsPerPage] = useState(
-    parseInt(
-      getComputedStyle(document.documentElement)
-        .getPropertyValue('--items-per-page')
-        .trim(),
-      10,
-    ),
-  )
+  // Recent Descriptions
+  const [recentDescriptions, setRecentDescriptions] =
+    useState<VideosState | null>(null)
+  const [showRecentDescriptionsSpinner, setShowRecentDescriptionsSpinner] =
+    useState(true)
 
-  // Calculate the total number of pages for videosAI
-  // totalRecentVideoPages = Math.ceil(totalRecentDescVideos / itemsPerPage)
-  // Initialize active page state
-  // const [activeVideoPage, setActiveVideoPage] = useState(0)
+  // AI Requested Videos
+  const [aiRequestedVideos, setAiRequestedVideos] =
+    useState<VideosState | null>(null)
+  const [showAiRequestedVideosSpinner, setShowAiRequestedVideosSpinner] =
+    useState(true)
 
-  // // Function to handle page change for videosAI
-  // const handleVideoPageChange = (selectedIndex: number) => {
-  //   setActiveVideoPage(selectedIndex)
-  // }
+  // History Videos
+  const [historyVideos, setHistoryVideos] = useState<VideosState | null>(null)
+  const [showHistoryVideosSpinner, setShowHistoryVideosSpinner] = useState(true)
 
-  // Calculate the total number of slides for videosAI
-  // const totalVideoAISlides = Math.ceil(videosAI.length / itemsPerPage)
+  const itemsPerPage = 4 // Change this as per your requirements
 
-  // Initialize active slide state
-  // const [activeVideoAISlide, setActiveVideoAISlide] = useState(0)
-
-  // Function to handle slide change for videosAI
-  // const handleVideoAISlideChange = (selectedIndex: number) => {
-  //   setActiveVideoAISlide(selectedIndex)
-  // }
-
-  // Calculate the total number of slides for videosAI
-  // const totalVideoHistorySlides = Math.ceil(history.length / itemsPerPage)
-
-  // Initialize active slide state
-  // const [activeVideoHistorySlide, setActiveVideoHistorySlide] = useState(0)
-
-  // Function to handle slide change for videosAI
-  // const handleVideoHistorySlideChange = (selectedIndex: number) => {
-  //   setActiveVideoHistorySlide(selectedIndex)
-  // }
-
-  const handleAINextPage = () => {
-    if (currentAIPage < totalAIPages - 1) {
-      setcurrentAIPage(currentAIPage + 1)
-    } else if (currentAIPage == 1) {
-      setcurrentAIPage(currentAIPage + 1)
-    }
+  const getRecentDescriptionsUrl = () => {
+    return process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions`
+      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions`
   }
 
-  const handleAIPrevPage = () => {
-    if (currentAIPage > 0) {
-      // handleVideoPageChange(activeVideoPage - 1)
-      setcurrentAIPage(currentAIPage - 1)
-    }
+  const getUserHistoryUrl = () => {
+    return process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
+      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
   }
 
-  const handleHistoryNextPage = () => {
-    console.log('inside handle history next...')
-    console.log({ currentHistoryPage })
-    console.log({ totalHistoryPages })
-    if (currentHistoryPage < totalHistoryPages - 1) {
-      setcurrentHistoryPage(currentHistoryPage + 1)
-    } else if (currentHistoryPage == 1) {
-      setcurrentHistoryPage(currentHistoryPage + 1)
-    }
+  const getAiRequestedVideosUrl = () => {
+    return process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
+      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
   }
 
-  const handleHistoryPrevPage = () => {
-    if (currentHistoryPage > 0) {
-      // handleVideoPageChange(activeVideoPage - 1)
-      setcurrentHistoryPage(currentHistoryPage - 1)
-    }
-  }
-
-  const handleRecentDescNextPage = () => {
-    if (currentRecentPage < totalRecentVideoPages - 1) {
-      setcurrentRecentPage(currentRecentPage + 1)
-    } else if (currentRecentPage == 1) {
-      setcurrentRecentPage(currentRecentPage + 1)
-    }
-  }
-
-  const handleRecentDescPrevPage = () => {
-    if (currentRecentPage > 0) {
-      // handleVideoPageChange(activeVideoPage - 1)
-      setcurrentRecentPage(currentRecentPage - 1)
-    }
-  }
-
-  useEffect(() => {
-    const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=1`
-      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=1`
-
-    axios
-      .get(recentDescriptionsUrl, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        const totalRecentDescVideosLength = response.data.totalVideos
-        settotalRecentDescVideos(totalRecentDescVideosLength)
-        const calculatedtotalRecentVideoPages = Math.ceil(
-          totalRecentDescVideosLength / itemsPerPage,
-        )
-        settotalRecentVideoPages(calculatedtotalRecentVideoPages)
-      })
-  }, [])
-  useEffect(() => {
-    const aiDescriptionsUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=1`
-      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=1`
-
-    axios
-      .get(aiDescriptionsUrl, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        const totalAIVideosLength = response.data.totalVideos
-        settotalAIVideos(totalAIVideosLength)
-        const calculatedtotalAIVideoPages = Math.ceil(
-          totalAIVideosLength / itemsPerPage,
-        )
-        settotalAIPages(calculatedtotalAIVideoPages)
-      })
-  }, [])
-  useEffect(() => {
-    const historyDescriptionsUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
-      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=1`
-
-    axios
-      .get(historyDescriptionsUrl, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        const totalHistoryVideosLength = response.data.totalVideos
-        console.log({ totalHistoryVideosLength })
-        settotaHistoryVideos(totalHistoryVideosLength)
-        const calculatedtotalHistoryVideoPages = Math.ceil(
-          totalHistoryVideosLength / itemsPerPage,
-        )
-        console.log({ calculatedtotalHistoryVideoPages })
-        settotalHistoryPages(calculatedtotalHistoryVideoPages)
-      })
-  }, [])
-
-  const getUserVideos = async (
-    url: string,
-    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
+  const fetchVideosData: FetchVideosDataFunction = async (
+    dataState,
+    setVideosData,
+    apiEndpoint,
+    setLoadingState,
   ) => {
-    let youTubeIds = ''
-    const youTubeVideoIds: string[] = []
-    const youDescribeVideosIds: string[] = []
-    const audioDescriptionIds: string[] = []
-    const status: string[] = []
-    const urls: string[] = []
-
-    axios
-      .get(url, {
+    try {
+      console.log('fetchVideosData')
+      console.log(dataState)
+      const pageNumber = dataState?.currentPage || 1
+      setLoadingState(true)
+      const response = await axios.get(apiEndpoint, {
+        params: {
+          pageNumber: pageNumber,
+        },
         withCredentials: true,
       })
-      .then((response) => {
-        const responseData = response.data.result
-        const videosArray = responseData
-        // setUserVideosArray(videosArray)
-        for (let i = 0; i < videosArray.length; i += 1) {
-          youTubeVideoIds.push(videosArray[i].youtube_video_id)
-          youDescribeVideosIds.push(videosArray[i].video_id)
-          // audioDescriptionIds.push(videosArray[i].audio_description_id)
-          status.push(videosArray[i].status)
-          urls.push(videosArray[i].url)
+      const responseData = response.data.result
+      const totalVideosLength = response.data.totalVideos
+      const calculatedTotalVideoPages = Math.ceil(
+        totalVideosLength / itemsPerPage,
+      )
+      // Extract necessary data for video fetching
+      const videoIds: string[] = []
+      const status: string[] = []
+      const urls: string[] = []
+
+      responseData.forEach((data: any) => {
+        videoIds.push(data.youtube_video_id)
+        status.push(data.status)
+        urls.push(data.url)
+      })
+
+      const videoDetails = await fetchVideoDetails(videoIds)
+
+      const videoData = videoDetails.map((item: any, index: any) => {
+        return {
+          youTubeId: item.id,
+          thumbnailMediumUrl: item.snippet.thumbnails.medium.url,
+          duration: convertSecondsToCardFormat(
+            convertISO8601ToSeconds(item.contentDetails.duration),
+          ),
+          title: item.snippet.title,
+          author: item.snippet.channelTitle,
+          views: convertViewsToCardFormat(Number(item.statistics.viewCount)),
+          time: convertTimeToCardFormat(
+            Date.now() - new Date(item.snippet.publishedAt).getMilliseconds(),
+          ),
+          status: status[index] === 'completed' ? urls[index] : null,
         }
-        youTubeIds = youTubeVideoIds.join(',')
       })
-      .then(() => {
-        const url = `${youTubeApiUrl}/videos?id=${youTubeIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-        ourFetch(url).then((data) => {
-          window.localStorage.setItem(
-            'userVideosYoutubeData',
-            JSON.stringify(data),
-          )
-          const youTubeVideosArray = data
 
-          parseResponseData(
-            youTubeVideosArray,
-            youDescribeVideosIds,
-            // audioDescriptionIds,
-            status,
-            urls,
-            setStateFunction,
-          )
-        })
+      setVideosData({
+        data: videoData.slice(0, itemsPerPage),
+        totalVideos: totalVideosLength,
+        totalPages: calculatedTotalVideoPages,
+        currentPage: pageNumber,
+        videoComponentData: videoData,
       })
-  }
-
-  const parseResponseData = (
-    youTubeVideosArray: any,
-    youDescribeVideosIds: string[],
-    // audioDescriptionIds: string[],
-    status: string[],
-    urls: string[],
-    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
-  ) => {
-    const videoComponents = []
-    for (let i = 0; i < youTubeVideosArray.items.length; i += 1) {
-      const item = youTubeVideosArray.items[i]
-      const youDescribeVideoId = youDescribeVideosIds[i]
-      // const audioDescriptionId = audioDescriptionIds[i]
-      const statusVal = status[i]
-      const youTubeId = item.id
-      const thumbnail = item.snippet.thumbnails.medium
-      const duration = convertSecondsToCardFormat(
-        convertISO8601ToSeconds(item.contentDetails.duration),
-      )
-      let url
-      if (statusVal === 'completed') {
-        url = urls[i]
-      }
-      const title = item.snippet.title
-      const author = item.snippet.channelTitle
-      const views = convertViewsToCardFormat(Number(item.statistics.viewCount))
-      const publishedAt = new Date(item.snippet.publishedAt).getMilliseconds()
-      const now = Date.now()
-      const time = convertTimeToCardFormat(Number(now - publishedAt))
-
-      videoComponents.push(
-        <div className="col-sm-6 col-md-4 col-lg-3" key={youTubeId}>
-          <VideoCard
-            key={youTubeId}
-            youTubeId={youTubeId}
-            // audioDescriptionId={audioDescriptionId}
-            thumbnailMediumUrl={thumbnail.url}
-            duration={duration}
-            title={title}
-            author={author}
-            views={views}
-            time={time}
-            statusVal={statusVal}
-            // buttons={setStateFunction === setVideos ? 'edit' : ''}
-            buttons="none"
-            url={url}
-          />
-        </div>,
-      )
+      setLoadingState(false)
+      // setShowSpinner(false)
+    } catch (error) {
+      console.error(`Error fetching ${apiEndpoint}:`, error)
+      setLoadingState(false)
+      // setShowSpinner(false)
+      // Handle error, perhaps set an error state to show to the user
     }
-    setShowSpinner(false)
-    // setVideos(videoComponents)
-    setStateFunction(videoComponents)
   }
-  // function renderCarouselIndicators(
-  //   totalSlides: number,
-  //   activeSlide: number,
-  //   setActive: React.Dispatch<React.SetStateAction<number>>,
-  // ) {
-  //   return (
-  //     <ol className="carousel-indicators">
-  //       {Array.from({ length: totalSlides }).map((_, index) => (
-  //         <li
-  //           key={index}
-  //           onClick={() => setActive(index)}
-  //           className={index === activeSlide ? 'active' : ''}
-  //         ></li>
-  //       ))}
-  //     </ol>
-  //   )
-  // }
-  // Calculate the range of videos to display on the current slide
-  // const videoAIStartIndex = activeVideoAISlide * itemsPerPage
-  // const videoAIEndIndex = videoAIStartIndex + itemsPerPage
 
-  // Calculate the range of videos to display on the current page
-  // const videoHistoryStartIndex = activeVideoHistorySlide * itemsPerPage
-  // const videoHistoryEndIndex = videoHistoryStartIndex + itemsPerPage
+  const handleNextPage = (
+    currentDataState: VideosState | null,
+    setStateFunction: React.Dispatch<React.SetStateAction<VideosState | null>>,
+    apiEndpoint: string,
+    setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
+    if (!currentDataState) return
+    fetchVideosData(
+      {
+        ...currentDataState,
+        currentPage: Math.min(
+          currentDataState.currentPage + 1,
+          currentDataState.totalPages,
+        ),
+      },
+      setStateFunction,
+      apiEndpoint,
+      setVideoLoadingState,
+    )
+  }
 
-  // Slice the videosAI array to display only the videos for the active slide
-  // const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
-  // const videosToDisplay = videos.slice(videoStartIndex, videoEndIndex)
-  // const videosHistoryToDisplay = history.slice(
-  //   videoHistoryStartIndex,
-  //   videoHistoryEndIndex,
-  // )
+  const handlePreviousPage = (
+    currentDataState: VideosState | null,
+    setStateFunction: React.Dispatch<React.SetStateAction<VideosState | null>>,
+    apiEndpoint: string,
+    setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
+    if (!currentDataState) return
+    fetchVideosData(
+      {
+        ...currentDataState,
+        currentPage: Math.max(currentDataState.currentPage - 1, 1),
+      },
+      setStateFunction,
+      apiEndpoint,
+      setVideoLoadingState,
+    )
+  }
 
   useEffect(() => {
-    const updateItemsPerPage = () => {
-      setItemsPerPage(
-        parseInt(
-          getComputedStyle(document.documentElement)
-            .getPropertyValue('--items-per-page')
-            .trim(),
-          10,
-        ),
-      )
-    }
-    // Attach the event listener to window resize
-    window.addEventListener('resize', updateItemsPerPage)
-    // Fetch and process History Videos
-    const userHistoryUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentHistoryPage}`
-      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History?pageNumber=${currentHistoryPage}`
+    fetchVideosData(
+      recentDescriptions,
+      setRecentDescriptions,
+      getRecentDescriptionsUrl(),
+      setShowRecentDescriptionsSpinner,
+    )
 
-    getUserVideos(userHistoryUrl, setHistory)
+    fetchVideosData(
+      historyVideos,
+      setHistoryVideos,
+      getUserHistoryUrl(),
+      setShowHistoryVideosSpinner,
+    )
+    fetchVideosData(
+      aiRequestedVideos,
+      setAiRequestedVideos,
+      getAiRequestedVideosUrl(),
+      setShowAiRequestedVideosSpinner,
+    )
+  }, [])
 
-    // Fetch and process AI Requested Videos
-    const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=${currentAIPage}`
-      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests?pageNumber=${currentAIPage}`
-    // const aiRequestedVideosUrl = `http://127.0.0.1:4001/api/create-user-links/get-All-Ai-DescriptionRequests?user=${userId}`
-
-    getUserVideos(aiRequestedVideosUrl, setAIVideos)
-
-    // Fetch and process Recent Descripton Videos
-    const recentDescriptionsUrl = process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentRecentPage}`
-      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions?pageNumber=${currentRecentPage}`
-
-    getUserVideos(recentDescriptionsUrl, setVideos)
-    return () => {
-      window.removeEventListener('resize', updateItemsPerPage)
-    }
-  }, [currentRecentPage])
-
-  // if (
-  //   !userDataStore.getState().isSignedIn ||
-  //   userId !== userDataStore.getState().userId
-  // ) {
-  //   return (
-  //     <div id="user-videos-page" title="User described videos page">
-  //       <main>
-  //         <section>
-  //           <header className="w3-container w3-indigo">
-  //             <h2 className="classic-h2">{translate('HISTORY')}</h2>
-  //           </header>
-  //           <h2 className="classic-h2">Sign In Required</h2>
-  //           <p>
-  //             Sorry! The link you followed points to a YouDescribe page that
-  //             requires you to sign in to your account
-  //           </p>
-  //           <p>Please Sign In using your google account to access this page.</p>
-  //         </section>
-  //       </main>
-  //     </div>
-  //   )
-  // } else {
   return (
     <div id="user-videos-page" title="User described videos page">
       <main>
@@ -380,33 +277,64 @@ const History = () => {
             <h2 className="classic-h2">{translate('RECENT DESCRIPTIONS')}</h2>
           </header>
 
-          {showSpinner ? <Spinner /> : null}
           <div className="custom-carousel">
-            {videos.length > 0 && (
-              <div className="d-flex justify-content-between align-items-center">
+            {!recentDescriptions && <CustomSpinner />}
+            {recentDescriptions && recentDescriptions?.data.length > 0 && (
+              <div className="d-flex justify-content-between align-items-center h-100">
                 {/* Custom previous button */}
-                <button
+                <CustomButton
                   className="prev-icon"
-                  onClick={() => handleRecentDescPrevPage()}
-                  disabled={currentRecentPage === 0}
+                  onClick={() =>
+                    handlePreviousPage(
+                      recentDescriptions,
+                      setRecentDescriptions,
+                      getRecentDescriptionsUrl(),
+                      setShowRecentDescriptionsSpinner,
+                    )
+                  }
+                  disabled={recentDescriptions.currentPage === 1}
                 >
                   &lt;
-                </button>
+                </CustomButton>
 
                 {/* Content for displaying videos */}
-                <div className="w3-row classic-container row">{videos}</div>
+                <div className="w3-row classic-container row">
+                  {showRecentDescriptionsSpinner ? (
+                    <CustomSpinner />
+                  ) : (
+                    recentDescriptions.videoComponentData.map((video: any) => (
+                      <div
+                        className="col-sm-6 col-md-4 col-lg-3"
+                        key={video.youTubeId}
+                      >
+                        <VideoCard {...video} />
+                      </div>
+                    ))
+                  )}
+                </div>
+
                 {/* Custom next button */}
-                <button
+                <CustomButton
                   className="next-icon"
-                  onClick={() => handleRecentDescNextPage()}
-                  disabled={currentRecentPage === totalRecentVideoPages - 1}
+                  onClick={() =>
+                    handleNextPage(
+                      recentDescriptions,
+                      setRecentDescriptions,
+                      getRecentDescriptionsUrl(),
+                      setShowRecentDescriptionsSpinner,
+                    )
+                  }
+                  disabled={
+                    recentDescriptions.currentPage ===
+                    recentDescriptions.totalPages
+                  }
                 >
                   &gt;
-                </button>
+                </CustomButton>
               </div>
             )}
 
-            {videos.length === 0 && (
+            {recentDescriptions?.data.length === 0 && (
               <p className="history-text">No Recent descriptions to view</p>
             )}
           </div>
@@ -417,79 +345,133 @@ const History = () => {
             <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
           </header>
 
-          {showSpinner ? <Spinner /> : null}
           <div className="custom-carousel">
-            {videosAI.length > 0 && (
-              <div className="d-flex justify-content-between align-items-center">
+            {!aiRequestedVideos && <CustomSpinner />}
+            {aiRequestedVideos && aiRequestedVideos?.data.length > 0 && (
+              <div className="d-flex justify-content-between align-items-center h-100">
                 {/* Custom previous button */}
-                <button
+                <CustomButton
                   className="prev-icon"
-                  onClick={() => handleAIPrevPage()}
-                  disabled={currentAIPage === 0}
+                  onClick={() =>
+                    handlePreviousPage(
+                      aiRequestedVideos,
+                      setAiRequestedVideos,
+                      getAiRequestedVideosUrl(),
+                      setShowAiRequestedVideosSpinner,
+                    )
+                  }
+                  disabled={aiRequestedVideos.currentPage === 1}
                 >
                   &lt;
-                </button>
-                {/* {renderCarouselIndicators(
-                  totalVideoAISlides,
-                  activeVideoAISlide,
-                  setActiveVideoAISlide,
-                )} */}
-                <div className="w3-row classic-container row">{videosAI}</div>
+                </CustomButton>
+
+                {/* Content for displaying videos */}
+                <div className="w3-row classic-container row">
+                  {showAiRequestedVideosSpinner ? (
+                    <CustomSpinner />
+                  ) : (
+                    aiRequestedVideos.videoComponentData.map((video: any) => (
+                      <div
+                        className="col-sm-6 col-md-4 col-lg-3"
+                        key={video.youTubeId}
+                      >
+                        <VideoCard {...video} />
+                      </div>
+                    ))
+                  )}
+                </div>
+
                 {/* Custom next button */}
-                <button
+                <CustomButton
                   className="next-icon"
-                  onClick={() => handleAINextPage()}
-                  disabled={currentAIPage === totalAIPages - 1}
+                  onClick={() =>
+                    handleNextPage(
+                      aiRequestedVideos,
+                      setAiRequestedVideos,
+                      getAiRequestedVideosUrl(),
+                      setShowAiRequestedVideosSpinner,
+                    )
+                  }
+                  disabled={
+                    aiRequestedVideos.currentPage ===
+                    aiRequestedVideos.totalPages
+                  }
                 >
                   &gt;
-                </button>
+                </CustomButton>
               </div>
             )}
 
-            {videosAI.length === 0 && (
+            {aiRequestedVideos?.data.length === 0 && (
               <p className="history-text">
                 Please request AI descriptions to view AI Requested videos.
               </p>
             )}
           </div>
         </section>
+
         <section>
           <header className="w3-container w3-indigo">
             <h2 className="classic-h2">{translate('HISTORY')}</h2>
           </header>
 
-          {showSpinner ? <Spinner /> : null}
           <div className="d-flex justify-content-center custom-carousel">
-            {history.length > 0 && ( // Check if there are videos to display
+            {!historyVideos && <CustomSpinner />}
+            {historyVideos && historyVideos?.data.length > 0 && (
               <>
                 {/* Custom previous button */}
-                <button
+                <CustomButton
                   className="prev-icon"
-                  onClick={() => handleHistoryPrevPage()}
-                  disabled={currentHistoryPage === 0}
+                  onClick={() =>
+                    handlePreviousPage(
+                      historyVideos,
+                      setHistoryVideos,
+                      getUserHistoryUrl(),
+                      setShowHistoryVideosSpinner,
+                    )
+                  }
+                  disabled={historyVideos.currentPage === 1}
                 >
                   &lt;
-                </button>
+                </CustomButton>
 
-                {/* {renderCarouselIndicators(
-                  totalVideoHistorySlides,
-                  activeVideoHistorySlide,
-                  setActiveVideoHistorySlide,
-                )} */}
-                <div className="w3-row classic-container row">{history}</div>
+                {/* Content for displaying videos */}
+                <div className="w3-row classic-container row">
+                  {showHistoryVideosSpinner ? (
+                    <CustomSpinner />
+                  ) : (
+                    historyVideos.videoComponentData.map((video) => (
+                      <div
+                        className="col-sm-6 col-md-4 col-lg-3"
+                        key={video.youTubeId}
+                      >
+                        <VideoCard {...video} />
+                      </div>
+                    ))
+                  )}
+                </div>
 
                 {/* Custom next button */}
-                <button
+                <CustomButton
                   className="next-icon"
-                  onClick={() => handleHistoryNextPage()}
-                  disabled={currentHistoryPage === totalHistoryPages - 1}
+                  onClick={() =>
+                    handleNextPage(
+                      historyVideos,
+                      setHistoryVideos,
+                      getUserHistoryUrl(),
+                      setShowHistoryVideosSpinner,
+                    )
+                  }
+                  disabled={
+                    historyVideos.currentPage === historyVideos.totalPages
+                  }
                 >
                   &gt;
-                </button>
+                </CustomButton>
               </>
             )}
 
-            {history.length === 0 && (
+            {historyVideos?.data.length === 0 && (
               <p className="history-text">No history to view.</p>
             )}
           </div>
