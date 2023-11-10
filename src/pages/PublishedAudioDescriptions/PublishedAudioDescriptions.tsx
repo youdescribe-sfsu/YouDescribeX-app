@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useElapsedTime } from 'use-elapsed-time'
 import {
   useLocation,
+  useNavigate,
   useParams,
 } from 'react-router-dom' /* to use params on the url */
 import axios from 'axios'
@@ -30,7 +31,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   /* to use params on the url and get userId & youtubeVideoId */
   const { youtubeVideoId, audioDescriptionId } = useParams()
   const location = useLocation()
-
+  const navigate = useNavigate()
   const [previewAudioDescriptionId, setPreviewAudioDescriptionId] = useState(
     location.pathname.startsWith(previewUrl),
   )
@@ -954,6 +955,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
       )
       const data = response.data
       console.log(data)
+      navigate(`/editor/${data.url}`)
       toast.dismiss(toastId.current)
     } catch (error) {
       if (toastId.current) toast.dismiss(toastId.current)
