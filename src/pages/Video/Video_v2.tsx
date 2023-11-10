@@ -127,6 +127,7 @@ const Video_v2 = () => {
     status: string
     requested: boolean
     url?: string
+    aiDescriptionId?: string
   }>({
     status: '',
     requested: false,
@@ -1187,29 +1188,13 @@ const Video_v2 = () => {
     }
   }
 
-  const handleGetAIAudioDescription = async () => {
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-ai-descriptions`
+  const handlePreviewAudioDescription = async () => {
     try {
       setButtonLoading(true)
-      toastId.current = toast.info('Generating AI Descriptions', {
-        autoClose: false,
-      })
-      const response = await axios.post(
-        url,
-        {
-          youtube_id: videoId,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-      const data = response.data
-      console.log(data)
-      toast.dismiss(toastId.current)
-      navigate(`/editor/${data.url}`)
+      if (requestAiDescription && requestAiDescription.aiDescriptionId)
+        navigate(
+          `/audio-description/preview/${videoId}/${requestAiDescription.aiDescriptionId}`,
+        )
     } catch (error) {
       if (toastId.current) toast.dismiss(toastId.current)
       toast.error('Something went wrong, please try again later')
@@ -1218,7 +1203,6 @@ const Video_v2 = () => {
       setButtonLoading(false)
     }
   }
-
   const handleGenerateAIDescriptions = async () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
@@ -1274,11 +1258,11 @@ const Video_v2 = () => {
     } else if (requestAiDescription.status === 'available') {
       return (
         <Button
-          title={translate('Go to Available Descriptions')}
-          ariaLabel="Go to Available Descriptions"
-          text={translate('Got to Available Descriptions')}
+          title={translate('Preview Available Descriptions')}
+          ariaLabel="Preview Available Descriptions"
+          text={translate('Preview Available Descriptions')}
           color="w3-indigo w3-block w3-margin-top"
-          onClick={() => handleGetAIAudioDescription()}
+          onClick={() => handlePreviewAudioDescription()}
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )

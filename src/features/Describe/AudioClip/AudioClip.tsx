@@ -30,6 +30,7 @@ interface Props {
   currentState: number
   setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
   fetchUserVideoData: () => void
+  isPreview?: boolean
 }
 
 const AudioClip = ({
@@ -51,6 +52,7 @@ const AudioClip = ({
   currentState,
   setShowSpinner,
   fetchUserVideoData,
+  isPreview = false,
 }: Props) => {
   // all audio clip data from props
   const clipID = clip.clip_id
@@ -420,6 +422,7 @@ const AudioClip = ({
             audioDescriptionId={audioDescriptionId}
             fetchUserVideoData={fetchUserVideoData}
             setNeedRefresh={setNeedRefresh}
+            isPreview={isPreview}
           />
         )}
       </div>
