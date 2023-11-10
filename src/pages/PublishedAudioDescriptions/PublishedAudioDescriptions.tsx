@@ -943,7 +943,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
       const response = await axios.post(
         url,
         {
-          youtube_id: videoId,
+          youtube_id: youtubeVideoId,
         },
         {
           withCredentials: true,
