@@ -121,6 +121,13 @@ const Wishlist = () => {
       sortField: 'votes',
     },
     {
+      name: 'Status',
+      cell: (row) => (row.aiRequested ? 'AI-Desc Avail' : '-'),
+      grow: 0,
+      sortable: true,
+      sortField: 'status',
+    },
+    {
       cell: (row) => (
         <Button
           ariaLabel={translate('Create an audio description for this video')}
@@ -161,6 +168,7 @@ const Wishlist = () => {
   }
 
   const describeThisVideo = (youTubeId: string) => {
+    console.log('inside describe this video')
     if (userDataStore.getState().isSignedIn) {
       axios
         .post(
@@ -181,7 +189,8 @@ const Wishlist = () => {
             )
             return
           }
-          navigate('/editor/' + res.data.url)
+
+          navigate('/video/' + youTubeId)
         })
     } else {
       alert(
@@ -251,28 +260,354 @@ const Wishlist = () => {
         },
       )
       .then((response) => {
-        const wishListItems = response.data.data
-        setTotalRows(response.data.totalItems)
+        const responseData = {
+          totalItems: 1483,
+          page: 1,
+          pageSize: 10,
+          data: [
+            {
+              _id: '63f2de1288c3be002018de0a',
+              tags: [
+                'bon voyage charlie brown 1980',
+                'bon voyage charlie brown movie',
+                'bon voyage charlie brown scene',
+                'bon voyage charlie brown clip',
+                'charlie brown movie',
+                'peanuts movie',
+                'charlie brown & snoopy',
+                'snoopy & woodstock',
+                'charlie brown & linus',
+                'peanuts charlie brown',
+                'peanuts linus',
+                'peanuts peppermint patty',
+                'peanuts marcie',
+                'peanuts snoopy',
+                'peanuts woodstock',
+                'peanuts funny',
+                'bon voyage charlie brown funny',
+                'bon voyage charlie brown france',
+                'bon voyage charlie brown song',
+                'peanuts song',
+              ],
+              youtube_id: '4yvMEvYrVkQ',
+              votes: 1,
+              status: 'queued',
+              created_at: 20230220024226,
+              updated_at: 20230220024226,
+              __v: 0,
+              category_id: '1',
+              category: 'Film & Animation',
+              duration: 91,
+              youtube_status: 'available',
+              aiRequested: true,
+            },
+            {
+              _id: '63f2846388c3be002018ddd0',
+              tags: ['FlipShare', 'darts', 'Stafford Hicks'],
+              youtube_id: 'Nxd5rbFI6ks',
+              votes: 1,
+              status: 'queued',
+              created_at: 20230219201947,
+              updated_at: 20230219201947,
+              __v: 0,
+              category_id: '22',
+              category: 'People & Blogs',
+              duration: 58,
+              youtube_status: 'available',
+              aiRequested: true,
+            },
+            {
+              _id: '63f1c2924eeee90026e3945d',
+              tags: ['Logo', 'Start Motion Pictures'],
+              youtube_id: 'SVFBAOmWRSo',
+              votes: 1,
+              status: 'queued',
+              created_at: 20230219063250,
+              updated_at: 20230219063250,
+              __v: 0,
+              category_id: '1',
+              category: 'Film & Animation',
+              duration: 20,
+              youtube_status: 'available',
+              aiRequested: true,
+            },
+            {
+              _id: '63f1c1714eeee90026e3945a',
+              tags: [
+                '2006',
+                'Destination Films',
+                'Original Film',
+                "I'll Always Know What You Did Last Summer",
+                'logo',
+                'logos',
+                'intro',
+                'video logo',
+                'movie logo',
+                'cinema logo',
+                'company intros',
+                'ident',
+                'production logo',
+                'opening logo',
+                'film',
+                'production',
+                'company',
+                'distributes',
+                'distribution',
+                'entertainment',
+                'identities',
+                'logo animation',
+                'identity',
+                'label',
+                'identification',
+                'Pictures',
+                'Productions',
+              ],
+              youtube_id: 'jzvXf-BkmtE',
+              votes: 1,
+              status: 'queued',
+              created_at: 20230219062801,
+              updated_at: 20230219062801,
+              __v: 0,
+              category_id: '1',
+              category: 'Film & Animation',
+              duration: 26,
+              youtube_status: 'available',
+              aiRequested: true,
+            },
+            {
+              _id: '63f132874eeee90026e39428',
+              tags: [
+                'laugh',
+                'funny',
+                'girl',
+                'laughing',
+                'sweet',
+                'laughing child',
+                'kid',
+                'funny video',
+                'funniest',
+                'giggle',
+                'giggling',
+                'cute',
+                'too cute',
+                'adorable',
+                'laughter',
+                'restraunt laugh',
+                'uncontrolable laughter',
+                'hilarious',
+                'halarious',
+                'spastic',
+              ],
+              youtube_id: 'x_xQTpuFZk0',
+              votes: 1,
+              status: 'queued',
+              created_at: 20230218201815,
+              updated_at: 20230218201815,
+              __v: 0,
+              category_id: '22',
+              category: 'People & Blogs',
+              duration: 64,
+              youtube_status: 'available',
+              aiRequested: true,
+            },
+            {
+              _id: '63f1327a88c3be002018dd36',
+              tags: [
+                'shorts',
+                'funny tik tok',
+                'funny videos',
+                'funniest videos 2021',
+                'tiktok',
+                'meme',
+                'memes',
+                'funny',
+                'funny memes',
+                'best memes',
+                'meme vine',
+                'vine',
+                'vine 2',
+                'tik tok',
+                'funny tik tok videos',
+                'funny animal videos',
+                'funny animal',
+              ],
+              youtube_id: 'pzA_3_iRcAw',
+              votes: 1,
+              status: 'queued',
+              created_at: 20230218201802,
+              updated_at: 20230218201802,
+              __v: 0,
+              category_id: '22',
+              category: 'People & Blogs',
+              duration: 39,
+              youtube_status: 'available',
+              aiRequested: false,
+            },
+            {
+              _id: '63f1327088c3be002018dd34',
+              tags: [
+                'girl',
+                'laughting',
+                'risa',
+                'chica',
+                'así me río',
+                'stopped',
+                'parar',
+                'classroo',
+                'clasroom',
+                'clase',
+                'salón',
+              ],
+              youtube_id: '135SSnrGB7M',
+              votes: 1,
+              status: 'queued',
+              created_at: 20230218201752,
+              updated_at: 20230218201752,
+              __v: 0,
+              category_id: '22',
+              category: 'People & Blogs',
+              duration: 20,
+              youtube_status: 'available',
+              aiRequested: false,
+            },
+            {
+              _id: '63f1326788c3be002018dd32',
+              tags: [
+                'Laughing',
+                'Girls',
+                'Part',
+                'Laugh',
+                'Laughs',
+                'Laughings',
+                'Girl',
+                'Girlies',
+                'Parts',
+                'Four',
+                'Funny',
+                'Fun',
+                'Funnier',
+                'Funniest',
+                'Vid',
+                'Video',
+                'Hilarious',
+                'Crazy',
+                'Pee',
+                'Your',
+                'Pants',
+                'YouTube',
+                'Try',
+                'Not',
+                'To',
+                'It',
+                'Is',
+                'Possible',
+                'Cute',
+                'Adorable',
+                'Awesome',
+                'Amazing',
+              ],
+              youtube_id: 'Tboxoys3dpE',
+              votes: 1,
+              status: 'queued',
+              created_at: 20230218201743,
+              updated_at: 20230218201743,
+              __v: 0,
+              category_id: '23',
+              category: 'Comedy',
+              duration: 169,
+              youtube_status: 'available',
+              aiRequested: false,
+            },
+            {
+              _id: '63ed8aa44eeee90026e39376',
+              tags: [
+                'supermariologan',
+                'sml',
+                'movie',
+                'jeffy',
+                'jeffry',
+                'jeff',
+                'funny',
+                'joke',
+                'comedy',
+                'skit',
+                'the ticket problem',
+                'duggie',
+                'marvin',
+                'brooklyn guy',
+                'puppet',
+                'puppets',
+                'show',
+                'superluigilogan',
+                'sll',
+                'superbowserlogan',
+                'sbl',
+                'hilarious',
+                'logan',
+                'lance',
+                'super bowl',
+                'tickets',
+                'super bowl ticket',
+                'super bowl lvii',
+                'eagles',
+                'chiefs',
+                'contest',
+              ],
+              youtube_id: 'HA7fJiZZOHE',
+              votes: 2,
+              status: 'queued',
+              created_at: 20230216014508,
+              updated_at: 20230217235820,
+              __v: 0,
+              category_id: '24',
+              category: 'Entertainment',
+              duration: 652,
+              youtube_status: 'available',
+              aiRequested: false,
+            },
+            {
+              _id: '63ebf31f88c3be002018dc09',
+              tags: ['drab mejesty philadelphia 2019'],
+              youtube_id: 'urHt3vsiMCU',
+              votes: 2,
+              status: 'queued',
+              created_at: 20230214204623,
+              updated_at: 20230217235820,
+              __v: 0,
+              category_id: '22',
+              category: 'People & Blogs',
+              duration: 5703,
+              youtube_status: 'available',
+              aiRequested: false,
+            },
+          ],
+        }
+        // const wishListItems = response.data.data
+        // setTotalRows(response.data.totalItems)
+        const wishListItems = responseData.data
+        setTotalRows(responseData.totalItems)
         const youTubeIds = []
         const youDescribeIds = []
         const votes = []
         const updatedAt = []
         const categories = []
+        const aiRequested = []
         for (let i = 0; i < wishListItems.length; i += 1) {
           youTubeIds.push(wishListItems[i].youtube_id)
           youDescribeIds.push(wishListItems[i]._id)
           votes.push(wishListItems[i].votes)
           updatedAt.push(wishListItems[i].updated_at)
           categories.push(wishListItems[i].category)
+          aiRequested.push(wishListItems[i].aiRequested)
         }
         // setYouTubeIds(youTubeIds)
         // setYouDescribeIds(youDescribeIds)
         // setVotes(votes)
         // setUpdatedAt(updatedAt)
         // setCategories(categories)
-        return { youTubeIds, votes, categories, updatedAt }
+        return { youTubeIds, votes, categories, updatedAt, aiRequested }
       })
-      .then(({ youTubeIds, votes, categories, updatedAt }) => {
+      .then(({ youTubeIds, votes, categories, updatedAt, aiRequested }) => {
         const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${youTubeIds.join(
           ',',
         )}&key=wishlist`
@@ -282,6 +617,7 @@ const Wishlist = () => {
             votes,
             categories,
             updatedAt,
+            aiRequested,
           )
         })
       })
@@ -297,9 +633,9 @@ const Wishlist = () => {
     votes: any,
     categories: any,
     updatedAt: any,
+    aiRequested: any,
   ) => {
     const rows = []
-    console.log('YT Response', youTubeResponse)
     for (let i = 0; i < youTubeResponse.items.length; i += 1) {
       const item = youTubeResponse.items[i]
       if (!item.statistics || !item.snippet) {
@@ -328,6 +664,7 @@ const Wishlist = () => {
 
       const votesCount = votes[i]
       const category = categories[i]
+      const aiReq = aiRequested[i]
 
       rows.push({
         title: title,
@@ -337,10 +674,10 @@ const Wishlist = () => {
         thumbnail: thumbnailMedium,
         lastVoted: diffToLastUpdate,
         category: category,
+        aiRequested: aiReq,
       })
     }
     setRows(rows)
-    console.log(rows)
   }
 
   const loadTopVideos = () => {
@@ -361,36 +698,167 @@ const Wishlist = () => {
       .then((response) => {
         // console.log('response')
         // console.log(response.data.result)
-        const wishListItems = response.data.result
+        // const wishListItems = response.data.result
+
+        const wishListItems = [
+          {
+            tags: [],
+            _id: '5f72bb75152f97652a3be9a8',
+            youtube_id: 'gdZLi9oWNZg',
+            votes: 5,
+            status: 'queued',
+            created_at: 20200929044333,
+            updated_at: 20230710184657,
+            __v: 0,
+            youtube_status: 'available',
+            duration: 224,
+            category_id: '10',
+            category: 'Music',
+            aiRequested: true,
+          },
+          {
+            tags: ['BIGHIT', '빅히트', '방탄소년단', 'BTS', 'BANGTAN', '방탄'],
+            _id: '5fb82770a1480d63858c5d09',
+            youtube_id: '-5q5mZbe3V8',
+            votes: 5,
+            status: 'queued',
+            created_at: 20201120203040,
+            updated_at: 20230819164257,
+            __v: 0,
+            category_id: '10',
+            category: 'Music',
+            duration: 231,
+            youtube_status: 'available',
+            aiRequested: true,
+          },
+          {
+            tags: [
+              'Zombie Apocalypse Survival Hacks',
+              'diy zombie apocalypse survival hacks',
+              'zombie apocalypse',
+              'survival hacks',
+              'zombie',
+              'survival',
+              'life hacks',
+              'survival life hacks',
+              'how to survival',
+              'ideas for life',
+              'survival life hacks compilation',
+              'survival life hacks for girls',
+              'survival tutorial',
+              'useful tricks',
+              'survival tips',
+              'survive',
+              'apocalypse',
+              'in real life',
+              'last to survive',
+              'diy',
+              'zombies',
+              'diys',
+              'survivalcraft',
+              'last to',
+              'surviving',
+              'how to survive',
+              'with zombie',
+              'zombie attack',
+              'troom troom select',
+            ],
+            _id: '5f198c751dbced0af3bd305b',
+            youtube_id: 'mZlzJ9A1qFw',
+            votes: 4,
+            status: 'queued',
+            created_at: 20200723131117,
+            updated_at: 20230824200939,
+            __v: 0,
+            category_id: '26',
+            category: 'Howto & Style',
+            duration: 807,
+            youtube_status: 'available',
+            aiRequested: true,
+          },
+          {
+            tags: [],
+            _id: '602cce7780c96d31ff118a99',
+            youtube_id: '_aMPn9O6bgk',
+            votes: 3,
+            status: 'queued',
+            created_at: 20210217080615,
+            updated_at: 20230725071520,
+            __v: 0,
+            category_id: '22',
+            category: 'People & Blogs',
+            duration: 160,
+            youtube_status: 'available',
+            aiRequested: false,
+          },
+          {
+            tags: [
+              'NAKIzm',
+              'NAKI',
+              'StudioNAKI',
+              'NAKIzm.com',
+              'laartshow',
+              'artshow',
+              'art',
+              'modern',
+              'contemporary',
+              '2020',
+              'laartshow.com',
+              'walkaround',
+              'walking',
+              'cam',
+              'iphone',
+              'iPhone11Pro',
+            ],
+            _id: '5f39dd76ad1475481dd01c23',
+            youtube_id: 'zcA2B41Wym8',
+            votes: 3,
+            status: 'queued',
+            created_at: 20200817012926,
+            updated_at: 20200829062118,
+            __v: 0,
+            category_id: '19',
+            category: 'Travel & Events',
+            duration: 8347,
+            youtube_status: 'available',
+            aiRequested: false,
+          },
+        ]
+
         const topYouTubeIds = []
         const topYouDescribeIds = []
         const topVotes = []
         const votedArr = []
+        const aiReq = []
         for (let i = 0; i < wishListItems.length; i += 1) {
           topYouTubeIds.push(wishListItems[i].youtube_id)
           topYouDescribeIds.push(wishListItems[i]._id)
           topVotes.push(wishListItems[i].votes)
+          aiReq.push(wishListItems[i].aiRequested)
           votedArr.push({
             id: wishListItems[i]._id,
-            voted: wishListItems[i].voted,
+            voted: wishListItems[i].votes,
           })
         }
-        return { topYouTubeIds, topYouDescribeIds, topVotes, votedArr }
+        return { topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }
       })
-      .then(({ topYouTubeIds, topYouDescribeIds, topVotes, votedArr }) => {
-        const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
-          ',',
-        )}&key=wishlist`
-        ourFetch(url).then((response) => {
-          parseFetchedData(
-            JSON.parse(response.result),
-            topYouDescribeIds,
-            topYouTubeIds,
-            topVotes,
-            votedArr,
-          )
-        })
-      })
+      .then(
+        ({ topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }) => {
+          const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
+            ',',
+          )}&key=wishlist`
+          ourFetch(url).then((response) => {
+            parseFetchedData(
+              JSON.parse(response.result),
+              topYouDescribeIds,
+              topYouTubeIds,
+              topVotes,
+              votedArr,
+              aiReq,
+            )
+          })
+        },
+      )
   }
 
   const parseFetchedData = (
@@ -399,6 +867,7 @@ const Wishlist = () => {
     topYouTubeIds: any,
     topVotes: any,
     votedArr: any,
+    aiReq: any,
   ) => {
     const videoCardsComponents = []
     for (let i = 0; i < youTubeResponse.items.length; i += 1) {
@@ -416,12 +885,12 @@ const Wishlist = () => {
       const publishedAt = new Date(item.snippet.publishedAt)
       const now = Date.now()
       const votes = topVotes[i]
+      const aiRequested = aiReq[i]
       const time = convertTimeToCardFormat(
         Number(now - publishedAt.getMilliseconds()),
       )
-      console.log('votes', item)
-      const voted = votedArr[i].voted
-      console.log('voteds', votedArr[i])
+
+      const voted = votedArr[i].votes
 
       videoCardsComponents.push(
         <div className="wishlist-video-card" key={_id}>
@@ -436,6 +905,8 @@ const Wishlist = () => {
             votes={votes}
             buttons="upvote-describe"
             userVote={voted}
+            aiRequested={aiRequested}
+
             //   getAppState={this.props.getAppState}
           />
         </div>,
