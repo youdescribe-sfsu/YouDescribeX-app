@@ -470,7 +470,7 @@ const Wishlist = () => {
     <main id="wish-list" title="Wish list page" className="wish-list">
       <div className="w3-container w3-indigo">
         <h2 id="wish-list-heading" className="classic-h2" tabIndex={-1}>
-          {translate('WISH LIST')}
+          {translate('WISHLIST')}
         </h2>
       </div>
       {showSpinner ? <Spinner /> : null}

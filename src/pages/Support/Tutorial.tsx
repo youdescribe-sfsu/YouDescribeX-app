@@ -112,26 +112,26 @@ const Tutorial = () => {
         </p>
 
         <p>
-          <strong>Wish List</strong>: YouDescribe keeps a wish list of videos in
-          need of AD. To find something on the wish list, click the Wish List
+          <strong>WISHLIST</strong>: YouDescribe keeps a WISHLIST of videos in
+          need of AD. To find something on the WISHLIST, click the WISHLIST
           button at the top tool bar, it has a heart next to it. Now you are on
-          the main Wish List page. Videos with more votes for AD are at the top,
-          the latest wish list requests are at the bottom. Select a video to
-          describe from the wish list by clicking the Describe button in the
+          the main WISHLIST page. Videos with more votes for AD are at the top,
+          the latest WISHLIST requests are at the bottom. Select a video to
+          describe from the WISHLIST by clicking the Describe button in the
           lower right hand corner of the video thumbnail. If you want to vote a
-          video to the top of the wish list queue, click the heart in the lower
+          video to the top of the WISHLIST queue, click the heart in the lower
           left hand corner of the video thumbnail. Don’t see anything you like?
           Try clicking the Load More button, bottom center of page, to see the
-          next page of wish list items. Click the thumbnail to select the video
+          next page of WISHLIST items. Click the thumbnail to select the video
           and start adding AD.
         </p>
 
-        <h3>Adding something to the wish list:</h3>
+        <h3>Adding something to the WISHLIST:</h3>
         <p>
           At YouDescribe, use the search box. The videos will appear as thumb
           nails. In the left hand corner of each video on the screen is a heart.
-          Click the heart to add it to the wish list. There is not currently a
-          way to add a video to the wish list if it has been opened in
+          Click the heart to add it to the WISHLIST. There is not currently a
+          way to add a video to the WISHLIST if it has been opened in
           YouDescribe. Try going back to the search results page with the
           thumbnails, and click the heart icon in the lower left corner.
         </p>

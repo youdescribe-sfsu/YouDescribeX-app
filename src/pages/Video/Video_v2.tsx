@@ -1434,7 +1434,7 @@ const Video_v2 = () => {
               <Button
                 title={translate('Request an audio description for this video')}
                 ariaLabel="Request an audio description for this video"
-                text={translate('Add to wish list')}
+                text={translate('Add to WISHLIST')}
                 color="w3-indigo w3-block w3-margin-top"
                 onClick={() => upVote()}
               />
