@@ -107,7 +107,7 @@ const Wishlist = () => {
     {
       name: 'Recent Request',
       selector: (row) => row.lastVoted,
-      grow: 1.2,
+      grow: 1.5,
       sortable: true,
       wrap: true,
       hide: 'md' as Media,
@@ -121,11 +121,12 @@ const Wishlist = () => {
       sortField: 'votes',
     },
     {
-      name: 'Status',
-      cell: (row) => (row.aiRequested ? 'AI-Desc Avail' : '-'),
-      grow: 0,
+      name: 'AI Descriptions',
+      cell: (row) => (row.aiRequested ? 'Available' : 'Not Available'),
+      grow: 1.5,
       sortable: true,
-      sortField: 'status',
+      wrap: true,
+      sortField: 'AI-Descriptions',
     },
     {
       cell: (row) => (
@@ -198,19 +199,19 @@ const Wishlist = () => {
       )
     }
   }
-  function renderCarouselIndicators(totalSlides: number, activeSlide: number) {
-    return (
-      <ol className="carousel-indicators">
-        {Array.from({ length: totalSlides }).map((_, index) => (
-          <li
-            key={index}
-            onClick={() => setActiveVideoAISlide(index)}
-            className={index === activeSlide ? 'active' : ''}
-          ></li>
-        ))}
-      </ol>
-    )
-  }
+  // function renderCarouselIndicators(totalSlides: number, activeSlide: number) {
+  //   return (
+  //     <ol className="carousel-indicators">
+  //       {Array.from({ length: totalSlides }).map((_, index) => (
+  //         <li
+  //           key={index}
+  //           onClick={() => setActiveVideoAISlide(index)}
+  //           className={index === activeSlide ? 'active' : ''}
+  //         ></li>
+  //       ))}
+  //     </ol>
+  //   )
+  // }
   // // Slice the videosAI array to display only the videos for the active page
   // const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
   // console.log({ videosAIToDisplay })
@@ -970,7 +971,7 @@ const Wishlist = () => {
             <div className="w3-row classic-container row">
               {videosToDisplay}
             </div>
-            {renderCarouselIndicators(totalVideoSlides, activeVideoSlide)}
+            {/* {renderCarouselIndicators(totalVideoSlides, activeVideoSlide)} */}
 
             {/* Custom next button */}
             <button

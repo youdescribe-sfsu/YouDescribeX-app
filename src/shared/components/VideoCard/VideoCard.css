@@ -49,6 +49,9 @@
 
 .card-author {
   padding-bottom: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-stats {
@@ -77,14 +80,15 @@
 
 .card-span-ai,
 .card-span-ai a {
-  outline: 1px solid #475cae;
-  background-color: #475cae;
   outline-offset: -1px;
-  margin-top: 10px;
+  margin-top: 20px;
   padding: 4px;
   margin-bottom: 4px;
-  font-size: 11px;
-  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  color: grey;
+  display: block;
+  text-align: center;
 }
 
 .card-span-ai a:hover {

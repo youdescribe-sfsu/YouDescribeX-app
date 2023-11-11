@@ -284,9 +284,6 @@ const VideoCard = ({
                 </span>
               ) : null}
               <br />
-              {aiRequested ? (
-                <span className="card-span-ai">AI-Desc Available</span>
-              ) : null}
 
               {/* <span className="card-span">
                 {'Votes'}: {votes}
@@ -296,6 +293,8 @@ const VideoCard = ({
                   {'Status'}: {statusVal}
                 </span>
               ) : null}
+
+              <div id="card-buttons">{buttonElements}</div>
 
               {/* <span className="w3-btn w3-indigo w3-right card-button">
                 {'Status'}: {statusVal}
@@ -309,7 +308,10 @@ const VideoCard = ({
               <div className="w3-right">{time}</div>
             </h4>
           </div> */}
-          <div id="card-buttons">{buttonElements}</div>
+
+          {aiRequested ? (
+            <span className="card-span-ai">AI-Desc Available</span>
+          ) : null}
         </div>
       </div>
     </div>
