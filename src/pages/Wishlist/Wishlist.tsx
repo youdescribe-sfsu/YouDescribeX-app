@@ -344,7 +344,7 @@ const Wishlist = () => {
   }
 
   const loadTopVideos = () => {
-    const url = `${apiUrl}/wishlist/top/`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/top/`
     // console.log(userDataStore.getState())
     if (cancelRequest.current) {
       cancelRequest.current.cancel()
@@ -433,7 +433,7 @@ const Wishlist = () => {
             author={author}
             views={views}
             time={time}
-            votes={votes}
+            votes={votes?.voted}
             buttons="upvote-describe"
             userVote={voted}
             //   getAppState={this.props.getAppState}

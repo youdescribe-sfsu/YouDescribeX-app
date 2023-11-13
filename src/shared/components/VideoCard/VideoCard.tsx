@@ -41,7 +41,6 @@ const VideoCard = ({
   // time,
   userVote = false,
 }: Props) => {
-  console.log('url', url)
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
   const handleVideoClick = async () => {
@@ -81,18 +80,17 @@ const VideoCard = ({
       alert(translate('You have to be logged in in order to vote'))
     } else {
       if (voted) {
-        const url = `${apiUrl}/wishlist/removeone`
-        ourFetch(url, true, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            youTubeId: youTubeId,
-            userId: userDataStore.getState().userId,
-            userToken: userDataStore.getState().userToken,
-          }),
-        })
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/removeone`
+        axios
+          .delete(url, {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            data: {
+              youTubeId: youTubeId,
+            },
+          })
           .then((res) => {
             setVoted(false)
             console.log('Succes remove', res)
@@ -116,18 +114,21 @@ const VideoCard = ({
       }
       // e.currentTarget.className =
       //   'w3-btn w3-white w3-text-indigo w3-left w3-text-red'
-      const url = `${apiUrl}/wishlist`
-      ourFetch(url, true, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          youTubeId: youTubeId,
-          userId: userDataStore.getState().userId,
-          userToken: userDataStore.getState().userToken,
-        }),
-      })
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
+
+      axios
+        .post(
+          url,
+          {
+            youTubeId: youTubeId,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true, // Add this line to include credentials
+          },
+        )
         .then((res) => {
           setVoted(true)
           console.log('Success upVote', res)
