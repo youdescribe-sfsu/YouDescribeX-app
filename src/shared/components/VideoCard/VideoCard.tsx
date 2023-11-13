@@ -133,6 +133,7 @@ const VideoCard = ({
           console.log('Success upVote', res)
         })
         .catch((err) => {
+          console.log({ err })
           switch (err.code) {
             case 67:
               alert(
