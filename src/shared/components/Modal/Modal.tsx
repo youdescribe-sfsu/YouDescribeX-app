@@ -4,7 +4,7 @@ import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 
 interface Props {
-  id: string
+  id?: string
   title: string
   text: string
   modalTask: (e: any, checkbox?: boolean) => void

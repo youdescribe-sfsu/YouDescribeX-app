@@ -153,18 +153,18 @@ const Describers = () => {
         <p>
           A: It depends. The most important things to describe are the things
           that people need. Let your blind students, friends, and family members
-          be the guides. YouDescribe keeps a wish list of videos in need of AD.
-          To find something on the wish list, click the Wish List button at the
-          top tool bar, it has a heart next to it. Now you are on the main Wish
-          List page. Videos with more votes for AD are at the top, the latest
-          wish list requests are at the bottom. Select a video to describe from
-          the wish list by clicking the Describe button in the lower right hand
-          corner of the video thumbnail. If you want to vote a video to the top
-          of the wish list queue, click the heart in the lower left hand corner
-          of the video thumbnail. Don’t see anything you like? Try clicking the
-          Load More button, bottom center of page, to see the next page of wish
-          list items. Click the thumbnail to select the video and start adding
-          AD.
+          be the guides. YouDescribe keeps a WISHLIST of videos in need of AD.
+          To find something on the WISHLIST, click the WISHLIST button at the
+          top tool bar, it has a heart next to it. Now you are on the main
+          WISHLIST page. Videos with more votes for AD are at the top, the
+          latest WISHLIST requests are at the bottom. Select a video to describe
+          from the WISHLIST by clicking the Describe button in the lower right
+          hand corner of the video thumbnail. If you want to vote a video to the
+          top of the WISHLIST queue, click the heart in the lower left hand
+          corner of the video thumbnail. Don’t see anything you like? Try
+          clicking the Load More button, bottom center of page, to see the next
+          page of WISHLIST items. Click the thumbnail to select the video and
+          start adding AD.
         </p>
 
         <h3>Q: What kinds of things should I describe in a video?</h3>

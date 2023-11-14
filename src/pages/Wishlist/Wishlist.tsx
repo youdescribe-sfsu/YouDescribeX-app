@@ -682,7 +682,7 @@ const Wishlist = () => {
   }
 
   const loadTopVideos = () => {
-    const url = `${apiUrl}/wishlist/top/`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/top/`
     // console.log(userDataStore.getState())
     if (cancelRequest.current) {
       cancelRequest.current.cancel()
@@ -903,7 +903,7 @@ const Wishlist = () => {
             author={author}
             views={views}
             time={time}
-            votes={votes}
+            votes={votes?.voted}
             buttons="upvote-describe"
             userVote={voted}
             aiRequested={aiRequested}
@@ -942,7 +942,7 @@ const Wishlist = () => {
     <main id="wish-list" title="Wish list page" className="wish-list">
       <div className="w3-container w3-indigo">
         <h2 id="wish-list-heading" className="classic-h2" tabIndex={-1}>
-          {translate('WISH LIST')}
+          {translate('WISHLIST')}
         </h2>
       </div>
       {showSpinner ? <Spinner /> : null}

@@ -72,7 +72,7 @@ const Privacy = () => {
               tool, including when you sign up for an account, create content,
               and message the YouDescribe help and support team. This can
               include information in or about the content you provide (like your
-              audio descriptions or wish list items), such as the word count in
+              audio descriptions or wishlist items), such as the word count in
               an audio track or the date a file was created. It can also include
               what you see through features we provide, such as our search
               function. Our systems automatically process content and

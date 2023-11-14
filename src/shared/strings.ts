@@ -1,7 +1,7 @@
 const strings = {
   'pt-br': {
     'RECENT DESCRIPTIONS': 'DESCRIÇÕES RECENTES',
-    'WISH LIST': 'LISTA DE DESEJOS',
+    WISHLIST: 'LISTA DE DESEJOS',
     HOME: 'INÍCIO',
     Close: 'Fechar',
     Search: 'Busca',
@@ -91,7 +91,7 @@ const strings = {
     'Descriptions off': 'Áudio descrições desligadas',
     'Request an audio description for this video':
       'Solicite uma áudio descrição para este vídeo',
-    'Add to wish list': 'Adicionar na lista de desejos',
+    'Add to wishlist': 'Adicionar na lista de desejos',
     'Search results page': 'Página de resultados de busca',
     'DESCRIBED VIDEOS': 'VÍDEOS COM ÁUDIO DESCRIÇÃO',
     'NON-DESCRIBED VIDEOS': 'VÍDEOS SEM ÁUDIO DESCRIÇÃO',
@@ -159,7 +159,7 @@ const strings = {
   },
   'en-us': {
     'RECENT DESCRIPTIONS': 'RECENT DESCRIPTIONS',
-    'WISH LIST': 'WISH LIST',
+    WISHLIST: 'WISHLIST',
     HOME: 'HOME',
     Close: 'Close',
     Search: 'Search',
@@ -252,7 +252,7 @@ const strings = {
     'Descriptions off': 'Descriptions off',
     'Request an audio description for this video':
       'Request an audio description for this video',
-    'Add to wish list': 'Add to wish list',
+    'Add to WISHLIST': 'Add to WISHLIST',
     'Search results page': 'Search results page',
     'DESCRIBED VIDEOS': 'DESCRIBED VIDEOS',
     'NON-DESCRIBED VIDEOS': 'NON-DESCRIBED VIDEOS',

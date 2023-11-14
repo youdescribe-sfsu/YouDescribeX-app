@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useElapsedTime } from 'use-elapsed-time'
-import { useParams } from 'react-router-dom' /* to use params on the url */
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router-dom' /* to use params on the url */
 import axios from 'axios'
 import YouTube, { YouTubePlayer } from 'react-youtube'
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
@@ -18,11 +22,26 @@ import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../../shared/utils/convertClipObject'
 import { Options } from 'youtube-player/dist/types'
 import { userDataStore } from '@/App'
-import { toast } from 'react-toastify'
+import { Id, toast } from 'react-toastify'
+import ModalComponent from '@/shared/components/Modal/Modal'
+
+const previewUrl = '/audio-description/preview'
 
 const PublishedAudioDescriptions = (): React.ReactElement => {
   /* to use params on the url and get userId & youtubeVideoId */
   const { youtubeVideoId, audioDescriptionId } = useParams()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [previewAudioDescriptionId, setPreviewAudioDescriptionId] = useState(
+    location.pathname.startsWith(previewUrl),
+  )
+
+  const isPreviewAudioDescription = useMemo(
+    () => location.pathname.startsWith(previewUrl),
+    [location.pathname],
+  )
+
+  console.log(location.pathname.startsWith(previewUrl))
   const participant_id = sessionStorage.getItem('id')
   /* Options for YouTube video API */
   const opts: Options = {
@@ -117,6 +136,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   const [youTubeVolume, setYouTubeVolume] = useState(
     parseInt(localStorage.getItem('youTubeVolume') || '100'),
   )
+
+  const [showModal, setShowModal] = useState(false)
 
   // const [youtubeVideoId, setYoutubeVideoId] = useState('') // retrieved from db, stored to fetch videoId
 
@@ -353,8 +374,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         .get(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-audio-description/${audioDescriptionId}`,
           {
-            headers: {
-              audiodescription: audioDescriptionId,
+            params: {
+              preview: previewAudioDescriptionId,
             },
           },
         )
@@ -912,9 +933,54 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         toast.error('Copy to clipboard failed: ' + error)
       })
   }
+  const toastId = React.useRef<null | Id>(null)
+  const handleGetAIAudioDescription = async () => {
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-ai-descriptions`
+    try {
+      true
+      toastId.current = toast.info('Generating AI Descriptions', {
+        autoClose: false,
+      })
+      const response = await axios.post(
+        url,
+        {
+          youtube_id: youtubeVideoId,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = response.data
+      console.log(data)
+      navigate(`/editor/${data.url}`)
+      toast.dismiss(toastId.current)
+    } catch (error) {
+      if (toastId.current) toast.dismiss(toastId.current)
+      toast.error('Something went wrong, please try again later')
+      console.log(error)
+    } finally {
+      console.log('finally')
+      // setButtonLoading(false)
+    }
+  }
 
   return (
     <div className="ydx-body ydx-html">
+      <ModalComponent
+        title={'Use this audio description?'}
+        text={`Are you sure you want to use this audio description? \n You will not be able to revert to freestyle mode.`}
+        modalTask={async (e) => {
+          if (e.type === 'click') {
+            console.log('clicked')
+            await handleGetAIAudioDescription()
+          }
+        }}
+        show={showModal}
+        handleClose={() => setShowModal(false)}
+      />
       {/* Spinner div - displayed based on showSpinner */}
       {/* {showSpinner ? <Spinner /> : <></>} */}
       <div className="container home-container">
@@ -1047,8 +1113,30 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               handlePlayAudioClip={handlePlayAudioClip}
               fetchUserVideoData={fetchUserVideoData}
               setNeedRefresh={setNeedRefresh}
+              isPreview={isPreviewAudioDescription}
             />
           ))}
+        </div>
+        <div className="row">
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              marginBottom: '20px',
+              marginRight: '20px',
+            }}
+          >
+            <button
+              className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
+              onClick={() => {
+                setShowModal(true)
+              }}
+            >
+              <i className="fa fa-copy" /> {'   '}
+              Use AI Audio Description
+            </button>
+          </div>
         </div>
       </div>
     </div>
