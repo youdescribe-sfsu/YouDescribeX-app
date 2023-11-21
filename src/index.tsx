@@ -5,41 +5,36 @@ import App from './App'
 import reportWebVitals from './reportWebVitals'
 import { BrowserRouter } from 'react-router-dom'
 
-
-
-
-
 import { tryLoadAndStartRecorder } from '@alwaysmeticulous/recorder-loader'
 
 async function startApp() {
-    // Record all sessions on localhost, staging stacks and preview URLs
-    if (!isProduction()) {
-      // Start the Meticulous recorder before you initialise your app.
-      // Note: all errors are caught and logged, so no need to surround with try/catch
-      await tryLoadAndStartRecorder({
-        projectId: 'VJhstm4BWoFqSY6iayLo6WHvKEohMlajw92jcuda',
-        isProduction: false,
-      });
-    }
+  // Record all sessions on localhost, staging stacks and preview URLs
+  if (!isProduction()) {
+    // Start the Meticulous recorder before you initialise your app.
+    // Note: all errors are caught and logged, so no need to surround with try/catch
+    await tryLoadAndStartRecorder({
+      projectId: 'VJhstm4BWoFqSY6iayLo6WHvKEohMlajw92jcuda',
+      isProduction: false,
+    })
+  }
 
-    // Initalise app after the Meticulous recorder is ready, e.g.
-    ReactDOM.render(<React.StrictMode>
+  // Initalise app after the Meticulous recorder is ready, e.g.
+  ReactDOM.render(
+    <React.StrictMode>
       <BrowserRouter>
         <App />
       </BrowserRouter>
-    </React.StrictMode>, document.getElementById('root'));
+    </React.StrictMode>,
+    document.getElementById('root'),
+  )
 }
 
 function isProduction() {
-    // TODO: Update me with your production hostname
-    return window.location.hostname.indexOf("your-production-site.com") > -1;
+  // TODO: Update me with your production hostname
+  return window.location.hostname.indexOf('your-production-site.com') > -1
 }
 
-startApp();
-
-
-
-
+startApp()
 
 // ReactDOM.render(
 //   <React.StrictMode>
