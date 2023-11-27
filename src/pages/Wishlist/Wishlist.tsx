@@ -1,6 +1,6 @@
 import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
-import Spinner from '@/shared/components/Spinner/Spinner'
+import Spinner from 'react-bootstrap/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import { apiUrl } from '@/shared/config'
 import axios, { CancelTokenSource } from 'axios'
@@ -15,6 +15,78 @@ import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
 import encryptData from '@/shared/utils/encrypt'
 import Carousel from 'react-bootstrap/Carousel'
+interface VideosState {
+  data: any[]
+  totalVideos: number
+  totalPages: number
+  currentPage: number
+  videoComponentData: any[]
+}
+
+type SetVideosData = React.Dispatch<React.SetStateAction<VideosState | null>>
+
+type DataState = VideosState | null
+
+type FetchVideosDataFunction = (
+  dataState: DataState,
+  setVideosData: SetVideosData,
+  apiEndpoint: string,
+  setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+) => Promise<void>
+
+const CustomButton = ({
+  className,
+  onClick,
+  disabled,
+  children,
+}: {
+  onClick: () => void
+  className: string
+  disabled: boolean
+  children: React.ReactNode
+}) => {
+  const buttonStyle: React.CSSProperties = {
+    opacity: disabled ? '50%' : '100%',
+  }
+
+  const handleHover = (event: any) => {
+    if (!disabled) {
+      // Add your custom hover style changes here
+      event.target.style.cursor = 'pointer'
+      // Other hover effects
+    } else {
+      event.target.style.cursor = 'not-allowed'
+    }
+  }
+
+  return (
+    <button
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+      style={buttonStyle}
+      onMouseOver={handleHover}
+    >
+      {children}
+    </button>
+  )
+}
+
+const CustomSpinner = () => (
+  <div className="d-flex justify-content-between align-items-center h-100 h-100">
+    <div className="w3-row classic-container row">
+      <Spinner
+        animation="border"
+        role="status"
+        style={{
+          margin: 'auto',
+        }}
+      >
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>
+    </div>
+  </div>
+)
 
 const allCategories = [
   'Film & Animation',
@@ -41,6 +113,8 @@ const Wishlist = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [perPage, setPerPage] = useState(10)
   const [totalRows, setTotalRows] = useState(0)
+  const [wishlistData, setWishlistData] = useState<VideosState | null>(null)
+  const [showWishlistSpinner, setShowWishlistSpinner] = useState(true)
   // const [youTubeIds, setYouTubeIds] = useState<string[]>([])
   // const [youDescribeIds, setYouDescribeIds] = useState<string[]>([])
   // const [votes, setVotes] = useState<number[]>([])
@@ -143,29 +217,165 @@ const Wishlist = () => {
   ]
 
   const itemsPerPage = 5 // Change this as per your requirements
+  const fetchWishListItems = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-top-wishlist`,
+        {
+          withCredentials: true,
+          headers: {
+            authorization: encryptData(userDataStore.getState().userId),
+          },
+        },
+      )
+      const wishListItems = response.data
+      const topYouTubeIds = []
+      const topYouDescribeIds = []
+      const topVotes = []
+      const votedArr = []
+      const aiReq = []
 
-  // Calculate the total number of slides for videosAI
-  const totalVideoSlides = Math.ceil(videoCardsComponents.length / itemsPerPage)
+      for (let i = 0; i < wishListItems.length; i += 1) {
+        topYouTubeIds.push(wishListItems[i].youtube_id)
+        topYouDescribeIds.push(wishListItems[i]._id)
+        topVotes.push(wishListItems[i].votes)
+        aiReq.push(wishListItems[i].aiRequested)
+        votedArr.push({
+          id: wishListItems[i]._id,
+          voted: wishListItems[i].votes,
+        })
+      }
 
-  // Initialize active slide state
-  const [activeVideoSlide, setActiveVideoAISlide] = useState(0)
+      return { topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }
+    } catch (error) {
+      console.error('Error fetching wish list items:', error)
+      throw error // Rethrow the error for handling in the calling function
+    }
+  }
 
-  // Function to handle slide change for videosAI
-  const handleVideoSlideChange = (selectedIndex: number) => {
-    setActiveVideoAISlide(selectedIndex)
-    // // Check if there are videos in the next slide
-    // if (selectedIndex < totalVideoAISlides - 1) {
-    //   setHasNextVideos(true)
-    // } else {
-    //   setHasNextVideos(false)
-    // }
+  const fetchVideoDetails = async (videoIds: string[]) => {
+    try {
+      // Your logic for fetching video details goes here
+      // Make sure to handle errors appropriately
+      const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${videoIds.join(
+        ',',
+      )}&key=wishlist`
+      const response = await ourFetch(url)
+      return JSON.parse(response.result)
+    } catch (error) {
+      console.error('Error fetching video details:', error)
+      throw error // Rethrow the error for handling in the calling function
+    }
+  }
 
-    // // Check if there are videos in the previous slide
-    // if (selectedIndex > 0) {
-    //   setHasPreviousVideos(true)
-    // } else {
-    //   setHasPreviousVideos(false)
-    // }
+  const fetchAndSetWishlistData = async () => {
+    try {
+      const { topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq } =
+        await fetchWishListItems()
+
+      const youTubeResponse = await fetchVideoDetails(topYouTubeIds)
+
+      const videoCardsComponents = []
+
+      for (let i = 0; i < youTubeResponse.items.length; i += 1) {
+        const item = youTubeResponse.items[i]
+
+        if (!item.statistics || !item.snippet) {
+          continue
+        }
+
+        const _id = topYouDescribeIds[i]
+        const youTubeId = item.id
+        const thumbnailMedium = item.snippet.thumbnails.medium
+        const title = item.snippet.title
+        const description = item.snippet.description
+        const author = item.snippet.channelTitle
+        const views = convertViewsToCardFormat(
+          Number(item.statistics.viewCount),
+        )
+        const publishedAt = new Date(item.snippet.publishedAt)
+        const now = Date.now()
+        const votes = topVotes[i]
+        const aiRequested = aiReq[i]
+        const time = convertTimeToCardFormat(
+          Number(now - publishedAt.getMilliseconds()),
+        )
+
+        const voted = votedArr[i].voted
+
+        console.log({ youTubeId })
+        console.log({ thumbnailMedium })
+        console.log({ title })
+        console.log({ description })
+        console.log({ author })
+        console.log({ views })
+
+        videoCardsComponents.push(
+          <div className="wishlist-video-card" key={_id}>
+            <VideoCard
+              youTubeId={youTubeId}
+              thumbnailMediumUrl={thumbnailMedium.url}
+              title={title}
+              description={description}
+              author={author}
+              views={views}
+              time={time}
+              votes={votes}
+              buttons="upvote-describe"
+              userVote={voted}
+              aiRequested={aiRequested}
+            />
+          </div>,
+        )
+      }
+      const newWishlistData = {
+        data: videoCardsComponents,
+        totalVideos: videoCardsComponents.length,
+        totalPages: 2, // Assuming all videos are displayed on a single page
+        currentPage: 1,
+        videoComponentData: videoCardsComponents,
+      }
+
+      setWishlistData(newWishlistData)
+
+      setShowWishlistSpinner(false)
+    } catch (error) {
+      console.error('Error fetching and setting wish list data:', error)
+      // Handle the error as needed
+    }
+  }
+  const handleNextPage = async (
+    currentDataState: VideosState | null,
+    setStateFunction: React.Dispatch<React.SetStateAction<VideosState | null>>,
+    setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
+    if (!currentDataState) return
+
+    try {
+      await fetchAndSetWishlistData()
+      // Update any other state or perform additional actions if needed
+    } catch (error) {
+      console.error('Error handling next page:', error)
+      // Handle the error as needed
+      setVideoLoadingState(false)
+    }
+  }
+
+  const handlePreviousPage = async (
+    currentDataState: VideosState | null,
+    setStateFunction: React.Dispatch<React.SetStateAction<VideosState | null>>,
+    setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
+    if (!currentDataState) return
+
+    try {
+      await fetchAndSetWishlistData()
+      // Update any other state or perform additional actions if needed
+    } catch (error) {
+      console.error('Error handling previous page:', error)
+      // Handle the error as needed
+      setVideoLoadingState(false)
+    }
   }
 
   const describeThisVideo = (youTubeId: string) => {
@@ -216,18 +426,12 @@ const Wishlist = () => {
   // const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
   // console.log({ videosAIToDisplay })
   // Calculate the range of videos to display on the current slide
-  const videoStartIndex = activeVideoSlide * itemsPerPage
-  const videoEndIndex = videoStartIndex + itemsPerPage
-
-  const videosToDisplay = videoCardsComponents.slice(
-    videoStartIndex,
-    videoEndIndex,
-  )
 
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
     loadTableVideos(currentPageNumber, perPage)
     loadTopVideos()
+    fetchAndSetWishlistData()
   }, [userDataStore.getState().userId])
 
   /*
@@ -261,328 +465,6 @@ const Wishlist = () => {
         },
       )
       .then((response) => {
-        // const responseData = {
-        //   totalItems: 1483,
-        //   page: 1,
-        //   pageSize: 10,
-        //   data: [
-        //     {
-        //       _id: '63f2de1288c3be002018de0a',
-        //       tags: [
-        //         'bon voyage charlie brown 1980',
-        //         'bon voyage charlie brown movie',
-        //         'bon voyage charlie brown scene',
-        //         'bon voyage charlie brown clip',
-        //         'charlie brown movie',
-        //         'peanuts movie',
-        //         'charlie brown & snoopy',
-        //         'snoopy & woodstock',
-        //         'charlie brown & linus',
-        //         'peanuts charlie brown',
-        //         'peanuts linus',
-        //         'peanuts peppermint patty',
-        //         'peanuts marcie',
-        //         'peanuts snoopy',
-        //         'peanuts woodstock',
-        //         'peanuts funny',
-        //         'bon voyage charlie brown funny',
-        //         'bon voyage charlie brown france',
-        //         'bon voyage charlie brown song',
-        //         'peanuts song',
-        //       ],
-        //       youtube_id: '4yvMEvYrVkQ',
-        //       votes: 1,
-        //       status: 'queued',
-        //       created_at: 20230220024226,
-        //       updated_at: 20230220024226,
-        //       __v: 0,
-        //       category_id: '1',
-        //       category: 'Film & Animation',
-        //       duration: 91,
-        //       youtube_status: 'available',
-        //       aiRequested: true,
-        //     },
-        //     {
-        //       _id: '63f2846388c3be002018ddd0',
-        //       tags: ['FlipShare', 'darts', 'Stafford Hicks'],
-        //       youtube_id: 'Nxd5rbFI6ks',
-        //       votes: 1,
-        //       status: 'queued',
-        //       created_at: 20230219201947,
-        //       updated_at: 20230219201947,
-        //       __v: 0,
-        //       category_id: '22',
-        //       category: 'People & Blogs',
-        //       duration: 58,
-        //       youtube_status: 'available',
-        //       aiRequested: true,
-        //     },
-        //     {
-        //       _id: '63f1c2924eeee90026e3945d',
-        //       tags: ['Logo', 'Start Motion Pictures'],
-        //       youtube_id: 'SVFBAOmWRSo',
-        //       votes: 1,
-        //       status: 'queued',
-        //       created_at: 20230219063250,
-        //       updated_at: 20230219063250,
-        //       __v: 0,
-        //       category_id: '1',
-        //       category: 'Film & Animation',
-        //       duration: 20,
-        //       youtube_status: 'available',
-        //       aiRequested: true,
-        //     },
-        //     {
-        //       _id: '63f1c1714eeee90026e3945a',
-        //       tags: [
-        //         '2006',
-        //         'Destination Films',
-        //         'Original Film',
-        //         "I'll Always Know What You Did Last Summer",
-        //         'logo',
-        //         'logos',
-        //         'intro',
-        //         'video logo',
-        //         'movie logo',
-        //         'cinema logo',
-        //         'company intros',
-        //         'ident',
-        //         'production logo',
-        //         'opening logo',
-        //         'film',
-        //         'production',
-        //         'company',
-        //         'distributes',
-        //         'distribution',
-        //         'entertainment',
-        //         'identities',
-        //         'logo animation',
-        //         'identity',
-        //         'label',
-        //         'identification',
-        //         'Pictures',
-        //         'Productions',
-        //       ],
-        //       youtube_id: 'jzvXf-BkmtE',
-        //       votes: 1,
-        //       status: 'queued',
-        //       created_at: 20230219062801,
-        //       updated_at: 20230219062801,
-        //       __v: 0,
-        //       category_id: '1',
-        //       category: 'Film & Animation',
-        //       duration: 26,
-        //       youtube_status: 'available',
-        //       aiRequested: true,
-        //     },
-        //     {
-        //       _id: '63f132874eeee90026e39428',
-        //       tags: [
-        //         'laugh',
-        //         'funny',
-        //         'girl',
-        //         'laughing',
-        //         'sweet',
-        //         'laughing child',
-        //         'kid',
-        //         'funny video',
-        //         'funniest',
-        //         'giggle',
-        //         'giggling',
-        //         'cute',
-        //         'too cute',
-        //         'adorable',
-        //         'laughter',
-        //         'restraunt laugh',
-        //         'uncontrolable laughter',
-        //         'hilarious',
-        //         'halarious',
-        //         'spastic',
-        //       ],
-        //       youtube_id: 'x_xQTpuFZk0',
-        //       votes: 1,
-        //       status: 'queued',
-        //       created_at: 20230218201815,
-        //       updated_at: 20230218201815,
-        //       __v: 0,
-        //       category_id: '22',
-        //       category: 'People & Blogs',
-        //       duration: 64,
-        //       youtube_status: 'available',
-        //       aiRequested: true,
-        //     },
-        //     {
-        //       _id: '63f1327a88c3be002018dd36',
-        //       tags: [
-        //         'shorts',
-        //         'funny tik tok',
-        //         'funny videos',
-        //         'funniest videos 2021',
-        //         'tiktok',
-        //         'meme',
-        //         'memes',
-        //         'funny',
-        //         'funny memes',
-        //         'best memes',
-        //         'meme vine',
-        //         'vine',
-        //         'vine 2',
-        //         'tik tok',
-        //         'funny tik tok videos',
-        //         'funny animal videos',
-        //         'funny animal',
-        //       ],
-        //       youtube_id: 'pzA_3_iRcAw',
-        //       votes: 1,
-        //       status: 'queued',
-        //       created_at: 20230218201802,
-        //       updated_at: 20230218201802,
-        //       __v: 0,
-        //       category_id: '22',
-        //       category: 'People & Blogs',
-        //       duration: 39,
-        //       youtube_status: 'available',
-        //       aiRequested: false,
-        //     },
-        //     {
-        //       _id: '63f1327088c3be002018dd34',
-        //       tags: [
-        //         'girl',
-        //         'laughting',
-        //         'risa',
-        //         'chica',
-        //         'así me río',
-        //         'stopped',
-        //         'parar',
-        //         'classroo',
-        //         'clasroom',
-        //         'clase',
-        //         'salón',
-        //       ],
-        //       youtube_id: '135SSnrGB7M',
-        //       votes: 1,
-        //       status: 'queued',
-        //       created_at: 20230218201752,
-        //       updated_at: 20230218201752,
-        //       __v: 0,
-        //       category_id: '22',
-        //       category: 'People & Blogs',
-        //       duration: 20,
-        //       youtube_status: 'available',
-        //       aiRequested: false,
-        //     },
-        //     {
-        //       _id: '63f1326788c3be002018dd32',
-        //       tags: [
-        //         'Laughing',
-        //         'Girls',
-        //         'Part',
-        //         'Laugh',
-        //         'Laughs',
-        //         'Laughings',
-        //         'Girl',
-        //         'Girlies',
-        //         'Parts',
-        //         'Four',
-        //         'Funny',
-        //         'Fun',
-        //         'Funnier',
-        //         'Funniest',
-        //         'Vid',
-        //         'Video',
-        //         'Hilarious',
-        //         'Crazy',
-        //         'Pee',
-        //         'Your',
-        //         'Pants',
-        //         'YouTube',
-        //         'Try',
-        //         'Not',
-        //         'To',
-        //         'It',
-        //         'Is',
-        //         'Possible',
-        //         'Cute',
-        //         'Adorable',
-        //         'Awesome',
-        //         'Amazing',
-        //       ],
-        //       youtube_id: 'Tboxoys3dpE',
-        //       votes: 1,
-        //       status: 'queued',
-        //       created_at: 20230218201743,
-        //       updated_at: 20230218201743,
-        //       __v: 0,
-        //       category_id: '23',
-        //       category: 'Comedy',
-        //       duration: 169,
-        //       youtube_status: 'available',
-        //       aiRequested: false,
-        //     },
-        //     {
-        //       _id: '63ed8aa44eeee90026e39376',
-        //       tags: [
-        //         'supermariologan',
-        //         'sml',
-        //         'movie',
-        //         'jeffy',
-        //         'jeffry',
-        //         'jeff',
-        //         'funny',
-        //         'joke',
-        //         'comedy',
-        //         'skit',
-        //         'the ticket problem',
-        //         'duggie',
-        //         'marvin',
-        //         'brooklyn guy',
-        //         'puppet',
-        //         'puppets',
-        //         'show',
-        //         'superluigilogan',
-        //         'sll',
-        //         'superbowserlogan',
-        //         'sbl',
-        //         'hilarious',
-        //         'logan',
-        //         'lance',
-        //         'super bowl',
-        //         'tickets',
-        //         'super bowl ticket',
-        //         'super bowl lvii',
-        //         'eagles',
-        //         'chiefs',
-        //         'contest',
-        //       ],
-        //       youtube_id: 'HA7fJiZZOHE',
-        //       votes: 2,
-        //       status: 'queued',
-        //       created_at: 20230216014508,
-        //       updated_at: 20230217235820,
-        //       __v: 0,
-        //       category_id: '24',
-        //       category: 'Entertainment',
-        //       duration: 652,
-        //       youtube_status: 'available',
-        //       aiRequested: false,
-        //     },
-        //     {
-        //       _id: '63ebf31f88c3be002018dc09',
-        //       tags: ['drab mejesty philadelphia 2019'],
-        //       youtube_id: 'urHt3vsiMCU',
-        //       votes: 2,
-        //       status: 'queued',
-        //       created_at: 20230214204623,
-        //       updated_at: 20230217235820,
-        //       __v: 0,
-        //       category_id: '22',
-        //       category: 'People & Blogs',
-        //       duration: 5703,
-        //       youtube_status: 'available',
-        //       aiRequested: false,
-        //     },
-        //   ],
-        // }
         const wishListItems = response.data.data
         setTotalRows(response.data.totalItems)
         // const wishListItems = responseData.data
@@ -955,38 +837,57 @@ const Wishlist = () => {
       <header className="w3-container w3-indigo">
         <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
       </header>
+
       <div className="d-flex justify-content-center custom-carousel">
-        {videosToDisplay.length > 0 && ( // Check if there are videos to display
-          <>
-            {/* Custom previous button */}
-            <button
-              className="prev-icon"
-              onClick={() => handleVideoSlideChange(activeVideoSlide - 1)}
-              disabled={activeVideoSlide === 0}
-            >
-              &lt;
-            </button>
+        <div className="custom-carousel">
+          {!wishlistData && <CustomSpinner />}
+          {wishlistData && wishlistData?.data.length > 0 && (
+            <div className="d-flex justify-content-between align-items-center h-100">
+              {/* Custom previous button */}
+              <CustomButton
+                className="prev-wishlist-icon"
+                onClick={async () => {
+                  setShowWishlistSpinner(true) // Optionally, show spinner while loading
+                  await handlePreviousPage(
+                    wishlistData,
+                    setWishlistData,
+                    setShowWishlistSpinner,
+                  )
+                  setShowWishlistSpinner(false) // Optionally, hide spinner after loading
+                }}
+                disabled={wishlistData.currentPage === 1}
+              >
+                &lt;
+              </CustomButton>
 
-            {/* Content for displaying videos */}
-            <div className="w3-row classic-container row">
-              {videosToDisplay}
+              {/* Content for displaying videos */}
+              <div className="w3-row classic-container row">
+                {wishlistData.data}
+              </div>
+
+              {/* Custom next button */}
+              <CustomButton
+                className="next-wishlist-icon"
+                onClick={async () => {
+                  setShowWishlistSpinner(true) // Optionally, show spinner while loading
+                  await handleNextPage(
+                    wishlistData,
+                    setWishlistData,
+                    setShowWishlistSpinner,
+                  )
+                  setShowWishlistSpinner(false) // Optionally, hide spinner after loading
+                }}
+                disabled={wishlistData.currentPage === wishlistData.totalPages}
+              >
+                &gt;
+              </CustomButton>
             </div>
-            {/* {renderCarouselIndicators(totalVideoSlides, activeVideoSlide)} */}
+          )}
 
-            {/* Custom next button */}
-            <button
-              className="next-icon"
-              onClick={() => handleVideoSlideChange(activeVideoSlide + 1)}
-              disabled={activeVideoSlide === totalVideoSlides - 1}
-            >
-              &gt;
-            </button>
-          </>
-        )}
-
-        {videosToDisplay.length === 0 && (
-          <p className="history-text">No history to view.</p>
-        )}
+          {wishlistData?.data.length === 0 && (
+            <p className="history-text">No videos in your wishlist.</p>
+          )}
+        </div>
       </div>
       <form
         onSubmit={(e: any) => {

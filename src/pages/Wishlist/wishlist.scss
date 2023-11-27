@@ -80,3 +80,87 @@
     }
   }
 }
+
+.prev-wishlist-icon,
+.next-wishlist-icon {
+  position: absolute;
+  top: 50%; /* Vertically center the buttons */
+  transform: translateY(-50%);
+  width: 4%;
+  height: 10%; /* Adjust the width as needed */
+  background-color: rgb(62, 111, 202); /* Background color for buttons */
+  border: none; /* Remove button borders */
+  color: white; /* Text color for buttons */
+  cursor: pointer;
+  height: 25%;
+  margin: 15px;
+  font-size: 25px;
+}
+
+.prev-wishlist-icon {
+  left: 5%; /* Adjust the left position for smaller screens */
+}
+
+.next-wishlist-icon {
+  right: 5%; /* Adjust the right position for smaller screens */
+}
+
+@media (min-width: 768px) and (max-width: 1150px) {
+  .prev-wishlist-icon {
+    left: 2%; /* Adjust the left position for medium-sized screens */
+  }
+
+  .next-wishlist-icon {
+    right: 2%; /* Adjust the right position for medium-sized screens */
+  }
+}
+@media (min-width: 1150px) and (max-width: 1250px) {
+  .prev-wishlist-icon {
+    left: 4%; /* Adjust the left position for medium-sized screens */
+  }
+
+  .next-wishlist-icon {
+    right: 4%; /* Adjust the right position for medium-sized screens */
+  }
+}
+
+@media (min-width: 1300px) {
+  .prev-wishlist-icon {
+    left: -10%; /* Adjust the left position for larger screens */
+  }
+
+  .next-wishlist-icon {
+    right: 8%; /* Adjust the right position for larger screens */
+  }
+}
+
+/* For larger screens (e.g., desktops) */
+:root {
+  --items-per-page: 4;
+}
+
+/* Define your media queries as before */
+@media (min-width: 1024px) {
+  :root {
+    --items-per-page: 4;
+  }
+}
+
+/* For medium-sized screens (e.g., tablets) */
+@media (max-width: 1023px) and (min-width: 768px) {
+  :root {
+    --items-per-page: 3;
+  }
+}
+
+/* For small screens (e.g., mobile devices) */
+@media (max-width: 767px) {
+  :root {
+    --items-per-page: 2;
+  }
+}
+@media (max-width: 700px) {
+  :root {
+    --items-per-page: 1;
+  }
+}
