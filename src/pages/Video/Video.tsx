@@ -1240,14 +1240,16 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
+    console.log('inside description buttons')
+    console.log({ re: requestAiDescription.url })
     if (requestAiDescription.url) {
       // Go to descriptions with url
       return (
         <Button
-          title={translate('Go to descriptions')}
+          title={translate('Go to AI descriptions')}
           ariaLabel="Go to descriptions"
-          text={translate('Go to descriptions')}
-          color="w3-indigo w3-block w3-margin-top"
+          text={translate('Go to AI descriptions')}
+          color="w3-lime w3-block w3-margin-top"
           onClick={() => navigate(`/editor/${requestAiDescription.url}`)}
         />
       )
@@ -1268,7 +1270,7 @@ const Video = () => {
           title={translate('AI Descriptions requested')}
           ariaLabel="AI Descriptions requested"
           text={translate('AI Descriptions requested')}
-          color="w3-indigo w3-block w3-margin-top"
+          color="w3-brown w3-block w3-margin-top"
           onClick={() => handleGenerateAIDescriptions()}
           disabled={requestAiDescription.requested}
         />
@@ -1277,18 +1279,10 @@ const Video = () => {
       return (
         <>
           <Button
-            title={translate('Add a new description for this video')}
-            ariaLabel="Add a new description for this video"
-            text={translate('Freestyle Description')}
-            color="w3-indigo w3-block w3-margin-top"
-            onClick={() => handleAddDescription()}
-            disabled={requestAiDescription.requested}
-          />
-          <Button
             title={translate('Request AI Descriptions')}
             ariaLabel="Request AI Descriptions"
             text={translate('Request AI Descriptions')}
-            color="w3-indigo w3-block w3-margin-top"
+            color="w3-light-blue w3-block w3-margin-top"
             disabled={requestAiDescription.requested}
             onClick={() => handleGenerateAIDescriptions()}
           />
@@ -1414,6 +1408,14 @@ const Video = () => {
                   ariaLabel="Turn off descriptions for this video"
                   onClick={handleTurnOffDescriptions}
                 />
+                <Button
+                  title={translate('Add a new description for this video')}
+                  ariaLabel="Add a new description for this video"
+                  text={translate('Add Freestyle Description')}
+                  color="w3-yellow w3-block w3-margin-top"
+                  onClick={() => handleAddDescription()}
+                  disabled={requestAiDescription.requested}
+                />
                 <DescriptionButtons />
               </div>
             </div>
@@ -1444,7 +1446,11 @@ const Video = () => {
             }}
           >
             <div className="w3-card-2">
-              <h3 className="classic-h3">No descriptions available</h3>
+              {requestAiDescription.url ? (
+                <h3 className="classic-h3">AI descriptions available</h3>
+              ) : (
+                <h3 className="classic-h3">No descriptions available</h3>
+              )}
               <Button
                 title={translate('Request an audio description for this video')}
                 ariaLabel="Request an audio description for this video"
@@ -1454,9 +1460,9 @@ const Video = () => {
               />
               <Button
                 title={translate('Add a new description for this video')}
-                text={translate('Add description')}
+                text={translate('Add Freestyle Description')}
                 ariaLabel="Add a new description for this video"
-                color="w3-indigo w3-block w3-margin-top"
+                color="w3-yellow w3-block w3-margin-top"
                 onClick={() => handleAddDescription()}
               />
               <DescriptionButtons />

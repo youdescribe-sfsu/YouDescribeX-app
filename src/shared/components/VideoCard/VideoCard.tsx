@@ -23,6 +23,7 @@ interface Props {
   time: string
   userVote?: boolean
   url?: string
+  aiRequested?: boolean
 }
 
 const VideoCard = ({
@@ -40,6 +41,7 @@ const VideoCard = ({
   // views,
   // time,
   userVote = false,
+  aiRequested,
 }: Props) => {
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
@@ -173,6 +175,8 @@ const VideoCard = ({
             )
             return
           }
+          // aiRequested
+          //   ? navigate(`/editor/`)
           navigate(url ? '/editor/' + url : '/video/' + youTubeId)
         })
     } else {
@@ -281,6 +285,8 @@ const VideoCard = ({
                   {'Votes'}: {votes}
                 </span>
               ) : null}
+              <br />
+
               {/* <span className="card-span">
                 {'Votes'}: {votes}
               </span> */}
@@ -289,6 +295,9 @@ const VideoCard = ({
                   {'Status'}: {statusVal}
                 </span>
               ) : null}
+
+              <div id="card-buttons">{buttonElements}</div>
+
               {/* <span className="w3-btn w3-indigo w3-right card-button">
                 {'Status'}: {statusVal}
               </span> */}
@@ -301,7 +310,10 @@ const VideoCard = ({
               <div className="w3-right">{time}</div>
             </h4>
           </div> */}
-          <div id="card-buttons">{buttonElements}</div>
+
+          {aiRequested ? (
+            <span className="card-span-ai">AI-Desc Available</span>
+          ) : null}
         </div>
       </div>
     </div>
