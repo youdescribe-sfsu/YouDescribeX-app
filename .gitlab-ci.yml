@@ -80,6 +80,21 @@ deploy-stage:
     - cat docker_compose_service.yml  # Display the modified file for verification
     - echo "Updating S3 bucket with the new Docker image"
     - aws s3 cp docker_compose_service.yml "s3://${S3_BUCKET}/${S3_PATH}/docker_compose_service.yml"
+    - |
+      aws s3 cp s3://${S3_BUCKET}/youdescribe-docs/docker_compose_service.yml youdescribe-docs.yml
+      aws s3 cp s3://${S3_BUCKET}/youdescribex-app/docker_compose_service.yml youdescribex-app.yml
+      aws s3 cp s3://${S3_BUCKET}/youdescribex-api/docker_compose_service.yml youdescribex-api.yml
+
+      cat <<EOF > docker-compose_new.yml
+      version: '3'
+      
+      services:
+      $(awk '{printf "  %s\n", $0}' youdescribe-docs.yml)
+      $(awk '{printf "  %s\n", $0}' youdescribex-app.yml)
+      $(awk '{printf "  %s\n", $0}' youdescribex-api.yml)
+      EOF
+
+      aws s3 cp docker-compose_new.yml "s3://${S3_BUCKET}/docker-compose.yml"
     - echo "Updating the S3 stack with the new Docker image"
 
 deploy-prod:
