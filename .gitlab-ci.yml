@@ -1,8 +1,13 @@
-image:
-  name: node:18-alpine
-
 variables:
   CI_PROJECT_NAME: youdescribex-app
+  DOCKER_REGISTRY: youdescribe
+  S3_BUCKET: youdescribexci
+  S3_PATH: youdescribe-app
+  CI_REGISTRY: docker.io
+  TAR_FILE_NAME: "youdescribex-app.tar"
+  TAR_FILE_FOLDER: ".docker"
+  TAR_FILE_PATH: "/"
+  DOCKER_IMAGE_TAG: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}.${CI_PIPELINE_ID}"
 
 stages:
   - build
@@ -14,9 +19,13 @@ cache:
 
 build-stage:
   stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
   tags:
-    - frontend
-    - staging
+    - saas-linux-large-amd64
+  before_script:
+    - docker login -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_PASSWORD" $CI_REGISTRY
 
   rules:
     - if: $CI_COMMIT_BRANCH == "dev"
@@ -27,14 +36,19 @@ build-stage:
     - echo "PORT $PORT"
     - echo "REACT_APP_LOGROCKET_ID $REACT_APP_LOGROCKET_ID"
     - echo "REACT_APP_YDX_BACKEND_URL=$REACT_APP_YDX_BACKEND_URL"
-    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t "${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-app.${CI_PIPELINE_ID}" .
+    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t "${DOCKER_IMAGE_TAG}" .
+    - docker push "${DOCKER_IMAGE_TAG}"
     - echo "Build complete"
 
 build-prod:
   stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
   tags:
-    - frontend
-    - prod
+    - saas-linux-large-amd64
+  before_script:
+    - docker login -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_PASSWORD" $CI_REGISTRY
 
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
@@ -42,31 +56,33 @@ build-prod:
 
   script:
     - echo "Building YouDescribe Frontend in prod"
-    - docker build -t "${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-app.${CI_PIPELINE_ID}" .
-    - echo "Build completed"
+    - echo "PORT $PORT"
+    - echo "REACT_APP_LOGROCKET_ID $REACT_APP_LOGROCKET_ID"
+    - echo "REACT_APP_YDX_BACKEND_URL=$REACT_APP_YDX_BACKEND_URL"
+    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t "${DOCKER_IMAGE_TAG}" .
+    - docker push "${DOCKER_IMAGE_TAG}"
+    - echo "Build complete"
 
 deploy-stage:
   stage: deploy
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
   tags:
-    - frontend
-    - staging
+    - saas-linux-small-amd64
 
   rules:
     - if: $CI_COMMIT_BRANCH == "dev"
       when: on_success
 
   script:
-    - echo "Stopping old YouDescribe Frontend instance"
-    # - docker compose down
-    # - echo "Deleting old YouDescribe Frontend container"
-    # - echo "Starting up/Deploying newest YouDescribe Frontend build"
-    # - docker compose up -d
-    - docker stop $(docker ps -a -q --filter="name=${CI_PROJECT_NAME}") || true
-    - echo "Deleting old YouDescribe-APP container"
-    # Delete the last YouDescribe-API container if one exists
-    - docker rm $(docker ps -a -q --filter="name=${CI_PROJECT_NAME}") || true
-    - docker run -d --restart=always --name ${CI_PROJECT_NAME} -p 0.0.0.0:$PORT:$PORT ${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}-app.${CI_PIPELINE_ID}
-    - echo "Finished deploying YouDescribe Frontend build to staging"
+    - echo "Downloading docker-compose.yml from S3"
+    - sed -i "s/\${CI_PROJECT_NAME}/$CI_PROJECT_NAME/g" docker_compose_service.yml
+    - sed -i "s/\${CI_COMMIT_REF_NAME}/$CI_COMMIT_REF_NAME/g" docker_compose_service.yml
+    - sed -i "s/\${CI_PIPELINE_ID}/$CI_PIPELINE_ID/g" docker_compose_service.yml
+    - sed -i "s/\${PORT}/$PORT/g" docker_compose_service.yml
+    - cat docker_compose_service.yml  # Display the modified file for verification
+    - echo "Updating S3 bucket with the new Docker image"
+    - aws s3 cp docker_compose_service.yml "s3://${S3_BUCKET}/${S3_PATH}/docker_compose_service.yml"
+    - echo "Updating the S3 stack with the new Docker image"
 
 deploy-prod:
   stage: deploy
