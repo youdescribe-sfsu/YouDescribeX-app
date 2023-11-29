@@ -1,5 +1,5 @@
 youdescribex-app:
-    image: youdescribe/${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}.${CI_PIPELINE_ID}
+    image: ${DOCKER_IMAGE_TAG}
     restart: always
     ports:
       - "0.0.0.0:${PORT}:$PORT"

@@ -2,7 +2,7 @@ variables:
   CI_PROJECT_NAME: youdescribex-app
   DOCKER_REGISTRY: youdescribe
   S3_BUCKET: youdescribexci
-  S3_PATH: youdescribe-app
+  S3_PATH: youdescribex-app
   CI_REGISTRY: docker.io
   TAR_FILE_NAME: "youdescribex-app.tar"
   TAR_FILE_FOLDER: ".docker"
@@ -75,9 +75,7 @@ deploy-stage:
 
   script:
     - echo "Downloading docker-compose.yml from S3"
-    - sed -i "s/\${CI_PROJECT_NAME}/$CI_PROJECT_NAME/g" docker_compose_service.yml
-    - sed -i "s/\${CI_COMMIT_REF_NAME}/$CI_COMMIT_REF_NAME/g" docker_compose_service.yml
-    - sed -i "s/\${CI_PIPELINE_ID}/$CI_PIPELINE_ID/g" docker_compose_service.yml
+    - sed -i "s/\${DOCKER_IMAGE_TAG}/$DOCKER_IMAGE_TAG/g" docker_compose_service.yml
     - sed -i "s/\${PORT}/$PORT/g" docker_compose_service.yml
     - cat docker_compose_service.yml  # Display the modified file for verification
     - echo "Updating S3 bucket with the new Docker image"
