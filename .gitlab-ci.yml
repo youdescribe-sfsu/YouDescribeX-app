@@ -75,7 +75,7 @@ deploy-stage:
 
   script:
     - echo "Downloading docker-compose.yml from S3"
-    - sed -i "s|DOCKER_IMAGE_TAG|${DOCKER_IMAGE_TAG}|g; s|PORT|${PORT}|g;" docker_compose_service.yml
+    - sed -i "s|#DOCKER_IMAGE_TAG|${DOCKER_IMAGE_TAG}|g; s|#PORT|${PORT}|g;" docker_compose_service.yml
     - cat docker_compose_service.yml  # Display the modified file for verification
     - echo "Updating S3 bucket with the new Docker image"
     - aws s3 cp docker_compose_service.yml "s3://${S3_BUCKET}/${S3_PATH}/docker_compose_service.yml"
