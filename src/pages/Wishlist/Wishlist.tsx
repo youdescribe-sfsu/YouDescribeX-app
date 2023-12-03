@@ -216,11 +216,12 @@ const Wishlist = () => {
     },
   ]
 
-  const itemsPerPage = 5 // Change this as per your requirements
+  const itemsPerPage = 4 // Change this as per your requirements
   const fetchWishListItems = async () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-top-wishlist`,
+
         {
           withCredentials: true,
           headers: {
