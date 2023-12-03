@@ -221,7 +221,6 @@ const Wishlist = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-top-wishlist`,
-
         {
           withCredentials: true,
           headers: {

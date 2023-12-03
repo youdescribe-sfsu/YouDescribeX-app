@@ -10,6 +10,7 @@ interface Props {
   setDescriptionVolume: (value: number) => void
   youTubeVolume: number
   setYouTubeVolume: (value: number) => void
+  isPreviewAudioDescription?: boolean
 }
 
 const Buttons = ({
@@ -20,29 +21,34 @@ const Buttons = ({
   setDescriptionVolume,
   youTubeVolume,
   setYouTubeVolume,
+  isPreviewAudioDescription = false,
 }: Props) => {
   return (
     <div className="d-flex justify-content-evenly flex-column text-center p-4">
       <div className="row justify-content-center gx-3 gy-4">
         <div className="col-6">
-          <button
-            type="button"
-            className="btn btn-sm inline-bg text-dark ydx-button w-100"
-            onClick={() => setHandleClicksFromParent('inline')}
-          >
-            <i className="fa fa-plus" /> {'   '}
-            Insert Inline
-          </button>
+          {isPreviewAudioDescription ? (
+            <button
+              type="button"
+              className="btn btn-sm inline-bg text-dark ydx-button w-100"
+              onClick={() => setHandleClicksFromParent('inline')}
+            >
+              <i className="fa fa-plus" /> {'   '}
+              Insert Inline
+            </button>
+          ) : null}
         </div>
         <div className="col-6">
-          <button
-            type="button"
-            className="btn btn-sm extended-bg text-white ydx-button w-100"
-            onClick={() => setHandleClicksFromParent('extended')}
-          >
-            <i className="fa fa-plus" /> {'   '}
-            Insert Extended
-          </button>
+          {isPreviewAudioDescription ? (
+            <button
+              type="button"
+              className="btn btn-sm extended-bg text-white ydx-button w-100"
+              onClick={() => setHandleClicksFromParent('extended')}
+            >
+              <i className="fa fa-plus" /> {'   '}
+              Insert Extended
+            </button>
+          ) : null}
         </div>
         <div className="col-6">
           <button
