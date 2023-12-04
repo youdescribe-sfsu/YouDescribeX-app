@@ -29,8 +29,6 @@ type DataState = VideosState | null
 
 type FetchVideosDataFunction = (
   dataState: DataState,
-  setVideosData: SetVideosData,
-  apiEndpoint: string,
   setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
 ) => Promise<void>
 
@@ -216,17 +214,48 @@ const Wishlist = () => {
     },
   ]
 
-  const itemsPerPage = 4 // Change this as per your requirements
-  const fetchWishListItems = async () => {
+  const itemsPerPage = 5 // Change this as per your requirements
+
+  const fetchVideoDetails = async (videoIds: string[]) => {
+    try {
+      // Your logic for fetching video details goes here
+      // Make sure to handle errors appropriately
+      const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${videoIds.join(
+        ',',
+      )}&key=wishlist`
+      const response = await ourFetch(url)
+      return JSON.parse(response.result)
+    } catch (error) {
+      console.error('Error fetching video details:', error)
+      throw error // Rethrow the error for handling in the calling function
+    }
+  }
+
+  const fetchAndSetWishlistData: FetchVideosDataFunction = async (
+    dataState,
+    setLoadingState,
+  ) => {
+    console.log(dataState)
+    const pageNumber = dataState?.currentPage || 1
+
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-top-wishlist`,
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-user-wishlist`,
         {
+          params: {
+            pageNumber: pageNumber,
+          },
+
           withCredentials: true,
           headers: {
             authorization: encryptData(userDataStore.getState().userId),
           },
         },
+      )
+
+      const totalVideosLength = response.data.totalVideos
+      const calculatedTotalVideoPages = Math.ceil(
+        totalVideosLength / itemsPerPage,
       )
       const wishListItems = response.data
       const topYouTubeIds = []
@@ -245,33 +274,6 @@ const Wishlist = () => {
           voted: wishListItems[i].votes,
         })
       }
-
-      return { topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }
-    } catch (error) {
-      console.error('Error fetching wish list items:', error)
-      throw error // Rethrow the error for handling in the calling function
-    }
-  }
-
-  const fetchVideoDetails = async (videoIds: string[]) => {
-    try {
-      // Your logic for fetching video details goes here
-      // Make sure to handle errors appropriately
-      const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${videoIds.join(
-        ',',
-      )}&key=wishlist`
-      const response = await ourFetch(url)
-      return JSON.parse(response.result)
-    } catch (error) {
-      console.error('Error fetching video details:', error)
-      throw error // Rethrow the error for handling in the calling function
-    }
-  }
-
-  const fetchAndSetWishlistData = async () => {
-    try {
-      const { topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq } =
-        await fetchWishListItems()
 
       const youTubeResponse = await fetchVideoDetails(topYouTubeIds)
 
@@ -323,55 +325,53 @@ const Wishlist = () => {
       const newWishlistData = {
         data: videoCardsComponents,
         totalVideos: videoCardsComponents.length,
-        totalPages: 2, // Assuming all videos are displayed on a single page
-        currentPage: 1,
+        totalPages: calculatedTotalVideoPages,
+        currentPage: pageNumber,
         videoComponentData: videoCardsComponents,
       }
 
       setWishlistData(newWishlistData)
 
-      setShowWishlistSpinner(false)
+      setLoadingState(false)
     } catch (error) {
       console.error('Error fetching and setting wish list data:', error)
       // Handle the error as needed
     }
   }
-  const handleNextPage = async (
+
+  const handleNextPage = (
     currentDataState: VideosState | null,
-    setStateFunction: React.Dispatch<React.SetStateAction<VideosState | null>>,
     setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
   ) => {
     if (!currentDataState) return
-
-    try {
-      await fetchAndSetWishlistData()
-      // Update any other state or perform additional actions if needed
-    } catch (error) {
-      console.error('Error handling next page:', error)
-      // Handle the error as needed
-      setVideoLoadingState(false)
-    }
+    fetchAndSetWishlistData(
+      {
+        ...currentDataState,
+        currentPage: Math.min(
+          currentDataState.currentPage + 1,
+          currentDataState.totalPages,
+        ),
+      },
+      setVideoLoadingState,
+    )
   }
 
-  const handlePreviousPage = async (
+  const handlePreviousPage = (
     currentDataState: VideosState | null,
-    setStateFunction: React.Dispatch<React.SetStateAction<VideosState | null>>,
     setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
   ) => {
     if (!currentDataState) return
+    fetchAndSetWishlistData(
+      {
+        ...currentDataState,
+        currentPage: Math.max(currentDataState.currentPage - 1, 1),
+      },
 
-    try {
-      await fetchAndSetWishlistData()
-      // Update any other state or perform additional actions if needed
-    } catch (error) {
-      console.error('Error handling previous page:', error)
-      // Handle the error as needed
-      setVideoLoadingState(false)
-    }
+      setVideoLoadingState,
+    )
   }
 
   const describeThisVideo = (youTubeId: string) => {
-    console.log('inside describe this video')
     if (userDataStore.getState().isSignedIn) {
       axios
         .post(
@@ -401,29 +401,12 @@ const Wishlist = () => {
       )
     }
   }
-  // function renderCarouselIndicators(totalSlides: number, activeSlide: number) {
-  //   return (
-  //     <ol className="carousel-indicators">
-  //       {Array.from({ length: totalSlides }).map((_, index) => (
-  //         <li
-  //           key={index}
-  //           onClick={() => setActiveVideoAISlide(index)}
-  //           className={index === activeSlide ? 'active' : ''}
-  //         ></li>
-  //       ))}
-  //     </ol>
-  //   )
-  // }
-  // // Slice the videosAI array to display only the videos for the active page
-  // const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
-  // console.log({ videosAIToDisplay })
-  // Calculate the range of videos to display on the current slide
 
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
     loadTableVideos(currentPageNumber, perPage)
     loadTopVideos()
-    fetchAndSetWishlistData()
+    fetchAndSetWishlistData(wishlistData, setShowWishlistSpinner)
   }, [userDataStore.getState().userId])
 
   /*
@@ -571,8 +554,6 @@ const Wishlist = () => {
         cancelToken: cancelRequest.current.token,
       })
       .then((response) => {
-        console.log('response')
-        console.log(response.data)
         const wishListItems = response.data
         const topYouTubeIds = []
         const topYouDescribeIds = []
@@ -714,11 +695,7 @@ const Wishlist = () => {
                 className="prev-wishlist-icon"
                 onClick={async () => {
                   setShowWishlistSpinner(true) // Optionally, show spinner while loading
-                  await handlePreviousPage(
-                    wishlistData,
-                    setWishlistData,
-                    setShowWishlistSpinner,
-                  )
+                  await handlePreviousPage(wishlistData, setShowWishlistSpinner)
                   setShowWishlistSpinner(false) // Optionally, hide spinner after loading
                 }}
                 disabled={wishlistData.currentPage === 1}
@@ -736,11 +713,7 @@ const Wishlist = () => {
                 className="next-wishlist-icon"
                 onClick={async () => {
                   setShowWishlistSpinner(true) // Optionally, show spinner while loading
-                  await handleNextPage(
-                    wishlistData,
-                    setWishlistData,
-                    setShowWishlistSpinner,
-                  )
+                  await handleNextPage(wishlistData, setShowWishlistSpinner)
                   setShowWishlistSpinner(false) // Optionally, hide spinner after loading
                 }}
                 disabled={wishlistData.currentPage === wishlistData.totalPages}
