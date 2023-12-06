@@ -220,9 +220,7 @@ const Wishlist = () => {
     try {
       // Your logic for fetching video details goes here
       // Make sure to handle errors appropriately
-      const url = `${
-        process.env.REACT_APP_YDX_BACKEND_URL
-      }/api/videos/getyoutubedatafromcache?youtubeids=${videoIds.join(
+      const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${videoIds.join(
         ',',
       )}&key=wishlist`
       const response = await ourFetch(url)
@@ -468,9 +466,7 @@ const Wishlist = () => {
         return { youTubeIds, votes, categories, updatedAt, aiRequested }
       })
       .then(({ youTubeIds, votes, categories, updatedAt, aiRequested }) => {
-        const url = `${
-          process.env.REACT_APP_YDX_BACKEND_URL
-        }/api/videos/getyoutubedatafromcache?youtubeids=${youTubeIds.join(
+        const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${youTubeIds.join(
           ',',
         )}&key=wishlist`
         ourFetch(url).then((response) => {
@@ -578,9 +574,7 @@ const Wishlist = () => {
       })
       .then(
         ({ topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }) => {
-          const url = `${
-            process.env.REACT_APP_YDX_BACKEND_URL
-          }/api/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
+          const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
             ',',
           )}&key=wishlist`
           ourFetch(url).then((response) => {

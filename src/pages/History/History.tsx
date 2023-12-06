@@ -121,14 +121,23 @@ const History = () => {
 
   const itemsPerPage = 4 // Change this as per your requirements
 
-  const getRecentDescriptionsUrl = () =>
-    `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions`
+  const getRecentDescriptionsUrl = () => {
+    return process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions`
+      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions`
+  }
 
-  const getUserHistoryUrl = () =>
-    `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
+  const getUserHistoryUrl = () => {
+    return process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
+      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
+  }
 
-  const getAiRequestedVideosUrl = () =>
-    `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
+  const getAiRequestedVideosUrl = () => {
+    return process.env.REACT_APP_USE_YDX
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
+      : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
+  }
 
   const fetchVideosData: FetchVideosDataFunction = async (
     dataState,

@@ -2,7 +2,7 @@ import { translate } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import ClassicSpinner from '@/shared/components/ClassicSpinner/ClassicSpinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
-import { youTubeApiKey, youTubeApiUrl } from '@/shared/config'
+import { apiUrl, youTubeApiKey, youTubeApiUrl } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardFormat'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
@@ -45,7 +45,7 @@ const Search = () => {
       query = url.searchParams.get('v') ?? ''
     }
     const serverVideoIds: any[] = []
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/search?q=${query}&page=${page}`
+    const url = `${apiUrl}/videos/search?q=${query}&page=${page}`
     // const url = `https://api.youdescribe.org/v1/videos/search?q=${q}&page=${page}`;
     ourFetch(url)
       .then((response) => {
