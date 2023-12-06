@@ -283,7 +283,7 @@ const Video = () => {
   }, [userDataStore.getState().isSignedIn])
 
   const fetchVideoData = () => {
-    const url = `${apiUrl}/videos/${videoId}`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/${videoId}`
     ourFetch(url)
       .then((res) => {
         parseVideoData(res.result)
@@ -875,7 +875,7 @@ const Video = () => {
     if (!userDataStore.getState().isSignedIn) {
       alert(translate('You have to be logged in in order to vote'))
     } else {
-      const url = `${apiUrl}/wishlist`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
       ourFetch(url, true, {
         method: 'POST',
         headers: {

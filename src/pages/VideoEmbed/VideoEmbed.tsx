@@ -180,7 +180,7 @@ const VideoEmbed = () => {
   }, [])
 
   const fetchVideoData = () => {
-    const url = `${apiUrl}/videos/${videoId}`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/${videoId}`
     ourFetch(url)
       .then((res) => {
         parseVideoData(res.result)

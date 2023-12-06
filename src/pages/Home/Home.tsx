@@ -33,20 +33,21 @@ const Home = () => {
   const fetchingVideosToHome = (page: number = currentPage) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allResults: any[] = []
-    const url = `${apiUrl}/videos?page=${page}`
+    // const url = `${apiUrl}/videos?page=${page}`
+    // ourFetch(url)
+    //   .then((response) => {
+    //     const result = response.result
+    //     allResults.push(...result)
+    //   })
+    //   .then(() => {
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-all-videos`
+    setShowSpinner(true)
     ourFetch(url)
       .then((response) => {
         const result = response.result
         allResults.push(...result)
       })
-      .then(() => {
-        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-all-videos`
-        setShowSpinner(true)
-        ourFetch(url).then((response) => {
-          const result = response.result
-          allResults.push(...result)
-        })
-      })
+      // })
       .then(() => {
         // sort by created_at
         const sortedResults = allResults.sort((a, b) => {
@@ -64,7 +65,7 @@ const Home = () => {
         const youTubeVideosIds = sortedResults
           .map((result) => result.youtube_id)
           .join(',')
-        const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${youTubeVideosIds}&key=home`
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/getyoutubedatafromcache?youtubeids=${youTubeVideosIds}&key=home`
         setShowSpinner(false)
         ourFetch(url).then((response) => {
           parseFetchedData(JSON.parse(response.result), youDescribeVideosIds)
@@ -137,7 +138,7 @@ const Home = () => {
     const isSignedIn = userDataStore.getState().isSignedIn
     const userId = userDataStore.getState().userId
     if (isSignedIn) {
-      const url = `${apiUrl}/users/${userId}`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/users/${userId}`
       ourFetch(url).then((response) => {
         const user = response.result
         if (user.policy_review === '') {
