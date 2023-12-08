@@ -1240,8 +1240,6 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
-    console.log('inside description buttons')
-    console.log({ re: requestAiDescription.url })
     if (requestAiDescription.url) {
       // Go to descriptions with url
       return (
@@ -1297,7 +1295,7 @@ const Video = () => {
     <div id="video-page" className="video-page">
       <main role="main" className="video-page-main" title="Video page">
         <section id="video-area" className="video-area">
-          <ToastContainer />
+          {/* <ToastContainer /> */}
           <ShareBar videoTitle={videoTitle} />
           <div id="video" className="video">
             {showSpinner ? <Spinner /> : null}
