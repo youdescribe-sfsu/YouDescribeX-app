@@ -1296,7 +1296,7 @@ const Video = () => {
     <div id="video-page" className="video-page">
       <main role="main" className="video-page-main" title="Video page">
         <section id="video-area" className="video-area">
-          <ToastContainer />
+          {/* <ToastContainer /> */}
           <ShareBar videoTitle={videoTitle} />
           <div id="video" className="video">
             {showSpinner ? <Spinner /> : null}
