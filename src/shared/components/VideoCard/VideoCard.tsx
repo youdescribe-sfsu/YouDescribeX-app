@@ -23,6 +23,7 @@ interface Props {
   time: string
   userVote?: boolean
   url?: string
+  aiRequested?: boolean
 }
 
 const VideoCard = ({
@@ -40,8 +41,8 @@ const VideoCard = ({
   // views,
   // time,
   userVote = false,
+  aiRequested,
 }: Props) => {
-  console.log('url', url)
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
   const handleVideoClick = async () => {
@@ -81,18 +82,17 @@ const VideoCard = ({
       alert(translate('You have to be logged in in order to vote'))
     } else {
       if (voted) {
-        const url = `${apiUrl}/wishlist/removeone`
-        ourFetch(url, true, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            youTubeId: youTubeId,
-            userId: userDataStore.getState().userId,
-            userToken: userDataStore.getState().userToken,
-          }),
-        })
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/removeone`
+        axios
+          .delete(url, {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            data: {
+              youTubeId: youTubeId,
+            },
+          })
           .then((res) => {
             setVoted(false)
             console.log('Succes remove', res)
@@ -116,23 +116,27 @@ const VideoCard = ({
       }
       // e.currentTarget.className =
       //   'w3-btn w3-white w3-text-indigo w3-left w3-text-red'
-      const url = `${apiUrl}/wishlist`
-      ourFetch(url, true, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          youTubeId: youTubeId,
-          userId: userDataStore.getState().userId,
-          userToken: userDataStore.getState().userToken,
-        }),
-      })
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
+
+      axios
+        .post(
+          url,
+          {
+            youTubeId: youTubeId,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true, // Add this line to include credentials
+          },
+        )
         .then((res) => {
           setVoted(true)
           console.log('Success upVote', res)
         })
         .catch((err) => {
+          console.log({ err })
           switch (err.code) {
             case 67:
               alert(
@@ -171,7 +175,9 @@ const VideoCard = ({
             )
             return
           }
-          navigate('/editor/' + res.data.url)
+          // aiRequested
+          //   ? navigate(`/editor/`)
+          navigate(url ? '/editor/' + url : '/video/' + youTubeId)
         })
     } else {
       alert(
@@ -279,6 +285,8 @@ const VideoCard = ({
                   {'Votes'}: {votes}
                 </span>
               ) : null}
+              <br />
+
               {/* <span className="card-span">
                 {'Votes'}: {votes}
               </span> */}
@@ -287,6 +295,9 @@ const VideoCard = ({
                   {'Status'}: {statusVal}
                 </span>
               ) : null}
+
+              <div id="card-buttons">{buttonElements}</div>
+
               {/* <span className="w3-btn w3-indigo w3-right card-button">
                 {'Status'}: {statusVal}
               </span> */}
@@ -299,7 +310,10 @@ const VideoCard = ({
               <div className="w3-right">{time}</div>
             </h4>
           </div> */}
-          <div id="card-buttons">{buttonElements}</div>
+
+          {aiRequested ? (
+            <span className="card-span-ai">AI-Desc Available</span>
+          ) : null}
         </div>
       </div>
     </div>

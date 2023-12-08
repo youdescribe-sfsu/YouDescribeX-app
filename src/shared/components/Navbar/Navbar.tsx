@@ -119,7 +119,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
               <i className="fa fa-heart" aria-hidden="true">
                 &nbsp;&nbsp;
               </i>
-              {translate('WISH LIST')}
+              {translate('WISHLIST')}
             </Link>
             {/* <a
               // href={`${process.env.REACT_APP_REDIRECT_URL}support`}

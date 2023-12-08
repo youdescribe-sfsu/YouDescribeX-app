@@ -41,11 +41,10 @@ import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
 import axios, { AxiosResponse } from 'axios'
 
-const Video_v2 = () => {
+const Video = () => {
   const { videoId } = useParams()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  // console.log('Search Params', searchParams)
   const [selectedADId, setSelectedADId] = useState<string>('')
 
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
@@ -127,6 +126,7 @@ const Video_v2 = () => {
     status: string
     requested: boolean
     url?: string
+    aiDescriptionId?: string
   }>({
     status: '',
     requested: false,
@@ -134,6 +134,40 @@ const Video_v2 = () => {
 
   const [buttonLoading, setButtonLoading] = useState(false)
   const toastId = React.useRef<null | Id>(null)
+
+  useEffect(() => {
+    // Pause and unload current inline audio clip
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.pause()
+      currentInlineACRef.current.unload()
+    }
+    // Pause and unload current extended audio clip
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.pause()
+      currentExtendedACRef.current.unload()
+    }
+
+    // Clear the timer for audio clip updates
+    if (timer) {
+      clearInterval(timer)
+    }
+
+    // Cleanup selected audio description and its related data
+    return () => {
+      // Make sure to clear any intervals or timeouts as well
+      if (currentInlineACRef.current) {
+        currentInlineACRef.current.stop()
+        setCurrInlineAC(undefined)
+      }
+      if (currentExtendedACRef.current) {
+        currentExtendedACRef.current.stop()
+        setCurrExtendedAC(undefined)
+      }
+      if (timer) {
+        clearInterval(timer)
+      }
+    }
+  }, [])
 
   // Update Refs
   useEffect(() => {
@@ -249,10 +283,9 @@ const Video_v2 = () => {
   }, [userDataStore.getState().isSignedIn])
 
   const fetchVideoData = () => {
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/${videoId}`
+    const url = `${apiUrl}/videos/${videoId}`
     ourFetch(url)
       .then((res) => {
-        console.log('res', res)
         parseVideoData(res.result)
       })
       .catch((err) => {
@@ -275,8 +308,7 @@ const Video_v2 = () => {
       videoData.audio_descriptions.forEach((ad: any) => {
         if (ad.status === 'published') {
           adIds.push(ad._id)
-          console.log('AD', ad)
-          adIdsUsers[ad._id] = adIdsUsers[ad._id] || {} // Initialize as an object
+          adIdsUsers[ad._id] = ad.user
           adIdsUsers[ad._id].overall_rating_votes_counter =
             ad.overall_rating_votes_counter
           adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_average
@@ -286,15 +318,13 @@ const Video_v2 = () => {
           adIdsAudioClips[ad._id] = []
           if (ad.audio_clips.length > 0) {
             ad.audio_clips.forEach((audioClip: any) => {
-              audioClip.url = `${audioClip.file_path.replace(
-                '.',
-                `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
-              )}/${audioClip.file_name}`
+              audioClip.url = `${audioClipsUploadsPath}${audioClip.file_path}/${audioClip.file_name}`
               adIdsAudioClips[ad._id].push(audioClip)
             })
           }
         }
       })
+
       setAudioDescriptionsIds(adIds)
       setAudioDescriptionsIdsUsers(adIdsUsers)
       setAudioDescriptionsIdsAudioClips(adIdsAudioClips)
@@ -1153,29 +1183,13 @@ const Video_v2 = () => {
     }
   }
 
-  const handleGetAIAudioDescription = async () => {
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-ai-descriptions`
+  const handlePreviewAudioDescription = async () => {
     try {
       setButtonLoading(true)
-      toastId.current = toast.info('Generating AI Descriptions', {
-        autoClose: false,
-      })
-      const response = await axios.post(
-        url,
-        {
-          youtube_id: videoId,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-      const data = response.data
-      console.log(data)
-      toast.dismiss(toastId.current)
-      navigate(`/editor/${data.url}`)
+      if (requestAiDescription && requestAiDescription.aiDescriptionId)
+        navigate(
+          `/audio-description/preview/${videoId}/${requestAiDescription.aiDescriptionId}`,
+        )
     } catch (error) {
       if (toastId.current) toast.dismiss(toastId.current)
       toast.error('Something went wrong, please try again later')
@@ -1184,7 +1198,6 @@ const Video_v2 = () => {
       setButtonLoading(false)
     }
   }
-
   const handleGenerateAIDescriptions = async () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
@@ -1226,25 +1239,27 @@ const Video_v2 = () => {
   }
 
   const DescriptionButtons = () => {
+    console.log('inside description buttons')
+    console.log({ re: requestAiDescription.url })
     if (requestAiDescription.url) {
       // Go to descriptions with url
       return (
         <Button
-          title={translate('Go to descriptions')}
+          title={translate('Go to AI descriptions')}
           ariaLabel="Go to descriptions"
-          text={translate('Go to descriptions')}
-          color="w3-indigo w3-block w3-margin-top"
+          text={translate('Go to AI descriptions')}
+          color="w3-lime w3-block w3-margin-top"
           onClick={() => navigate(`/editor/${requestAiDescription.url}`)}
         />
       )
     } else if (requestAiDescription.status === 'available') {
       return (
         <Button
-          title={translate('Go to Available Descriptions')}
-          ariaLabel="Go to Available Descriptions"
-          text={translate('Got to Available Descriptions')}
+          title={translate('Preview Available Descriptions')}
+          ariaLabel="Preview Available Descriptions"
+          text={translate('Preview Available Descriptions')}
           color="w3-indigo w3-block w3-margin-top"
-          onClick={() => handleGetAIAudioDescription()}
+          onClick={() => handlePreviewAudioDescription()}
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )
@@ -1254,7 +1269,7 @@ const Video_v2 = () => {
           title={translate('AI Descriptions requested')}
           ariaLabel="AI Descriptions requested"
           text={translate('AI Descriptions requested')}
-          color="w3-indigo w3-block w3-margin-top"
+          color="w3-brown w3-block w3-margin-top"
           onClick={() => handleGenerateAIDescriptions()}
           disabled={requestAiDescription.requested}
         />
@@ -1263,18 +1278,10 @@ const Video_v2 = () => {
       return (
         <>
           <Button
-            title={translate('Add a new description for this video')}
-            ariaLabel="Add a new description for this video"
-            text={translate('Freestyle Description')}
-            color="w3-indigo w3-block w3-margin-top"
-            onClick={() => handleAddDescription()}
-            disabled={requestAiDescription.requested}
-          />
-          <Button
             title={translate('Request AI Descriptions')}
             ariaLabel="Request AI Descriptions"
             text={translate('Request AI Descriptions')}
-            color="w3-indigo w3-block w3-margin-top"
+            color="w3-light-blue w3-block w3-margin-top"
             disabled={requestAiDescription.requested}
             onClick={() => handleGenerateAIDescriptions()}
           />
@@ -1400,6 +1407,14 @@ const Video_v2 = () => {
                   ariaLabel="Turn off descriptions for this video"
                   onClick={handleTurnOffDescriptions}
                 />
+                <Button
+                  title={translate('Add a new description for this video')}
+                  ariaLabel="Add a new description for this video"
+                  text={translate('Add Freestyle Description')}
+                  color="w3-yellow w3-block w3-margin-top"
+                  onClick={() => handleAddDescription()}
+                  disabled={requestAiDescription.requested}
+                />
                 <DescriptionButtons />
               </div>
             </div>
@@ -1430,19 +1445,23 @@ const Video_v2 = () => {
             }}
           >
             <div className="w3-card-2">
-              <h3 className="classic-h3">No descriptions available</h3>
+              {requestAiDescription.url ? (
+                <h3 className="classic-h3">AI descriptions available</h3>
+              ) : (
+                <h3 className="classic-h3">No descriptions available</h3>
+              )}
               <Button
                 title={translate('Request an audio description for this video')}
                 ariaLabel="Request an audio description for this video"
-                text={translate('Add to wish list')}
+                text={translate('Add to WISHLIST')}
                 color="w3-indigo w3-block w3-margin-top"
                 onClick={() => upVote()}
               />
               <Button
                 title={translate('Add a new description for this video')}
-                text={translate('Add description')}
+                text={translate('Add Freestyle Description')}
                 ariaLabel="Add a new description for this video"
-                color="w3-indigo w3-block w3-margin-top"
+                color="w3-yellow w3-block w3-margin-top"
                 onClick={() => handleAddDescription()}
               />
               <DescriptionButtons />
@@ -1454,4 +1473,4 @@ const Video_v2 = () => {
   )
 }
 
-export default Video_v2
+export default Video

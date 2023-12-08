@@ -347,6 +347,10 @@ const App = () => {
             path="/audio-description/:youtubeVideoId/:audioDescriptionId"
             element={<PublishedAudioDescriptions />}
           />
+          <Route
+            path="/audio-description/preview/:youtubeVideoId/:audioDescriptionId"
+            element={<PublishedAudioDescriptions />}
+          />
         </Routes>
       </body>
       <ToastContainer

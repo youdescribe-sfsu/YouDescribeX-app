@@ -33,6 +33,7 @@ interface Props {
   audioDescriptionId: string
   fetchUserVideoData: () => void
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
+  isPreview?: boolean
 }
 
 const EditClip = ({
@@ -58,6 +59,7 @@ const EditClip = ({
   audioDescriptionId,
   fetchUserVideoData,
   setNeedRefresh,
+  isPreview = false,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
@@ -520,6 +522,7 @@ const EditClip = ({
                 <Button
                   className="btn rounded btn-sm text-white bg-danger ydx-button"
                   onClick={() => setIsDeleteModal(true)}
+                  disabled={isPreview}
                 >
                   <i className="fa fa-trash" /> {'  '} Delete
                 </Button>
@@ -527,6 +530,7 @@ const EditClip = ({
                   type="button"
                   className="btn rounded btn-sm text-white save-desc-btn ydx-button"
                   onClick={handleClickSaveClipDescription}
+                  disabled={isPreview}
                 >
                   <i className="fa fa-save" /> {'  '} Save
                 </Button>
@@ -687,13 +691,22 @@ const EditClip = ({
         </div>
         {/* vertical divider line */}
         <div className="d-flex justify-content-between align-items-start">
-          <div className="d-flex flex-column align-items-center">
+          <div
+            className="d-flex flex-column align-items-center"
+            style={{
+              visibility: isPreview ? 'hidden' : 'visible',
+            }}
+          >
             <h6>Or</h6>
             <div className="vertical-divider-div"></div>
           </div>
         </div>
         {/* Record & Replace Section */}
-        <div>
+        <div
+          style={{
+            visibility: isPreview ? 'hidden' : 'visible',
+          }}
+        >
           <h6 className="text-white text-center">
             Record & Replace AI&apos;s voice
           </h6>

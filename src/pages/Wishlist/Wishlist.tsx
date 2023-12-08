@@ -1,6 +1,6 @@
 import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
-import Spinner from '@/shared/components/Spinner/Spinner'
+import Spinner from 'react-bootstrap/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import { apiUrl } from '@/shared/config'
 import axios, { CancelTokenSource } from 'axios'
@@ -15,6 +15,76 @@ import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
 import encryptData from '@/shared/utils/encrypt'
 import Carousel from 'react-bootstrap/Carousel'
+interface VideosState {
+  data: any[]
+  totalVideos: number
+  totalPages: number
+  currentPage: number
+  videoComponentData: any[]
+}
+
+type SetVideosData = React.Dispatch<React.SetStateAction<VideosState | null>>
+
+type DataState = VideosState | null
+
+type FetchVideosDataFunction = (
+  dataState: DataState,
+  setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+) => Promise<void>
+
+const CustomButton = ({
+  className,
+  onClick,
+  disabled,
+  children,
+}: {
+  onClick: () => void
+  className: string
+  disabled: boolean
+  children: React.ReactNode
+}) => {
+  const buttonStyle: React.CSSProperties = {
+    opacity: disabled ? '50%' : '100%',
+  }
+
+  const handleHover = (event: any) => {
+    if (!disabled) {
+      // Add your custom hover style changes here
+      event.target.style.cursor = 'pointer'
+      // Other hover effects
+    } else {
+      event.target.style.cursor = 'not-allowed'
+    }
+  }
+
+  return (
+    <button
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+      style={buttonStyle}
+      onMouseOver={handleHover}
+    >
+      {children}
+    </button>
+  )
+}
+
+const CustomSpinner = () => (
+  <div className="d-flex justify-content-between align-items-center h-100 h-100">
+    <div className="w3-row classic-container row">
+      <Spinner
+        animation="border"
+        role="status"
+        style={{
+          margin: 'auto',
+        }}
+      >
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>
+    </div>
+  </div>
+)
 
 const allCategories = [
   'Film & Animation',
@@ -41,6 +111,8 @@ const Wishlist = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [perPage, setPerPage] = useState(10)
   const [totalRows, setTotalRows] = useState(0)
+  const [wishlistData, setWishlistData] = useState<VideosState | null>(null)
+  const [showWishlistSpinner, setShowWishlistSpinner] = useState(true)
   // const [youTubeIds, setYouTubeIds] = useState<string[]>([])
   // const [youDescribeIds, setYouDescribeIds] = useState<string[]>([])
   // const [votes, setVotes] = useState<number[]>([])
@@ -107,7 +179,7 @@ const Wishlist = () => {
     {
       name: 'Recent Request',
       selector: (row) => row.lastVoted,
-      grow: 1.2,
+      grow: 1.5,
       sortable: true,
       wrap: true,
       hide: 'md' as Media,
@@ -119,6 +191,14 @@ const Wishlist = () => {
       grow: 0,
       sortable: true,
       sortField: 'votes',
+    },
+    {
+      name: 'AI Descriptions',
+      cell: (row) => (row.aiRequested ? 'Available' : 'Not Available'),
+      grow: 1.5,
+      sortable: true,
+      wrap: true,
+      sortField: 'AI-Descriptions',
     },
     {
       cell: (row) => (
@@ -136,28 +216,159 @@ const Wishlist = () => {
 
   const itemsPerPage = 5 // Change this as per your requirements
 
-  // Calculate the total number of slides for videosAI
-  const totalVideoSlides = Math.ceil(videoCardsComponents.length / itemsPerPage)
+  const fetchVideoDetails = async (videoIds: string[]) => {
+    try {
+      // Your logic for fetching video details goes here
+      // Make sure to handle errors appropriately
+      const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${videoIds.join(
+        ',',
+      )}&key=wishlist`
+      const response = await ourFetch(url)
+      return JSON.parse(response.result)
+    } catch (error) {
+      console.error('Error fetching video details:', error)
+      throw error // Rethrow the error for handling in the calling function
+    }
+  }
 
-  // Initialize active slide state
-  const [activeVideoSlide, setActiveVideoAISlide] = useState(0)
+  const fetchAndSetWishlistData: FetchVideosDataFunction = async (
+    dataState,
+    setLoadingState,
+  ) => {
+    console.log(dataState)
+    const pageNumber = dataState?.currentPage || 1
 
-  // Function to handle slide change for videosAI
-  const handleVideoSlideChange = (selectedIndex: number) => {
-    setActiveVideoAISlide(selectedIndex)
-    // // Check if there are videos in the next slide
-    // if (selectedIndex < totalVideoAISlides - 1) {
-    //   setHasNextVideos(true)
-    // } else {
-    //   setHasNextVideos(false)
-    // }
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-user-wishlist`,
+        {
+          params: {
+            pageNumber: pageNumber,
+          },
 
-    // // Check if there are videos in the previous slide
-    // if (selectedIndex > 0) {
-    //   setHasPreviousVideos(true)
-    // } else {
-    //   setHasPreviousVideos(false)
-    // }
+          withCredentials: true,
+          headers: {
+            authorization: encryptData(userDataStore.getState().userId),
+          },
+        },
+      )
+
+      const totalVideosLength = response.data.totalVideos
+      const calculatedTotalVideoPages = Math.ceil(
+        totalVideosLength / itemsPerPage,
+      )
+      const wishListItems = response.data
+      const topYouTubeIds = []
+      const topYouDescribeIds = []
+      const topVotes = []
+      const votedArr = []
+      const aiReq = []
+
+      for (let i = 0; i < wishListItems.length; i += 1) {
+        topYouTubeIds.push(wishListItems[i].youtube_id)
+        topYouDescribeIds.push(wishListItems[i]._id)
+        topVotes.push(wishListItems[i].votes)
+        aiReq.push(wishListItems[i].aiRequested)
+        votedArr.push({
+          id: wishListItems[i]._id,
+          voted: wishListItems[i].votes,
+        })
+      }
+
+      const youTubeResponse = await fetchVideoDetails(topYouTubeIds)
+
+      const videoCardsComponents = []
+
+      for (let i = 0; i < youTubeResponse.items.length; i += 1) {
+        const item = youTubeResponse.items[i]
+
+        if (!item.statistics || !item.snippet) {
+          continue
+        }
+
+        const _id = topYouDescribeIds[i]
+        const youTubeId = item.id
+        const thumbnailMedium = item.snippet.thumbnails.medium
+        const title = item.snippet.title
+        const description = item.snippet.description
+        const author = item.snippet.channelTitle
+        const views = convertViewsToCardFormat(
+          Number(item.statistics.viewCount),
+        )
+        const publishedAt = new Date(item.snippet.publishedAt)
+        const now = Date.now()
+        const votes = topVotes[i]
+        const aiRequested = aiReq[i]
+        const time = convertTimeToCardFormat(
+          Number(now - publishedAt.getMilliseconds()),
+        )
+
+        const voted = votedArr[i].voted
+        videoCardsComponents.push(
+          <div className="wishlist-video-card" key={_id}>
+            <VideoCard
+              youTubeId={youTubeId}
+              thumbnailMediumUrl={thumbnailMedium.url}
+              title={title}
+              description={description}
+              author={author}
+              views={views}
+              time={time}
+              votes={votes}
+              buttons="upvote-describe"
+              userVote={voted}
+              aiRequested={aiRequested}
+            />
+          </div>,
+        )
+      }
+      const newWishlistData = {
+        data: videoCardsComponents,
+        totalVideos: videoCardsComponents.length,
+        totalPages: calculatedTotalVideoPages,
+        currentPage: pageNumber,
+        videoComponentData: videoCardsComponents,
+      }
+
+      setWishlistData(newWishlistData)
+
+      setLoadingState(false)
+    } catch (error) {
+      console.error('Error fetching and setting wish list data:', error)
+      // Handle the error as needed
+    }
+  }
+
+  const handleNextPage = (
+    currentDataState: VideosState | null,
+    setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
+    if (!currentDataState) return
+    fetchAndSetWishlistData(
+      {
+        ...currentDataState,
+        currentPage: Math.min(
+          currentDataState.currentPage + 1,
+          currentDataState.totalPages,
+        ),
+      },
+      setVideoLoadingState,
+    )
+  }
+
+  const handlePreviousPage = (
+    currentDataState: VideosState | null,
+    setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
+    if (!currentDataState) return
+    fetchAndSetWishlistData(
+      {
+        ...currentDataState,
+        currentPage: Math.max(currentDataState.currentPage - 1, 1),
+      },
+
+      setVideoLoadingState,
+    )
   }
 
   const describeThisVideo = (youTubeId: string) => {
@@ -181,7 +392,8 @@ const Wishlist = () => {
             )
             return
           }
-          navigate('/editor/' + res.data.url)
+
+          navigate('/video/' + youTubeId)
         })
     } else {
       alert(
@@ -189,35 +401,12 @@ const Wishlist = () => {
       )
     }
   }
-  function renderCarouselIndicators(totalSlides: number, activeSlide: number) {
-    return (
-      <ol className="carousel-indicators">
-        {Array.from({ length: totalSlides }).map((_, index) => (
-          <li
-            key={index}
-            onClick={() => setActiveVideoAISlide(index)}
-            className={index === activeSlide ? 'active' : ''}
-          ></li>
-        ))}
-      </ol>
-    )
-  }
-  // // Slice the videosAI array to display only the videos for the active page
-  // const videosAIToDisplay = videosAI.slice(videoAIStartIndex, videoAIEndIndex)
-  // console.log({ videosAIToDisplay })
-  // Calculate the range of videos to display on the current slide
-  const videoStartIndex = activeVideoSlide * itemsPerPage
-  const videoEndIndex = videoStartIndex + itemsPerPage
-
-  const videosToDisplay = videoCardsComponents.slice(
-    videoStartIndex,
-    videoEndIndex,
-  )
 
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
     loadTableVideos(currentPageNumber, perPage)
     loadTopVideos()
+    fetchAndSetWishlistData(wishlistData, setShowWishlistSpinner)
   }, [userDataStore.getState().userId])
 
   /*
@@ -253,26 +442,30 @@ const Wishlist = () => {
       .then((response) => {
         const wishListItems = response.data.data
         setTotalRows(response.data.totalItems)
+        // const wishListItems = responseData.data
+        // setTotalRows(responseData.totalItems)
         const youTubeIds = []
         const youDescribeIds = []
         const votes = []
         const updatedAt = []
         const categories = []
+        const aiRequested = []
         for (let i = 0; i < wishListItems.length; i += 1) {
           youTubeIds.push(wishListItems[i].youtube_id)
           youDescribeIds.push(wishListItems[i]._id)
           votes.push(wishListItems[i].votes)
           updatedAt.push(wishListItems[i].updated_at)
           categories.push(wishListItems[i].category)
+          aiRequested.push(wishListItems[i].aiRequested)
         }
         // setYouTubeIds(youTubeIds)
         // setYouDescribeIds(youDescribeIds)
         // setVotes(votes)
         // setUpdatedAt(updatedAt)
         // setCategories(categories)
-        return { youTubeIds, votes, categories, updatedAt }
+        return { youTubeIds, votes, categories, updatedAt, aiRequested }
       })
-      .then(({ youTubeIds, votes, categories, updatedAt }) => {
+      .then(({ youTubeIds, votes, categories, updatedAt, aiRequested }) => {
         const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${youTubeIds.join(
           ',',
         )}&key=wishlist`
@@ -282,6 +475,7 @@ const Wishlist = () => {
             votes,
             categories,
             updatedAt,
+            aiRequested,
           )
         })
       })
@@ -297,9 +491,9 @@ const Wishlist = () => {
     votes: any,
     categories: any,
     updatedAt: any,
+    aiRequested: any,
   ) => {
     const rows = []
-    console.log('YT Response', youTubeResponse)
     for (let i = 0; i < youTubeResponse.items.length; i += 1) {
       const item = youTubeResponse.items[i]
       if (!item.statistics || !item.snippet) {
@@ -328,6 +522,7 @@ const Wishlist = () => {
 
       const votesCount = votes[i]
       const category = categories[i]
+      const aiReq = aiRequested[i]
 
       rows.push({
         title: title,
@@ -337,14 +532,14 @@ const Wishlist = () => {
         thumbnail: thumbnailMedium,
         lastVoted: diffToLastUpdate,
         category: category,
+        aiRequested: aiReq,
       })
     }
     setRows(rows)
-    console.log(rows)
   }
 
   const loadTopVideos = () => {
-    const url = `${apiUrl}/wishlist/top/`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-top-wishlist`
     // console.log(userDataStore.getState())
     if (cancelRequest.current) {
       cancelRequest.current.cancel()
@@ -359,38 +554,41 @@ const Wishlist = () => {
         cancelToken: cancelRequest.current.token,
       })
       .then((response) => {
-        // console.log('response')
-        // console.log(response.data.result)
-        const wishListItems = response.data.result
+        const wishListItems = response.data
         const topYouTubeIds = []
         const topYouDescribeIds = []
         const topVotes = []
         const votedArr = []
+        const aiReq = []
         for (let i = 0; i < wishListItems.length; i += 1) {
           topYouTubeIds.push(wishListItems[i].youtube_id)
           topYouDescribeIds.push(wishListItems[i]._id)
           topVotes.push(wishListItems[i].votes)
+          aiReq.push(wishListItems[i].aiRequested)
           votedArr.push({
             id: wishListItems[i]._id,
-            voted: wishListItems[i].voted,
+            voted: wishListItems[i].votes,
           })
         }
-        return { topYouTubeIds, topYouDescribeIds, topVotes, votedArr }
+        return { topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }
       })
-      .then(({ topYouTubeIds, topYouDescribeIds, topVotes, votedArr }) => {
-        const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
-          ',',
-        )}&key=wishlist`
-        ourFetch(url).then((response) => {
-          parseFetchedData(
-            JSON.parse(response.result),
-            topYouDescribeIds,
-            topYouTubeIds,
-            topVotes,
-            votedArr,
-          )
-        })
-      })
+      .then(
+        ({ topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }) => {
+          const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
+            ',',
+          )}&key=wishlist`
+          ourFetch(url).then((response) => {
+            parseFetchedData(
+              JSON.parse(response.result),
+              topYouDescribeIds,
+              topYouTubeIds,
+              topVotes,
+              votedArr,
+              aiReq,
+            )
+          })
+        },
+      )
   }
 
   const parseFetchedData = (
@@ -399,6 +597,7 @@ const Wishlist = () => {
     topYouTubeIds: any,
     topVotes: any,
     votedArr: any,
+    aiReq: any,
   ) => {
     const videoCardsComponents = []
     for (let i = 0; i < youTubeResponse.items.length; i += 1) {
@@ -416,12 +615,12 @@ const Wishlist = () => {
       const publishedAt = new Date(item.snippet.publishedAt)
       const now = Date.now()
       const votes = topVotes[i]
+      const aiRequested = aiReq[i]
       const time = convertTimeToCardFormat(
         Number(now - publishedAt.getMilliseconds()),
       )
-      console.log('votes', item)
-      const voted = votedArr[i].voted
-      console.log('voteds', votedArr[i])
+
+      const voted = votedArr[i].votes
 
       videoCardsComponents.push(
         <div className="wishlist-video-card" key={_id}>
@@ -433,9 +632,11 @@ const Wishlist = () => {
             author={author}
             views={views}
             time={time}
-            votes={votes}
+            votes={votes?.voted}
             buttons="upvote-describe"
             userVote={voted}
+            aiRequested={aiRequested}
+
             //   getAppState={this.props.getAppState}
           />
         </div>,
@@ -470,7 +671,7 @@ const Wishlist = () => {
     <main id="wish-list" title="Wish list page" className="wish-list">
       <div className="w3-container w3-indigo">
         <h2 id="wish-list-heading" className="classic-h2" tabIndex={-1}>
-          {translate('WISH LIST')}
+          {translate('WISHLIST')}
         </h2>
       </div>
       {showSpinner ? <Spinner /> : null}
@@ -483,38 +684,49 @@ const Wishlist = () => {
       <header className="w3-container w3-indigo">
         <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
       </header>
+
       <div className="d-flex justify-content-center custom-carousel">
-        {videosToDisplay.length > 0 && ( // Check if there are videos to display
-          <>
-            {/* Custom previous button */}
-            <button
-              className="prev-icon"
-              onClick={() => handleVideoSlideChange(activeVideoSlide - 1)}
-              disabled={activeVideoSlide === 0}
-            >
-              &lt;
-            </button>
+        <div className="custom-carousel">
+          {!wishlistData && <CustomSpinner />}
+          {wishlistData && wishlistData?.data.length > 0 && (
+            <div className="d-flex justify-content-between align-items-center h-100">
+              {/* Custom previous button */}
+              <CustomButton
+                className="prev-wishlist-icon"
+                onClick={async () => {
+                  setShowWishlistSpinner(true) // Optionally, show spinner while loading
+                  await handlePreviousPage(wishlistData, setShowWishlistSpinner)
+                  setShowWishlistSpinner(false) // Optionally, hide spinner after loading
+                }}
+                disabled={wishlistData.currentPage === 1}
+              >
+                &lt;
+              </CustomButton>
 
-            {/* Content for displaying videos */}
-            <div className="w3-row classic-container row">
-              {videosToDisplay}
+              {/* Content for displaying videos */}
+              <div className="w3-row classic-container row">
+                {wishlistData.data}
+              </div>
+
+              {/* Custom next button */}
+              <CustomButton
+                className="next-wishlist-icon"
+                onClick={async () => {
+                  setShowWishlistSpinner(true) // Optionally, show spinner while loading
+                  await handleNextPage(wishlistData, setShowWishlistSpinner)
+                  setShowWishlistSpinner(false) // Optionally, hide spinner after loading
+                }}
+                disabled={wishlistData.currentPage === wishlistData.totalPages}
+              >
+                &gt;
+              </CustomButton>
             </div>
-            {renderCarouselIndicators(totalVideoSlides, activeVideoSlide)}
+          )}
 
-            {/* Custom next button */}
-            <button
-              className="next-icon"
-              onClick={() => handleVideoSlideChange(activeVideoSlide + 1)}
-              disabled={activeVideoSlide === totalVideoSlides - 1}
-            >
-              &gt;
-            </button>
-          </>
-        )}
-
-        {videosToDisplay.length === 0 && (
-          <p className="history-text">No history to view.</p>
-        )}
+          {wishlistData?.data.length === 0 && (
+            <p className="history-text">No videos in your wishlist.</p>
+          )}
+        </div>
       </div>
       <form
         onSubmit={(e: any) => {
