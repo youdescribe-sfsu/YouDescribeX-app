@@ -152,12 +152,6 @@ const UserDescribedVideos = () => {
         ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
         : `${apiUrl}/videos/user/${userId}`
       getUserVideos(myDescribedVideosUrl, setVideos)
-
-      // Fetch and process AI Requested Videos
-      const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
-        : `${apiUrl}/videos/user/${userId}`
-      getUserVideos(aiRequestedVideosUrl, setAIVideos)
     }
   }, [userId])
 
@@ -194,17 +188,6 @@ const UserDescribedVideos = () => {
             {showSpinner ? <Spinner /> : null}
 
             <div className="w3-row classic-container row">{videos}</div>
-
-            {YDLoadMoreButton}
-          </section>
-          <section>
-            <header className="w3-container w3-indigo">
-              <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
-            </header>
-
-            {showSpinner ? <Spinner /> : null}
-
-            <div className="w3-row classic-container row">{videosAI}</div>
 
             {YDLoadMoreButton}
           </section>

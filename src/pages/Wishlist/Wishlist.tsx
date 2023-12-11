@@ -257,7 +257,10 @@ const Wishlist = () => {
       const calculatedTotalVideoPages = Math.ceil(
         totalVideosLength / itemsPerPage,
       )
-      const wishListItems = response.data
+      console.log({ response })
+      console.log(response.data)
+      const wishListItems = response.data.result
+      console.log({ wishListItems })
       const topYouTubeIds = []
       const topYouDescribeIds = []
       const topVotes = []

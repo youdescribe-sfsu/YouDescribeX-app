@@ -104,9 +104,8 @@ const History = () => {
   // const [videos, setVideos] = useState<any[]>([])
 
   // Recent Descriptions
-  const [recentDescriptions, setRecentDescriptions] =
-    useState<VideosState | null>(null)
-  const [showRecentDescriptionsSpinner, setShowRecentDescriptionsSpinner] =
+  const [myDescriptions, setmyDescriptions] = useState<VideosState | null>(null)
+  const [showmyDescriptionsSpinner, setShowmyDescriptionsSpinner] =
     useState(true)
 
   // AI Requested Videos
@@ -121,10 +120,10 @@ const History = () => {
 
   const itemsPerPage = 4 // Change this as per your requirements
 
-  const getRecentDescriptionsUrl = () => {
+  const getMyDescriptionsUrl = () => {
     return process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions`
-      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions`
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user`
+      : `${apiUrl}/api/videos/user/`
   }
 
   const getUserHistoryUrl = () => {
@@ -249,10 +248,10 @@ const History = () => {
 
   useEffect(() => {
     fetchVideosData(
-      recentDescriptions,
-      setRecentDescriptions,
-      getRecentDescriptionsUrl(),
-      setShowRecentDescriptionsSpinner,
+      myDescriptions,
+      setmyDescriptions,
+      getMyDescriptionsUrl(),
+      setShowmyDescriptionsSpinner,
     )
 
     fetchVideosData(
@@ -274,35 +273,35 @@ const History = () => {
       <main>
         <section>
           <header className="w3-container w3-indigo">
-            <h2 className="classic-h2">{translate('RECENT DESCRIPTIONS')}</h2>
+            <h2 className="classic-h2">{translate('MY DESCRIPTIONS')}</h2>
           </header>
 
           <div className="custom-carousel">
-            {!recentDescriptions && <CustomSpinner />}
-            {recentDescriptions && recentDescriptions?.data.length > 0 && (
+            {!myDescriptions && <CustomSpinner />}
+            {myDescriptions && myDescriptions?.data.length > 0 && (
               <div className="d-flex justify-content-between align-items-center h-100">
                 {/* Custom previous button */}
                 <CustomButton
                   className="prev-icon"
                   onClick={() =>
                     handlePreviousPage(
-                      recentDescriptions,
-                      setRecentDescriptions,
-                      getRecentDescriptionsUrl(),
-                      setShowRecentDescriptionsSpinner,
+                      myDescriptions,
+                      setmyDescriptions,
+                      getMyDescriptionsUrl(),
+                      setShowmyDescriptionsSpinner,
                     )
                   }
-                  disabled={recentDescriptions.currentPage === 1}
+                  disabled={myDescriptions.currentPage === 1}
                 >
                   &lt;
                 </CustomButton>
 
                 {/* Content for displaying videos */}
                 <div className="w3-row classic-container row">
-                  {showRecentDescriptionsSpinner ? (
+                  {showmyDescriptionsSpinner ? (
                     <CustomSpinner />
                   ) : (
-                    recentDescriptions.videoComponentData.map((video: any) => (
+                    myDescriptions.videoComponentData.map((video: any) => (
                       <div
                         className="col-sm-6 col-md-4 col-lg-3"
                         key={video.youTubeId}
@@ -318,15 +317,14 @@ const History = () => {
                   className="next-icon"
                   onClick={() =>
                     handleNextPage(
-                      recentDescriptions,
-                      setRecentDescriptions,
-                      getRecentDescriptionsUrl(),
-                      setShowRecentDescriptionsSpinner,
+                      myDescriptions,
+                      setmyDescriptions,
+                      getMyDescriptionsUrl(),
+                      setShowmyDescriptionsSpinner,
                     )
                   }
                   disabled={
-                    recentDescriptions.currentPage ===
-                    recentDescriptions.totalPages
+                    myDescriptions.currentPage === myDescriptions.totalPages
                   }
                 >
                   &gt;
@@ -334,7 +332,7 @@ const History = () => {
               </div>
             )}
 
-            {recentDescriptions?.data.length === 0 && (
+            {myDescriptions?.data.length === 0 && (
               <p className="history-text">No Recent descriptions to view</p>
             )}
           </div>
