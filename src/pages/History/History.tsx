@@ -69,7 +69,7 @@ const CustomButton = ({
 }
 
 const CustomSpinner = () => (
-  <div className="d-flex justify-content-between align-items-center h-100 h-100">
+  <div className="d-flex justify-content-between align-items-center h-100 h-100 m-auto">
     <div className="w3-row classic-container row">
       <Spinner
         animation="border"
@@ -123,8 +123,8 @@ const History = () => {
 
   const getRecentDescriptionsUrl = () => {
     return process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-recent-descriptions`
-      : `${apiUrl}/api/audio-descriptions/get-recent-descriptions`
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
+      : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
   }
 
   const getUserHistoryUrl = () => {
@@ -274,14 +274,13 @@ const History = () => {
       <main>
         <section>
           <header className="w3-container w3-indigo">
-            <h2 className="classic-h2">{translate('RECENT DESCRIPTIONS')}</h2>
+            <h2 className="classic-h2">{translate('MY DESCRIPTIONS')}</h2>
           </header>
 
-          <div className="custom-carousel">
+          <div className="custom-carousel flex min-h-[290px]">
             {!recentDescriptions && <CustomSpinner />}
             {recentDescriptions && recentDescriptions?.data.length > 0 && (
-              <div className="d-flex justify-content-between align-items-center h-100">
-                {/* Custom previous button */}
+              <div className="d-flex justify-content-between align-items-center h-100 m-auto">
                 <CustomButton
                   className="prev-icon"
                   onClick={() =>
@@ -345,10 +344,10 @@ const History = () => {
             <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
           </header>
 
-          <div className="custom-carousel">
+          <div className="custom-carousel flex min-h-[290px]">
             {!aiRequestedVideos && <CustomSpinner />}
             {aiRequestedVideos && aiRequestedVideos?.data.length > 0 && (
-              <div className="d-flex justify-content-between align-items-center h-100">
+              <div className="d-flex justify-content-between align-items-center h-100 m-auto">
                 {/* Custom previous button */}
                 <CustomButton
                   className="prev-icon"
@@ -415,7 +414,7 @@ const History = () => {
             <h2 className="classic-h2">{translate('HISTORY')}</h2>
           </header>
 
-          <div className="d-flex justify-content-center custom-carousel">
+          <div className="d-flex justify-content-center custom-carousel flex min-h-[290px] m-auto">
             {!historyVideos && <CustomSpinner />}
             {historyVideos && historyVideos?.data.length > 0 && (
               <>

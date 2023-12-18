@@ -1210,25 +1210,25 @@ const Video = () => {
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
 
     try {
-      setRequestAiDescription({
-        status: 'pending',
-        requested: true,
-      })
-      const response = await axios.post(
-        url,
-        {
-          youtube_id: videoId,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-      const data = response.data
+      // setRequestAiDescription({
+      //   status: 'pending',
+      //   requested: true,
+      // })
+      // const response = await axios.post(
+      //   url,
+      //   {
+      //     youtube_id: videoId,
+      //   },
+      //   {
+      //     withCredentials: true,
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //   },
+      // )
+      // const data = response.data
       toast.success('AI Descriptions have been requested')
-      console.log('data for asdasd:: ', data)
+      // console.log('data for asdasd:: ', data)
     } catch (error) {
       console.log(error)
       setRequestAiDescription({
@@ -1246,9 +1246,9 @@ const Video = () => {
         <Button
           title={translate('Go to AI descriptions')}
           ariaLabel="Go to descriptions"
-          text={translate('Go to AI descriptions')}
+          text={translate('Request AI Descriptions')}
           color="w3-lime w3-block w3-margin-top"
-          onClick={() => navigate(`/editor/${requestAiDescription.url}`)}
+          onClick={() => handleGenerateAIDescriptions()}
         />
       )
     } else if (requestAiDescription.status === 'available') {
@@ -1256,9 +1256,9 @@ const Video = () => {
         <Button
           title={translate('Preview Available Descriptions')}
           ariaLabel="Preview Available Descriptions"
-          text={translate('Preview Available Descriptions')}
+          text={translate('Request AI Descriptions')}
           color="w3-indigo w3-block w3-margin-top"
-          onClick={() => handlePreviewAudioDescription()}
+          onClick={() => handleGenerateAIDescriptions()}
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )
@@ -1444,7 +1444,7 @@ const Video = () => {
             }}
           >
             <div className="w3-card-2">
-              {requestAiDescription.url ? (
+              {!requestAiDescription.url ? (
                 <h3 className="classic-h3">AI descriptions available</h3>
               ) : (
                 <h3 className="classic-h3">No descriptions available</h3>

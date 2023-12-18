@@ -32,6 +32,8 @@
 /* Custom CSS for styling the Carousel */
 .custom-carousel {
   position: relative;
+min-height: 290px;
+display: flex;
 }
 
 /* Style the Carousel control buttons (prev and next) */
