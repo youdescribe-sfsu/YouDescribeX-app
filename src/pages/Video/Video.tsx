@@ -127,6 +127,7 @@ const Video = () => {
     requested: boolean
     url?: string
     aiDescriptionId?: string
+    preview?: boolean
   }>({
     status: '',
     requested: false,
@@ -1210,23 +1211,23 @@ const Video = () => {
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
 
     try {
-      // setRequestAiDescription({
-      //   status: 'pending',
-      //   requested: true,
-      // })
-      // const response = await axios.post(
-      //   url,
-      //   {
-      //     youtube_id: videoId,
-      //   },
-      //   {
-      //     withCredentials: true,
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //     },
-      //   },
-      // )
-      // const data = response.data
+      setRequestAiDescription({
+        status: 'pending',
+        requested: true,
+      })
+      const response = await axios.post(
+        url,
+        {
+          youtube_id: videoId,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = response.data
       toast.success('AI Descriptions have been requested')
       // console.log('data for asdasd:: ', data)
     } catch (error) {
@@ -1240,15 +1241,17 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
-    if (requestAiDescription.url) {
+    if (requestAiDescription.url && !requestAiDescription.preview) {
       // Go to descriptions with url
       return (
         <Button
-          title={translate('Go to AI descriptions')}
+          title={translate('Go to descriptions')}
           ariaLabel="Go to descriptions"
-          text={translate('Request AI Descriptions')}
+          text={translate('Go To Descriptions')}
           color="w3-lime w3-block w3-margin-top"
-          onClick={() => handleGenerateAIDescriptions()}
+          onClick={() =>
+            requestAiDescription.url && navigate(requestAiDescription.url)
+          }
         />
       )
     } else if (requestAiDescription.status === 'available') {
@@ -1256,9 +1259,9 @@ const Video = () => {
         <Button
           title={translate('Preview Available Descriptions')}
           ariaLabel="Preview Available Descriptions"
-          text={translate('Request AI Descriptions')}
+          text={translate('Preview AI Descriptions')}
           color="w3-indigo w3-block w3-margin-top"
-          onClick={() => handleGenerateAIDescriptions()}
+          onClick={() => handlePreviewAudioDescription()}
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )
