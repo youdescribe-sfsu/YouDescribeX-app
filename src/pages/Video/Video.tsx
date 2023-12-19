@@ -1184,22 +1184,6 @@ const Video = () => {
     }
   }
 
-  const handlePreviewAudioDescription = async () => {
-    try {
-      setButtonLoading(true)
-      if (requestAiDescription && requestAiDescription.aiDescriptionId)
-        navigate(
-          `/audio-description/preview/${videoId}/${requestAiDescription.aiDescriptionId}`,
-        )
-    } catch (error) {
-      if (toastId.current) toast.dismiss(toastId.current)
-      toast.error('Something went wrong, please try again later')
-      console.log(error)
-    } finally {
-      setButtonLoading(false)
-    }
-  }
-
   const handleGenerateAIDescriptions = async () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
@@ -1250,18 +1234,20 @@ const Video = () => {
           text={translate('Go To Descriptions')}
           color="w3-lime w3-block w3-margin-top"
           onClick={() =>
-            requestAiDescription.url && navigate(requestAiDescription.url)
+            requestAiDescription.url && navigate(`/${requestAiDescription.url}`)
           }
         />
       )
-    } else if (requestAiDescription.status === 'available') {
+    } else if (requestAiDescription.url) {
       return (
         <Button
           title={translate('Preview Available Descriptions')}
           ariaLabel="Preview Available Descriptions"
           text={translate('Preview AI Descriptions')}
           color="w3-indigo w3-block w3-margin-top"
-          onClick={() => handlePreviewAudioDescription()}
+          onClick={() =>
+            requestAiDescription.url && navigate(`/${requestAiDescription.url}`)
+          }
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )
@@ -1272,7 +1258,7 @@ const Video = () => {
           ariaLabel="AI Descriptions requested"
           text={translate('AI Descriptions requested')}
           color="w3-brown w3-block w3-margin-top"
-          onClick={() => handleGenerateAIDescriptions()}
+          // onClick={() => handleGenerateAIDescriptions()}
           disabled={requestAiDescription.requested}
         />
       )
