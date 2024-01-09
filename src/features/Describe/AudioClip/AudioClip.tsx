@@ -200,26 +200,7 @@ const AudioClip = ({
   }
 
   // update clip title
-  const handleClipTitleUpdate = (e: any) => {
-    setClipTitle(e.target.value)
-    axios
-      .put(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-title/${clipID}`,
-        {
-          adTitle: e.target.value,
-        },
-      )
-      .then((res) => {
-        // for simple text field update, the update Data is causing loading of the page.
-        // so for each char update in the title, the spinner displays - Very bad UX
-        // hence commenting below. Data is updated anyhow
-        // setUpdateData(!updateData);
-      })
-      .catch((err) => {
-        console.error(err.response.data)
-        toast.error('Error updating Title. Please try again!!')
-      })
-  }
+
   // update clip playback type - inline/extended
   const handlePlaybackTypeUpdate = (e: any) => {
     // check if user is trying to change the clip Playback type to inline at the end of the timeline
@@ -250,6 +231,113 @@ const AudioClip = ({
     }
   }
 
+  // const handleClickSaveClipDescription = (updatedClipDescriptionText:string) => {
+  //   // check if the clip has been updated
+  //   if (updatedClipDescriptionText !== clipDescriptionText) {
+  //     // show spinner
+  //     setShowSpinner(true)
+  //     axios
+  //       .put(
+  //         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipID}`,
+  //         {
+  //           userId: userId,
+  //           youtubeVideoId: youtubeVideoId,
+  //           clipDescriptionText: updatedClipDescriptionText,
+  //           clipDescriptionType: clipDescriptionType,
+  //           audioDescriptionId: audioDescriptionId,
+  //         },
+  //       )
+  //       .then((res) => {
+  //         // below prop is used to re-render the parent component i.e. fetch audio clip data
+  //         setUpdateData(!updateData)
+  //         setShowSpinner(false) // stop showing spinner
+  //         toast.success('Description Saved Successfully!!') // show toast message
+  //       })
+  //       .catch((err) => {
+  //         // err.response.data.message has the message text send by the server
+  //         toast.error(err.response.data.message) // show toast message
+  //       })
+  //   }
+
+  //   if(clipTitle === '' || clipTitle === null || clipTitle === initialClipTitle){
+  //     toast.error('Please enter a valid title')
+  //     return
+  //   }
+
+  //   else{
+  //     axios
+  //     .put(
+  //       `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-title/${clipID}`,
+  //       {
+  //         adTitle: clipTitle,
+  //       },
+  //     )
+  //     .then((res) => {
+  //       // for simple text field update, the update Data is causing loading of the page.
+  //       // so for each char update in the title, the spinner displays - Very bad UX
+  //       // hence commenting below. Data is updated anyhow
+  //       // setUpdateData(!updateData);
+  //     })
+  //     .catch((err) => {
+  //       console.error(err.response.data)
+  //       toast.error('Error updating Title. Please try again!!')
+  //     })
+  //   }
+  // }
+
+  const handleClickSaveClipDescription = async (
+    updatedClipDescriptionText: string,
+  ) => {
+    try {
+      // check if the clip has been updated
+      if (updatedClipDescriptionText !== clipDescriptionText) {
+        // show spinner
+        setShowSpinner(true)
+
+        await axios.put(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipID}`,
+          {
+            userId: userId,
+            youtubeVideoId: youtubeVideoId,
+            clipDescriptionText: updatedClipDescriptionText,
+            clipDescriptionType: clipDescriptionType,
+            audioDescriptionId: audioDescriptionId,
+          },
+        )
+
+        // below prop is used to re-render the parent component i.e. fetch audio clip data
+        setUpdateData(!updateData)
+        toast.success('Description Saved Successfully!!') // show toast message
+      }
+
+      if (clipTitle === '' || clipTitle === null) {
+        toast.error('Please enter a valid title')
+        setShowSpinner(false) // stop showing spinner
+        return
+      } else if (clipTitle !== initialClipTitle) {
+        await axios.put(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-title/${clipID}`,
+          {
+            adTitle: clipTitle,
+          },
+        )
+
+        // for simple text field update, the update Data is causing loading of the page.
+        // so for each char update in the title, the spinner displays - Very bad UX
+        // hence commenting below. Data is updated anyhow
+        // setUpdateData(!updateData);
+      }
+    } catch (err: any) {
+      if (err.response) {
+        // err.response.data.message has the message text sent by the server
+        toast.error(err.response.data.message) // show toast message
+      } else {
+        console.error(err)
+        toast.error('An error occurred. Please try again!!')
+      }
+    }
+  }
+
   return (
     <React.Fragment>
       {/* React Fragments allow you to wrap or group multiple elements without adding an extra node to the DOM. */}
@@ -269,8 +357,9 @@ const AudioClip = ({
                   type="text"
                   className="form-control form-control-sm ad-title-input text-center"
                   placeholder="Title goes here.."
-                  value={initialClipTitle}
-                  onChange={handleClipTitleUpdate}
+                  disabled={!showEditComponent}
+                  value={clipTitle}
+                  onChange={(e) => setClipTitle(e.target.value)}
                 />
                 <h6 className="mt-1 text-white">
                   <b>Type: </b>
@@ -423,6 +512,7 @@ const AudioClip = ({
             fetchUserVideoData={fetchUserVideoData}
             setNeedRefresh={setNeedRefresh}
             isPreview={isPreview}
+            handleClickSaveClipDescription={handleClickSaveClipDescription}
           />
         )}
       </div>

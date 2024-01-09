@@ -34,6 +34,7 @@ interface Props {
   fetchUserVideoData: () => void
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
   isPreview?: boolean
+  handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
 }
 
 const EditClip = ({
@@ -60,6 +61,7 @@ const EditClip = ({
   fetchUserVideoData,
   setNeedRefresh,
   isPreview = false,
+  handleClickSaveClipDescription,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
@@ -376,34 +378,35 @@ const EditClip = ({
   }
 
   // handle save clip description - axios call -> generate audio & update endtime, duration
-  const handleClickSaveClipDescription = (e: any) => {
+  const saveClipDescription = (e: any) => {
     e.preventDefault()
-    // check if the clip has been updated
-    if (clipDescriptionText !== initialClipDescriptionText) {
-      // show spinner
-      setShowSpinner(true)
-      axios
-        .put(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
-          {
-            userId: userId,
-            youtubeVideoId: youtubeVideoId,
-            clipDescriptionText: clipDescriptionText,
-            clipDescriptionType: clipDescriptionType,
-            audioDescriptionId: audioDescriptionId,
-          },
-        )
-        .then((res) => {
-          // below prop is used to re-render the parent component i.e. fetch audio clip data
-          setUpdateData(!updateData)
-          setShowSpinner(false) // stop showing spinner
-          toast.success('Description Saved Successfully!!') // show toast message
-        })
-        .catch((err) => {
-          // err.response.data.message has the message text send by the server
-          toast.error(err.response.data.message) // show toast message
-        })
-    }
+    handleClickSaveClipDescription(clipDescriptionText)
+    // // check if the clip has been updated
+    // if (clipDescriptionText !== initialClipDescriptionText) {
+    //   // show spinner
+    //   setShowSpinner(true)
+    //   axios
+    //     .put(
+    //       `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
+    //       {
+    //         userId: userId,
+    //         youtubeVideoId: youtubeVideoId,
+    //         clipDescriptionText: clipDescriptionText,
+    //         clipDescriptionType: clipDescriptionType,
+    //         audioDescriptionId: audioDescriptionId,
+    //       },
+    //     )
+    //     .then((res) => {
+    //       // below prop is used to re-render the parent component i.e. fetch audio clip data
+    //       setUpdateData(!updateData)
+    //       setShowSpinner(false) // stop showing spinner
+    //       toast.success('Description Saved Successfully!!') // show toast message
+    //     })
+    //     .catch((err) => {
+    //       // err.response.data.message has the message text send by the server
+    //       toast.error(err.response.data.message) // show toast message
+    //     })
+    // }
   }
 
   // delete a clip
@@ -529,7 +532,7 @@ const EditClip = ({
                 <Button
                   type="button"
                   className="btn rounded btn-sm text-white save-desc-btn ydx-button"
-                  onClick={handleClickSaveClipDescription}
+                  onClick={saveClipDescription}
                   disabled={isPreview}
                 >
                   <i className="fa fa-save" /> {'  '} Save
