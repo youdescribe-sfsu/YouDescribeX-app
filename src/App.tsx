@@ -91,8 +91,7 @@ interface UserStore {
   setUserName: (userName: string) => void
   setUserPicture: (userPicture: string) => void
   setUserAdmin: (userAdmin: number) => void
-  clearUserData: () => void; // New action to clear all data
-
+  clearUserData: () => void // New action to clear all data
 }
 
 export const userDataStore = create<UserStore>()(
@@ -117,16 +116,16 @@ export const userDataStore = create<UserStore>()(
         userName: '',
         userPicture: '',
         userAdmin: 0,
-      });
-      localStorage.clear();
-      resetCookie();
+      })
+      localStorage.clear()
+      resetCookie()
     },
   })),
 )
 
 const App = () => {
-  const { userId, userToken, userName, userPicture, clearUserData} = userDataStore(
-    (state) => {
+  const { userId, userToken, userName, userPicture, clearUserData } =
+    userDataStore((state) => {
       return {
         userId: state.userId,
         userToken: state.userToken,
@@ -134,8 +133,7 @@ const App = () => {
         userPicture: state.userPicture,
         clearUserData: state.clearUserData,
       }
-    },
-  )
+    })
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -282,8 +280,6 @@ const App = () => {
     document.cookie = `userName=${name};path=/`
     document.cookie = `userPicture=${picture};path=/`
   }
-
-
 
   const getCookie = (cname: string) => {
     const name = cname + '='
