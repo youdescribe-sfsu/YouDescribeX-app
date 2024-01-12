@@ -48,6 +48,7 @@ import { createBrowserHistory } from 'history'
 import PublishedAudioDescriptions from './pages/PublishedAudioDescriptions/PublishedAudioDescriptions'
 import Video_v2 from './pages/Video/Video_v2'
 import Contact from './pages/Contact/Contact'
+import ourFetch from './shared/utils/ourFetch'
 
 const history = createBrowserHistory()
 //const trackingId = "UA-171142756-3"; //live site key
@@ -193,32 +194,32 @@ const App = () => {
         url = `${apiUrl}/auth/login/success`
       }
       if (process.env.REACT_APP_ENVIRONMENT === 'development') {
-        // const authUser = process.env.REACT_APP_AUTH_USER || ''
+        const authUser = process.env.REACT_APP_USER_ID || ''
         url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google/localhost`
         // console.log('url: ', url)
-        // if (authUser) {
-        //   const response = await fetch(url, {
-        //     method: 'GET',
-        //     headers: {
-        //       Authorization: authUser, // Custom header with the user ID
-        //     },
-        //     credentials: 'include',
-        //   })
-        //   const data = await response.json()
-        //   // console.log('data: ', data)
-        //   setUserName(data.result.name)
-        //   setUserId(data.result._id)
-        //   setUserToken(data.result.token)
-        //   setUserPicture(data.result.picture)
-        //   setUserAdmin(data.result.admin)
-        //   setSignedIn(true)
-        //   setCookie(
-        //     data.result._id,
-        //     data.result.token,
-        //     data.result.name,
-        //     data.result.picture,
-        //   )
-        // }
+        if (authUser) {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              Authorization: authUser, // Custom header with the user ID
+            },
+            credentials: 'include',
+          })
+          const data = await response.json()
+          console.log('data: ', data)
+          setUserName(data.result.name)
+          setUserId(data.result._id)
+          setUserToken(data.result.token)
+          setUserPicture(data.result.picture)
+          setUserAdmin(data.result.admin)
+          setSignedIn(true)
+          setCookie(
+            data.result._id,
+            data.result.token,
+            data.result.name,
+            data.result.picture,
+          )
+        }
       } else {
         // console.log('url: ', url)
         const response = await fetch(url, {
@@ -245,7 +246,8 @@ const App = () => {
 
   const signOut = () => {
     clearUserData()
-    window.location.reload()
+    const url = `${apiUrl}/auth/logout?url=${window.location.href}`
+    window.open(url, '_self')
   }
 
   const getUserInfo = () => {

@@ -224,7 +224,7 @@ const Wishlist = () => {
         ',',
       )}&key=wishlist`
       const response = await ourFetch(url)
-      return JSON.parse(response.result)
+      return response.result
     } catch (error) {
       console.error('Error fetching video details:', error)
       throw error // Rethrow the error for handling in the calling function
