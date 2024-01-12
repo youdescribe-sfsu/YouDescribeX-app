@@ -875,7 +875,7 @@ const Video = () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
     } else {
-      const url = `${apiUrl}/wishlist`
+      const url = `${apiUrl}/wishlist/add-one-wishlist-item`
       ourFetch(url, true, {
         method: 'POST',
         headers: {
