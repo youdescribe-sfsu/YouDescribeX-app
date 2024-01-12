@@ -92,7 +92,7 @@ const DescriberCard = ({
           </div>
           <div className="w3-col l9 m7 s9">
             {name}
-            <div className="rating" aria-hidden="true">
+            <div className="rating-desc" aria-hidden="true">
               {getStars()}
             </div>
             <div className="skip">
