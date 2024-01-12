@@ -72,6 +72,12 @@ const polyglot = new Polyglot({
 
 export const translate = polyglot.t.bind(polyglot)
 
+const resetCookie = () => {
+  document.cookie = `userId=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
+  document.cookie = `userToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
+  document.cookie = `userName=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
+  document.cookie = `userPicture=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
+}
 interface UserStore {
   isSignedIn: boolean
   userId: string
@@ -85,6 +91,8 @@ interface UserStore {
   setUserName: (userName: string) => void
   setUserPicture: (userPicture: string) => void
   setUserAdmin: (userAdmin: number) => void
+  clearUserData: () => void; // New action to clear all data
+
 }
 
 export const userDataStore = create<UserStore>()(
@@ -101,17 +109,30 @@ export const userDataStore = create<UserStore>()(
     setUserName: (userName: string) => set({ userName }),
     setUserPicture: (userPicture: string) => set({ userPicture }),
     setUserAdmin: (userAdmin: number) => set({ userAdmin }),
+    clearUserData: () => {
+      set({
+        isSignedIn: false,
+        userId: '',
+        userToken: '',
+        userName: '',
+        userPicture: '',
+        userAdmin: 0,
+      });
+      localStorage.clear();
+      resetCookie();
+    },
   })),
 )
 
 const App = () => {
-  const { userId, userToken, userName, userPicture } = userDataStore(
+  const { userId, userToken, userName, userPicture, clearUserData} = userDataStore(
     (state) => {
       return {
         userId: state.userId,
         userToken: state.userToken,
         userName: state.userName,
         userPicture: state.userPicture,
+        clearUserData: state.clearUserData,
       }
     },
   )
@@ -225,25 +246,8 @@ const App = () => {
   }
 
   const signOut = () => {
-    setSignedIn(false)
-    setUserId('')
-    setUserName('')
-    setUserToken('')
-    setUserAdmin(0)
-    resetCookie()
-    // let url
-    // if (process.env.REACT_APP_USE_YDX) {
-    //   url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/logout`
-    // } else {
-    //   url = `${apiUrl}/auth/logout`
-    // }
-    // window.open(url, '_self')
-    // Refresh the page to clear the cookies
-    // wait for 1 second before reloading the page
-    setTimeout(() => {
-      window.location.reload()
-    }, 1000)
-    // window.location.reload()
+    clearUserData()
+    window.location.reload()
   }
 
   const getUserInfo = () => {
@@ -279,12 +283,7 @@ const App = () => {
     document.cookie = `userPicture=${picture};path=/`
   }
 
-  const resetCookie = () => {
-    document.cookie = `userId=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
-    document.cookie = `userToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
-    document.cookie = `userName=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
-    document.cookie = `userPicture=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
-  }
+
 
   const getCookie = (cname: string) => {
     const name = cname + '='
