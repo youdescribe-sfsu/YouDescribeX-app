@@ -6,12 +6,12 @@ const port = process.env.PORT || 3001
 const apiProxy = httpProxy.createProxyServer()
 
 apiProxy.on('error', (err, req, res) => {
-  console.log(err)
+  // console.log(err)
   res.status(500).send('Proxy error.')
 })
 
 app.all('/api/*', (req, res) => {
-  console.log(req.path)
+  // console.log(req.path)
   apiProxy.web(req, res, { target: 'http://localhost:4000' })
 })
 

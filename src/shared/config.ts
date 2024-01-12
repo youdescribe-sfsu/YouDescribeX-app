@@ -3,11 +3,13 @@ const apiVersion = 'v1'
 
 // DON'T CHANGE THESE URLS!
 
-const apiUrl = `${process.env.REACT_APP_CLASSIC_BACKEND_URL}/${apiVersion}`
+const apiUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api`
 // let apiUrl = `http://localhost:8080/${apiVersion}`;
 // let apiUrl = `https://test-api.youdescribe.org/${apiVersion}`;
 
-const audioClipsUploadsPath = `${process.env.REACT_APP_CLASSIC_BACKEND_URL}/audio-descriptions-files`
+const audioClipsUploadsPath = (clip_path: string) =>
+  clip_path.replace('.', `${process.env.REACT_APP_REDIRECT_URL}/api/static`)
+// const audioClipsUploadsPath = `${process.env.REACT_APP_YDX_BACKEND_URL}/audio-descriptions-files`
 // let audioClipsUploadsPath =
 //   "https://api.youdescribe.org/audio-descriptions-files";
 //let apiUrl = `http://localhost:8080/${apiVersion}`;

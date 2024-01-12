@@ -11,6 +11,7 @@ import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import Button from '@/shared/components/Button/Button'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const Home = () => {
   // const [dbResult, setDbResult] = useState<any[]>([])
@@ -30,46 +31,31 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const fetchingVideosToHome = (page: number = currentPage) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allResults: any[] = []
-    const url = `${apiUrl}/videos?page=${page}`
-    ourFetch(url)
-      .then((response) => {
-        const result = response.result
-        allResults.push(...result)
-      })
-      .then(() => {
-        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-all-videos`
-        setShowSpinner(true)
-        ourFetch(url).then((response) => {
-          const result = response.result
-          allResults.push(...result)
-        })
-      })
-      .then(() => {
-        // sort by created_at
-        const sortedResults = allResults.sort((a, b) => {
-          let returnValue = 0
-          try {
-            returnValue =
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime()
-          } catch (error) {
-            returnValue = 0
-          }
-          return returnValue
-        })
-        const youDescribeVideosIds = sortedResults.map((result) => result._id)
-        const youTubeVideosIds = sortedResults
-          .map((result) => result.youtube_id)
-          .join(',')
-        const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${youTubeVideosIds}&key=home`
-        setShowSpinner(false)
-        ourFetch(url).then((response) => {
-          parseFetchedData(JSON.parse(response.result), youDescribeVideosIds)
-        })
-      })
+  const fetchingVideosToHome = async (page: number = currentPage) => {
+    try {
+      const url = `${apiUrl}/videos?page=${page}`
+      const response = await ourFetch(url)
+
+      console.log(response)
+
+      const allResults = response.result // Assuming allResults is defined
+      console.log('result', allResults)
+
+      const youDescribeVideosIds = allResults.map((result: any) => result._id)
+      const youTubeVideosIds = allResults
+        .map((result: any) => result.youtube_id)
+        .join(',')
+
+      const youtubeDataUrl = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${youTubeVideosIds}&key=home`
+      const youtubeDataResponse = await ourFetch(youtubeDataUrl)
+
+      setShowSpinner(false)
+      parseFetchedData(youtubeDataResponse.result, youDescribeVideosIds)
+    } catch (error) {
+      // Handle errors here
+      toast.error('Error fetching videos. Please try again later.')
+      console.error(error)
+    }
   }
 
   const parseFetchedData = (data: any, youDescribeVideosIds: any) => {
@@ -141,7 +127,7 @@ const Home = () => {
       ourFetch(url).then((response) => {
         const user = response.result
         if (user.policy_review === '') {
-          alert(
+          toast.error(
             'YouDescribe has been updated, please update your notification preferences in the next page.',
           )
           navigate(`/profile/` + userDataStore.getState().userId)

@@ -15,7 +15,7 @@ import { Link, useParams } from 'react-router-dom'
 const UserStudyHome = () => {
   const { participantId } = useParams()
   sessionStorage.setItem('id', participantId || '')
-  console.log(participantId)
+  // console.log(participantId)
 
   const [videoIdWithAi, setVideoIdWithAi] = useState('')
   const [videoIdWithoutAi, setVideoIdWithoutAi] = useState('')

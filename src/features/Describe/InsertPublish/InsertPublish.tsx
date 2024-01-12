@@ -68,15 +68,15 @@ const InsertPublish = ({
       )
       .then(function (response) {
         reset()
-        console.log(response)
+        // console.log(response)
       })
       .catch(function (error) {
-        console.log(error)
+        // console.log(error)
       })
   }
 
   const handlePublish = async (e: any, checkbox: boolean | undefined) => {
-    console.log('publish')
+    // console.log('publish')
 
     axios
       .post(
@@ -93,10 +93,10 @@ const InsertPublish = ({
       .then(function (response) {
         setNeedRefresh(true)
         toast.success('Audio description published successfully!')
-        console.log(response)
+        // console.log(response)
       })
       .catch(function (error) {
-        console.log(error)
+        // console.log(error)
         toast.error('Error publishing audio description!')
       })
   }

@@ -229,7 +229,7 @@ const YDXHome = (): React.ReactElement => {
 
   useEffect(() => {
     clipStackRef.current = clipStack
-    console.log('New Clip Stack', clipStack)
+    // console.log('New Clip Stack', clipStack)
   }, [clipStack])
 
   useEffect(() => {
@@ -245,8 +245,8 @@ const YDXHome = (): React.ReactElement => {
   }, [needRefresh])
 
   useEffect(() => {
-    console.log(user)
-    console.log(userDataStore.getState().userId)
+    // console.log(user)
+    // console.log(userDataStore.getState().userId)
     if (userDataStore.getState().userId !== sessionStorage.getItem('User')) {
       setSeconds(0)
     }
@@ -271,6 +271,10 @@ const YDXHome = (): React.ReactElement => {
     const unitLength = draggableDivWidth / videoEndTime // let unitlength = 644 / 299;
     setUnitLength(unitLength)
   }
+
+  useEffect(() => {
+    console.log('Seconds', audioClips)
+  }, [audioClips])
 
   // use axios and get dialog timestamps for the Dialog Timeline
   const fetchDialogData = () => {
@@ -356,13 +360,13 @@ const YDXHome = (): React.ReactElement => {
         )
         .then((res) => {
           setShowSpinner(false)
-          console.log('Audio Description Data', res.data)
+          // console.log('Audio Description Data', res.data)
           // setAudioDescriptionId(res.data.ad_id)
           setIsPublished(res.data.is_published)
           return res.data
         })
         .then((data) => {
-          console.log('Audio Description Data', data)
+          // console.log('Audio Description Data', data)
           setShowSpinner(false)
           setIsPublished(data.is_published)
           // data is nested - so AudioClips data is in res.data.Audio_Clips
@@ -380,7 +384,7 @@ const YDXHome = (): React.ReactElement => {
           }
           audioClipsData.forEach((clip, i) => {
             // add a sequence number for every audio clip
-            console.log(clip)
+            // console.log(clip)
             clip.clip_sequence_number = i + 1
             clip.clip_audio_path = clip.clip_audio_path.replace(
               '.',
@@ -411,8 +415,8 @@ const YDXHome = (): React.ReactElement => {
             setEditComponentToggleList(tempArray)
           }
           setAudioClips([...audioClipsData])
-          console.log(audioClipsData)
-          // console.log("Audio Clips", audioClips);
+          // console.log(audioClipsData)
+          // // console.log("Audio Clips", audioClips);
           setNotesData(notesData)
           const maxStackSize =
             audioClipsData.length > 100
@@ -501,7 +505,7 @@ const YDXHome = (): React.ReactElement => {
           console.info('Playing clip by Seeking to current time')
           // Play Inline Clip
           const currentFilteredClip = clipStackRef.current[0]
-          console.log('Clip to be Played', currentFilteredClip)
+          // console.log('Clip to be Played', currentFilteredClip)
           const prevelement = document.querySelectorAll('.green-border')
           // TODO: Convert to normal for loop
           prevelement.forEach((elem) => elem.classList.remove('green-border'))
@@ -511,25 +515,25 @@ const YDXHome = (): React.ReactElement => {
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
           if (clipAudioPath !== playedClipPath) {
-            console.log('Updating Clip Index (inline clip)')
+            // console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
             // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
             const currentAudio = currentFilteredClip.clip_audio
-            console.log('Playing inline clip')
+            // console.log('Playing inline clip')
             if (
               currentAudio?.playing() ||
               currentInlineACRef.current?.playing()
               // currentFilteredClip.clip_id === clipIDRef.current
             ) {
-              console.log('Clip is already playing')
+              // console.log('Clip is already playing')
               return
             }
-            console.log(
-              'Seeking to',
-              currentTimeRef.current - currentFilteredClip.clip_start_time,
-              'seconds',
-            )
+            // console.log(
+            //   'Seeking to',
+            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
+            //   'seconds',
+            // )
 
             currentAudio?.seek(
               currentTimeRef.current - currentFilteredClip.clip_start_time,
@@ -539,11 +543,11 @@ const YDXHome = (): React.ReactElement => {
             setCurrInlineAC(currentAudio)
 
             // Load a new clip and add it to the stack
-            console.log('Current Clip Index', currentClipIndexRef.current)
+            // console.log('Current Clip Index', currentClipIndexRef.current)
 
             const newClip =
               audioClips[currentClipIndexRef.current + clipStackSize - 1]
-            console.log('New CLIP (seeked inline) => ', newClip)
+            // console.log('New CLIP (seeked inline) => ', newClip)
             if (newClip) {
               newClip.clip_audio = new Howl({
                 src: newClip.clip_audio_path,
@@ -582,7 +586,7 @@ const YDXHome = (): React.ReactElement => {
             previousTimeRef.current - 0.1
         ) {
           const currentFilteredClip = clipStackRef.current[0]
-          console.log('Updating Clip Index')
+          // console.log('Updating Clip Index')
           setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
           const prevelement = document.querySelectorAll('.green-border')
           // TODO: Convert to normal for loop
@@ -605,10 +609,10 @@ const YDXHome = (): React.ReactElement => {
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
               // Add a new clip to the stack
-              console.log('Current Clip Index', currentClipIndexRef.current)
+              // console.log('Current Clip Index', currentClipIndexRef.current)
               const newClip =
                 audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-              console.log('New CLIP (normal extended) => ', newClip)
+              // console.log('New CLIP (normal extended) => ', newClip)
               if (newClip) {
                 newClip.clip_audio = new Howl({
                   src: newClip.clip_audio_path,
@@ -648,10 +652,10 @@ const YDXHome = (): React.ReactElement => {
         // A skip has most likely occurred
         console.error('SKIP DETECTED', clipStackRef.current[0])
         // Add a new clip to the stack
-        console.log('Current Clip Index', currentClipIndexRef.current)
+        // console.log('Current Clip Index', currentClipIndexRef.current)
         const newClip =
           audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-        console.log('New CLIP (normal extended) => ', newClip)
+        // console.log('New CLIP (normal extended) => ', newClip)
         if (newClip) {
           newClip.clip_audio = new Howl({
             src: newClip.clip_audio_path,
@@ -1078,7 +1082,8 @@ const YDXHome = (): React.ReactElement => {
               className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
               onClick={() => {
                 handleCopyClick(`
-                ${window.location.origin}/audio-description/preview/${youtubeVideoId}/${audioDescriptionId}`)
+                ${window.location.origin}/video/${youtubeVideoId}?
+                ad=${audioDescriptionId}`)
               }}
             >
               <i className="fa fa-copy" /> {'   '}

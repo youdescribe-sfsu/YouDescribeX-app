@@ -27,6 +27,7 @@ import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import VideoPlayerControls from '@/shared/components/VideoPlayerControls/VideoPlayerControls'
 import { convertLikesToCardFormat } from '@/shared/utils/convertLikesToCardFormat'
 import { convertISO8601ToDate } from '@/shared/utils/convertISO8601ToDate'
+import { toast } from 'react-toastify'
 
 const VideoEmbed = () => {
   const { videoId } = useParams()
@@ -126,7 +127,7 @@ const VideoEmbed = () => {
 
   useEffect(() => {
     clipStackRef.current = clipStack
-    console.log('New Clip Stack', clipStack)
+    // console.log('New Clip Stack', clipStack)
   }, [clipStack])
 
   useEffect(() => {
@@ -186,7 +187,7 @@ const VideoEmbed = () => {
         parseVideoData(res.result)
       })
       .catch((err) => {
-        console.log(err)
+        // console.log(err)
         navigate('/not-found')
       })
   }
@@ -254,13 +255,13 @@ const VideoEmbed = () => {
     if (!selectedAd) {
       selectedAd = getHighestRatedAudioDescription(adIdsUsers)
     }
-    console.log('Selected AD', selectedAd)
+    // console.log('Selected AD', selectedAd)
 
     if (
       audioDescriptionsIds?.length &&
       audioDescriptionsIds?.indexOf(selectedAd) === -1
     ) {
-      console.log('Navigating to Not Found')
+      // console.log('Navigating to Not Found')
       navigate('/not-found')
     }
     setSearchParams((params) => {
@@ -288,7 +289,7 @@ const VideoEmbed = () => {
       a.clip_start_time < b.clip_start_time ? -1 : 1,
     )
 
-    // console.log('Sorted Clips', sortedClipData)
+    // // console.log('Sorted Clips', sortedClipData)
 
     setAudioClips([...sortedClipData])
     const maxStackSize =
@@ -304,22 +305,22 @@ const VideoEmbed = () => {
         clipStackData.push(clip)
       }
     }
-    // console.log('Clip Stack', clipStackData)
+    // // console.log('Clip Stack', clipStackData)
     setClipStack(clipStackData)
     getYTVideoInfo()
   }
 
   const getYTVideoInfo = () => {
-    // console.log('6 -> getYTVideoInfo');
+    // // console.log('6 -> getYTVideoInfo');
     const url = `${youTubeApiUrl}/videos?id=${videoId}&part=contentDetails,snippet,statistics&forUsername=iamOTHER&key=${youTubeApiKey}`
 
     // Use custom fetch for cross-browser compatability
     ourFetch(url)
       .then((data: any) => {
-        console.log(
-          'Current Video Duration',
-          data.items[0].contentDetails.duration,
-        )
+        // console.log(
+        //   'Current Video Duration',
+        //   data.items[0].contentDetails.duration,
+        // )
         const videoDurationInSeconds = convertISO8601ToSeconds(
           data.items[0].contentDetails.duration,
         )
@@ -345,8 +346,8 @@ const VideoEmbed = () => {
         setShowSpinner(false)
       })
       .catch((err) => {
-        console.log('Unable to load the video you are trying to edit.', err)
-        alert(
+        // console.log('Unable to load the video you are trying to edit.', err)
+        toast.error(
           'Thank you for visiting YouDescribe. This video is not viewable at this time due to YouTube API key limits. Our key is reset by Google at midnight Pacific time.',
         )
       })
@@ -393,7 +394,7 @@ const VideoEmbed = () => {
     if (currentState === 1) {
       // If all clips have been played, skip check
       if (clipStackRef.current.length === 0) {
-        console.log('No Clips left to play')
+        // console.log('No Clips left to play')
         return
       }
 
@@ -430,34 +431,34 @@ const VideoEmbed = () => {
           console.info('Playing clip by Seeking to current time')
           // Play Inline Clip
           const currentFilteredClip = clipStackRef.current[0]
-          console.log('Clip to be Played', currentFilteredClip)
+          // console.log('Clip to be Played', currentFilteredClip)
 
           setPlayedAudioClip(currentFilteredClip.clip_id)
           //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
-          console.log('PLaying clip', clipAudioPath)
+          // console.log('PLaying clip', clipAudioPath)
 
           if (clipAudioPath !== playedClipPath) {
-            console.log('Updating Clip Index (inline clip)')
+            // console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
             // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
             const currentAudio = currentFilteredClip.clip_audio
-            console.log('Playing inline clip')
+            // console.log('Playing inline clip')
             if (
               currentAudio?.playing() ||
               currentInlineACRef.current?.playing()
               // currentFilteredClip.clip_id === clipIDRef.current
             ) {
-              console.log('Clip is already playing')
+              // console.log('Clip is already playing')
               return
             }
-            console.log(
-              'Seeking to',
-              currentTimeRef.current - currentFilteredClip.clip_start_time,
-              'seconds',
-            )
+            // console.log(
+            //   'Seeking to',
+            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
+            //   'seconds',
+            // )
 
             currentAudio?.seek(
               currentTimeRef.current - currentFilteredClip.clip_start_time,
@@ -467,11 +468,11 @@ const VideoEmbed = () => {
             setCurrInlineAC(currentAudio)
 
             // Load a new clip and add it to the stack
-            console.log('Current Clip Index', currentClipIndexRef.current)
+            // console.log('Current Clip Index', currentClipIndexRef.current)
 
             const newClip =
               audioClips[currentClipIndexRef.current + clipStackSize - 1]
-            console.log('New CLIP (seeked inline) => ', newClip)
+            // console.log('New CLIP (seeked inline) => ', newClip)
             if (newClip) {
               newClip.clip_audio = new Howl({
                 src: newClip.clip_audio_path,
@@ -509,7 +510,7 @@ const VideoEmbed = () => {
             previousTimeRef.current - 0.1
         ) {
           const currentFilteredClip = clipStackRef.current[0]
-          console.log('Updating Clip Index')
+          // console.log('Updating Clip Index')
           setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
           // Play the clip only if it wasn't played recently
           if (playedAudioClip !== currentFilteredClip.clip_id) {
@@ -528,10 +529,10 @@ const VideoEmbed = () => {
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
               // Add a new clip to the stack
-              console.log('Current Clip Index', currentClipIndexRef.current)
+              // console.log('Current Clip Index', currentClipIndexRef.current)
               const newClip =
                 audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-              console.log('New CLIP (normal extended) => ', newClip)
+              // console.log('New CLIP (normal extended) => ', newClip)
               if (newClip) {
                 newClip.clip_audio = new Howl({
                   src: newClip.clip_audio_path,
@@ -570,10 +571,10 @@ const VideoEmbed = () => {
         // A skip has most likely occurred
         console.error('SKIP DETECTED', clipStackRef.current[0])
         // Add a new clip to the stack
-        console.log('Current Clip Index', currentClipIndexRef.current)
+        // console.log('Current Clip Index', currentClipIndexRef.current)
         const newClip =
           audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-        console.log('New CLIP (normal extended) => ', newClip)
+        // console.log('New CLIP (normal extended) => ', newClip)
         if (newClip) {
           newClip.clip_audio = new Howl({
             src: newClip.clip_audio_path,
@@ -694,7 +695,7 @@ const VideoEmbed = () => {
   }
 
   const updateClipStackData = useCallback(() => {
-    console.log('Updating Clip Stack | Current Time =', currentTimeRef.current)
+    // console.log('Updating Clip Stack | Current Time =', currentTimeRef.current)
 
     const newClipIndex = audioClips.findIndex(
       (clip) =>
@@ -703,7 +704,7 @@ const VideoEmbed = () => {
           clip.clip_end_time > currentTimeRef.current),
     )
     setCurrentClipIndex(newClipIndex)
-    console.log('Current Clip Index', newClipIndex)
+    // console.log('Current Clip Index', newClipIndex)
 
     // slice audio clips from newClipIndex to newClipIndex + 5
     const clipStackData = []

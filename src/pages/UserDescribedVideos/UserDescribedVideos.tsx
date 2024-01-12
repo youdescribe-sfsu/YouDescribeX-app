@@ -44,7 +44,7 @@ const UserDescribedVideos = () => {
       .get(url)
       .then((response) => {
         const videosArray = response.data
-        console.log({ videosArray })
+        // console.log({ videosArray })
         // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
           youTubeVideoIds.push(videosArray[i].youtube_video_id)

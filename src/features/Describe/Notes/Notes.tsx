@@ -98,7 +98,7 @@ const Notes = ({
           time: note.slice(0, 8),
         }
         tempNoteDetails.push(noteTimestamp)
-        console.log(tempNoteDetails)
+        // console.log(tempNoteDetails)
         setNoteDetails(tempNoteDetails)
       }
     })

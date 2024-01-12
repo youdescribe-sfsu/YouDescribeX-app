@@ -57,8 +57,11 @@ const AudioClip = ({
   // all audio clip data from props
   const clipID = clip.clip_id
   const clipSequenceNumber = clip.clip_sequence_number
-  const initialClipTitle = clip.clip_title
   const clipDescriptionType = clip.description_type
+  const initialClipTitle = clip.clip_title?.startsWith('scene undef')
+    ? `scene ${clip.description_type}`
+    : clip.clip_title
+
   const clipDescriptionText = clip.description_text
   const initialClipPlaybackType = clip.playback_type
   const initialClipStartTime = clip.clip_start_time
@@ -116,7 +119,7 @@ const AudioClip = ({
     const newClipStartTime = Number(parseFloat(`${adBarTime}`).toFixed(2))
     // set left and right bounds
     if (Number(newClipStartTime) >= 1 && newClipStartTime < videoLength) {
-      if (initialClipPlaybackType === 'inline') {
+      if (clipPlaybackType === 'inline') {
         // calculate the duration too for inline clips
         if (newClipStartTime + clipDuration <= videoLength) {
           updateStartTimeNDraggablePosition(newClipStartTime)
@@ -154,7 +157,7 @@ const AudioClip = ({
       (parseFloat(`${initialClipStartTime}`) + 0.25).toFixed(2),
     )
     // so that the audio block isn't out of the timeline
-    if (initialClipPlaybackType === 'inline') {
+    if (clipPlaybackType === 'inline') {
       if (newClipStartTime + clipDuration <= videoLength) {
         updateStartTimeNDraggablePosition(newClipStartTime)
       } else {
@@ -205,7 +208,7 @@ const AudioClip = ({
   const handlePlaybackTypeUpdate = (e: any) => {
     // check if user is trying to change the clip Playback type to inline at the end of the timeline
     if (
-      initialClipPlaybackType === 'extended' &&
+      clipPlaybackType === 'extended' &&
       e.target.value === 'inline' &&
       parseFloat(`${initialClipStartTime}`) + clipDuration > videoLength
     ) {
@@ -405,7 +408,7 @@ const AudioClip = ({
                     onStop={stopADBar}
                     bounds="parent"
                   >
-                    {initialClipPlaybackType === 'inline' ? (
+                    {clipPlaybackType === 'inline' ? (
                       <div
                         className="ad-timestamp-div"
                         data-bs-toggle="tooltip"
@@ -441,9 +444,7 @@ const AudioClip = ({
                     name={`${clipSequenceNumber}`}
                     id="radio1"
                     value="inline"
-                    checked={
-                      initialClipPlaybackType === 'inline' ? true : false
-                    }
+                    checked={clipPlaybackType === 'inline' ? true : false}
                     onChange={handlePlaybackTypeUpdate}
                   />
                   <div className="inline-bg text-dark inline-extended-radio px-2">
@@ -457,9 +458,7 @@ const AudioClip = ({
                     name={`${clipSequenceNumber}`}
                     id="radio2"
                     value="extended"
-                    checked={
-                      initialClipPlaybackType === 'extended' ? true : false
-                    }
+                    checked={clipPlaybackType === 'extended' ? true : false}
                     onChange={handlePlaybackTypeUpdate}
                   />
                   <div className="extended-bg text-white inline-extended-radio px-2">

@@ -174,31 +174,34 @@ const App = () => {
         url = `${apiUrl}/auth/login/success`
       }
       if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+        // const authUser = process.env.REACT_APP_AUTH_USER || ''
         url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google/localhost`
-        console.log('url: ', url)
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            Authorization: ``, // Custom header with the user ID
-          },
-          credentials: 'include',
-        })
-        const data = await response.json()
-        console.log('data: ', data)
-        setUserName(data.result.name)
-        setUserId(data.result._id)
-        setUserToken(data.result.token)
-        setUserPicture(data.result.picture)
-        setUserAdmin(data.result.admin)
-        setSignedIn(true)
-        setCookie(
-          data.result._id,
-          data.result.token,
-          data.result.name,
-          data.result.picture,
-        )
+        // console.log('url: ', url)
+        // if (authUser) {
+        //   const response = await fetch(url, {
+        //     method: 'GET',
+        //     headers: {
+        //       Authorization: authUser, // Custom header with the user ID
+        //     },
+        //     credentials: 'include',
+        //   })
+        //   const data = await response.json()
+        //   // console.log('data: ', data)
+        //   setUserName(data.result.name)
+        //   setUserId(data.result._id)
+        //   setUserToken(data.result.token)
+        //   setUserPicture(data.result.picture)
+        //   setUserAdmin(data.result.admin)
+        //   setSignedIn(true)
+        //   setCookie(
+        //     data.result._id,
+        //     data.result.token,
+        //     data.result.name,
+        //     data.result.picture,
+        //   )
+        // }
       } else {
-        console.log('url: ', url)
+        // console.log('url: ', url)
         const response = await fetch(url, {
           credentials: 'include',
         })
@@ -217,7 +220,7 @@ const App = () => {
         )
       }
     } catch (error) {
-      console.log(error)
+      // console.log(error)
     }
   }
 
@@ -228,13 +231,19 @@ const App = () => {
     setUserToken('')
     setUserAdmin(0)
     resetCookie()
-    let url
-    if (process.env.REACT_APP_USE_YDX) {
-      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/logout`
-    } else {
-      url = `${apiUrl}/auth/logout`
-    }
-    window.open(url, '_self')
+    // let url
+    // if (process.env.REACT_APP_USE_YDX) {
+    //   url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/logout`
+    // } else {
+    //   url = `${apiUrl}/auth/logout`
+    // }
+    // window.open(url, '_self')
+    // Refresh the page to clear the cookies
+    // wait for 1 second before reloading the page
+    setTimeout(() => {
+      window.location.reload()
+    }, 1000)
+    // window.location.reload()
   }
 
   const getUserInfo = () => {
@@ -296,11 +305,11 @@ const App = () => {
   const isEmbedRoute = window.location.pathname.includes('/embed/')
 
   return (
-    <html className="classic-html">
+    <>
       {!isEmbedRoute && (
         <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
       )}
-      <body
+      {/* <div
         className="classic-body"
         style={{
           paddingTop:
@@ -309,52 +318,49 @@ const App = () => {
               ? '0px'
               : '54px',
         }}
-      >
-        <Routes>
-          <Route
-            path="/editor/:youtubeVideoId/:audioDescriptionId"
-            element={<YDXHome />}
-          />
-          <Route path="/home" element={<Home />} />
-          <Route path="/video/:videoId" element={<Video />} />
-          <Route path="/video/v2/:videoId" element={<Video_v2 />} />
-          <Route path="/embed/:videoId" element={<VideoEmbed />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/support" element={<Support />} />
-          <Route path="/credits" element={<Credits />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/credits-details" element={<CreditsDetails />} />
-          <Route path="/unsupported-browser" element={<UnsupportedBrowser />} />
-          <Route
-            path="/videos/user/:userId"
-            element={<UserDescribedVideos />}
-          />
-          <Route path="/videos/history" element={<History />} />
-          <Route path="/" element={<Navigate to="/home" />} />
-          <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
-          <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
-          <Route path="/*" element={<PageNotFound />} />
-          <Route path="/support/about" element={<About />} />
-          <Route path="/support/describers" element={<Describers />} />
-          <Route path="/support/tutorial" element={<Tutorial />} />
-          <Route path="/support/embed_tutorial" element={<EmbedTutorial />} />
-          <Route path="/support/viewers" element={<Viewers />} />
-          <Route path="/support/privacy" element={<Privacy />} />
-          <Route
-            path="/support/system-upgrade-warning"
-            element={<SystemUpgradeWarning />}
-          />
-          <Route
-            path="/audio-description/:youtubeVideoId/:audioDescriptionId"
-            element={<PublishedAudioDescriptions />}
-          />
-          <Route
-            path="/audio-description/preview/:youtubeVideoId/:audioDescriptionId"
-            element={<PublishedAudioDescriptions />}
-          />
-        </Routes>
-      </body>
+      > */}
+      <Routes>
+        <Route
+          path="/editor/:youtubeVideoId/:audioDescriptionId"
+          element={<YDXHome />}
+        />
+        <Route path="/home" element={<Home />} />
+        <Route path="/video/:videoId" element={<Video />} />
+        {/* <Route path="/video/v2/:videoId" element={<Video_v2 />} /> */}
+        <Route path="/embed/:videoId" element={<VideoEmbed />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/support" element={<Support />} />
+        <Route path="/credits" element={<Credits />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/credits-details" element={<CreditsDetails />} />
+        <Route path="/unsupported-browser" element={<UnsupportedBrowser />} />
+        <Route path="/videos/user/:userId" element={<UserDescribedVideos />} />
+        <Route path="/videos/history" element={<History />} />
+        <Route path="/" element={<Navigate to="/home" />} />
+        <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
+        <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
+        <Route path="/*" element={<PageNotFound />} />
+        <Route path="/support/about" element={<About />} />
+        <Route path="/support/describers" element={<Describers />} />
+        <Route path="/support/tutorial" element={<Tutorial />} />
+        <Route path="/support/embed_tutorial" element={<EmbedTutorial />} />
+        <Route path="/support/viewers" element={<Viewers />} />
+        <Route path="/support/privacy" element={<Privacy />} />
+        <Route
+          path="/support/system-upgrade-warning"
+          element={<SystemUpgradeWarning />}
+        />
+        <Route
+          path="/audio-description/:youtubeVideoId/:audioDescriptionId"
+          element={<PublishedAudioDescriptions />}
+        />
+        <Route
+          path="/audio-description/preview/:youtubeVideoId/:audioDescriptionId"
+          element={<PublishedAudioDescriptions />}
+        />
+      </Routes>
+      {/* </div> */}
       <ToastContainer
         className="toast-btn"
         position="top-center"
@@ -366,7 +372,7 @@ const App = () => {
         theme="colored"
       />
       {!isEmbedRoute && <Footer />}
-    </html>
+    </>
   )
 }
 
