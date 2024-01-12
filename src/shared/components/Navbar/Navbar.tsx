@@ -186,7 +186,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
           onClick={() => document.getElementById('wish-list-heading')?.focus()}
         >
           <i className="fa fa-heart" aria-hidden="true" />{' '}
-          {translate('WISH LIST')}
+          {translate('WISHLIST')}
         </Link>
         {signInComponent()}
       </div>

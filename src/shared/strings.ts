@@ -322,6 +322,7 @@ const strings = {
     HISTORY: 'HISTORY',
     'AI REQUESTED VIDEOS': 'AI REQUESTED VIDEOS',
     'Go to descriptions': 'Go to descriptions',
+    'MY WISHLIST': 'MY WISHLIST',
   },
 }
 

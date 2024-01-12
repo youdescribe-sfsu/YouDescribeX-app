@@ -247,17 +247,18 @@ const Wishlist = () => {
           },
 
           withCredentials: true,
-          headers: {
-            authorization: encryptData(userDataStore.getState().userId),
-          },
         },
       )
+
+      console.log('==============================')
+      console.log(response.data)
+      console.log('==============================')
 
       const totalVideosLength = response.data.totalVideos
       const calculatedTotalVideoPages = Math.ceil(
         totalVideosLength / itemsPerPage,
       )
-      const wishListItems = response.data
+      const wishListItems = response.data.result
       const topYouTubeIds = []
       const topYouDescribeIds = []
       const topVotes = []
@@ -275,8 +276,9 @@ const Wishlist = () => {
         })
       }
 
+      console.log('topYouTubeIds', topYouTubeIds)
       const youTubeResponse = await fetchVideoDetails(topYouTubeIds)
-
+      console.log('youTubeResponse', youTubeResponse)
       const videoCardsComponents = []
 
       for (let i = 0; i < youTubeResponse.items.length; i += 1) {
@@ -316,12 +318,13 @@ const Wishlist = () => {
               time={time}
               votes={votes}
               buttons="upvote-describe"
-              userVote={voted}
+              userVote={true}
               aiRequested={aiRequested}
             />
           </div>,
         )
       }
+      console.log('videoCardsComponents', videoCardsComponents)
       const newWishlistData = {
         data: videoCardsComponents,
         totalVideos: videoCardsComponents.length,
@@ -466,12 +469,15 @@ const Wishlist = () => {
         return { youTubeIds, votes, categories, updatedAt, aiRequested }
       })
       .then(({ youTubeIds, votes, categories, updatedAt, aiRequested }) => {
-        const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${youTubeIds.join(
+        const url = `${
+          process.env.REACT_APP_YDX_BACKEND_URL
+        }/api/videos/getyoutubedatafromcache?youtubeids=${youTubeIds.join(
           ',',
         )}&key=wishlist`
         ourFetch(url).then((response) => {
+          console.log(response)
           parseTableData(
-            JSON.parse(response.result),
+            response.result,
             votes,
             categories,
             updatedAt,
@@ -555,6 +561,7 @@ const Wishlist = () => {
       })
       .then((response) => {
         const wishListItems = response.data
+        console.log(wishListItems)
         const topYouTubeIds = []
         const topYouDescribeIds = []
         const topVotes = []
@@ -567,19 +574,21 @@ const Wishlist = () => {
           aiReq.push(wishListItems[i].aiRequested)
           votedArr.push({
             id: wishListItems[i]._id,
-            voted: wishListItems[i].votes,
+            voted: wishListItems[i].voted,
           })
         }
         return { topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }
       })
       .then(
         ({ topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }) => {
-          const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
+          const url = `${
+            process.env.REACT_APP_YDX_BACKEND_URL
+          }/api/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
             ',',
           )}&key=wishlist`
           ourFetch(url).then((response) => {
             parseFetchedData(
-              JSON.parse(response.result),
+              response.result,
               topYouDescribeIds,
               topYouTubeIds,
               topVotes,
@@ -619,8 +628,7 @@ const Wishlist = () => {
       const time = convertTimeToCardFormat(
         Number(now - publishedAt.getMilliseconds()),
       )
-
-      const voted = votedArr[i].votes
+      const voted = votedArr[i]?.voted
 
       videoCardsComponents.push(
         <div className="wishlist-video-card" key={_id}>
@@ -704,7 +712,7 @@ const Wishlist = () => {
               </CustomButton>
 
               {/* Content for displaying videos */}
-              <div className="w3-row classic-container row">
+              <div className="w3-row classic-container wishlist-video-row ">
                 {wishlistData.data}
               </div>
 

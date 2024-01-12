@@ -3,6 +3,7 @@
   main {
     padding: 20px 30px 50px 30px;
     margin: 0 auto;
+    min-height: calc(100vh - 300px);
     @media (min-width: 601px) {
       width: 601px;
     }

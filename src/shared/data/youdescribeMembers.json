@@ -1,15 +1,5 @@
 [
   {
-    "name": "Ilmi Yoon",
-    "bio": "Ilmi Yoon is a professor in the Computer Science Department at San Francisco State University. She started this YouDescribe collaboration from 2016 and supervised her students development in Mobile versions of it. Her research areas are Graphics and Gamification and AI/ML applications. She started development of YouDescribeX (AI enhanced version) with multiple contributors such as Drs. Fazli, iHorn, Siu and Das. and her students listed here. She is currently a PI/Co-PI of 4 NSF grants focusing on Computer Science Education and Diversity in Computing.",
-    "img": "ilmi.jpg",
-    "designation": " Machine Learning & YouDescribeX",
-    "pdf": "895Report_Poorva.pdf",
-    "tenure": "2018 - Present",
-    "year": "present",
-    "description": "Photo os Ilmi Yoon, an asian woman with fair skin and with long wavy brown hair. She is smiling brightly at the camera."
-  },
-  {
     "name": "Andrew Taylor Scott",
     "bio": "Andrew Taylor Scott is currently the Linux HPC Administrator at Blue River Technology. He is interested in computer vision, machine learning, and high performance computing. He has worked in tech in the San Francisco Bay Area since the late 90's and he is currently completing a Masters degree in Computer Science at San Francisco State University. He previously completed a Bachelors degree in Computer Science at San Francisco State University and an Associates degree in Computer Science at City College of San Francisco.",
     "img": "andrew.jpg",
@@ -63,6 +53,15 @@
     "year": 2023,
     "tenure": "2022-2023",
     "description": "Photo of Kishan Patel. This picture was taken at Fisherman's Wharf in San Francisco. In this picture, Kishan is wearing a black sweatshirt over a white shirt and is smiling at the camera."
+  },
+  {
+    "name": "Alekya Bairaboina",
+    "bio": "I specialize in frontend development, focusing on React hooks to create dynamic and efficient user interfaces. By employing cutting-edge techniques like lazy loading and memoization, I optimize applications for enhanced performance. My expertise not only lies in writing code but also in comprehending the intricacies of the application, allowing me to identify potential issues and improve overall scalability. I am dedicated to crafting reliable and user-friendly applications, ensuring a seamless experience for all users. Beyond web development, I extend my skills to mobile development using React Native, delivering versatile solutions across platforms. Whether working independently or collaboratively, my commitment is to create applications that are not only functional but also valuable and enjoyable for users.",
+    "img": "alekya.jpeg",
+    "designation": "Frontend and Mobile Developer",
+    "year": 2023,
+    "tenure": "2023-2024",
+    "description": "Photo of Alekya Bairaboina. Alekya is standing near a landscape and is wearing a blue t-shirt."
   },
   {
     "name": "Caelen Wang",

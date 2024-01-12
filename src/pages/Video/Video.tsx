@@ -127,6 +127,7 @@ const Video = () => {
     requested: boolean
     url?: string
     aiDescriptionId?: string
+    preview?: boolean
   }>({
     status: '',
     requested: false,
@@ -1183,22 +1184,6 @@ const Video = () => {
     }
   }
 
-  const handlePreviewAudioDescription = async () => {
-    try {
-      setButtonLoading(true)
-      if (requestAiDescription && requestAiDescription.aiDescriptionId)
-        navigate(
-          `/audio-description/preview/${videoId}/${requestAiDescription.aiDescriptionId}`,
-        )
-    } catch (error) {
-      if (toastId.current) toast.dismiss(toastId.current)
-      toast.error('Something went wrong, please try again later')
-      console.log(error)
-    } finally {
-      setButtonLoading(false)
-    }
-  }
-
   const handleGenerateAIDescriptions = async () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
@@ -1228,7 +1213,7 @@ const Video = () => {
       )
       const data = response.data
       toast.success('AI Descriptions have been requested')
-      console.log('data for asdasd:: ', data)
+      // console.log('data for asdasd:: ', data)
     } catch (error) {
       console.log(error)
       setRequestAiDescription({
@@ -1240,25 +1225,29 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
-    if (requestAiDescription.url) {
+    if (requestAiDescription.url && !requestAiDescription.preview) {
       // Go to descriptions with url
       return (
         <Button
-          title={translate('Go to AI descriptions')}
+          title={translate('Go to descriptions')}
           ariaLabel="Go to descriptions"
-          text={translate('Go to AI descriptions')}
+          text={translate('Go To Descriptions')}
           color="w3-lime w3-block w3-margin-top"
-          onClick={() => navigate(`/editor/${requestAiDescription.url}`)}
+          onClick={() =>
+            requestAiDescription.url && navigate(`/${requestAiDescription.url}`)
+          }
         />
       )
-    } else if (requestAiDescription.status === 'available') {
+    } else if (requestAiDescription.url) {
       return (
         <Button
           title={translate('Preview Available Descriptions')}
           ariaLabel="Preview Available Descriptions"
-          text={translate('Preview Available Descriptions')}
+          text={translate('Preview AI Descriptions')}
           color="w3-indigo w3-block w3-margin-top"
-          onClick={() => handlePreviewAudioDescription()}
+          onClick={() =>
+            requestAiDescription.url && navigate(`/${requestAiDescription.url}`)
+          }
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )
@@ -1269,7 +1258,7 @@ const Video = () => {
           ariaLabel="AI Descriptions requested"
           text={translate('AI Descriptions requested')}
           color="w3-brown w3-block w3-margin-top"
-          onClick={() => handleGenerateAIDescriptions()}
+          // onClick={() => handleGenerateAIDescriptions()}
           disabled={requestAiDescription.requested}
         />
       )
@@ -1444,7 +1433,7 @@ const Video = () => {
             }}
           >
             <div className="w3-card-2">
-              {requestAiDescription.url ? (
+              {!requestAiDescription.url ? (
                 <h3 className="classic-h3">AI descriptions available</h3>
               ) : (
                 <h3 className="classic-h3">No descriptions available</h3>

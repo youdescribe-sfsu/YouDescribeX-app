@@ -3,11 +3,17 @@ import { Link } from 'react-router-dom'
 import './support.scss'
 
 const Support = () => (
-  <div className="support-container" tabIndex={-1}>
-    <header className="support-header" role="banner">
-      <h2>Help and Support page</h2>
+  <div id="support">
+    <header role="banner" className="w3-container w3-indigo">
+      <h2
+        style={{
+          margin: '10px 0',
+          fontSize: '1.25rem',
+        }}
+      >
+        Help and Support page{' '}
+      </h2>
     </header>
-
     <main className="support-main w3-row">
       <h2>Welcome to the YouDescribe Help and Support page.</h2>
 
