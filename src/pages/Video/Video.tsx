@@ -141,7 +141,7 @@ const Video = () => {
     aiDescriptionId?: string
     preview?: boolean
   }>({
-    status: '',
+    status: 'notavailable',
     requested: false,
   })
 
@@ -1475,7 +1475,7 @@ const Video = () => {
             }}
           >
             <div className="w3-card-2">
-              {!requestAiDescription.url ? (
+              {requestAiDescription.status === 'available' ? (
                 <h3 className="classic-h3">AI descriptions available</h3>
               ) : (
                 <h3 className="classic-h3">No descriptions available</h3>
