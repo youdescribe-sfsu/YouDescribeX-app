@@ -46,10 +46,10 @@ const VideoCard = ({
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
   const handleVideoClick = async () => {
-    console.log('INSIDE HANDLECLICK')
+    // console.log('INSIDE HANDLECLICK')
     try {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/save-Visited-Videos-History`
-      console.log('BACKEND URL', url)
+      // console.log('BACKEND URL', url)
       axios
         .post(
           url,
@@ -66,20 +66,21 @@ const VideoCard = ({
         )
         .then((res) => {
           const data = res.data
-          console.log('video click data => ', data)
+          // console.log('video click data => ', data)
           if (res.status != 201) {
-            alert(translate('Something went wrong, please try again later'))
+            toast.error('Something went wrong, please try again later.')
+            // toast.error(translate('Something went wrong, please try again later'))
             return
           }
         })
     } catch (error) {
-      console.log(error)
+      // console.log(error)
       toast.error('Something went wrong, please try again later')
     }
   }
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to vote'))
+      toast.error(translate('You have to be logged in in order to vote'))
     } else {
       if (voted) {
         const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/removeone`
@@ -95,17 +96,17 @@ const VideoCard = ({
           })
           .then((res) => {
             setVoted(false)
-            console.log('Succes remove', res)
+            // console.log('Succes remove', res)
           })
           .catch((err) => {
             switch (err.code) {
               case 67:
-                alert(
+                toast.error(
                   translate('It is not possible to vote again for this video.'),
                 )
                 break
               default:
-                alert(
+                toast.error(
                   translate(
                     'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
                   ),
@@ -133,18 +134,18 @@ const VideoCard = ({
         )
         .then((res) => {
           setVoted(true)
-          console.log('Success upVote', res)
+          // console.log('Success upVote', res)
         })
         .catch((err) => {
-          console.log({ err })
+          // console.log({ err })
           switch (err.code) {
             case 67:
-              alert(
+              toast.error(
                 translate('It is not possible to vote again for this video.'),
               )
               break
             default:
-              alert(
+              toast.error(
                 translate(
                   'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
                 ),
@@ -168,7 +169,7 @@ const VideoCard = ({
         )
         .then((res) => {
           if (res.status != 201) {
-            alert(
+            toast.error(
               translate(
                 'Something went wrong or you may already have described this video. Please try again later!',
               ),
@@ -180,7 +181,7 @@ const VideoCard = ({
           navigate(url ? '/editor/' + url : '/video/' + youTubeId)
         })
     } else {
-      alert(
+      toast.error(
         translate('You have to be logged in in order to describe this video'),
       )
     }
@@ -189,7 +190,7 @@ const VideoCard = ({
   const editThisVideo = () => {
     if (userDataStore.getState().isSignedIn) {
       if (audioDescriptionId == null || audioDescriptionId.length <= 0) {
-        alert(
+        toast.error(
           translate(
             'Something went wrong when attempting to edit audio description.',
           ),
@@ -197,7 +198,7 @@ const VideoCard = ({
       }
       navigate(`/editor/${youTubeId}/${audioDescriptionId}`)
     } else {
-      alert(
+      toast.error(
         translate('You have to be logged in in order to describe this video'),
       )
     }

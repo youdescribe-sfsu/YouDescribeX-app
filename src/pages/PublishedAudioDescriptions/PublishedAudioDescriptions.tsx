@@ -252,7 +252,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   useEffect(() => {
     clipStackRef.current = clipStack
-    console.log('New Clip Stack', clipStack)
+    // console.log('New Clip Stack', clipStack)
   }, [clipStack])
 
   useEffect(() => {
@@ -268,8 +268,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   }, [needRefresh])
 
   useEffect(() => {
-    console.log(user)
-    console.log(userDataStore.getState().userId)
+    // console.log(user)
+    // console.log(userDataStore.getState().userId)
     if (userDataStore.getState().userId !== sessionStorage.getItem('User')) {
       setSeconds(0)
     }
@@ -382,7 +382,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           return res.data
         })
         .then((data) => {
-          console.log('Audio Description Data', data)
+          // console.log('Audio Description Data', data)
           setShowSpinner(false)
           setIsPublished(data.is_published)
           // setYoutubeVideoId(data.youtube_id)
@@ -401,7 +401,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           }
           audioClipsData.forEach((clip, i) => {
             // add a sequence number for every audio clip
-            console.log(clip)
+            // console.log(clip)
             clip.clip_sequence_number = i + 1
             clip.clip_audio_path = clip.clip_audio_path.replace(
               '.',
@@ -432,8 +432,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             setEditComponentToggleList(tempArray)
           }
           setAudioClips([...audioClipsData])
-          console.log(audioClipsData)
-          // console.log("Audio Clips", audioClips);
+          // console.log(audioClipsData)
+          // // console.log("Audio Clips", audioClips);
           setNotesData(notesData)
           const maxStackSize =
             audioClipsData.length > 100
@@ -523,7 +523,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           console.info('Playing clip by Seeking to current time')
           // Play Inline Clip
           const currentFilteredClip = clipStackRef.current[0]
-          console.log('Clip to be Played', currentFilteredClip)
+          // console.log('Clip to be Played', currentFilteredClip)
           const prevelement = document.querySelectorAll('.green-border')
           // TODO: Convert to normal for loop
           prevelement.forEach((elem) => elem.classList.remove('green-border'))
@@ -533,25 +533,25 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
           if (clipAudioPath !== playedClipPath) {
-            console.log('Updating Clip Index (inline clip)')
+            // console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
             // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
             const currentAudio = currentFilteredClip.clip_audio
-            console.log('Playing inline clip')
+            // console.log('Playing inline clip')
             if (
               currentAudio?.playing() ||
               currentInlineACRef.current?.playing()
               // currentFilteredClip.clip_id === clipIDRef.current
             ) {
-              console.log('Clip is already playing')
+              // console.log('Clip is already playing')
               return
             }
-            console.log(
-              'Seeking to',
-              currentTimeRef.current - currentFilteredClip.clip_start_time,
-              'seconds',
-            )
+            // console.log(
+            //   'Seeking to',
+            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
+            //   'seconds',
+            // )
 
             currentAudio?.seek(
               currentTimeRef.current - currentFilteredClip.clip_start_time,
@@ -561,11 +561,11 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             setCurrInlineAC(currentAudio)
 
             // Load a new clip and add it to the stack
-            console.log('Current Clip Index', currentClipIndexRef.current)
+            // console.log('Current Clip Index', currentClipIndexRef.current)
 
             const newClip =
               audioClips[currentClipIndexRef.current + clipStackSize - 1]
-            console.log('New CLIP (seeked inline) => ', newClip)
+            // console.log('New CLIP (seeked inline) => ', newClip)
             if (newClip) {
               newClip.clip_audio = new Howl({
                 src: newClip.clip_audio_path,
@@ -604,7 +604,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             previousTimeRef.current - 0.1
         ) {
           const currentFilteredClip = clipStackRef.current[0]
-          console.log('Updating Clip Index')
+          // console.log('Updating Clip Index')
           setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
           const prevelement = document.querySelectorAll('.green-border')
           // TODO: Convert to normal for loop
@@ -627,10 +627,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
               // Add a new clip to the stack
-              console.log('Current Clip Index', currentClipIndexRef.current)
+              // console.log('Current Clip Index', currentClipIndexRef.current)
               const newClip =
                 audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-              console.log('New CLIP (normal extended) => ', newClip)
+              // console.log('New CLIP (normal extended) => ', newClip)
               if (newClip) {
                 newClip.clip_audio = new Howl({
                   src: newClip.clip_audio_path,
@@ -670,10 +670,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         // A skip has most likely occurred
         console.error('SKIP DETECTED', clipStackRef.current[0])
         // Add a new clip to the stack
-        console.log('Current Clip Index', currentClipIndexRef.current)
+        // console.log('Current Clip Index', currentClipIndexRef.current)
         const newClip =
           audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-        console.log('New CLIP (normal extended) => ', newClip)
+        // console.log('New CLIP (normal extended) => ', newClip)
         if (newClip) {
           newClip.clip_audio = new Howl({
             src: newClip.clip_audio_path,
@@ -943,15 +943,15 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         },
       )
       const data = response.data
-      console.log(data)
+      // console.log(data)
       navigate(`/editor/${data.url}`)
       toast.dismiss(toastId.current)
     } catch (error) {
       if (toastId.current) toast.dismiss(toastId.current)
       toast.error('Something went wrong, please try again later')
-      console.log(error)
+      // console.log(error)
     } finally {
-      console.log('finally')
+      // console.log('finally')
       // setButtonLoading(false)
     }
   }
@@ -963,7 +963,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         text={`Are you sure you want to use this audio description? \n You will not be able to revert to freestyle mode.`}
         modalTask={async (e) => {
           if (e.type === 'click') {
-            console.log('clicked')
+            // console.log('clicked')
             await handleGetAIAudioDescription()
           }
         }}

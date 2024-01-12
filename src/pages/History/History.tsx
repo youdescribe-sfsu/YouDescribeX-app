@@ -146,8 +146,8 @@ const History = () => {
     setLoadingState,
   ) => {
     try {
-      console.log('fetchVideosData')
-      console.log(dataState)
+      // console.log('fetchVideosData')
+      // console.log(dataState)
       const pageNumber = dataState?.currentPage || 1
       setLoadingState(true)
       const response = await axios.get(apiEndpoint, {
