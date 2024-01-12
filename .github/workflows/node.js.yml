@@ -39,10 +39,9 @@ jobs:
   trigger-gitlab-ci-dev:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
-    needs: build
     steps:
       - uses: eic/trigger-gitlab-ci@v2
         with:
           project_id: 47563165
           token: ${{ secrets.GITLAB_TRIGGER_TOKEN }}
-          ref: 'dev'
+          ref_name: 'dev'
