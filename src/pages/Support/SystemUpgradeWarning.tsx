@@ -44,7 +44,7 @@ const SystemUpgradeWarning = () => {
         </ul>
 
         <div
-          id="support-system-upgrade-message-alert"
+          id="support-system-upgrade-message-toast.error"
           className="w3-content"
           style={{ textAlign: 'center' }}
         >

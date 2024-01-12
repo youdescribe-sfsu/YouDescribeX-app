@@ -323,6 +323,11 @@ const strings = {
     'AI REQUESTED VIDEOS': 'AI REQUESTED VIDEOS',
     'Go to descriptions': 'Go to descriptions',
     'MY WISHLIST': 'MY WISHLIST',
+    'Add Freestyle Description': 'Add Freestyle Description',
+    'Go To Descriptions': 'Go to Descriptions',
+    'Provide feedback for this describer':
+      'Provide feedback for this describer',
+    'MY DESCRIPTIONS': 'MY DESCRIPTIONS',
   },
 }
 

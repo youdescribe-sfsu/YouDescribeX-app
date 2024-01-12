@@ -10,6 +10,7 @@ import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import ourFetch from '@/shared/utils/ourFetch'
 import React, { ReactNode, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -22,7 +23,7 @@ const Search = () => {
   const [currentPage, setCurrentPage] = useState<number>(1)
 
   useEffect(() => {
-    console.log('Search Params updated', searchParams.get('q'))
+    // console.log('Search Params updated', searchParams.get('q'))
     setLoadingYDVideos(true)
     setLoadingYTVideos(true)
     setVideosNotOnYD([])
@@ -33,7 +34,7 @@ const Search = () => {
 
   const getSearchResultsFromYdAndYt = (page = 1) => {
     const value = searchParams.get('q') ?? ''
-    console.log('Search Params,', value)
+    // console.log('Search Params,', value)
 
     let query = (value || '').trim()
     if (
@@ -211,7 +212,7 @@ const Search = () => {
   }
 
   const loadMoreVideosFromYT = () => {
-    alert('Under Development')
+    toast.error('Under Development')
   }
 
   return (

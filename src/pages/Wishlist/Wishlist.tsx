@@ -13,8 +13,8 @@ import DataTable, { Media, TableColumn } from 'react-data-table-component'
 import { useNavigate } from 'react-router-dom'
 import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
-import encryptData from '@/shared/utils/encrypt'
-import Carousel from 'react-bootstrap/Carousel'
+import { toast } from 'react-toastify'
+
 interface VideosState {
   data: any[]
   totalVideos: number
@@ -235,7 +235,6 @@ const Wishlist = () => {
     dataState,
     setLoadingState,
   ) => {
-    console.log(dataState)
     const pageNumber = dataState?.currentPage || 1
 
     try {
@@ -245,14 +244,13 @@ const Wishlist = () => {
           params: {
             pageNumber: pageNumber,
           },
-
           withCredentials: true,
         },
       )
 
-      console.log('==============================')
-      console.log(response.data)
-      console.log('==============================')
+      // console.log('==============================')
+      // console.log(response.data)
+      // console.log('==============================')
 
       const totalVideosLength = response.data.totalVideos
       const calculatedTotalVideoPages = Math.ceil(
@@ -276,9 +274,9 @@ const Wishlist = () => {
         })
       }
 
-      console.log('topYouTubeIds', topYouTubeIds)
+      // console.log('topYouTubeIds', topYouTubeIds)
       const youTubeResponse = await fetchVideoDetails(topYouTubeIds)
-      console.log('youTubeResponse', youTubeResponse)
+      // console.log('youTubeResponse', youTubeResponse)
       const videoCardsComponents = []
 
       for (let i = 0; i < youTubeResponse.items.length; i += 1) {
@@ -324,7 +322,7 @@ const Wishlist = () => {
           </div>,
         )
       }
-      console.log('videoCardsComponents', videoCardsComponents)
+      // console.log('videoCardsComponents', videoCardsComponents)
       const newWishlistData = {
         data: videoCardsComponents,
         totalVideos: videoCardsComponents.length,
@@ -388,18 +386,26 @@ const Wishlist = () => {
         )
         .then((res) => {
           if (res.status != 201) {
-            alert(
+            // toast.error(
+            //   translate(
+            //     'Something went wrong or you may already have described this video. Please try again later!',
+            //   ),
+            toast.error(
               translate(
                 'Something went wrong or you may already have described this video. Please try again later!',
               ),
             )
+
             return
           }
 
           navigate('/video/' + youTubeId)
         })
     } else {
-      alert(
+      // toast.error(
+      //   translate('You have to be logged in in order to describe this video'),
+      // )
+      toast.error(
         translate('You have to be logged in in order to describe this video'),
       )
     }
@@ -475,7 +481,7 @@ const Wishlist = () => {
           ',',
         )}&key=wishlist`
         ourFetch(url).then((response) => {
-          console.log(response)
+          // console.log(response)
           parseTableData(
             response.result,
             votes,
@@ -486,7 +492,7 @@ const Wishlist = () => {
         })
       })
       .catch((err) => {
-        console.log(err)
+        // console.log(err)
         setTotalRows(0)
         setRows([])
       })
@@ -546,7 +552,7 @@ const Wishlist = () => {
 
   const loadTopVideos = () => {
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-top-wishlist`
-    // console.log(userDataStore.getState())
+    // // console.log(userDataStore.getState())
     if (cancelRequest.current) {
       cancelRequest.current.cancel()
     }
@@ -554,14 +560,11 @@ const Wishlist = () => {
     axios
       .get(url, {
         withCredentials: true,
-        headers: {
-          authorization: encryptData(userDataStore.getState().userId),
-        },
         cancelToken: cancelRequest.current.token,
       })
       .then((response) => {
         const wishListItems = response.data
-        console.log(wishListItems)
+        // console.log(wishListItems)
         const topYouTubeIds = []
         const topYouDescribeIds = []
         const topVotes = []
@@ -690,52 +693,63 @@ const Wishlist = () => {
         {videoCardsComponents}
       </div>
       <header className="w3-container w3-indigo">
-        <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
+        {userDataStore.getState().isSignedIn ? (
+          <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
+        ) : (
+          <h2 className="classic-h2">{translate('WISHLIST')}</h2>
+        )}
       </header>
 
-      <div className="d-flex justify-content-center custom-carousel">
-        <div className="custom-carousel">
-          {!wishlistData && <CustomSpinner />}
-          {wishlistData && wishlistData?.data.length > 0 && (
-            <div className="d-flex justify-content-between align-items-center h-100">
-              {/* Custom previous button */}
-              <CustomButton
-                className="prev-wishlist-icon"
-                onClick={async () => {
-                  setShowWishlistSpinner(true) // Optionally, show spinner while loading
-                  await handlePreviousPage(wishlistData, setShowWishlistSpinner)
-                  setShowWishlistSpinner(false) // Optionally, hide spinner after loading
-                }}
-                disabled={wishlistData.currentPage === 1}
-              >
-                &lt;
-              </CustomButton>
+      {userDataStore.getState().isSignedIn && (
+        <div className="d-flex justify-content-center custom-carousel">
+          <div className="custom-carousel">
+            {!wishlistData && <CustomSpinner />}
+            {wishlistData && wishlistData?.data.length > 0 && (
+              <div className="d-flex justify-content-between align-items-center h-100">
+                {/* Custom previous button */}
+                <CustomButton
+                  className="prev-wishlist-icon"
+                  onClick={async () => {
+                    setShowWishlistSpinner(true) // Optionally, show spinner while loading
+                    await handlePreviousPage(
+                      wishlistData,
+                      setShowWishlistSpinner,
+                    )
+                    setShowWishlistSpinner(false) // Optionally, hide spinner after loading
+                  }}
+                  disabled={wishlistData.currentPage === 1}
+                >
+                  &lt;
+                </CustomButton>
 
-              {/* Content for displaying videos */}
-              <div className="w3-row classic-container wishlist-video-row ">
-                {wishlistData.data}
+                {/* Content for displaying videos */}
+                <div className="w3-row classic-container wishlist-video-row ">
+                  {wishlistData.data}
+                </div>
+
+                {/* Custom next button */}
+                <CustomButton
+                  className="next-wishlist-icon"
+                  onClick={async () => {
+                    setShowWishlistSpinner(true) // Optionally, show spinner while loading
+                    await handleNextPage(wishlistData, setShowWishlistSpinner)
+                    setShowWishlistSpinner(false) // Optionally, hide spinner after loading
+                  }}
+                  disabled={
+                    wishlistData.currentPage === wishlistData.totalPages
+                  }
+                >
+                  &gt;
+                </CustomButton>
               </div>
+            )}
 
-              {/* Custom next button */}
-              <CustomButton
-                className="next-wishlist-icon"
-                onClick={async () => {
-                  setShowWishlistSpinner(true) // Optionally, show spinner while loading
-                  await handleNextPage(wishlistData, setShowWishlistSpinner)
-                  setShowWishlistSpinner(false) // Optionally, hide spinner after loading
-                }}
-                disabled={wishlistData.currentPage === wishlistData.totalPages}
-              >
-                &gt;
-              </CustomButton>
-            </div>
-          )}
-
-          {wishlistData?.data.length === 0 && (
-            <p className="history-text">No videos in your wishlist.</p>
-          )}
+            {wishlistData?.data.length === 0 && (
+              <p className="history-text">No videos in your wishlist.</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
       <form
         onSubmit={(e: any) => {
           e.preventDefault()

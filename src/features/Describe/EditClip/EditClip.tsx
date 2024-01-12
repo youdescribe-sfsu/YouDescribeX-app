@@ -413,7 +413,7 @@ const EditClip = ({
   const handleClickDeleteClip = (e: any) => {
     setShowSpinner(true)
     e.preventDefault()
-    console.log(clipId)
+    // console.log(clipId)
     axios
       .delete(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/delete-clip/${clipId}`,
@@ -474,7 +474,7 @@ const EditClip = ({
           }, 4000) // setting the timeout to show the toast message for 4 sec
         })
         .catch((err) => {
-          console.log(err)
+          // console.log(err)
           toast.error(
             'Error while replacing Audio Clip. Please try again later.',
           )

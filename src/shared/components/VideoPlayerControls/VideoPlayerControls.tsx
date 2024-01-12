@@ -55,7 +55,7 @@ const VideoPlayerControls = ({
   const debouncedYouTubeVolumeChange = useMemo(
     () =>
       debounce((value: number) => {
-        console.log('Updating YT Volume', value)
+        // console.log('Updating YT Volume', value)
         setYouTubeVideoVolume(value)
       }, 500),
     [setYouTubeVideoVolume],
@@ -68,7 +68,7 @@ const VideoPlayerControls = ({
   const debouncedDescriptionVolumeChange = useMemo(
     () =>
       debounce((value: number) => {
-        console.log('Updating Description Volume', value)
+        // console.log('Updating Description Volume', value)
         setDescriptionVolume(value)
       }, 500),
     [setDescriptionVolume],

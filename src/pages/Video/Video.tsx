@@ -40,6 +40,18 @@ import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
 import axios, { AxiosResponse } from 'axios'
+import { Feedbacks, VideoDescriberRoot } from './video_describer'
+
+interface IADUserId {
+  [key: string]: {
+    overall_rating_votes_counter: number
+    overall_rating_average: number
+    overall_rating_votes_sum: number
+    feedbacks: Feedbacks
+    picture: string
+    name: string
+  }
+}
 
 const Video = () => {
   const { videoId } = useParams()
@@ -57,7 +69,7 @@ const Video = () => {
   // Data from API
   const [audioDescriptionsIds, setAudioDescriptionsIds] = useState<any[]>([])
   const [audioDescriptionsIdsUsers, setAudioDescriptionsIdsUsers] =
-    useState<any>({})
+    useState<IADUserId | null>(null)
   const [audioDescriptionsIdsAudioClips, setAudioDescriptionsIdsAudioClips] =
     useState<any>({})
 
@@ -191,7 +203,7 @@ const Video = () => {
 
   useEffect(() => {
     clipStackRef.current = clipStack
-    console.log('New Clip Stack', clipStack)
+    // console.log('New Clip Stack', clipStack)
   }, [clipStack])
 
   useEffect(() => {
@@ -241,7 +253,7 @@ const Video = () => {
 
   // Fetch Data on Page Load
   useEffect(() => {
-    console.log(videoId)
+    // console.log(videoId)
     if (videoId) {
       fetchVideoData()
     }
@@ -259,7 +271,6 @@ const Video = () => {
           url,
           {
             youtube_id: videoId,
-            user_id: userDataStore.getState().userId,
           },
           {
             withCredentials: true,
@@ -291,38 +302,51 @@ const Video = () => {
       })
       .catch((err) => {
         console.log(err)
-        navigate('/not-found')
+        // navigate('/not-found')
       })
   }
 
-  const parseVideoData = (videoData: any) => {
+  const parseVideoData = (videoData: VideoDescriberRoot) => {
     // TODO: Add Types
+    console.log('Video Data', videoData)
     const adIds: any[] = []
-    const adIdsUsers: any = {}
+    const adIdsUsers: IADUserId = {}
     const adIdsAudioClips: any = {}
 
     if (
-      videoData?.audio_descriptions?.find(
-        (ad: any) => ad.status === 'published',
-      )
+      videoData.audio_descriptions &&
+      videoData.audio_descriptions.length > 0
     ) {
-      videoData.audio_descriptions.forEach((ad: any) => {
-        if (ad.status === 'published') {
-          adIds.push(ad._id)
-          adIdsUsers[ad._id] = ad.user
-          adIdsUsers[ad._id].overall_rating_votes_counter =
-            ad.overall_rating_votes_counter
-          adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_average
-          adIdsUsers[ad._id].overall_rating_votes_sum =
-            ad.overall_rating_votes_sum
-          adIdsUsers[ad._id].feedbacks = ad.feedbacks
-          adIdsAudioClips[ad._id] = []
-          if (ad.audio_clips.length > 0) {
-            ad.audio_clips.forEach((audioClip: any) => {
-              audioClip.url = `${audioClipsUploadsPath}${audioClip.file_path}/${audioClip.file_name}`
-              adIdsAudioClips[ad._id].push(audioClip)
-            })
+      videoData.audio_descriptions.forEach((ad) => {
+        adIds.push(ad._id)
+
+        // Initialize adIdsUsers[ad._id] as an object if it doesn't exist
+        if (!adIdsUsers[ad._id]) {
+          adIdsUsers[ad._id] = {
+            overall_rating_votes_counter: ad.overall_rating_votes_counter,
+            overall_rating_average: ad.overall_rating_votes_average,
+            overall_rating_votes_sum: ad.overall_rating_votes_sum,
+            feedbacks: ad.feedbacks,
+            picture: ad.user.picture,
+            name: ad.user.name,
           }
+        }
+
+        // adIdsUsers[ad._id].overall_rating_votes_counter =
+        //   ad.overall_rating_votes_counter;
+        // adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_votes_average;
+        // adIdsUsers[ad._id].overall_rating_votes_sum = ad.overall_rating_votes_sum;
+        // adIdsUsers[ad._id].feedbacks = ad.feedbacks as De[];
+        adIdsAudioClips[ad._id] = []
+
+        if (ad.audio_clips.length > 0) {
+          ad.audio_clips.forEach((audioClip: any) => {
+            // console.log(audioClip)
+            audioClip.url = `${audioClipsUploadsPath(
+              `${audioClip.file_path}/${audioClip.file_name}`,
+            )}`
+            adIdsAudioClips[ad._id].push(audioClip)
+          })
         }
       })
 
@@ -358,14 +382,14 @@ const Video = () => {
     if (!selectedAd) {
       selectedAd = getHighestRatedAudioDescription(adIdsUsers)
     }
-    console.log('Selected AD', selectedAd)
+    // console.log('Selected AD', selectedAd)
 
     if (
       audioDescriptionsIds?.length &&
       audioDescriptionsIds?.indexOf(selectedAd) === -1
     ) {
       console.log('Navigating to Not Found')
-      navigate('/not-found')
+      // navigate('/not-found')
     }
     setSearchParams((params) => {
       if (selectedAd) params.set('ad', selectedAd)
@@ -392,7 +416,7 @@ const Video = () => {
       a.clip_start_time < b.clip_start_time ? -1 : 1,
     )
 
-    // console.log('Sorted Clips', sortedClipData)
+    // // console.log('Sorted Clips', sortedClipData)
 
     setAudioClips([...sortedClipData])
     const maxStackSize =
@@ -408,22 +432,22 @@ const Video = () => {
         clipStackData.push(clip)
       }
     }
-    // console.log('Clip Stack', clipStackData)
+    // // console.log('Clip Stack', clipStackData)
     setClipStack(clipStackData)
     getYTVideoInfo()
   }
 
   const getYTVideoInfo = () => {
-    // console.log('6 -> getYTVideoInfo');
+    // // console.log('6 -> getYTVideoInfo');
     const url = `${youTubeApiUrl}/videos?id=${videoId}&part=contentDetails,snippet,statistics&forUsername=iamOTHER&key=${youTubeApiKey}`
 
     // Use custom fetch for cross-browser compatability
     ourFetch(url)
       .then((data: any) => {
-        console.log(
-          'Current Video Duration',
-          data.items[0].contentDetails.duration,
-        )
+        // console.log(
+        //   'Current Video Duration',
+        //   data.items[0].contentDetails.duration,
+        // )
         const videoDurationInSeconds = convertISO8601ToSeconds(
           data.items[0].contentDetails.duration,
         )
@@ -449,8 +473,8 @@ const Video = () => {
         setShowSpinner(false)
       })
       .catch((err) => {
-        console.log('Unable to load the video you are trying to edit.', err)
-        alert(
+        // console.log('Unable to load the video you are trying to edit.', err)
+        toast.error(
           'Thank you for visiting YouDescribe. This video is not viewable at this time due to YouTube API key limits. Our key is reset by Google at midnight Pacific time.',
         )
       })
@@ -497,7 +521,7 @@ const Video = () => {
     if (currentState === 1) {
       // If all clips have been played, skip check
       if (clipStackRef.current.length === 0) {
-        console.log('No Clips left to play')
+        // console.log('No Clips left to play')
         return
       }
 
@@ -534,34 +558,34 @@ const Video = () => {
           console.info('Playing clip by Seeking to current time')
           // Play Inline Clip
           const currentFilteredClip = clipStackRef.current[0]
-          console.log('Clip to be Played', currentFilteredClip)
+          // console.log('Clip to be Played', currentFilteredClip)
 
           setPlayedAudioClip(currentFilteredClip.clip_id)
           //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
-          console.log('PLaying clip', clipAudioPath)
+          // console.log('PLaying clip', clipAudioPath)
 
           if (clipAudioPath !== playedClipPath) {
-            console.log('Updating Clip Index (inline clip)')
+            // console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
             // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
             const currentAudio = currentFilteredClip.clip_audio
-            console.log('Playing inline clip')
+            // console.log('Playing inline clip')
             if (
               currentAudio?.playing() ||
               currentInlineACRef.current?.playing()
               // currentFilteredClip.clip_id === clipIDRef.current
             ) {
-              console.log('Clip is already playing')
+              // console.log('Clip is already playing')
               return
             }
-            console.log(
-              'Seeking to',
-              currentTimeRef.current - currentFilteredClip.clip_start_time,
-              'seconds',
-            )
+            // console.log(
+            //   'Seeking to',
+            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
+            //   'seconds',
+            // )
 
             currentAudio?.seek(
               currentTimeRef.current - currentFilteredClip.clip_start_time,
@@ -571,11 +595,11 @@ const Video = () => {
             setCurrInlineAC(currentAudio)
 
             // Load a new clip and add it to the stack
-            console.log('Current Clip Index', currentClipIndexRef.current)
+            // console.log('Current Clip Index', currentClipIndexRef.current)
 
             const newClip =
               audioClips[currentClipIndexRef.current + clipStackSize - 1]
-            console.log('New CLIP (seeked inline) => ', newClip)
+            // console.log('New CLIP (seeked inline) => ', newClip)
             if (newClip) {
               newClip.clip_audio = new Howl({
                 src: newClip.clip_audio_path,
@@ -613,7 +637,7 @@ const Video = () => {
             previousTimeRef.current - 0.1
         ) {
           const currentFilteredClip = clipStackRef.current[0]
-          console.log('Updating Clip Index')
+          // console.log('Updating Clip Index')
           setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
           // Play the clip only if it wasn't played recently
           if (playedAudioClip !== currentFilteredClip.clip_id) {
@@ -632,10 +656,10 @@ const Video = () => {
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
               // Add a new clip to the stack
-              console.log('Current Clip Index', currentClipIndexRef.current)
+              // console.log('Current Clip Index', currentClipIndexRef.current)
               const newClip =
                 audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-              console.log('New CLIP (normal extended) => ', newClip)
+              // console.log('New CLIP (normal extended) => ', newClip)
               if (newClip) {
                 newClip.clip_audio = new Howl({
                   src: newClip.clip_audio_path,
@@ -674,10 +698,10 @@ const Video = () => {
         // A skip has most likely occurred
         console.error('SKIP DETECTED', clipStackRef.current[0])
         // Add a new clip to the stack
-        console.log('Current Clip Index', currentClipIndexRef.current)
+        // console.log('Current Clip Index', currentClipIndexRef.current)
         const newClip =
           audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-        console.log('New CLIP (normal extended) => ', newClip)
+        // console.log('New CLIP (normal extended) => ', newClip)
         if (newClip) {
           newClip.clip_audio = new Howl({
             src: newClip.clip_audio_path,
@@ -798,7 +822,7 @@ const Video = () => {
   }
 
   const updateClipStackData = useCallback(() => {
-    console.log('Updating Clip Stack | Current Time =', currentTimeRef.current)
+    // console.log('Updating Clip Stack | Current Time =', currentTimeRef.current)
 
     const newClipIndex = audioClips.findIndex(
       (clip) =>
@@ -807,7 +831,7 @@ const Video = () => {
           clip.clip_end_time > currentTimeRef.current),
     )
     setCurrentClipIndex(newClipIndex)
-    console.log('Current Clip Index', newClipIndex)
+    // console.log('Current Clip Index', newClipIndex)
 
     // slice audio clips from newClipIndex to newClipIndex + 5
     const clipStackData = []
@@ -834,47 +858,51 @@ const Video = () => {
 
   useEffect(() => {
     console.log('Updating describer Cards')
-    const describers = audioDescriptionsIdsUsers
-    const describerCards: ReactNode[] = []
-    let describerIds = Object.keys(describers)
+    console.log(audioDescriptionsIdsUsers)
+    if (audioDescriptionsIdsUsers) {
+      // console.log('Updating describer Cards')
+      const describers = audioDescriptionsIdsUsers
+      const describerCards: ReactNode[] = []
+      let describerIds = Object.keys(describers)
 
-    if (describerIds.length) {
-      // document.getElementById('no-descriptions').style.display = 'none'
+      if (describerIds.length) {
+        // document.getElementById('no-descriptions').style.display = 'none'
+      }
+      if (describerIds.length && describerIds[0] !== selectedADId) {
+        const selectedIdIndex = describerIds.indexOf(selectedADId)
+        describerIds = describerIds
+          .splice(selectedIdIndex, 1)
+          .concat(describerIds)
+      }
+
+      describerIds.forEach((describerId, i) => {
+        describerCards.push(
+          <DescriberCard
+            key={i}
+            handleDescriberChange={handleDescriberChange}
+            handleRatingPopup={handleRatingPopup}
+            handleFeedbackPopup={handleFeedbackPopup}
+            describerId={describerId}
+            selectedDescriberId={selectedADId}
+            picture={describers[describerId].picture}
+            name={describers[describerId].name}
+            overall_rating_average={
+              describers[describerId].overall_rating_average
+            }
+            handleRating={() => {
+              // console.log('Handle Rating')
+            }}
+          />,
+        )
+      })
+
+      setDescriberCards(describerCards)
     }
-    if (describerIds.length && describerIds[0] !== selectedADId) {
-      const selectedIdIndex = describerIds.indexOf(selectedADId)
-      describerIds = describerIds
-        .splice(selectedIdIndex, 1)
-        .concat(describerIds)
-    }
-
-    describerIds.forEach((describerId, i) => {
-      describerCards.push(
-        <DescriberCard
-          key={i}
-          handleDescriberChange={handleDescriberChange}
-          handleRatingPopup={handleRatingPopup}
-          handleFeedbackPopup={handleFeedbackPopup}
-          describerId={describerId}
-          selectedDescriberId={selectedADId}
-          picture={describers[describerId].picture}
-          name={describers[describerId].name}
-          overall_rating_average={
-            describers[describerId].overall_rating_average
-          }
-          handleRating={() => {
-            console.log('Handle Rating')
-          }}
-        />,
-      )
-    })
-
-    setDescriberCards(describerCards)
   }, [audioDescriptionsIdsUsers, selectedADId])
 
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to vote'))
+      toast.error(translate('You have to be logged in in order to vote'))
     } else {
       const url = `${apiUrl}/wishlist`
       ourFetch(url, true, {
@@ -889,17 +917,17 @@ const Video = () => {
         }),
       })
         .then((res) => {
-          console.log('Success upVote')
+          // console.log('Success upVote')
         })
         .catch((err) => {
           switch (err.code) {
             case 67:
-              alert(
+              toast.error(
                 translate('It is not possible to vote again for this video.'),
               )
               break
             default:
-              alert(
+              toast.error(
                 translate(
                   'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
                 ),
@@ -949,9 +977,9 @@ const Video = () => {
   }
 
   const handleRatingSubmit = (rating: number) => {
-    if (rating === 0) alert('You must select a rating')
+    if (rating === 0) toast.error('You must select a rating')
     else if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to vote'))
+      toast.error(translate('You have to be logged in in order to vote'))
     } else {
       const url = `${apiUrl}/audiodescriptionsrating/${selectedADId}`
       setRating(rating)
@@ -968,7 +996,7 @@ const Video = () => {
       })
         .then((res) => {
           // if (rating === 5) {
-          // alert(`You have successfully given this description a rating of ${rating}`);
+          // toast.error(`You have successfully given this description a rating of ${rating}`);
           const ratingPopup = document.getElementById('rating-popup')
           const ratingSuccess = document.getElementById('rating-success')
           if (ratingPopup) {
@@ -1010,8 +1038,8 @@ const Video = () => {
           setAudioDescriptionsIdsUsers(describers)
         })
         .catch((err) => {
-          console.log(err)
-          alert(
+          // console.log(err)
+          toast.error(
             translate(
               'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
             ),
@@ -1046,15 +1074,15 @@ const Video = () => {
           feedbackSuccess.focus()
           setTimeout(() => (feedbackSuccess.style.display = 'none'), 1000)
         }
-        // alert('Thanks for your feedback!');
+        // toast.error('Thanks for your feedback!');
 
         /* start of email */
         sendOptInEmail(2, rating, feedback)
         /* end of email */
       })
       .catch((err) => {
-        console.log(err)
-        alert(
+        // console.log(err)
+        toast.error(
           translate(
             'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
           ),
@@ -1090,13 +1118,13 @@ const Video = () => {
       }),
     }
     ourFetch(url, true, optionObj).then((response) => {
-      console.log(response)
+      // console.log(response)
     })
   }
 
   const handleRatingPopup = () => {
     if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to vote'))
+      toast.error(translate('You have to be logged in in order to vote'))
     } else {
       const ratingPopup = document.getElementById('rating-popup')
       if (ratingPopup) {
@@ -1107,7 +1135,9 @@ const Video = () => {
   }
   const handleFeedbackPopup = () => {
     if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to give feedback'))
+      toast.error(
+        translate('You have to be logged in in order to give feedback'),
+      )
     } else {
       const feedbackPopup = document.getElementById('feedback-popup')
       if (feedbackPopup) {
@@ -1131,7 +1161,7 @@ const Video = () => {
     }
   }
 
-  console.log(videoDurationInSeconds)
+  // console.log(videoDurationInSeconds)
 
   const getAudioSegments = () => {
     return audioClips.map((ad) => {
@@ -1156,9 +1186,11 @@ const Video = () => {
   }
 
   const handleAddDescription = async () => {
-    console.log(userDataStore.getState())
+    // console.log(userDataStore.getState())
     if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to add a description'))
+      toast.error(
+        translate('You have to be logged in in order to add a description'),
+      )
     } else {
       try {
         const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`
@@ -1175,10 +1207,10 @@ const Video = () => {
           },
         )
         const data = response.data
-        console.log(data)
+        // console.log(data)
         navigate(`/editor/${data.url}`)
       } catch (error) {
-        console.log(error)
+        // console.log(error)
         toast.error('Something went wrong, please try again later')
       }
     }
@@ -1213,9 +1245,9 @@ const Video = () => {
       )
       const data = response.data
       toast.success('AI Descriptions have been requested')
-      // console.log('data for asdasd:: ', data)
+      // // console.log('data for asdasd:: ', data)
     } catch (error) {
-      console.log(error)
+      // console.log(error)
       setRequestAiDescription({
         status: '',
         requested: false,
@@ -1253,18 +1285,36 @@ const Video = () => {
       )
     } else if (requestAiDescription.requested) {
       return (
-        <Button
-          title={translate('AI Descriptions requested')}
-          ariaLabel="AI Descriptions requested"
-          text={translate('AI Descriptions requested')}
-          color="w3-brown w3-block w3-margin-top"
-          // onClick={() => handleGenerateAIDescriptions()}
-          disabled={requestAiDescription.requested}
-        />
+        <>
+          <Button
+            title={translate('Add a new description for this video')}
+            ariaLabel="Add a new description for this video"
+            text={translate('Add Freestyle Description')}
+            color="w3-yellow w3-block w3-margin-top"
+            onClick={() => handleAddDescription()}
+            disabled={requestAiDescription.requested}
+          />
+          <Button
+            title={translate('AI Descriptions requested')}
+            ariaLabel="AI Descriptions requested"
+            text={translate('AI Descriptions requested')}
+            color="w3-brown w3-block w3-margin-top"
+            // onClick={() => handleGenerateAIDescriptions()}
+            disabled={requestAiDescription.requested}
+          />
+        </>
       )
     } else if (!requestAiDescription.requested) {
       return (
         <>
+          <Button
+            title={translate('Add a new description for this video')}
+            ariaLabel="Add a new description for this video"
+            text={translate('Add Freestyle Description')}
+            color="w3-yellow w3-block w3-margin-top"
+            onClick={() => handleAddDescription()}
+            disabled={requestAiDescription.requested}
+          />
           <Button
             title={translate('Request AI Descriptions')}
             ariaLabel="Request AI Descriptions"
@@ -1373,7 +1423,7 @@ const Video = () => {
               id="describers"
               className="w3-col l4 m4 describers"
               style={{
-                display: Object.keys(audioDescriptionsIdsUsers).length
+                display: Object.keys(audioDescriptionsIdsUsers || {}).length
                   ? 'block'
                   : 'none',
               }}
@@ -1394,14 +1444,6 @@ const Video = () => {
                   color="w3-indigo w3-block w3-margin-top"
                   ariaLabel="Turn off descriptions for this video"
                   onClick={handleTurnOffDescriptions}
-                />
-                <Button
-                  title={translate('Add a new description for this video')}
-                  ariaLabel="Add a new description for this video"
-                  text={translate('Add Freestyle Description')}
-                  color="w3-yellow w3-block w3-margin-top"
-                  onClick={() => handleAddDescription()}
-                  disabled={requestAiDescription.requested}
                 />
                 <DescriptionButtons />
               </div>
@@ -1427,7 +1469,7 @@ const Video = () => {
             id="no-descriptions"
             className="w3-col l4 m4"
             style={{
-              display: Object.keys(audioDescriptionsIdsUsers).length
+              display: Object.keys(audioDescriptionsIdsUsers || {}).length
                 ? 'none'
                 : 'block',
             }}
@@ -1445,13 +1487,13 @@ const Video = () => {
                 color="w3-indigo w3-block w3-margin-top"
                 onClick={() => upVote()}
               />
-              <Button
+              {/* <Button
                 title={translate('Add a new description for this video')}
                 text={translate('Add Freestyle Description')}
                 ariaLabel="Add a new description for this video"
                 color="w3-yellow w3-block w3-margin-top"
                 onClick={() => handleAddDescription()}
-              />
+              /> */}
               <DescriptionButtons />
             </div>
           </div>
