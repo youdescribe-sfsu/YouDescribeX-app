@@ -306,7 +306,7 @@ const App = () => {
       {!isEmbedRoute && (
         <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
       )}
-      {/* <div
+      <div
         className="classic-body"
         style={{
           paddingTop:
@@ -315,49 +315,52 @@ const App = () => {
               ? '0px'
               : '54px',
         }}
-      > */}
-      <Routes>
-        <Route
-          path="/editor/:youtubeVideoId/:audioDescriptionId"
-          element={<YDXHome />}
-        />
-        <Route path="/home" element={<Home />} />
-        <Route path="/video/:videoId" element={<Video />} />
-        {/* <Route path="/video/v2/:videoId" element={<Video_v2 />} /> */}
-        <Route path="/embed/:videoId" element={<VideoEmbed />} />
-        <Route path="/wishlist" element={<Wishlist />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/credits" element={<Credits />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/credits-details" element={<CreditsDetails />} />
-        <Route path="/unsupported-browser" element={<UnsupportedBrowser />} />
-        <Route path="/videos/user/:userId" element={<UserDescribedVideos />} />
-        <Route path="/videos/history" element={<History />} />
-        <Route path="/" element={<Navigate to="/home" />} />
-        <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
-        <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
-        <Route path="/*" element={<PageNotFound />} />
-        <Route path="/support/about" element={<About />} />
-        <Route path="/support/describers" element={<Describers />} />
-        <Route path="/support/tutorial" element={<Tutorial />} />
-        <Route path="/support/embed_tutorial" element={<EmbedTutorial />} />
-        <Route path="/support/viewers" element={<Viewers />} />
-        <Route path="/support/privacy" element={<Privacy />} />
-        <Route
-          path="/support/system-upgrade-warning"
-          element={<SystemUpgradeWarning />}
-        />
-        <Route
-          path="/audio-description/:youtubeVideoId/:audioDescriptionId"
-          element={<PublishedAudioDescriptions />}
-        />
-        <Route
-          path="/audio-description/preview/:youtubeVideoId/:audioDescriptionId"
-          element={<PublishedAudioDescriptions />}
-        />
-      </Routes>
-      {/* </div> */}
+      >
+        <Routes>
+          <Route
+            path="/editor/:youtubeVideoId/:audioDescriptionId"
+            element={<YDXHome />}
+          />
+          <Route path="/home" element={<Home />} />
+          <Route path="/video/:videoId" element={<Video />} />
+          {/* <Route path="/video/v2/:videoId" element={<Video_v2 />} /> */}
+          <Route path="/embed/:videoId" element={<VideoEmbed />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/credits" element={<Credits />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/credits-details" element={<CreditsDetails />} />
+          <Route path="/unsupported-browser" element={<UnsupportedBrowser />} />
+          <Route
+            path="/videos/user/:userId"
+            element={<UserDescribedVideos />}
+          />
+          <Route path="/videos/history" element={<History />} />
+          <Route path="/" element={<Navigate to="/home" />} />
+          <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
+          <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
+          <Route path="/*" element={<PageNotFound />} />
+          <Route path="/support/about" element={<About />} />
+          <Route path="/support/describers" element={<Describers />} />
+          <Route path="/support/tutorial" element={<Tutorial />} />
+          <Route path="/support/embed_tutorial" element={<EmbedTutorial />} />
+          <Route path="/support/viewers" element={<Viewers />} />
+          <Route path="/support/privacy" element={<Privacy />} />
+          <Route
+            path="/support/system-upgrade-warning"
+            element={<SystemUpgradeWarning />}
+          />
+          <Route
+            path="/audio-description/:youtubeVideoId/:audioDescriptionId"
+            element={<PublishedAudioDescriptions />}
+          />
+          <Route
+            path="/audio-description/preview/:youtubeVideoId/:audioDescriptionId"
+            element={<PublishedAudioDescriptions />}
+          />
+        </Routes>
+      </div>
       <ToastContainer
         className="toast-btn"
         position="top-center"
