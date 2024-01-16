@@ -17,22 +17,21 @@ const SearchBar = () => {
   }
 
   useEffect(() => {
-    // Clear the search input when the location changes (e.g., navigating back)
-
+    // Clear the search input when the location changes
     setSearch('')
   }, [location])
 
-  useEffect(() => {
-    // Check if it's a page load or refresh
-    const isPageLoadOrRefresh = performance.navigation.type === 1
+  // useEffect(() => {
+  //   // Check if it's a page load or refresh
+  //   const isPageLoadOrRefresh = performance.navigation.type === 1
 
-    if (isPageLoadOrRefresh) {
-      // Clear the search input on page load or refresh
-      setSearch('')
-      // Redirect to the home page
-      window.location.href = '/'
-    }
-  }, [])
+  //   if (isPageLoadOrRefresh) {
+  //     // Clear the search input on page load or refresh
+  //     setSearch('')
+  //     // Redirect to the home page
+  //     window.location.href = '/'
+  //   }
+  // }, [])
 
   return (
     <div id="search-bar">
