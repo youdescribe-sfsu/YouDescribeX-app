@@ -120,18 +120,13 @@ const VideoCard = ({
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
 
       axios
-        .post(
-          url,
-          {
-            youTubeId: youTubeId,
+        .post(url, {
+          headers: {
+            'Content-Type': 'application/json',
           },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            withCredentials: true, // Add this line to include credentials
-          },
-        )
+          youTubeId: youTubeId,
+          userId: userDataStore.getState().userId,
+        })
         .then((res) => {
           setVoted(true)
           // console.log('Success upVote', res)
