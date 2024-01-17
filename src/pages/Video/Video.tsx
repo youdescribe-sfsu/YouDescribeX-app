@@ -917,14 +917,15 @@ const Video = () => {
         }),
       })
         .then((res) => {
-          // console.log('Success upVote')
+          toast.success(translate('Success upVote'))
         })
         .catch((err) => {
-          switch (err.code) {
-            case 67:
-              toast.error(
-                translate('It is not possible to vote again for this video.'),
-              )
+          switch (err.status) {
+            case 400:
+              toast.error(translate(err.message))
+              break
+            case 200:
+              toast.success(translate(err.message))
               break
             default:
               toast.error(
