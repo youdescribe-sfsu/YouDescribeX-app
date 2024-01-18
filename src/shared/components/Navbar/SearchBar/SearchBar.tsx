@@ -1,5 +1,5 @@
 import { translate } from '@/App'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Button from '../../Button/Button'
 import { useNavigate, useLocation } from 'react-router-dom'
 import './searchBar.scss'
@@ -8,32 +8,29 @@ const SearchBar = () => {
   const [search, setSearch] = useState<string>('')
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [userSearchHistory, setUserSearchHistory] = useState<string[]>([])
-  const [enteredValue, setEnteredValue] = useState<string>('') // New state to store input after Enter is clicked
-  const inputRef = React.useRef<HTMLInputElement>(null)
+  const [enteredValue, setEnteredValue] = useState<string>('')
+  const [showDropdown, setShowDropdown] = useState<boolean>(false)
+  const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const location = useLocation()
 
   const updateSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const q = encodeURIComponent(enteredValue || search) // Use enteredValue if available, otherwise use search
-
-    // Add the entered value to user search history
+    const q = encodeURIComponent(enteredValue || search)
     setUserSearchHistory((prevHistory) => [
       enteredValue || search,
       ...prevHistory.filter((item) => item !== (enteredValue || search)),
     ])
-
     localStorage.setItem('userSearchHistory', JSON.stringify(userSearchHistory))
     navigate(`/search?q=${q}`)
-    setSearch('') // Clear the search input
-    setSuggestions([]) // Hide suggestions after clicking Enter
+    setSearch('')
+    setSuggestions([])
+    setShowDropdown(false)
   }
 
   const fetchSuggestions = (input: string) => {
     setEnteredValue(input)
     setSearch(input)
-
-    // Filter suggestions from the stored search history
     const filteredSuggestions = userSearchHistory.filter((historyItem) =>
       historyItem.toLowerCase().includes(input.toLowerCase()),
     )
@@ -42,31 +39,41 @@ const SearchBar = () => {
 
   const handleSuggestionClick = (suggestion: string) => {
     setSearch(suggestion)
-    setEnteredValue(suggestion) // Update enteredValue on suggestion click
+    setEnteredValue(suggestion)
     setSuggestions([])
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value
     fetchSuggestions(inputValue)
+    setShowDropdown(true)
   }
 
   const handleEnterKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      // Handle Enter key press if needed
-      setSuggestions([]) // Hide suggestions after clicking Enter
+      setSuggestions([])
       if (inputRef.current) {
-        inputRef.current.blur() // Blur the input to remove focus
-        setEnteredValue(search) // Set enteredValue after Enter is clicked
+        inputRef.current.blur()
+        setEnteredValue(search)
+        setShowDropdown(false)
       }
     }
   }
 
   const handleBackspace = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
-      // If backspace is pressed, filter suggestions based on the updated input
       const inputValue = e.currentTarget.value
       fetchSuggestions(inputValue)
+    }
+  }
+
+  const handleInputFocus = () => {
+    setShowDropdown(true)
+  }
+
+  const handleDocumentClick = (e: MouseEvent) => {
+    if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
+      setShowDropdown(false)
     }
   }
 
@@ -75,10 +82,16 @@ const SearchBar = () => {
   }, [location])
 
   useEffect(() => {
-    // Load user search history from local storage on component mount
     const storedSearchHistory = localStorage.getItem('userSearchHistory')
     if (storedSearchHistory) {
       setUserSearchHistory(JSON.parse(storedSearchHistory))
+    }
+  }, [])
+
+  useEffect(() => {
+    document.addEventListener('click', handleDocumentClick)
+    return () => {
+      document.removeEventListener('click', handleDocumentClick)
     }
   }, [])
 
@@ -98,10 +111,12 @@ const SearchBar = () => {
             onChange={(e) => handleInputChange(e)}
             onKeyPress={(e) => handleEnterKeyPress(e)}
             onKeyDown={(e) => handleBackspace(e)}
+            onFocus={handleInputFocus}
             placeholder={translate('Search')}
             value={search}
+            autoComplete="off"
           />
-          {suggestions.length > 0 && (
+          {showDropdown && suggestions.length > 0 && (
             <div className="suggestions-dropdown">
               {suggestions.map((suggestion) => (
                 <div
