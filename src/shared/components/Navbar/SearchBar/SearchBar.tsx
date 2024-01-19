@@ -71,7 +71,7 @@ const SearchBar = () => {
     setShowDropdown(true)
   }
 
-  const handleDocumentClick = (e: MouseEvent) => {
+  const handleClickOutsideInput = (e: MouseEvent) => {
     if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
       setShowDropdown(false)
     }
@@ -89,9 +89,11 @@ const SearchBar = () => {
   }, [])
 
   useEffect(() => {
-    document.addEventListener('click', handleDocumentClick)
+    inputRef.current?.addEventListener('click', handleInputFocus)
+    window.addEventListener('click', handleClickOutsideInput)
+
     return () => {
-      document.removeEventListener('click', handleDocumentClick)
+      inputRef.current?.removeEventListener('click', handleInputFocus)
     }
   }, [])
 
