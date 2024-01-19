@@ -959,7 +959,8 @@ const YDXHome = (): React.ReactElement => {
         <div className="row div-below-hr">
           <div className="col-3 text-white" ref={divRef1}>
             <h6 className="dialog-timeline-text text-center fw-bolder">
-              Dialog Timeline ({convertSecondsToCardFormat(videoLength)}):
+              Dialog Timeline (
+              {videoLength ? convertSecondsToCardFormat(videoLength) : 'N/A'}):
             </h6>
           </div>
           <div className="col-7 mt-3" ref={divRef2}>
