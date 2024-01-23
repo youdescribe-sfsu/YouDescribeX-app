@@ -67,6 +67,15 @@ const SearchBar = () => {
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      handleBackspace(e)
+    }
+    if (e.key === 'Enter') {
+      handleEnterKeyPress(e)
+    }
+  }
+
   const handleInputFocus = () => {
     setShowDropdown(true)
   }
@@ -111,8 +120,7 @@ const SearchBar = () => {
             type="search"
             name="search"
             onChange={(e) => handleInputChange(e)}
-            onKeyPress={(e) => handleEnterKeyPress(e)}
-            onKeyDown={(e) => handleBackspace(e)}
+            onKeyDown={(e) => handleKeyDown(e)}
             onFocus={handleInputFocus}
             placeholder={translate('Search')}
             value={search}
