@@ -236,12 +236,7 @@ const VideoCard = ({
     ) : null
 
   return (
-    <div
-      id="video-card"
-      className="w3-left video-card h-100 w-100"
-      title=""
-      onClick={handleVideoClick}
-    >
+    <div id="video-card" className="w3-left video-card h-100 w-100" title="">
       <div className="w3-card-2 w3-hover-shadow h-100">
         <div id="card-thumbnail" className="card-thumbnail" aria-hidden="true">
           <Link
@@ -249,6 +244,7 @@ const VideoCard = ({
             aria-hidden="true"
             to={url ? '/editor/' + url : '/video/' + youTubeId}
             className=""
+            onClick={handleVideoClick}
           >
             <img alt={title} src={thumbnailMediumUrl} width="100%" />
           </Link>
@@ -266,6 +262,7 @@ const VideoCard = ({
                   role="link"
                   to={url ? '/editor/' + url : '/video/' + youTubeId}
                   className="classic-link"
+                  onClick={handleVideoClick}
                 >
                   {title}
                 </Link>
