@@ -982,7 +982,7 @@ const Video = () => {
     else if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
     } else {
-      const url = `${apiUrl}/audiodescriptionsrating/${selectedADId}`
+      const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
       setRating(rating)
       ourFetch(url, true, {
         method: 'POST',
@@ -1050,8 +1050,7 @@ const Video = () => {
   }
 
   const handleFeedbackSubmit = (feedback: any) => {
-    const url = `${apiUrl}/audiodescriptionsrating/${selectedADId}`
-
+    const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
     ourFetch(url, true, {
       method: 'POST',
       headers: {
