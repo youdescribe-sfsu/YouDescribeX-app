@@ -14,6 +14,22 @@ const SearchBar = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // Function to handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value
+    setSearch(inputValue)
+
+    // Filter suggestions based on input value
+    const filteredSuggestions = userSearchHistory.filter((historyItem) =>
+      historyItem.toLowerCase().includes(inputValue.toLowerCase()),
+    )
+    setSuggestions(filteredSuggestions)
+
+    // Show dropdown if input value is not empty
+    setShowDropdown(inputValue !== '')
+  }
+
+  // Function to handle form submission
   const updateSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const q = encodeURIComponent(enteredValue || search)
@@ -28,56 +44,18 @@ const SearchBar = () => {
     setShowDropdown(false)
   }
 
-  const fetchSuggestions = (input: string) => {
-    setEnteredValue(input)
-    setSearch(input)
-    const filteredSuggestions = userSearchHistory.filter((historyItem) =>
-      historyItem.toLowerCase().includes(input.toLowerCase()),
-    )
-    setSuggestions(filteredSuggestions)
-  }
-
   const handleSuggestionClick = (suggestion: string) => {
     setSearch(suggestion)
     setEnteredValue(suggestion)
     setSuggestions([])
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value
-    fetchSuggestions(inputValue)
-    setShowDropdown(true)
-  }
-
-  const handleEnterKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      setSuggestions([])
-      if (inputRef.current) {
-        inputRef.current.blur()
-        setEnteredValue(search)
-        setShowDropdown(false)
-      }
-    }
-  }
-
-  const handleBackspace = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace') {
-      const inputValue = e.currentTarget.value
-      fetchSuggestions(inputValue)
-    }
+    setShowDropdown(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace') {
-      handleBackspace(e)
-    }
     if (e.key === 'Enter') {
-      handleEnterKeyPress(e)
+      setSuggestions([])
+      setShowDropdown(false)
     }
-  }
-
-  const handleInputFocus = () => {
-    setShowDropdown(true)
   }
 
   const handleClickOutsideInput = (e: MouseEvent) => {
@@ -87,10 +65,6 @@ const SearchBar = () => {
   }
 
   useEffect(() => {
-    setSearch('')
-  }, [location])
-
-  useEffect(() => {
     const storedSearchHistory = localStorage.getItem('userSearchHistory')
     if (storedSearchHistory) {
       setUserSearchHistory(JSON.parse(storedSearchHistory))
@@ -98,11 +72,14 @@ const SearchBar = () => {
   }, [])
 
   useEffect(() => {
-    inputRef.current?.addEventListener('click', handleInputFocus)
+    inputRef.current?.addEventListener('click', () => setShowDropdown(true))
     window.addEventListener('click', handleClickOutsideInput)
 
     return () => {
-      inputRef.current?.removeEventListener('click', handleInputFocus)
+      inputRef.current?.removeEventListener('click', () =>
+        setShowDropdown(true),
+      )
+      window.removeEventListener('click', handleClickOutsideInput)
     }
   }, [])
 
@@ -119,9 +96,8 @@ const SearchBar = () => {
             className="w3-padding-small w3-border w3-border-indigo"
             type="search"
             name="search"
-            onChange={(e) => handleInputChange(e)}
-            onKeyDown={(e) => handleKeyDown(e)}
-            onFocus={handleInputFocus}
+            onChange={(e) => handleInputChange(e)} // Updated onChange handler
+            onKeyDown={(e) => handleKeyDown(e)} // Added keydown handler
             placeholder={translate('Search')}
             value={search}
             autoComplete="off"
