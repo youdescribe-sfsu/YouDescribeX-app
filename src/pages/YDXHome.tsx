@@ -792,7 +792,7 @@ const YDXHome = (): React.ReactElement => {
     event: DraggableEvent,
     position: DraggableData,
   ) => {
-    // setDraggableTime({ x: position.x, y: 0 });
+    setDraggableTime({ x: position.x, y: 0 })
     let progressBarTime = 0.0
     progressBarTime = position.x / unitLength
     currentEventRef.current?.seekTo(progressBarTime, true)
@@ -963,50 +963,54 @@ const YDXHome = (): React.ReactElement => {
               {videoLength ? convertSecondsToCardFormat(videoLength) : 'N/A'}):
             </h6>
           </div>
-          <div className="col-7 mt-3" ref={divRef2}>
-            <div className="row mx-1 timeline-div">
-              <div id="draggable-div" className="draggable-div" ref={divRef3}>
-                {/* Dialog Timeline blue & white div's */}
-                {videoDialogTimestamps.map((dialog, key) => (
-                  <Draggable
-                    axis="x"
-                    key={key}
-                    position={dialog.controlledPosition}
-                    bounds="parent"
-                  >
-                    <div
-                      className="dialog-timestamps-div"
-                      style={{
-                        width: dialog.width,
-                        height: '20px',
+          {videoLength && ( // Only render if videoLength is present
+            <div className="col-7 mt-3" ref={divRef2}>
+              <div className="row mx-1 timeline-div">
+                <div id="draggable-div" className="draggable-div" ref={divRef3}>
+                  {/* Dialog Timeline blue & white div's */}
+                  {videoDialogTimestamps.map((dialog, key) => (
+                    <Draggable
+                      axis="x"
+                      key={key}
+                      position={dialog.controlledPosition}
+                      bounds="parent"
+                    >
+                      <div
+                        className="dialog-timestamps-div"
+                        style={{
+                          width: dialog.width,
+                          height: '20px',
+                        }}
+                      ></div>
+                    </Draggable>
+                  ))}
+                  {videoLength && ( // Only render if videoLength is present
+                    // ProgressBar
+                    <Draggable
+                      axis="x"
+                      bounds="parent"
+                      defaultPosition={{ x: 0, y: 0 }}
+                      position={draggableTime}
+                      onDrag={(e, data) => {
+                        dragProgressBar(e, data)
                       }}
-                    ></div>
-                  </Draggable>
-                ))}
-
-                {/* ProgressBar */}
-                <Draggable
-                  axis="x"
-                  bounds="parent"
-                  defaultPosition={{ x: 0, y: 0 }}
-                  position={draggableTime}
-                  onDrag={(e, data) => {
-                    dragProgressBar(e, data)
-                  }}
-                  onStop={(e, data) => {
-                    stopProgressBar(e, data)
-                  }}
-                >
-                  <div tabIndex={0} className="progress-bar-div">
-                    <p className="mt-5 text-white progress-bar-time">
-                      {convertSecondsToCardFormat(currentTime)}
-                    </p>
-                  </div>
-                </Draggable>
+                      onStop={(e, data) => {
+                        stopProgressBar(e, data)
+                      }}
+                    >
+                      <div tabIndex={0} className="progress-bar-div">
+                        <p className="mt-5 text-white progress-bar-time">
+                          {convertSecondsToCardFormat(currentTime)}
+                        </p>
+                      </div>
+                    </Draggable>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
+
         {/* <div className="row">
           <div className="col-3 text-white" ref={divRef1}>
             <h6 className="dialog-timeline-text text-center fw-bolder">
