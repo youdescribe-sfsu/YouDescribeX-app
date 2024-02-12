@@ -1257,7 +1257,11 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
-    if (requestAiDescription.url && !requestAiDescription.preview) {
+    if (
+      requestAiDescription.status == 'completed' &&
+      requestAiDescription.url &&
+      !requestAiDescription.preview
+    ) {
       // Go to descriptions with url
       return (
         <Button
@@ -1270,7 +1274,11 @@ const Video = () => {
           }
         />
       )
-    } else if (requestAiDescription.url) {
+    } else if (
+      requestAiDescription.status == 'completed' &&
+      requestAiDescription.url &&
+      requestAiDescription.preview
+    ) {
       return (
         <Button
           title={translate('Preview Available Descriptions')}
@@ -1283,7 +1291,10 @@ const Video = () => {
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )
-    } else if (requestAiDescription.requested) {
+    } else if (
+      requestAiDescription.status == 'pending' &&
+      requestAiDescription.requested
+    ) {
       return (
         <>
           <Button
@@ -1292,7 +1303,7 @@ const Video = () => {
             text={translate('Add Freestyle Description')}
             color="w3-yellow w3-block w3-margin-top"
             onClick={() => handleAddDescription()}
-            disabled={requestAiDescription.requested}
+            // disabled={requestAiDescription.requested}
           />
           <Button
             title={translate('AI Descriptions requested')}
@@ -1304,7 +1315,11 @@ const Video = () => {
           />
         </>
       )
-    } else if (!requestAiDescription.requested) {
+    } else if (
+      (requestAiDescription.status == 'notavailable' ||
+        requestAiDescription.status == 'draft') &&
+      !requestAiDescription.requested
+    ) {
       return (
         <>
           <Button
