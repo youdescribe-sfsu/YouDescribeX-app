@@ -1249,10 +1249,12 @@ const Video = () => {
     } catch (error) {
       // console.log(error)
       setRequestAiDescription({
-        status: '',
+        status: 'notavailable',
         requested: false,
       })
-      toast.error('Something went wrong, please try again later')
+      toast.error(
+        'Something went wrong, AI Descriptions are not available at the moment. Please try again later.',
+      )
     }
   }
 
