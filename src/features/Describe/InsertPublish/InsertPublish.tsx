@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import NewAudioClipComponent from '../NewAudioClip/NewAudioClip'
 import ModalComponent from '../../../shared/components/Modal/Modal'
 import { toast } from 'react-toastify'
+import { userDataStore } from '@/App'
 
 interface Props {
   handleClicksFromParent: string
@@ -122,7 +123,7 @@ const InsertPublish = ({
             Insert {showInlineACComponent ? 'Inline' : 'Extended'} Audio Clip
           </h5>
           <NewAudioClipComponent
-            userId={userId}
+            userId={userDataStore.getState().userId}
             youtubeVideoId={youtubeVideoId}
             showInlineACComponent={showInlineACComponent}
             setShowNewACComponent={setShowNewACComponent}
