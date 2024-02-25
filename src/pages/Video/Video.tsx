@@ -1223,6 +1223,19 @@ const Video = () => {
           'You have to be logged in in order to ask for AI Descriptions',
         ),
       )
+      return
+    }
+    if (requestAiDescription.status === 'pending') {
+      setRequestAiDescription({
+        status: 'pending',
+        requested: true,
+      })
+      toast.error(
+        translate(
+          'AI Descriptions are already requested by another user. Please wait for them to get generated.',
+        ),
+      )
+      return
     }
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
 
@@ -1293,10 +1306,7 @@ const Video = () => {
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )
-    } else if (
-      requestAiDescription.status == 'pending' &&
-      requestAiDescription.requested
-    ) {
+    } else if (requestAiDescription.status === 'pending') {
       return (
         <>
           <Button
@@ -1305,16 +1315,25 @@ const Video = () => {
             text={translate('Add Freestyle Description')}
             color="w3-yellow w3-block w3-margin-top"
             onClick={() => handleAddDescription()}
-            // disabled={requestAiDescription.requested}
           />
-          <Button
-            title={translate('AI Descriptions requested')}
-            ariaLabel="AI Descriptions requested"
-            text={translate('AI Descriptions requested')}
-            color="w3-brown w3-block w3-margin-top"
-            // onClick={() => handleGenerateAIDescriptions()}
-            disabled={requestAiDescription.requested}
-          />
+          {requestAiDescription.requested ? (
+            <Button
+              title={translate('AI Descriptions requested')}
+              ariaLabel="AI Descriptions requested"
+              text={translate('AI Descriptions requested')}
+              color="w3-brown w3-block w3-margin-top"
+              disabled={true}
+            />
+          ) : (
+            <Button
+              title={translate('Request AI Descriptions')}
+              ariaLabel="Request AI Descriptions"
+              text={translate('Request AI Descriptions')}
+              color="w3-light-blue w3-block w3-margin-top"
+              disabled={requestAiDescription.requested}
+              onClick={() => handleGenerateAIDescriptions()}
+            />
+          )}
         </>
       )
     } else if (
