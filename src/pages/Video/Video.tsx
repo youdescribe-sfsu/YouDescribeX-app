@@ -1232,7 +1232,7 @@ const Video = () => {
       })
       toast.error(
         translate(
-          'AI Descriptions are already requested by another user. Please wait for them to get generated.',
+          'AI Descriptions are already requested by another user. Please wait for them to get generated and you will receive an email',
         ),
       )
       return
