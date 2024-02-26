@@ -18,6 +18,7 @@ const Search = () => {
   const [videoIDs, setVideoIDs] = useState<string>()
   const [loadingYDVideos, setLoadingYDVideos] = useState<boolean>(true)
   const [loadingYTVideos, setLoadingYTVideos] = useState<boolean>(true)
+  const [showYTButton, setShowYTButton] = useState(false)
   const [videoAlreadyOnYD, setVideoAlreadyOnYD] = useState<ReactNode[]>([])
   const [videosNotOnYD, setVideosNotOnYD] = useState<ReactNode[]>([])
   const [currentPage, setCurrentPage] = useState<number>(1)
@@ -28,11 +29,12 @@ const Search = () => {
     setLoadingYTVideos(true)
     setVideosNotOnYD([])
     setVideoAlreadyOnYD([])
-    getSearchResultsFromYdAndYt(1)
+    getSearchResultsFromYd(1)
+    // getSearchResultsFromYt(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
-  const getSearchResultsFromYdAndYt = (page = 1) => {
+  const getSearchResultsFromYd = (page = 1) => {
     const value = searchParams.get('q') ?? ''
     // console.log('Search Params,', value)
 
@@ -61,14 +63,35 @@ const Search = () => {
         return { videoDbResponseVideos, videoIds, query }
       })
       .then(({ videoDbResponseVideos, videoIds }) => {
-        if (page === 1) {
-          fetchAndRenderVideoFromYD(videoDbResponseVideos, videoIds).then(() =>
-            fetchAndRenderVideoFromYT(query, videoIds),
-          )
-        } else {
-          fetchAndRenderVideoFromYD(videoDbResponseVideos, videoIds, page)
-        }
+        fetchAndRenderVideoFromYD(videoDbResponseVideos, videoIds, page)
       })
+  }
+  const getSearchResultsFromYt = (page = 1) => {
+    const value = searchParams.get('q') ?? ''
+    let query = (value || '').trim()
+    if (
+      value.match(
+        /^https:\/\/(?:www\.)?youtube.com\/watch\?(?=v=\w+)(?:\S+)?$/g,
+      )
+    ) {
+      const url = new URL(value)
+      query = url.searchParams.get('v') ?? ''
+    }
+    const urlForYD = `${youTubeApiUrl}/search?part=snippet&q=${query}&maxResults=50&key=${youTubeApiKey}`
+    ourFetch(urlForYD).then((videos: any) => {
+      const videoFoundOnYTIds = []
+      for (let i = 0; i < videos.items.length; i++) {
+        const video = videos.items[i]
+        videoFoundOnYTIds.push(video.id.videoId)
+      }
+      const idsYTvideo = videoFoundOnYTIds.join(',')
+      const urlForYT = `${youTubeApiUrl}/videos?id=${idsYTvideo}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
+      ourFetch(urlForYT).then((videosFromYouTube: any) => {
+        const videoFromYoutube = videosFromYouTube.items
+        setVideosNotOnYD([])
+        renderVideosFromYT(videoFromYoutube)
+      })
+    })
   }
 
   const fetchAndRenderVideoFromYD = (
@@ -77,86 +100,53 @@ const Search = () => {
     page = 1,
   ) => {
     const urlfForYT = `${youTubeApiUrl}/videos?id=${videoIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-    return ourFetch(urlfForYT).then((videoDataFromYDdatabase: any) => {
+    ourFetch(urlfForYT).then((videoDataFromYDdatabase: any) => {
       const videoFromYDdatabase = videoDataFromYDdatabase.items
-      if (page === 1) {
-        setVideoAlreadyOnYD([])
-        renderVideosFromYD(videoDbResponseVideos, videoFromYDdatabase)
-      } else {
-        renderVideosFromYD(videoDbResponseVideos, videoFromYDdatabase)
-      }
-    })
-  }
-
-  const fetchAndRenderVideoFromYT = (query: string, videoIds: string) => {
-    let idsYTvideo = ''
-    const urlForYD = `${youTubeApiUrl}/search?part=snippet&q=${query}&maxResults=50&key=${youTubeApiKey}`
-    ourFetch(urlForYD)
-      .then((videos: any) => {
-        const videoFoundOnYTIds = []
-        for (let i = 0; i < videos.items.length; i += 1) {
-          const temp = videos.items[i].id.videoId
-          if (!(videoIds.indexOf(temp) > -1)) {
-            videoFoundOnYTIds.push(videos.items[i].id.videoId)
-          }
+      const videosAlreadyOnYD =
+        currentPage === 1 ? [] : videoAlreadyOnYD.slice()
+      for (let i = 0; i < videoFromYDdatabase.length; i += 1) {
+        const item = videoFromYDdatabase[i]
+        if (!item.statistics || !item.snippet) {
+          continue
         }
-        idsYTvideo = videoFoundOnYTIds.join(',')
-      })
-      .then(() => {
-        const urlForYT = `${youTubeApiUrl}/videos?id=${idsYTvideo}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-        ourFetch(urlForYT).then((videosFromYouTube: any) => {
-          const videoFromYoutube = videosFromYouTube.items
-          setVideosNotOnYD([])
-          renderVideosFromYT(videoFromYoutube)
-        })
-      })
-  }
+        const _id = videoDbResponseVideos[i]._id
+        const youTubeId = item.id
+        const thumbnailMedium = item.snippet.thumbnails.medium
+        const duration = convertSecondsToCardFormat(
+          convertISO8601ToSeconds(item.contentDetails.duration),
+        )
+        const title = item.snippet.title
+        const description = item.snippet.description
+        const author = item.snippet.channelTitle
+        const views = convertViewsToCardFormat(
+          Number(item.statistics.viewCount),
+        )
+        const publishedAt = new Date(item.snippet.publishedAt)
+        const now = Date.now()
+        const time = convertTimeToCardFormat(
+          Number(now - publishedAt.getMilliseconds()),
+        )
 
-  const renderVideosFromYD = (
-    videoDbResonseVideos: any,
-    videoFromYDdatabase: any,
-  ) => {
-    const videosAlreadyOnYD = currentPage === 1 ? [] : videoAlreadyOnYD.slice()
-    for (let i = 0; i < videoFromYDdatabase.length; i += 1) {
-      const item = videoFromYDdatabase[i]
-      if (!item.statistics || !item.snippet) {
-        continue
+        videosAlreadyOnYD.push(
+          <div className="col-sm-6 col-md-4 col-lg-3" key={_id}>
+            <VideoCard
+              key={_id}
+              youTubeId={youTubeId}
+              description={description}
+              thumbnailMediumUrl={thumbnailMedium.url}
+              duration={duration}
+              title={title}
+              author={author}
+              views={views}
+              time={time}
+              buttons="none"
+            />
+          </div>,
+        )
       }
-      const _id = videoDbResonseVideos[i]._id
-      const youTubeId = item.id
-      const thumbnailMedium = item.snippet.thumbnails.medium
-      const duration = convertSecondsToCardFormat(
-        convertISO8601ToSeconds(item.contentDetails.duration),
-      )
-      const title = item.snippet.title
-      const description = item.snippet.description
-      const author = item.snippet.channelTitle
-      const views = convertViewsToCardFormat(Number(item.statistics.viewCount))
-      const publishedAt = new Date(item.snippet.publishedAt)
-      const now = Date.now()
-      const time = convertTimeToCardFormat(
-        Number(now - publishedAt.getMilliseconds()),
-      )
-
-      videosAlreadyOnYD.push(
-        <div className="col-sm-6 col-md-4 col-lg-3" key={_id}>
-          <VideoCard
-            key={_id}
-            youTubeId={youTubeId}
-            description={description}
-            thumbnailMediumUrl={thumbnailMedium.url}
-            duration={duration}
-            title={title}
-            author={author}
-            views={views}
-            time={time}
-            buttons="none"
-          />
-        </div>,
-      )
-    }
-    setLoadingYDVideos(false)
-    setVideoAlreadyOnYD(videosAlreadyOnYD)
+      setLoadingYDVideos(false)
+      setVideoAlreadyOnYD(videosAlreadyOnYD)
+    })
   }
 
   const renderVideosFromYT = (videoFromYoutube: any) => {
@@ -207,12 +197,17 @@ const Search = () => {
   }
 
   const loadMoreVideosFromYD = () => {
-    getSearchResultsFromYdAndYt(currentPage + 1)
+    getSearchResultsFromYd(currentPage + 1)
     setCurrentPage(currentPage + 1)
   }
 
   const loadMoreVideosFromYT = () => {
     toast.error('Under Development')
+  }
+
+  const showYTButtonHandler = () => {
+    setShowYTButton(true)
+    getSearchResultsFromYt(1)
   }
 
   return (
@@ -259,24 +254,40 @@ const Search = () => {
             <h2 className="classic-h2">{translate('NON-DESCRIBED VIDEOS')}</h2>
           </header>
 
-          {loadingYTVideos ? (
-            <div className="w3-row classic-container">
-              <ClassicSpinner />
+          {showYTButton ? (
+            <div>
+              {loadingYTVideos ? (
+                <div className="w3-row classic-container">
+                  <ClassicSpinner />
+                </div>
+              ) : (
+                <div className="w3-row classic-container row">
+                  {videosNotOnYD}
+                </div>
+              )}
+              {!loadingYTVideos && videoAlreadyOnYD.length > 20 ? (
+                <div className="w3-margin-top w3-center load-more">
+                  <Button
+                    ariaLabel={translate('Load more videos')}
+                    title={translate('Load more videos')}
+                    color="w3-indigo"
+                    text={translate('Load more')}
+                    onClick={loadMoreVideosFromYT}
+                  />
+                </div>
+              ) : null}
             </div>
           ) : (
-            <div className="w3-row classic-container row">{videosNotOnYD}</div>
-          )}
-          {!loadingYTVideos && videoAlreadyOnYD.length > 20 ? (
             <div className="w3-margin-top w3-center load-more">
               <Button
-                ariaLabel={translate('Load more videos')}
-                title={translate('Load more videos')}
+                onClick={showYTButtonHandler}
+                ariaLabel={translate('Search on Youtube')}
+                title={translate('Search on Youtube')}
                 color="w3-indigo"
-                text={translate('Load more')}
-                onClick={loadMoreVideosFromYT}
+                text={translate('Search on Youtube')}
               />
             </div>
-          ) : null}
+          )}
         </section>
       </main>
     </div>
