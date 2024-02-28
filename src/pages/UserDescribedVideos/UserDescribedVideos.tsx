@@ -42,6 +42,9 @@ const UserDescribedVideos = () => {
 
     axios
       .get(url, {
+        params: {
+          paginate: 'false',
+        },
         withCredentials: true,
       })
       .then((response) => {
