@@ -41,9 +41,11 @@ const UserDescribedVideos = () => {
     const audioDescriptionIds: string[] = []
 
     axios
-      .get(url)
+      .get(url, {
+        withCredentials: true,
+      })
       .then((response) => {
-        const videosArray = response.data
+        const videosArray = response.data.result
         // console.log({ videosArray })
         // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
@@ -113,7 +115,6 @@ const UserDescribedVideos = () => {
       )
     }
     setShowSpinner(false)
-    setVideos(videoComponents)
     setStateFunction(videoComponents)
   }
 
@@ -155,8 +156,8 @@ const UserDescribedVideos = () => {
 
       // Fetch and process AI Requested Videos
       const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
-        : `${apiUrl}/videos/user/${userId}`
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
+        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
       getUserVideos(aiRequestedVideosUrl, setAIVideos)
     }
   }, [userId])

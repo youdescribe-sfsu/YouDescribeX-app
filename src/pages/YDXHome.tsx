@@ -272,10 +272,6 @@ const YDXHome = (): React.ReactElement => {
     setUnitLength(unitLength)
   }
 
-  useEffect(() => {
-    console.log('Seconds', audioClips)
-  }, [audioClips])
-
   // use axios and get dialog timestamps for the Dialog Timeline
   const fetchDialogData = () => {
     if (!videoId) return
@@ -320,10 +316,6 @@ const YDXHome = (): React.ReactElement => {
       )
       .then((res) => {
         setShowSpinner(false)
-        console.log(
-          'checking res.data in dev because it is working fine in local',
-        )
-        console.log(res.data)
         const video_id = res.data.video_id
         const video_length = res.data.video_length
         setVideoLength(video_length)
