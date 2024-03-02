@@ -1225,11 +1225,30 @@ const Video = () => {
       )
       return
     }
+
     if (requestAiDescription.status === 'pending') {
       setRequestAiDescription({
         status: 'pending',
         requested: true,
       })
+      const url = `${process.env.REACT_APP_BACKEND_URL}/api/create-user-links/increase-Request-Count`
+      try {
+        await axios.post(
+          url,
+          {
+            youtube_id: videoId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+      } catch (error) {
+        console.error('Failed to insert user request into MongoDB:', error)
+      }
+
       toast.error(
         translate(
           'AI Descriptions are already requested by another user. Please wait for them to get generated and you will receive an email',
