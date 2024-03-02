@@ -1271,6 +1271,22 @@ const Video = () => {
     }
   }
 
+  const handlePreviewAudioDescription = async () => {
+    try {
+      setButtonLoading(true)
+      if (requestAiDescription && requestAiDescription.aiDescriptionId)
+        navigate(
+          `/audio-description/preview/${videoId}/${requestAiDescription.aiDescriptionId}`,
+        )
+    } catch (error) {
+      if (toastId.current) toast.dismiss(toastId.current)
+      toast.error('Something went wrong, please try again later')
+      // console.log(error)
+    } finally {
+      setButtonLoading(false)
+    }
+  }
+
   const DescriptionButtons = () => {
     if (
       requestAiDescription.status == 'completed' &&
@@ -1285,7 +1301,8 @@ const Video = () => {
           text={translate('Go To Descriptions')}
           color="w3-lime w3-block w3-margin-top"
           onClick={() =>
-            requestAiDescription.url && navigate(`/${requestAiDescription.url}`)
+            requestAiDescription.url &&
+            navigate(`/editor/${requestAiDescription.url}`)
           }
         />
       )
@@ -1300,9 +1317,7 @@ const Video = () => {
           ariaLabel="Preview Available Descriptions"
           text={translate('Preview AI Descriptions')}
           color="w3-indigo w3-block w3-margin-top"
-          onClick={() =>
-            requestAiDescription.url && navigate(`/${requestAiDescription.url}`)
-          }
+          onClick={() => handlePreviewAudioDescription()}
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )
