@@ -1231,7 +1231,7 @@ const Video = () => {
         status: 'pending',
         requested: true,
       })
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/create-user-links/increase-Request-Count`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/increase-Request-Count`
       try {
         await axios.post(
           url,
