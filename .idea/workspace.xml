@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="aae9e7e8-8c00-4751-959e-0b08a5e90aa4" name="Changes" comment="bug squash for user descriptions tab">
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pages/PublishedAudioDescriptions/PublishedAudioDescriptions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/PublishedAudioDescriptions/PublishedAudioDescriptions.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pages/Video/Video.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/Video/Video.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pages/YDXHome.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/YDXHome.tsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="ab/editorFix" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;sanjay417&quot;
+  }
+}</component>
+  <component name="GitHubPullRequestState">{
+  &quot;prStates&quot;: []
+}</component>
+  <component name="GitLabMergeRequestsSettings">{}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/youdescribe-sfsu/YouDescribeX-app.git&quot;,
+    &quot;accountId&quot;: &quot;5026e3c8-f82e-4a7a-ad1d-cacc2e2c3763&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 0
+}</component>
+  <component name="ProjectId" id="2bVhKnpmln2O71JtVSDT3GFXWJu" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "dev",
+    "last_opened_file_path": "C:/Users/miran/OneDrive/Desktop/kaizntree-frontend",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.stylelint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.stylelint": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "yarn",
+    "ts.external.directory.path": "C:\\Users\\miran\\OneDrive\\Desktop\\YouDescribeX-app\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-db596990d856-JavaScript-WS-241.14024.30" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="aae9e7e8-8c00-4751-959e-0b08a5e90aa4" name="Changes" comment="" />
+      <created>1706306099972</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1706306099972</updated>
+      <workItem from="1706306102116" duration="1500000" />
+      <workItem from="1706347958810" duration="1155000" />
+      <workItem from="1706577991870" duration="11872000" />
+      <workItem from="1706832398622" duration="2769000" />
+      <workItem from="1706870324161" duration="5453000" />
+      <workItem from="1707184488394" duration="46000" />
+      <workItem from="1707364101869" duration="2019000" />
+      <workItem from="1707386012142" duration="1174000" />
+      <workItem from="1707436761029" duration="179000" />
+      <workItem from="1707447000141" duration="8434000" />
+      <workItem from="1707522307350" duration="2532000" />
+      <workItem from="1707634493380" duration="20000" />
+      <workItem from="1707685360357" duration="14641000" />
+      <workItem from="1707878202344" duration="281000" />
+      <workItem from="1707880713678" duration="8201000" />
+      <workItem from="1708049491860" duration="959000" />
+      <workItem from="1708109924170" duration="1434000" />
+      <workItem from="1708398940562" duration="677000" />
+      <workItem from="1708399880258" duration="2989000" />
+      <workItem from="1708479511477" duration="7820000" />
+      <workItem from="1708806850953" duration="1727000" />
+      <workItem from="1708890978377" duration="20330000" />
+      <workItem from="1709086883104" duration="10165000" />
+      <workItem from="1709314025038" duration="8966000" />
+      <workItem from="1709345991184" duration="3902000" />
+    </task>
+    <task id="LOCAL-00001" summary="bug squash for user descriptions tab">
+      <option name="closed" value="true" />
+      <created>1709110575333</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1709110575333</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="bug squash for user descriptions tab" />
+    <option name="LAST_COMMIT_MESSAGE" value="bug squash for user descriptions tab" />
+  </component>
+</project>

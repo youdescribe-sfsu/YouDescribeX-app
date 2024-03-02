@@ -341,9 +341,9 @@ const Video = () => {
 
         if (ad.audio_clips.length > 0) {
           ad.audio_clips.forEach((audioClip: any) => {
-            // console.log(audioClip)
+            const filePath = audioClip.file_path.replace(/^\./, '')
             audioClip.url = `${audioClipsUploadsPath(
-              `${audioClip.file_path}/${audioClip.file_name}`,
+              `${filePath}/${audioClip.file_name}`,
             )}`
             adIdsAudioClips[ad._id].push(audioClip)
           })
@@ -857,8 +857,8 @@ const Video = () => {
   //
 
   useEffect(() => {
-    console.log('Updating describer Cards')
-    console.log(audioDescriptionsIdsUsers)
+    // console.log('Updating describer Cards')
+    // console.log(audioDescriptionsIdsUsers)
     if (audioDescriptionsIdsUsers) {
       // console.log('Updating describer Cards')
       const describers = audioDescriptionsIdsUsers
@@ -1288,7 +1288,6 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
-    console.log('requestAIDESCRIPTION, ', requestAiDescription)
     if (
       requestAiDescription.status == 'completed' &&
       requestAiDescription.url &&
