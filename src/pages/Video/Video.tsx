@@ -388,7 +388,7 @@ const Video = () => {
       audioDescriptionsIds?.length &&
       audioDescriptionsIds?.indexOf(selectedAd) === -1
     ) {
-      console.log('Navigating to Not Found')
+      // console.log('Navigating to Not Found')
       // navigate('/not-found')
     }
     setSearchParams((params) => {
@@ -417,7 +417,7 @@ const Video = () => {
     )
 
     // // console.log('Sorted Clips', sortedClipData)
-
+    console.log('audioClipsData', sortedClipData)
     setAudioClips([...sortedClipData])
     const maxStackSize =
       sortedClipData.length > 100 ? 10 : Math.min(sortedClipData.length, 5)
@@ -1288,6 +1288,7 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
+    console.log('requestAIDESCRIPTION, ', requestAiDescription)
     if (
       requestAiDescription.status == 'completed' &&
       requestAiDescription.url &&
@@ -1301,8 +1302,7 @@ const Video = () => {
           text={translate('Go To Descriptions')}
           color="w3-lime w3-block w3-margin-top"
           onClick={() =>
-            requestAiDescription.url &&
-            navigate(`/editor/${requestAiDescription.url}`)
+            requestAiDescription.url && navigate(`/${requestAiDescription.url}`)
           }
         />
       )
@@ -1317,7 +1317,9 @@ const Video = () => {
           ariaLabel="Preview Available Descriptions"
           text={translate('Preview AI Descriptions')}
           color="w3-indigo w3-block w3-margin-top"
-          onClick={() => handlePreviewAudioDescription()}
+          onClick={() =>
+            navigate(`/audio-description/${requestAiDescription.url}`)
+          }
           disabled={requestAiDescription.requested || buttonLoading}
         />
       )
