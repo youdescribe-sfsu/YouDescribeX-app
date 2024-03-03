@@ -148,13 +148,36 @@ const UserDescribedVideos = () => {
       </div>
     )
 
+  const YDLoadMoreButtonAI =
+    videosAI.length >= 20 ? (
+      <div className="w3-margin-top w3-center load-more">
+        <Button
+          title={translate('Load more videos')}
+          ariaLabel="Load More"
+          color="w3-indigo"
+          text="Load more"
+          onClick={loadMoreResults}
+        />
+      </div>
+    ) : (
+      <div className="w3-margin-top w3-center load-more w3-hide">
+        <Button
+          title={translate('Load more videos')}
+          color="w3-indigo"
+          text="Load more"
+          ariaLabel="Load More"
+          onClick={loadMoreResults}
+        />
+      </div>
+    )
+
   useEffect(() => {
     if (userId) {
       getUserInfo()
       // Fetch and process My Described Videos
       const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
-        : `${apiUrl}/videos/user/${userId}`
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
+        : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
       getUserVideos(myDescribedVideosUrl, setVideos)
 
       // Fetch and process AI Requested Videos
@@ -210,7 +233,7 @@ const UserDescribedVideos = () => {
 
             <div className="w3-row classic-container row">{videosAI}</div>
 
-            {YDLoadMoreButton}
+            {YDLoadMoreButtonAI}
           </section>
         </main>
       </div>
