@@ -31,9 +31,9 @@ const DescriberCard = ({
 }: Props) => {
   const navigate = useNavigate()
   const getButton = (): ReactNode => {
-    const userId = userDataStore.getState().userId
-    const isDescriber = describerId === userId
-
+    const userName = userDataStore.getState().userName
+    const isDescriber = name === userName
+    console.log({ isDescriber })
     if (describerId === selectedDescriberId) {
       return isDescriber ? (
         <Button

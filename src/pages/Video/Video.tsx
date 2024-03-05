@@ -860,7 +860,7 @@ const Video = () => {
     if (audioDescriptionsIdsUsers) {
       // console.log('Updating describer Cards')
       const describers = audioDescriptionsIdsUsers
-      console.log({ describers })
+
       const describerCards: ReactNode[] = []
       let describerIds = Object.keys(describers)
 
