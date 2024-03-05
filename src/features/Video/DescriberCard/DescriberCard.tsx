@@ -1,6 +1,7 @@
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import React, { ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './describerCard.scss'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
   handleRating: (rating: number) => void
   handleRatingPopup: () => void
   handleFeedbackPopup: () => void
+  videoId?: string
 }
 
 const DescriberCard = ({
@@ -25,10 +27,23 @@ const DescriberCard = ({
   handleRating,
   handleRatingPopup,
   handleFeedbackPopup,
+  videoId,
 }: Props) => {
+  const navigate = useNavigate()
   const getButton = (): ReactNode => {
+    const userName = userDataStore.getState().userName
+    const isDescriber = name === userName
+    console.log({ isDescriber })
     if (describerId === selectedDescriberId) {
-      return (
+      return isDescriber ? (
+        <Button
+          ariaLabel={translate('Edit your audio description')}
+          title={translate('Edit your audio description')}
+          text={translate('Edit description')}
+          color="w3-indigo w3-block w3-margin-top"
+          onClick={() => navigate(`/editor/${videoId}/${selectedDescriberId}`)}
+        />
+      ) : (
         <>
           <Button
             ariaLabel={translate("Rate this describer's audio description")}

@@ -857,11 +857,10 @@ const Video = () => {
   //
 
   useEffect(() => {
-    // console.log('Updating describer Cards')
-    // console.log(audioDescriptionsIdsUsers)
     if (audioDescriptionsIdsUsers) {
       // console.log('Updating describer Cards')
       const describers = audioDescriptionsIdsUsers
+
       const describerCards: ReactNode[] = []
       let describerIds = Object.keys(describers)
 
@@ -892,6 +891,7 @@ const Video = () => {
             handleRating={() => {
               // console.log('Handle Rating')
             }}
+            videoId={videoId}
           />,
         )
       })

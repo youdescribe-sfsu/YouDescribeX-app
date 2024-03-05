@@ -19,6 +19,7 @@ const UserDescribedVideos = () => {
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [currentPageAI, setCurrentPageAI] = useState(1)
   const { userId } = useParams()
 
   const getUserInfo = async () => {
@@ -34,6 +35,7 @@ const UserDescribedVideos = () => {
   const getUserVideos = async (
     url: string,
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
+    page: number,
   ) => {
     let youTubeIds = ''
     const youTubeVideoIds: string[] = []
@@ -44,11 +46,13 @@ const UserDescribedVideos = () => {
       .get(url, {
         params: {
           paginate: 'false',
+          page: page,
         },
         withCredentials: true,
       })
       .then((response) => {
         const videosArray = response.data.result
+
         // console.log({ videosArray })
         // setUserVideosArray(videosArray)
         for (let i = 0; i < videosArray.length; i += 1) {
@@ -124,6 +128,9 @@ const UserDescribedVideos = () => {
   const loadMoreResults = () => {
     setCurrentPage(currentPage + 1)
   }
+  const loadMoreResultsAI = () => {
+    setCurrentPageAI(currentPageAI + 1)
+  }
 
   const YDLoadMoreButton =
     videos.length >= 20 ? (
@@ -148,22 +155,45 @@ const UserDescribedVideos = () => {
       </div>
     )
 
+  const YDLoadMoreButtonAI =
+    videosAI.length >= 20 ? (
+      <div className="w3-margin-top w3-center load-more">
+        <Button
+          title={translate('Load more videos')}
+          ariaLabel="Load More"
+          color="w3-indigo"
+          text="Load more"
+          onClick={loadMoreResultsAI}
+        />
+      </div>
+    ) : (
+      <div className="w3-margin-top w3-center load-more w3-hide">
+        <Button
+          title={translate('Load more videos')}
+          color="w3-indigo"
+          text="Load more"
+          ariaLabel="Load More"
+          onClick={loadMoreResults}
+        />
+      </div>
+    )
+
   useEffect(() => {
     if (userId) {
       getUserInfo()
       // Fetch and process My Described Videos
       const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
-        : `${apiUrl}/videos/user/${userId}`
-      getUserVideos(myDescribedVideosUrl, setVideos)
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
+        : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
+      getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
 
       // Fetch and process AI Requested Videos
       const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
         ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
         : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
-      getUserVideos(aiRequestedVideosUrl, setAIVideos)
+      getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPage)
     }
-  }, [userId])
+  }, [userId, currentPage])
 
   if (
     !userDataStore.getState().isSignedIn ||
@@ -210,7 +240,7 @@ const UserDescribedVideos = () => {
 
             <div className="w3-row classic-container row">{videosAI}</div>
 
-            {YDLoadMoreButton}
+            {YDLoadMoreButtonAI}
           </section>
         </main>
       </div>
