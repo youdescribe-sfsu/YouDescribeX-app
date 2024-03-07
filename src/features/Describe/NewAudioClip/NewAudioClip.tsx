@@ -48,7 +48,7 @@ const NewAudioClipComponent = ({
 
   // use 3 state variables to hold the value of 3 input type number fields
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [clipStartTimeHours, setClipStartTimeHours] = useState(0)
+  const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0)
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0)
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0)
   const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] =
@@ -124,12 +124,12 @@ const NewAudioClipComponent = ({
   }
 
   // lots of if else conditions to ensure correct input in the start time number fields.
-  // const handleOnChangeClipStartTimeHours = (e) => {
-  //   setClipStartTimeHours(e.target.value);
-  //   if (e.target.value.length > 2) {
-  //     setClipStartTimeHours(e.target.value.substring(0, 2));
-  //   }
-  // };
+  const handleOnChangeClipStartTimeHours = (e: any) => {
+    setClipStartTimeHours(e.target.value)
+    if (e.target.value.length > 2) {
+      setClipStartTimeHours(e.target.value.substring(0, 2))
+    }
+  }
   const handleOnChangeClipStartTimeMinutes = (e: any) => {
     setClipStartTimeMinutes(e.target.value)
     // if (e.target.value.length > 2) {
@@ -184,6 +184,47 @@ const NewAudioClipComponent = ({
       clipStartTimeSeconds,
     )
   }
+  const handleBlurClipStartTimeHours = (e: any) => {
+    // Store the current clipStartTimeHours in a temp variable
+    let tempStartTimeHours = clipStartTimeHours
+    // Ensure the input value is within bounds
+    if (e.target.value.length === 1) {
+      setClipStartTimeHours(Number(e.target.value + '0'))
+      tempStartTimeHours = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      }
+    } else if (e.target.value.length === 2) {
+      // If the input is two digits, ensure it's within bounds
+      const inputValue = parseInt(e.target.value, 10)
+      if (inputValue >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      } else {
+        setClipStartTimeHours(inputValue)
+        tempStartTimeHours = inputValue
+      }
+    } else if (e.target.value.length === 0) {
+      // If the input is empty, set it to 0
+      setClipStartTimeHours(0)
+      tempStartTimeHours = 0
+    }
+    const calculatedSeconds =
+      +e.target.value * 3600 +
+      +clipStartTimeMinutes * 60 +
+      +clipStartTimeSeconds +
+      +clipStartTimeMilliSeconds / 1000
+
+    // Check if the updated start time is greater than the video length
+    if (calculatedSeconds > videoLength) {
+      toast.error('Oops!! Start Time cannot be later than the video end time.')
+      handleClipStartTimeInputsRender()
+    } else {
+      setNewACStartTime(calculatedSeconds)
+    }
+  }
+
   const handleBlurClipStartTimeMinutes = (e: any) => {
     // store the current clipStartTimeMinutes in a temp variable,
     // so that when calculateClipStartTimeinSeconds without going into the loops,
@@ -249,6 +290,9 @@ const NewAudioClipComponent = ({
   // to save the new audio clip into the database
   const handleSaveNewAudioClip = (e: any) => {
     e.preventDefault()
+    if (mediaBlobUrl) {
+      clearBlobUrl()
+    }
     if (newACTitle === '') {
       toast.error('Please enter a Title')
     } else {
@@ -414,6 +458,20 @@ const NewAudioClipComponent = ({
                   style={{ width: '25px', height: '28px' }}
                   className="text-white bg-dark ydx-input"
                   min="0"
+                  value={clipStartTimeHours}
+                  onChange={handleOnChangeClipStartTimeHours}
+                  onBlur={handleBlurClipStartTimeHours}
+                  onKeyDown={(evt) =>
+                    ['e', 'E', '+', '-'].includes(evt.key) &&
+                    evt.preventDefault()
+                  }
+                />
+                <div className="mx-1">:</div>
+                <input
+                  type="number"
+                  style={{ width: '25px', height: '28px' }}
+                  className="text-white bg-dark ydx-input"
+                  min="0"
                   value={clipStartTimeMinutes}
                   onChange={handleOnChangeClipStartTimeMinutes}
                   onBlur={handleBlurClipStartTimeMinutes}
@@ -466,9 +524,9 @@ const NewAudioClipComponent = ({
             placeholder="Start writing a Text Description.."
             value={newACDescriptionText}
             onChange={(e) => {
-              if (mediaBlobUrl) {
-                clearBlobUrl()
-              }
+              // if (mediaBlobUrl) {
+              //   clearBlobUrl()
+              // }
               setNewACDescriptionText(e.target.value)
             }}
           ></textarea>
