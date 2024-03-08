@@ -123,7 +123,6 @@ const NewAudioClipComponent = ({
     }
   }
 
-  // lots of if else conditions to ensure correct input in the start time number fields.
   const handleOnChangeClipStartTimeHours = (e: any) => {
     setClipStartTimeHours(e.target.value)
     if (e.target.value.length > 2) {

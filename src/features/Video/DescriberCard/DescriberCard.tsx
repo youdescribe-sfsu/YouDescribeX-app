@@ -33,7 +33,6 @@ const DescriberCard = ({
   const getButton = (): ReactNode => {
     const userName = userDataStore.getState().userName
     const isDescriber = name === userName
-    console.log({ isDescriber })
     if (describerId === selectedDescriberId) {
       return isDescriber ? (
         <Button

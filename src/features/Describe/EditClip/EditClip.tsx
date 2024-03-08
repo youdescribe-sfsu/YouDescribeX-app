@@ -72,7 +72,7 @@ const EditClip = ({
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0)
   const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] =
     useState(0.0)
-
+  const [clipDurationHours, setClipDurationHours] = useState(0.0)
   const [clipDurationMinutes, setClipDurationMinutes] = useState(0.0)
   const [clipDurationSeconds, setClipDurationSeconds] = useState(0.0)
   const [clipDurationMilliSeconds, setClipDurationMilliSeconds] = useState(0.0)
@@ -175,6 +175,7 @@ const EditClip = ({
 
   const handleClipEndTimeInputsRender = () => {
     const cardFormat = convertSecondsToCardFormat(clipEndTime).split(':')
+    setClipDurationHours(parseInt(cardFormat[0]))
     setClipDurationMinutes(parseInt(cardFormat[1]))
     setClipDurationSeconds(parseInt(cardFormat[2]))
     setClipDurationMilliSeconds(parseInt(cardFormat[3]))
@@ -269,13 +270,12 @@ const EditClip = ({
     }
   }
 
-  // lot of if else conditions to ensure correct input in the start time number fields.
-  // const handleOnChangeClipStartTimeHours = (e: any) => {
-  //   setClipStartTimeHours(e.target.value);
-  //   if (e.target.value.length > 2) {
-  //     setClipStartTimeHours(e.target.value.substring(0, 2));
-  //   }
-  // };
+  const handleOnChangeClipStartTimeHours = (e: any) => {
+    setClipStartTimeHours(e.target.value)
+    if (e.target.value.length > 2) {
+      setClipStartTimeHours(e.target.value.substring(0, 2))
+    }
+  }
   const handleOnChangeClipStartTimeMinutes = (e: any) => {
     setClipStartTimeMinutes(e.target.value)
     // if (e.target.value.length > 2) {
@@ -375,6 +375,63 @@ const EditClip = ({
       clipStartTimeMinutes,
       tempStartTimeSeconds,
     )
+  }
+
+  const handleBlurClipStartTimeHours = (e: any) => {
+    // Store the current clipStartTimeHours in a temp variable
+    let tempStartTimeHours = clipStartTimeHours
+    // Ensure the input value is within bounds
+    if (e.target.value.length === 1) {
+      setClipStartTimeHours(Number(e.target.value + '0'))
+      tempStartTimeHours = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      }
+    } else if (e.target.value.length === 2) {
+      // If the input is two digits, ensure it's within bounds
+      const inputValue = parseInt(e.target.value, 10)
+      if (inputValue >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      } else {
+        setClipStartTimeHours(inputValue)
+        tempStartTimeHours = inputValue
+      }
+    } else if (e.target.value.length === 0) {
+      // If the input is empty, set it to 0
+      setClipStartTimeHours(0)
+      tempStartTimeHours = 0
+    }
+    const calculatedSeconds =
+      +e.target.value * 3600 +
+      +clipStartTimeMinutes * 60 +
+      +clipStartTimeSeconds +
+      +clipStartTimeMilliSeconds / 1000
+
+    if (clipPlaybackType === 'inline') {
+      if (calculatedSeconds + clipDuration <= videoLength) {
+        handleClipStartTimeUpdate(calculatedSeconds)
+      } else {
+        toast.error(
+          'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
+        )
+        handleClipStartTimeInputsRender()
+      }
+    }
+    // extended clip
+    else {
+      // check if the updated start time is more than the videolength, if yes, throw error and retain the old state
+      if (calculatedSeconds < videoLength) {
+        // handleClipStartTimeUpdate is the prop function received from parent component - this runs an axios PUT call and updates the clipStartTime
+        handleClipStartTimeUpdate(calculatedSeconds)
+      } else {
+        toast.error(
+          'Oops!! Start Time cannot be later than the video end time.',
+        ) // show toast error message
+        handleClipStartTimeInputsRender()
+      }
+    }
   }
 
   // handle save clip description - axios call -> generate audio & update endtime, duration
@@ -575,6 +632,20 @@ const EditClip = ({
                     style={{ width: '25px' }}
                     className="text-white bg-dark ydx-input"
                     min="0"
+                    value={padNumber(clipStartTimeHours)}
+                    onChange={handleOnChangeClipStartTimeHours}
+                    onBlur={handleBlurClipStartTimeHours}
+                    onKeyDown={(evt) =>
+                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      evt.preventDefault()
+                    }
+                  />
+                  <div className="mx-1">:</div>
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark ydx-input"
+                    min="0"
                     value={padNumber(clipStartTimeMinutes)}
                     onChange={handleOnChangeClipStartTimeMinutes}
                     onBlur={handleBlurClipStartTimeMinutes}
@@ -629,6 +700,20 @@ const EditClip = ({
               </h6>
               <div className="edit-time-div">
                 <div className="text-dark text-center d-flex justify-content-evenly">
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark ydx-input"
+                    min="0"
+                    value={padNumber(clipDurationHours)}
+                    // onChange={handleOnChangeClipStartTimeMinutes}
+                    // onBlur={handleBlurClipStartTimeMinutes}
+                    onKeyDown={(evt) =>
+                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      evt.preventDefault()
+                    }
+                  />
+                  <div className="mx-1">:</div>
                   <input
                     type="number"
                     style={{ width: '25px' }}
