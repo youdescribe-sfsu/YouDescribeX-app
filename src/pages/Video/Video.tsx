@@ -313,8 +313,6 @@ const Video = () => {
     const adIdsUsers: IADUserId = {}
     const adIdsAudioClips: any = {}
 
-    console.log({ audio: videoData.audio_descriptions })
-
     if (
       videoData.audio_descriptions &&
       videoData.audio_descriptions.length > 0
@@ -427,8 +425,6 @@ const Video = () => {
       a.clip_start_time < b.clip_start_time ? -1 : 1,
     )
 
-    // // console.log('Sorted Clips', sortedClipData)
-    console.log('audioClipsData', sortedClipData)
     setAudioClips([...sortedClipData])
     const maxStackSize =
       sortedClipData.length > 100 ? 10 : Math.min(sortedClipData.length, 5)
@@ -871,7 +867,6 @@ const Video = () => {
     if (audioDescriptionsIdsUsers) {
       // console.log('Updating describer Cards')
       const describers = audioDescriptionsIdsUsers
-      console.log({ describers })
       const describerCards: ReactNode[] = []
       let describerIds = Object.keys(describers)
 
