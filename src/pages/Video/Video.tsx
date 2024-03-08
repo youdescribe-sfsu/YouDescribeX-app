@@ -313,6 +313,8 @@ const Video = () => {
     const adIdsUsers: IADUserId = {}
     const adIdsAudioClips: any = {}
 
+    console.log({ audio: videoData.audio_descriptions })
+
     if (
       videoData.audio_descriptions &&
       videoData.audio_descriptions.length > 0
@@ -328,8 +330,17 @@ const Video = () => {
             overall_rating_votes_sum: ad.overall_rating_votes_sum,
             feedbacks: ad.feedbacks,
             picture: ad.user.picture,
-            name: ad.user.name,
+            name:
+              ad.user.user_type && ad.user.user_type === 'AI'
+                ? 'AI Description Draft'
+                : ad.user.name,
           }
+        } else {
+          // If adIdsUsers[ad._id] already exists, update the name property conditionally
+          adIdsUsers[ad._id].name =
+            ad.user.user_type && ad.user.user_type === 'AI'
+              ? 'AI Description Draft'
+              : ad.user.name
         }
 
         // adIdsUsers[ad._id].overall_rating_votes_counter =
@@ -860,7 +871,7 @@ const Video = () => {
     if (audioDescriptionsIdsUsers) {
       // console.log('Updating describer Cards')
       const describers = audioDescriptionsIdsUsers
-
+      console.log({ describers })
       const describerCards: ReactNode[] = []
       let describerIds = Object.keys(describers)
 
