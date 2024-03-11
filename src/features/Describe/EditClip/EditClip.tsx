@@ -97,15 +97,14 @@ const EditClip = ({
   const [isYoutubeVideoPlaying, setIsYoutubeVideoPlaying] = useState(false)
 
   // initialize state variables from props
-  const [clipDescriptionText, setClipDescriptionText] = useState(
-    initialClipDescriptionText,
-  )
+  const [clipDescriptionText, setClipDescriptionText] = useState('')
 
   const [recordedClipDuration, setRecordedClipDuration] = useState(0.0)
 
   const [readySetGo, setReadySetGo] = useState('')
 
   useEffect(() => {
+    setClipDescriptionText(initialClipDescriptionText ?? '')
     handleClipStartTimeInputsRender()
     handleClipEndTimeInputsRender()
     // eslint-disable-next-line react-hooks/exhaustive-deps
