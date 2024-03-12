@@ -238,6 +238,7 @@ const YDXHome = (): React.ReactElement => {
 
   useEffect(() => {
     if (needRefresh) {
+      console.log({ 'inside useEffect': needRefresh })
       fetchAudioDescriptionData(true)
       setNeedRefresh(false)
     }
@@ -362,7 +363,7 @@ const YDXHome = (): React.ReactElement => {
           return res.data
         })
         .then((data) => {
-          // console.log('Audio Description Data', data)
+          console.log('Audio Description Data', data)
           setShowSpinner(false)
           setIsPublished(data.is_published)
           // data is nested - so AudioClips data is in res.data.Audio_Clips
