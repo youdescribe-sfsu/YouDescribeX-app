@@ -109,7 +109,7 @@ const EditClip = ({
     handleClipStartTimeInputsRender()
     handleClipEndTimeInputsRender()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clipStartTime, clipEndTime])
+  }, [clipStartTime, clipEndTime, initialClipDescriptionText])
 
   useEffect(() => {
     // setClipDescriptionText(initialClipDescriptionText);
@@ -576,6 +576,7 @@ const EditClip = ({
                 name="description"
                 value={clipDescriptionText}
                 onChange={(e) => setClipDescriptionText(e.target.value)}
+                disabled={isPreview}
               ></TextareaAutosize>
               {/* play, save & Delete buttons */}
               <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
