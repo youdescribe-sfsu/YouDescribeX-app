@@ -62,7 +62,7 @@ const AudioClip = ({
     ? `scene ${clip.description_type}`
     : clip.clip_title
 
-  const clipDescriptionText = clip.description_text
+  const initialclipDescriptionText = clip.description_text
   const initialClipPlaybackType = clip.playback_type
   const initialClipStartTime = clip.clip_start_time
   const clipDuration = clip.clip_duration
@@ -293,7 +293,7 @@ const AudioClip = ({
   ) => {
     try {
       // check if the clip has been updated
-      if (updatedClipDescriptionText !== clipDescriptionText) {
+      if (updatedClipDescriptionText !== initialclipDescriptionText) {
         // show spinner
         setShowSpinner(true)
 
@@ -494,7 +494,7 @@ const AudioClip = ({
             clipCreatedAt={clipCreatedAt}
             clipId={clipID}
             clipDescriptionType={clipDescriptionType ?? ''}
-            initialClipDescriptionText={clipDescriptionText ?? ''}
+            initialClipDescriptionText={initialclipDescriptionText ?? ''}
             clipPlaybackType={clipPlaybackType}
             clipStartTime={clipStartTime}
             clipDuration={clipDuration}
