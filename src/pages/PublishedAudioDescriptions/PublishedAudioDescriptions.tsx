@@ -1069,6 +1069,11 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               </div>
             </div>
           </div>
+          <div className="col-2 mt-3">
+            <p className="text-white fw-bolder">
+              Audio Clips Count: {audioClips.length}
+            </p>
+          </div>
         </div>
         {/* <div className="row">
           <div className="col-3 text-white" ref={divRef1}>

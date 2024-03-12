@@ -581,7 +581,7 @@ const EditClip = ({
                 <Button
                   className="btn rounded btn-sm text-white bg-danger ydx-button"
                   onClick={() => setIsDeleteModal(true)}
-                  // disabled={isPreview}
+                  disabled={isPreview}
                 >
                   <i className="fa fa-trash" /> {'  '} Delete
                 </Button>
