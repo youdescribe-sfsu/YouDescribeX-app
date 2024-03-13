@@ -97,7 +97,9 @@ const EditClip = ({
   const [isYoutubeVideoPlaying, setIsYoutubeVideoPlaying] = useState(false)
 
   // initialize state variables from props
-  const [clipDescriptionText, setClipDescriptionText] = useState('')
+  const [clipDescriptionText, setClipDescriptionText] = useState(
+    initialClipDescriptionText,
+  )
 
   const [recordedClipDuration, setRecordedClipDuration] = useState(0.0)
 
