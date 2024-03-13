@@ -104,6 +104,7 @@ const EditClip = ({
   const [readySetGo, setReadySetGo] = useState('')
 
   useEffect(() => {
+    console.log({ 'inside useeffect': initialClipDescriptionText })
     setClipDescriptionText(initialClipDescriptionText ?? '')
     handleClipStartTimeInputsRender()
     handleClipEndTimeInputsRender()
