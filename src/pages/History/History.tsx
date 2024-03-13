@@ -152,7 +152,8 @@ const History = () => {
       setLoadingState(true)
       const response = await axios.get(apiEndpoint, {
         params: {
-          pageNumber: pageNumber,
+          paginate: 'true',
+          page: pageNumber,
         },
         withCredentials: true,
       })
