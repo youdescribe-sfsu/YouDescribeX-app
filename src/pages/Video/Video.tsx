@@ -42,7 +42,7 @@ import { toast } from 'react-toastify'
 import axios, { AxiosResponse } from 'axios'
 import { Feedbacks, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
-import iso6391 from 'iso-639-1'
+// import iso6391 from 'iso-639-1'
 
 interface IADUserId {
   [key: string]: {
@@ -64,7 +64,7 @@ const Video = () => {
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
   const [rating, setRating] = useState<number>(0)
-  const codes = iso6391.getAllCodes()
+  // const codes = iso6391.getAllCodes()
 
   const languages = [
     { code: 'en-US', name: 'English (United States)' },
