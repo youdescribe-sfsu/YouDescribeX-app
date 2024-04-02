@@ -33,6 +33,7 @@ interface Props {
   audioDescriptionId: string
   fetchUserVideoData: () => void
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
+  setUndoDeletedClip: React.Dispatch<React.SetStateAction<boolean>>
   isPreview?: boolean
   handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
 }
@@ -62,6 +63,7 @@ const EditClip = ({
   setNeedRefresh,
   isPreview = false,
   handleClickSaveClipDescription,
+  setUndoDeletedClip,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
@@ -106,7 +108,6 @@ const EditClip = ({
   const [readySetGo, setReadySetGo] = useState('')
 
   useEffect(() => {
-    console.log({ 'inside useeffect': initialClipDescriptionText })
     setClipDescriptionText(initialClipDescriptionText ?? '')
     handleClipStartTimeInputsRender()
     handleClipEndTimeInputsRender()
@@ -472,20 +473,27 @@ const EditClip = ({
   const handleClickDeleteClip = (e: any) => {
     setShowSpinner(true)
     e.preventDefault()
-    // console.log(clipId)
+
     axios
       .delete(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/delete-clip/${clipId}`,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          params: {
+            youtubeVideoId: youtubeVideoId,
+          },
+        },
       )
       .then((res) => {
         toast.success(
           'Clip Deleted Successfully!! Please wait while we fetch latest Clip Data',
         )
         fetchUserVideoData()
+        setUndoDeletedClip(true)
         setNeedRefresh(true)
-        // setTimeout(() => {
-        //   window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
-        // }, 3000); // setting the timeout to show the toast message for 4 sec
       })
       .catch((err) => {
         console.error(err)

@@ -15,6 +15,7 @@ import Notes from '../../features/Describe/Notes/Notes'
 import convertSecondsToCardFormat from '../../shared/utils/convertSecondsToCardFormat'
 import InsertPublish from '../../features/Describe/InsertPublish/InsertPublish'
 import Buttons from '../../features/Describe/Buttons/Buttons'
+
 import Spinner from '../../shared/components/Spinner/Spinner'
 import { Howl } from 'howler'
 import { debounce } from 'debounce'
@@ -24,6 +25,7 @@ import { Options } from 'youtube-player/dist/types'
 import { userDataStore } from '@/App'
 import { Id, toast } from 'react-toastify'
 import ModalComponent from '@/shared/components/Modal/Modal'
+import Button from 'react-bootstrap/Button'
 
 const previewUrl = '/audio-description/preview'
 
@@ -120,6 +122,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   // const [clipDeleted, setClipDeleted] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [samplingRate, setSamplingRate] = useState(100)
+  const [undoDeletedClipInfo, setUndoDeletedClip] = useState(false)
 
   // Previous time variable - Holds the value of previous time
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1073,6 +1076,14 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             <p className="text-white fw-bolder">
               Audio Clips Count: {audioClips.length}
             </p>
+            {undoDeletedClipInfo && ( // Render the undo button if there is deleted clip info
+              <Button
+                className="btn rounded btn-sm text-white bg-warning ydx-button"
+                disabled={isPreviewAudioDescription}
+              >
+                <i className="fa fa-undo" /> {'  '} Undo Last Deleted
+              </Button>
+            )}
           </div>
         </div>
         {/* <div className="row">
@@ -1119,6 +1130,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               fetchUserVideoData={fetchUserVideoData}
               setNeedRefresh={setNeedRefresh}
               isPreview={isPreviewAudioDescription}
+              setUndoDeletedClip={setUndoDeletedClip}
             />
           ))}
         </div>
