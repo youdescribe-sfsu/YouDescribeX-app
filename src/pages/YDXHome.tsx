@@ -445,7 +445,7 @@ const YDXHome = (): React.ReactElement => {
   const toastId = React.useRef<null | Id>(null)
 
   const fetchUndoDeletedClipData = async () => {
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-undo-deleted-descriptions`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/undo-last-deleted`
     try {
       toastId.current = toast.info('Getting last deleted description', {
         autoClose: false,
