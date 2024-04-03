@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useElapsedTime } from 'use-elapsed-time'
-import { useParams } from 'react-router-dom' /* to use params on the url */
+import {
+  useParams,
+  useNavigate,
+} from 'react-router-dom' /* to use params on the url */
 import axios from 'axios'
 import YouTube, { YouTubePlayer } from 'react-youtube'
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
@@ -18,12 +21,14 @@ import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
 import { Options } from 'youtube-player/dist/types'
 import { userDataStore } from '@/App'
-import { toast } from 'react-toastify'
+import { Id, toast } from 'react-toastify'
+import Button from 'react-bootstrap/Button'
 
 const YDXHome = (): React.ReactElement => {
   /* to use params on the url and get userId & youtubeVideoId */
   const { audioDescriptionId, youtubeVideoId } = useParams()
   const participant_id = sessionStorage.getItem('id')
+  const navigate = useNavigate()
   /* Options for YouTube video API */
   const opts: Options = {
     height: '265',
@@ -73,6 +78,7 @@ const YDXHome = (): React.ReactElement => {
   const [playedClipPath, setPlayedClipPath] = useState('') // store clip_audio_path of the audio clip that is already played.
   // Spinner div
   const [showSpinner, setShowSpinner] = useState(false)
+  const [undoDeletedClipInfo, setUndoDeletedClip] = useState(false)
 
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
@@ -434,6 +440,37 @@ const YDXHome = (): React.ReactElement => {
 
           setShowSpinner(true)
         })
+  }
+
+  const toastId = React.useRef<null | Id>(null)
+
+  const fetchUndoDeletedClipData = async () => {
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-undo-deleted-descriptions`
+    try {
+      toastId.current = toast.info('Getting last deleted description', {
+        autoClose: false,
+      })
+      const response = await axios.post(
+        url,
+        {
+          youtubeVideoId: youtubeVideoId,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = response.data
+      // console.log(data)
+      navigate(`/editor/${data.url}`)
+      toast.dismiss(toastId.current)
+    } catch (error) {
+      if (toastId.current) toast.dismiss(toastId.current)
+      toast.error('Something went wrong, please try again later')
+      // console.log(error)
+    }
   }
 
   // function to update currentime state variable & draggable bar time.
@@ -1008,6 +1045,15 @@ const YDXHome = (): React.ReactElement => {
             <p className="text-white fw-bolder">
               Audio Clips Count: {audioClips.length}
             </p>
+            {undoDeletedClipInfo && ( // Render the undo button if there is deleted clip info
+              <Button
+                className="btn rounded btn-sm text-white bg-warning ydx-button"
+                onClick={fetchUndoDeletedClipData}
+                // disabled={isPreviewAudioDescription}
+              >
+                <i className="fa fa-undo" /> {'  '} Undo Last Deleted
+              </Button>
+            )}
           </div>
         </div>
 
@@ -1054,6 +1100,7 @@ const YDXHome = (): React.ReactElement => {
               handlePlayAudioClip={handlePlayAudioClip}
               fetchUserVideoData={fetchUserVideoData}
               setNeedRefresh={setNeedRefresh}
+              setUndoDeletedClip={setUndoDeletedClip}
             />
           ))}
         </div>

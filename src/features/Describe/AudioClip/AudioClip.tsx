@@ -18,6 +18,7 @@ interface Props {
   setUpdateData: React.Dispatch<React.SetStateAction<boolean>>
   clip: Clip
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
+  setUndoDeletedClip: React.Dispatch<React.SetStateAction<boolean>>
   divWidths: { [key: string]: number }
   handlePlayAudioClip: (startTime: number) => void
   editComponentToggleList: {
@@ -53,6 +54,7 @@ const AudioClip = ({
   setShowSpinner,
   fetchUserVideoData,
   isPreview = false,
+  setUndoDeletedClip,
 }: Props) => {
   // all audio clip data from props
   const clipID = clip.clip_id
@@ -512,6 +514,7 @@ const AudioClip = ({
             setNeedRefresh={setNeedRefresh}
             isPreview={isPreview}
             handleClickSaveClipDescription={handleClickSaveClipDescription}
+            setUndoDeletedClip={setUndoDeletedClip}
           />
         )}
       </div>
