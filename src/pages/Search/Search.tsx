@@ -17,8 +17,10 @@ const Search = () => {
   const [videoDBResponseVideos, setVideoDBResponseVideos] = useState<any[]>()
   const [videoIDs, setVideoIDs] = useState<string>()
   const [loadingYDVideos, setLoadingYDVideos] = useState<boolean>(true)
+  const [LoadMoreYDVideos, setLoadMoreYDVideos] = useState<boolean>(false)
   const [loadingYTVideos, setLoadingYTVideos] = useState<boolean>(true)
   const [showYTButton, setShowYTButton] = useState(false)
+  const [showLoadMoreButton, setShowLoadMoreButton] = useState(true)
   const [videoAlreadyOnYD, setVideoAlreadyOnYD] = useState<ReactNode[]>([])
   const [videosNotOnYD, setVideosNotOnYD] = useState<ReactNode[]>([])
   const [currentPage, setCurrentPage] = useState<number>(1)
@@ -34,7 +36,7 @@ const Search = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
-  const getSearchResultsFromYd = (page = 1) => {
+  const getSearchResultsFromYd = (page: number = currentPage) => {
     const value = searchParams.get('q') ?? ''
     // console.log('Search Params,', value)
 
@@ -102,8 +104,10 @@ const Search = () => {
     const urlfForYT = `${youTubeApiUrl}/videos?id=${videoIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
     ourFetch(urlfForYT).then((videoDataFromYDdatabase: any) => {
       const videoFromYDdatabase = videoDataFromYDdatabase.items
-      const videosAlreadyOnYD =
-        currentPage === 1 ? [] : videoAlreadyOnYD.slice()
+      console.log({ videoFromYDdatabase })
+      // const videosAlreadyOnYD =
+      //   currentPage === 1 ? [] : videoAlreadyOnYD.slice()
+      const videosAlreadyOnYD = [...videoAlreadyOnYD]
       for (let i = 0; i < videoFromYDdatabase.length; i += 1) {
         const item = videoFromYDdatabase[i]
         if (!item.statistics || !item.snippet) {
@@ -144,8 +148,19 @@ const Search = () => {
           </div>,
         )
       }
+
       setLoadingYDVideos(false)
       setVideoAlreadyOnYD(videosAlreadyOnYD)
+
+      console.log({ testing: videoDataFromYDdatabase.length })
+
+      if (videoFromYDdatabase.length > 20) {
+        console.log('inside')
+        setShowLoadMoreButton(true) // Show the "Load more" button
+      } else {
+        console.log('else')
+        setShowLoadMoreButton(false)
+      }
     })
   }
 
@@ -197,6 +212,7 @@ const Search = () => {
   }
 
   const loadMoreVideosFromYD = () => {
+    setLoadMoreYDVideos(true)
     getSearchResultsFromYd(currentPage + 1)
     setCurrentPage(currentPage + 1)
   }
@@ -234,17 +250,22 @@ const Search = () => {
                   )}
                 </div>
               )}
-              {videoAlreadyOnYD.length > 20 ? (
+              {showLoadMoreButton && (
                 <div className="w3-margin-top w3-center load-more">
-                  <Button
-                    ariaLabel={translate('Load more videos')}
-                    title={translate('Load more videos')}
-                    color="w3-indigo"
-                    text={translate('Load more')}
-                    onClick={loadMoreVideosFromYD}
-                  />
+                  {LoadMoreYDVideos ? (
+                    <ClassicSpinner />
+                  ) : (
+                    <Button
+                      ariaLabel={translate('Load more videos')}
+                      title={translate('Load more videos')}
+                      color="w3-indigo"
+                      text={translate('Load more')}
+                      onClick={loadMoreVideosFromYD}
+                      disabled={LoadMoreYDVideos} // Disable the button while loading
+                    />
+                  )}
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </section>

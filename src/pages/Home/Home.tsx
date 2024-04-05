@@ -19,6 +19,7 @@ const Home = () => {
   // const [searchQuery, setSearchQuery] = useState('')
   const [videos, setVideos] = useState<any[]>([])
   const [showSpinner, setShowSpinner] = useState(false)
+  const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
 
   const navigate = useNavigate()
 
@@ -50,6 +51,7 @@ const Home = () => {
       const youtubeDataResponse = await ourFetch(youtubeDataUrl)
 
       setShowSpinner(false)
+      setLoadMoreVideos(false)
       parseFetchedData(youtubeDataResponse.result, youDescribeVideosIds)
     } catch (error) {
       // Handle errors here
@@ -115,6 +117,7 @@ const Home = () => {
   }
 
   const loadMoreResults = () => {
+    setLoadMoreVideos(true)
     setCurrentPage(currentPage + 1)
     fetchingVideosToHome(currentPage + 1)
   }
@@ -136,9 +139,11 @@ const Home = () => {
     }
   }
 
-  const YDLoadMoreButton =
-    videos.length >= 20 ? (
-      <div className="w3-margin-top w3-center load-more">
+  const YDLoadMoreButton = (
+    <div className="w3-margin-top w3-center load-more">
+      {LoadMoreVideos ? (
+        <Spinner />
+      ) : (
         <Button
           title={translate('Load more videos')}
           ariaLabel="Load More"
@@ -146,18 +151,9 @@ const Home = () => {
           text="Load more"
           onClick={loadMoreResults}
         />
-      </div>
-    ) : (
-      <div className="w3-margin-top w3-center load-more w3-hide">
-        <Button
-          title={translate('Load more videos')}
-          color="w3-indigo"
-          text="Load more"
-          ariaLabel="Load More"
-          onClick={loadMoreResults}
-        />
-      </div>
-    )
+      )}
+    </div>
+  )
 
   return (
     <main id="home" title="YouDescribe home page">
