@@ -36,9 +36,6 @@ const Home = () => {
     try {
       const url = `${apiUrl}/videos?page=${page}`
       const response = await ourFetch(url)
-
-      console.log(response)
-
       const allResults = response.result // Assuming allResults is defined
       console.log('result', allResults)
 

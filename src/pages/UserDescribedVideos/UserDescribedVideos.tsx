@@ -22,6 +22,8 @@ const UserDescribedVideos = () => {
   const [currentPageAI, setCurrentPageAI] = useState(1)
   const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
   const [LoadMoreAIVideos, setLoadMoreAIVideos] = useState<boolean>(false)
+  const [showLoadMoreButton, setShowLoadMoreButton] = useState(true)
+  const [showLoadMoreAIButton, setShowLoadMoreAIButton] = useState(true)
   const { userId } = useParams()
 
   const getUserInfo = async () => {
@@ -98,6 +100,7 @@ const UserDescribedVideos = () => {
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
   ) => {
     const videoComponents = []
+    const existingVideos = setStateFunction === setVideos ? videos : videosAI
     for (let i = 0; i < youTubeVideosArray.items.length; i += 1) {
       const item = youTubeVideosArray.items[i]
       const youDescribeVideoId = youDescribeVideosIds[i]
@@ -132,11 +135,25 @@ const UserDescribedVideos = () => {
         </div>,
       )
     }
-    setShowSpinner(false)
-    setLoadMoreVideos(false)
-    setLoadMoreAIVideos(false)
+    const updatedVideos = [...existingVideos, ...videoComponents]
+    const loadMoreFlag =
+      setStateFunction === setVideos
+        ? setShowLoadMoreButton
+        : setShowLoadMoreAIButton
 
-    setStateFunction(videoComponents)
+    if (videoComponents.length > 2) {
+      loadMoreFlag(true)
+    } else {
+      loadMoreFlag(false)
+    }
+
+    const loadMoreSpinnerFlag =
+      setStateFunction === setVideos ? setLoadMoreVideos : setLoadMoreAIVideos
+    loadMoreSpinnerFlag(false)
+
+    setShowSpinner(false)
+
+    setStateFunction(updatedVideos)
   }
 
   const loadMoreResults = () => {
@@ -152,32 +169,41 @@ const UserDescribedVideos = () => {
 
   const YDLoadMoreButton = (
     <div className="w3-margin-top w3-center load-more">
-      {LoadMoreVideos ? (
-        <Spinner />
-      ) : videos.length >= 20 ? (
-        <Button
-          title={translate('Load more videos')}
-          ariaLabel="Load More"
-          color="w3-indigo"
-          text="Load more"
-          onClick={loadMoreResults}
-        />
-      ) : null}
+      {showLoadMoreButton && (
+        <>
+          {LoadMoreVideos ? (
+            <Spinner />
+          ) : (
+            <Button
+              title={translate('Load more videos')}
+              ariaLabel="Load More"
+              color="w3-indigo"
+              text="Load more"
+              onClick={loadMoreResults}
+            />
+          )}
+        </>
+      )}
     </div>
   )
+
   const YDLoadMoreButtonAI = (
     <div className="w3-margin-top w3-center load-more">
-      {LoadMoreAIVideos ? (
-        <Spinner />
-      ) : videosAI.length >= 20 ? (
-        <Button
-          title={translate('Load more')}
-          ariaLabel="Load More"
-          color="w3-indigo"
-          text="Load more"
-          onClick={loadMoreResultsAI}
-        />
-      ) : null}
+      {showLoadMoreAIButton && (
+        <>
+          {LoadMoreAIVideos ? (
+            <Spinner />
+          ) : (
+            <Button
+              title={translate('Load more')}
+              ariaLabel="Load More"
+              color="w3-indigo"
+              text="Load more"
+              onClick={loadMoreResultsAI}
+            />
+          )}
+        </>
+      )}
     </div>
   )
 

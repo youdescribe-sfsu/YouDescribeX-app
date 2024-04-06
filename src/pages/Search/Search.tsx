@@ -151,14 +151,9 @@ const Search = () => {
 
       setLoadingYDVideos(false)
       setVideoAlreadyOnYD(videosAlreadyOnYD)
-
-      console.log({ testing: videoDataFromYDdatabase.length })
-
       if (videoFromYDdatabase.length > 20) {
-        console.log('inside')
         setShowLoadMoreButton(true) // Show the "Load more" button
       } else {
-        console.log('else')
         setShowLoadMoreButton(false)
       }
     })
