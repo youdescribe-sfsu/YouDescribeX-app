@@ -18,7 +18,7 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(1)
   // const [searchQuery, setSearchQuery] = useState('')
   const [videos, setVideos] = useState<any[]>([])
-  const [showSpinner, setShowSpinner] = useState(false)
+  const [showSpinner, setShowSpinner] = useState(true)
   const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
 
   const navigate = useNavigate()
@@ -143,7 +143,7 @@ const Home = () => {
     <div className="w3-margin-top w3-center load-more">
       {LoadMoreVideos ? (
         <Spinner />
-      ) : (
+      ) : videos.length >= 20 ? (
         <Button
           title={translate('Load more videos')}
           ariaLabel="Load More"
@@ -151,7 +151,7 @@ const Home = () => {
           text="Load more"
           onClick={loadMoreResults}
         />
-      )}
+      ) : null}
     </div>
   )
 

@@ -20,6 +20,8 @@ const UserDescribedVideos = () => {
   const [videosAI, setAIVideos] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [currentPageAI, setCurrentPageAI] = useState(1)
+  const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
+  const [LoadMoreAIVideos, setLoadMoreAIVideos] = useState<boolean>(false)
   const { userId } = useParams()
 
   const getUserInfo = async () => {
@@ -31,6 +33,14 @@ const UserDescribedVideos = () => {
       }
     })
   }
+
+  const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
+    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
+    : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
+
+  const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
+    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
+    : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
 
   const getUserVideos = async (
     url: string,
@@ -70,6 +80,7 @@ const UserDescribedVideos = () => {
             JSON.stringify(data),
           )
           const youTubeVideosArray = data
+
           parseResponseData(
             youTubeVideosArray,
             youDescribeVideosIds,
@@ -122,19 +133,28 @@ const UserDescribedVideos = () => {
       )
     }
     setShowSpinner(false)
+    setLoadMoreVideos(false)
+    setLoadMoreAIVideos(false)
+
     setStateFunction(videoComponents)
   }
 
   const loadMoreResults = () => {
+    setLoadMoreVideos(true)
     setCurrentPage(currentPage + 1)
+    getUserVideos(myDescribedVideosUrl, setVideos, currentPage + 1)
   }
   const loadMoreResultsAI = () => {
+    setLoadMoreAIVideos(true)
     setCurrentPageAI(currentPageAI + 1)
+    getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPage + 1)
   }
 
-  const YDLoadMoreButton =
-    videos.length >= 20 ? (
-      <div className="w3-margin-top w3-center load-more">
+  const YDLoadMoreButton = (
+    <div className="w3-margin-top w3-center load-more">
+      {LoadMoreVideos ? (
+        <Spinner />
+      ) : videos.length >= 20 ? (
         <Button
           title={translate('Load more videos')}
           ariaLabel="Load More"
@@ -142,55 +162,57 @@ const UserDescribedVideos = () => {
           text="Load more"
           onClick={loadMoreResults}
         />
-      </div>
-    ) : (
-      <div className="w3-margin-top w3-center load-more w3-hide">
+      ) : null}
+    </div>
+  )
+  const YDLoadMoreButtonAI = (
+    <div className="w3-margin-top w3-center load-more">
+      {LoadMoreAIVideos ? (
+        <Spinner />
+      ) : videosAI.length >= 20 ? (
         <Button
-          title={translate('Load more videos')}
-          color="w3-indigo"
-          text="Load more"
-          ariaLabel="Load More"
-          onClick={loadMoreResults}
-        />
-      </div>
-    )
-
-  const YDLoadMoreButtonAI =
-    videosAI.length >= 20 ? (
-      <div className="w3-margin-top w3-center load-more">
-        <Button
-          title={translate('Load more videos')}
+          title={translate('Load more')}
           ariaLabel="Load More"
           color="w3-indigo"
           text="Load more"
           onClick={loadMoreResultsAI}
         />
-      </div>
-    ) : (
-      <div className="w3-margin-top w3-center load-more w3-hide">
-        <Button
-          title={translate('Load more videos')}
-          color="w3-indigo"
-          text="Load more"
-          ariaLabel="Load More"
-          onClick={loadMoreResults}
-        />
-      </div>
-    )
+      ) : null}
+    </div>
+  )
+
+  // const YDLoadMoreButton =
+  //   videos.length >= 5 ? (
+  //     <div className="w3-margin-top w3-center load-more">
+  //       <Button
+  //         title={translate('Load more videos')}
+  //         ariaLabel="Load More"
+  //         color="w3-indigo"
+  //         text="Load more"
+  //         onClick={loadMoreResults}
+  //       />
+  //     </div>
+  //   ) : (
+  //     <div className="w3-margin-top w3-center load-more w3-hide">
+  //       <Button
+  //         title={translate('Load more videos')}
+  //         color="w3-indigo"
+  //         text="Load more"
+  //         ariaLabel="Load More"
+  //         onClick={loadMoreResults}
+  //       />
+  //     </div>
+  //   )
 
   useEffect(() => {
     if (userId) {
       getUserInfo()
       // Fetch and process My Described Videos
-      const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
-        : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
+
       getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
 
       // Fetch and process AI Requested Videos
-      const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
-        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
+
       getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPage)
     }
   }, [userId, currentPage])
