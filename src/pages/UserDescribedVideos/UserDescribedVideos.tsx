@@ -141,7 +141,7 @@ const UserDescribedVideos = () => {
         ? setShowLoadMoreButton
         : setShowLoadMoreAIButton
 
-    if (videoComponents.length > 2) {
+    if (videoComponents.length > 20) {
       loadMoreFlag(true)
     } else {
       loadMoreFlag(false)
