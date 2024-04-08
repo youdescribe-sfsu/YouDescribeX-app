@@ -18,7 +18,8 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(1)
   // const [searchQuery, setSearchQuery] = useState('')
   const [videos, setVideos] = useState<any[]>([])
-  const [showSpinner, setShowSpinner] = useState(false)
+  const [showSpinner, setShowSpinner] = useState(true)
+  const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
 
   const navigate = useNavigate()
 
@@ -35,9 +36,6 @@ const Home = () => {
     try {
       const url = `${apiUrl}/videos?page=${page}`
       const response = await ourFetch(url)
-
-      console.log(response)
-
       const allResults = response.result // Assuming allResults is defined
       console.log('result', allResults)
 
@@ -50,6 +48,7 @@ const Home = () => {
       const youtubeDataResponse = await ourFetch(youtubeDataUrl)
 
       setShowSpinner(false)
+      setLoadMoreVideos(false)
       parseFetchedData(youtubeDataResponse.result, youDescribeVideosIds)
     } catch (error) {
       // Handle errors here
@@ -115,6 +114,7 @@ const Home = () => {
   }
 
   const loadMoreResults = () => {
+    setLoadMoreVideos(true)
     setCurrentPage(currentPage + 1)
     fetchingVideosToHome(currentPage + 1)
   }
@@ -136,9 +136,11 @@ const Home = () => {
     }
   }
 
-  const YDLoadMoreButton =
-    videos.length >= 20 ? (
-      <div className="w3-margin-top w3-center load-more">
+  const YDLoadMoreButton = (
+    <div className="w3-margin-top w3-center load-more">
+      {LoadMoreVideos ? (
+        <Spinner />
+      ) : videos.length >= 20 ? (
         <Button
           title={translate('Load more videos')}
           ariaLabel="Load More"
@@ -146,18 +148,9 @@ const Home = () => {
           text="Load more"
           onClick={loadMoreResults}
         />
-      </div>
-    ) : (
-      <div className="w3-margin-top w3-center load-more w3-hide">
-        <Button
-          title={translate('Load more videos')}
-          color="w3-indigo"
-          text="Load more"
-          ariaLabel="Load More"
-          onClick={loadMoreResults}
-        />
-      </div>
-    )
+      ) : null}
+    </div>
+  )
 
   return (
     <main id="home" title="YouDescribe home page">
