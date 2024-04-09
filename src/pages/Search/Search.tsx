@@ -37,36 +37,45 @@ const Search = () => {
   }, [searchParams])
 
   const getSearchResultsFromYd = (page: number = currentPage) => {
-    const value = searchParams.get('q') ?? ''
-    // console.log('Search Params,', value)
+    return new Promise<void>((resolve, reject) => {
+      const value = searchParams.get('q') ?? ''
+      let query = (value || '').trim()
+      if (
+        value.match(
+          /^https:\/\/(?:www\.)?youtube.com\/watch\?(?=v=\w+)(?:\S+)?$/g,
+        )
+      ) {
+        const url = new URL(value)
+        query = url.searchParams.get('v') ?? ''
+      }
+      const serverVideoIds: any[] = []
+      const url = `${apiUrl}/videos/search?q=${query}&page=${page}`
 
-    let query = (value || '').trim()
-    if (
-      value.match(
-        /^https:\/\/(?:www\.)?youtube.com\/watch\?(?=v=\w+)(?:\S+)?$/g,
-      )
-    ) {
-      const url = new URL(value)
-      query = url.searchParams.get('v') ?? ''
-    }
-    const serverVideoIds: any[] = []
-    const url = `${apiUrl}/videos/search?q=${query}&page=${page}`
-    // const url = `https://api.youdescribe.org/v1/videos/search?q=${q}&page=${page}`;
-    ourFetch(url)
-      .then((response) => {
-        const videoDbResponseVideos = response.result
-        setVideoDBResponseVideos(videoDbResponseVideos)
-        for (let i = 0; i < videoDbResponseVideos.length; i += 1) {
-          serverVideoIds.push(videoDbResponseVideos[i].youtube_id)
-        }
+      ourFetch(url)
+        .then((response) => {
+          const videoDbResponseVideos = response.result.videos
+          const totalVideos = response.result.total
+          setVideoDBResponseVideos(videoDbResponseVideos)
+          setShowLoadMoreButton(totalVideos > page * 20)
+          setCurrentPage(page)
 
-        const videoIds = serverVideoIds.join(',')
-        setVideoIDs(videoIds)
-        return { videoDbResponseVideos, videoIds, query }
-      })
-      .then(({ videoDbResponseVideos, videoIds }) => {
-        fetchAndRenderVideoFromYD(videoDbResponseVideos, videoIds, page)
-      })
+          for (let i = 0; i < videoDbResponseVideos.length; i += 1) {
+            serverVideoIds.push(videoDbResponseVideos[i].youtube_id)
+          }
+
+          const videoIds = serverVideoIds.join(',')
+          setVideoIDs(videoIds)
+          return { videoDbResponseVideos, videoIds, query }
+        })
+        .then(({ videoDbResponseVideos, videoIds }) => {
+          fetchAndRenderVideoFromYD(videoDbResponseVideos, videoIds, page)
+          resolve()
+        })
+        .catch((error) => {
+          console.error('Error fetching search results:', error)
+          reject(error)
+        })
+    })
   }
   const getSearchResultsFromYt = (page = 1) => {
     const value = searchParams.get('q') ?? ''
@@ -150,12 +159,8 @@ const Search = () => {
       }
 
       setLoadingYDVideos(false)
+      setLoadMoreYDVideos(false)
       setVideoAlreadyOnYD(videosAlreadyOnYD)
-      if (videoFromYDdatabase.length > 20) {
-        setShowLoadMoreButton(true) // Show the "Load more" button
-      } else {
-        setShowLoadMoreButton(false)
-      }
     })
   }
 
@@ -208,8 +213,15 @@ const Search = () => {
 
   const loadMoreVideosFromYD = () => {
     setLoadMoreYDVideos(true)
-    getSearchResultsFromYd(currentPage + 1)
-    setCurrentPage(currentPage + 1)
+    const nextPage = currentPage + 1
+    getSearchResultsFromYd(nextPage)
+      .then(() => {
+        setLoadMoreYDVideos(false)
+      })
+      .catch((error) => {
+        console.error('Error loading more videos:', error)
+        setLoadMoreYDVideos(false)
+      })
   }
 
   const loadMoreVideosFromYT = () => {
