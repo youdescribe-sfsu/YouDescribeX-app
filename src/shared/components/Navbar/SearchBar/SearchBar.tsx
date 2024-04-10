@@ -46,7 +46,9 @@ const SearchBar = () => {
       ...prevHistory.filter((item) => item !== searchTerm),
     ])
     localStorage.setItem('userSearchHistory', JSON.stringify(userSearchHistory))
-    navigate(`/search?q=${q}`)
+    if (searchTerm.trim() !== '') {
+      navigate(`/search?q=${q}`)
+    }
     setSearch('')
     setSuggestions([])
     setShowDropdown(false)
