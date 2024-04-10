@@ -40,7 +40,7 @@ const SearchBar = () => {
       setShowDropdown(false)
       return
     }
-    const q = encodeURIComponent(enteredValue || search)
+    const q = encodeURIComponent(searchTerm)
     setUserSearchHistory((prevHistory) => [
       searchTerm,
       ...prevHistory.filter((item) => item !== searchTerm),
