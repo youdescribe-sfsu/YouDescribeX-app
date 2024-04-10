@@ -26,13 +26,11 @@ const Search = () => {
   const [currentPage, setCurrentPage] = useState<number>(1)
 
   useEffect(() => {
-    // console.log('Search Params updated', searchParams.get('q'))
     setLoadingYDVideos(true)
     setLoadingYTVideos(true)
-    setVideosNotOnYD([])
-    setVideoAlreadyOnYD([])
+    setVideoAlreadyOnYD([]) // Reset videoAlreadyOnYD to an empty array
+    setVideosNotOnYD([]) // Reset videosNotOnYD to an empty array
     getSearchResultsFromYd(1)
-    // getSearchResultsFromYt(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
@@ -114,9 +112,7 @@ const Search = () => {
     ourFetch(urlfForYT).then((videoDataFromYDdatabase: any) => {
       const videoFromYDdatabase = videoDataFromYDdatabase.items
       console.log({ videoFromYDdatabase })
-      // const videosAlreadyOnYD =
-      //   currentPage === 1 ? [] : videoAlreadyOnYD.slice()
-      const videosAlreadyOnYD = [...videoAlreadyOnYD]
+      const videosAlreadyOnYD = page === 1 ? [] : [...videoAlreadyOnYD]
       for (let i = 0; i < videoFromYDdatabase.length; i += 1) {
         const item = videoFromYDdatabase[i]
         if (!item.statistics || !item.snippet) {
