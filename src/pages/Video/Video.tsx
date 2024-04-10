@@ -471,10 +471,12 @@ const Video = () => {
     // Use custom fetch for cross-browser compatability
     ourFetch(url)
       .then((data: any) => {
-        // console.log(
-        //   'Current Video Duration',
-        //   data.items[0].contentDetails.duration,
-        // )
+        if (data.items.length === 0) {
+          console.log('Video Unavailable!')
+          alert('Video Unavailable!')
+          return
+        }
+
         const videoDurationInSeconds = convertISO8601ToSeconds(
           data.items[0].contentDetails.duration,
         )
