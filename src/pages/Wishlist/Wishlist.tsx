@@ -198,7 +198,7 @@ const Wishlist = () => {
       grow: 1.5,
       sortable: true,
       wrap: true,
-      sortField: 'AI-Descriptions',
+      sortField: 'aiRequested',
     },
     {
       cell: (row) => (
