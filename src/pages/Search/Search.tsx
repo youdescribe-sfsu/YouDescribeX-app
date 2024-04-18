@@ -17,54 +17,63 @@ const Search = () => {
   const [videoDBResponseVideos, setVideoDBResponseVideos] = useState<any[]>()
   const [videoIDs, setVideoIDs] = useState<string>()
   const [loadingYDVideos, setLoadingYDVideos] = useState<boolean>(true)
+  const [LoadMoreYDVideos, setLoadMoreYDVideos] = useState<boolean>(false)
   const [loadingYTVideos, setLoadingYTVideos] = useState<boolean>(true)
   const [showYTButton, setShowYTButton] = useState(false)
+  const [showLoadMoreButton, setShowLoadMoreButton] = useState(true)
   const [videoAlreadyOnYD, setVideoAlreadyOnYD] = useState<ReactNode[]>([])
   const [videosNotOnYD, setVideosNotOnYD] = useState<ReactNode[]>([])
   const [currentPage, setCurrentPage] = useState<number>(1)
 
   useEffect(() => {
-    // console.log('Search Params updated', searchParams.get('q'))
     setLoadingYDVideos(true)
     setLoadingYTVideos(true)
-    setVideosNotOnYD([])
-    setVideoAlreadyOnYD([])
+    setVideoAlreadyOnYD([]) // Reset videoAlreadyOnYD to an empty array
+    setVideosNotOnYD([]) // Reset videosNotOnYD to an empty array
     getSearchResultsFromYd(1)
-    // getSearchResultsFromYt(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
-  const getSearchResultsFromYd = (page = 1) => {
-    const value = searchParams.get('q') ?? ''
-    // console.log('Search Params,', value)
+  const getSearchResultsFromYd = (page: number = currentPage) => {
+    return new Promise<void>((resolve, reject) => {
+      const value = searchParams.get('q') ?? ''
+      let query = (value || '').trim()
+      if (
+        value.match(
+          /^https:\/\/(?:www\.)?youtube.com\/watch\?(?=v=\w+)(?:\S+)?$/g,
+        )
+      ) {
+        const url = new URL(value)
+        query = url.searchParams.get('v') ?? ''
+      }
+      const serverVideoIds: any[] = []
+      const url = `${apiUrl}/videos/search?q=${query}&page=${page}`
 
-    let query = (value || '').trim()
-    if (
-      value.match(
-        /^https:\/\/(?:www\.)?youtube.com\/watch\?(?=v=\w+)(?:\S+)?$/g,
-      )
-    ) {
-      const url = new URL(value)
-      query = url.searchParams.get('v') ?? ''
-    }
-    const serverVideoIds: any[] = []
-    const url = `${apiUrl}/videos/search?q=${query}&page=${page}`
-    // const url = `https://api.youdescribe.org/v1/videos/search?q=${q}&page=${page}`;
-    ourFetch(url)
-      .then((response) => {
-        const videoDbResponseVideos = response.result
-        setVideoDBResponseVideos(videoDbResponseVideos)
-        for (let i = 0; i < videoDbResponseVideos.length; i += 1) {
-          serverVideoIds.push(videoDbResponseVideos[i].youtube_id)
-        }
+      ourFetch(url)
+        .then((response) => {
+          const videoDbResponseVideos = response.result.videos
+          const totalVideos = response.result.total
+          setVideoDBResponseVideos(videoDbResponseVideos)
+          setShowLoadMoreButton(totalVideos > page * 20)
+          setCurrentPage(page)
 
-        const videoIds = serverVideoIds.join(',')
-        setVideoIDs(videoIds)
-        return { videoDbResponseVideos, videoIds, query }
-      })
-      .then(({ videoDbResponseVideos, videoIds }) => {
-        fetchAndRenderVideoFromYD(videoDbResponseVideos, videoIds, page)
-      })
+          for (let i = 0; i < videoDbResponseVideos.length; i += 1) {
+            serverVideoIds.push(videoDbResponseVideos[i].youtube_id)
+          }
+
+          const videoIds = serverVideoIds.join(',')
+          setVideoIDs(videoIds)
+          return { videoDbResponseVideos, videoIds, query }
+        })
+        .then(({ videoDbResponseVideos, videoIds }) => {
+          fetchAndRenderVideoFromYD(videoDbResponseVideos, videoIds, page)
+          resolve()
+        })
+        .catch((error) => {
+          console.error('Error fetching search results:', error)
+          reject(error)
+        })
+    })
   }
   const getSearchResultsFromYt = (page = 1) => {
     const value = searchParams.get('q') ?? ''
@@ -102,8 +111,8 @@ const Search = () => {
     const urlfForYT = `${youTubeApiUrl}/videos?id=${videoIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
     ourFetch(urlfForYT).then((videoDataFromYDdatabase: any) => {
       const videoFromYDdatabase = videoDataFromYDdatabase.items
-      const videosAlreadyOnYD =
-        currentPage === 1 ? [] : videoAlreadyOnYD.slice()
+      console.log({ videoFromYDdatabase })
+      const videosAlreadyOnYD = page === 1 ? [] : [...videoAlreadyOnYD]
       for (let i = 0; i < videoFromYDdatabase.length; i += 1) {
         const item = videoFromYDdatabase[i]
         if (!item.statistics || !item.snippet) {
@@ -144,7 +153,9 @@ const Search = () => {
           </div>,
         )
       }
+
       setLoadingYDVideos(false)
+      setLoadMoreYDVideos(false)
       setVideoAlreadyOnYD(videosAlreadyOnYD)
     })
   }
@@ -197,8 +208,16 @@ const Search = () => {
   }
 
   const loadMoreVideosFromYD = () => {
-    getSearchResultsFromYd(currentPage + 1)
-    setCurrentPage(currentPage + 1)
+    setLoadMoreYDVideos(true)
+    const nextPage = currentPage + 1
+    getSearchResultsFromYd(nextPage)
+      .then(() => {
+        setLoadMoreYDVideos(false)
+      })
+      .catch((error) => {
+        console.error('Error loading more videos:', error)
+        setLoadMoreYDVideos(false)
+      })
   }
 
   const loadMoreVideosFromYT = () => {
@@ -234,17 +253,22 @@ const Search = () => {
                   )}
                 </div>
               )}
-              {videoAlreadyOnYD.length > 20 ? (
+              {showLoadMoreButton && (
                 <div className="w3-margin-top w3-center load-more">
-                  <Button
-                    ariaLabel={translate('Load more videos')}
-                    title={translate('Load more videos')}
-                    color="w3-indigo"
-                    text={translate('Load more')}
-                    onClick={loadMoreVideosFromYD}
-                  />
+                  {LoadMoreYDVideos ? (
+                    <ClassicSpinner />
+                  ) : (
+                    <Button
+                      ariaLabel={translate('Load more videos')}
+                      title={translate('Load more videos')}
+                      color="w3-indigo"
+                      text={translate('Load more')}
+                      onClick={loadMoreVideosFromYD}
+                      disabled={LoadMoreYDVideos} // Disable the button while loading
+                    />
+                  )}
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </section>

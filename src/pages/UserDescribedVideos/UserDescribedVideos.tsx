@@ -22,6 +22,12 @@ const UserDescribedVideos = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [currentPageAI, setCurrentPageAI] = useState(1)
   const [currentPageDraft, setCurrentPageDraft] = useState(1)
+  const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
+  const [LoadMoreAIVideos, setLoadMoreAIVideos] = useState<boolean>(false)
+  const [LoadMoreDraftVideos, setLoadMoreDraftVideos] = useState<boolean>(false)
+  const [showLoadMoreButton, setShowLoadMoreButton] = useState(true)
+  const [showLoadMoreAIButton, setShowLoadMoreAIButton] = useState(true)
+  const [showLoadMoreDraftButton, setShowLoadMoreDraftButton] = useState(true)
   const { userId } = useParams()
 
   const getUserInfo = async () => {
@@ -33,6 +39,19 @@ const UserDescribedVideos = () => {
       }
     })
   }
+
+  const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
+    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
+    : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
+
+  // Fetch and process My Draft Videos
+  const myDraftVideosUrl = process.env.REACT_APP_USE_YDX
+    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-draft-descriptions`
+    : `${apiUrl}/api/audio-descriptions/get-my-draft-descriptions`
+
+  const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
+    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
+    : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
 
   const getUserVideos = async (
     url: string,
@@ -72,6 +91,7 @@ const UserDescribedVideos = () => {
             JSON.stringify(data),
           )
           const youTubeVideosArray = data
+
           parseResponseData(
             youTubeVideosArray,
             youDescribeVideosIds,
@@ -89,6 +109,9 @@ const UserDescribedVideos = () => {
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
   ) => {
     const videoComponents = []
+    console.log('************************')
+    console.log(setStateFunction)
+    const existingVideos = setStateFunction === setVideos ? videos : videosAI
     for (let i = 0; i < youTubeVideosArray.items.length; i += 1) {
       const item = youTubeVideosArray.items[i]
       const youDescribeVideoId = youDescribeVideosIds[i]
@@ -123,19 +146,42 @@ const UserDescribedVideos = () => {
         </div>,
       )
     }
+    const updatedVideos = [...existingVideos, ...videoComponents]
+    const loadMoreFlag =
+      setStateFunction === setVideos
+        ? setShowLoadMoreButton
+        : setShowLoadMoreAIButton
+
+    if (videoComponents.length > 20) {
+      loadMoreFlag(true)
+    } else {
+      loadMoreFlag(false)
+    }
+
+    const loadMoreSpinnerFlag =
+      setStateFunction === setVideos ? setLoadMoreVideos : setLoadMoreAIVideos
+    loadMoreSpinnerFlag(false)
+
     setShowSpinner(false)
-    setStateFunction(videoComponents)
+
+    setStateFunction(updatedVideos)
   }
 
   const loadMoreResults = () => {
+    setLoadMoreVideos(true)
     setCurrentPage(currentPage + 1)
+    getUserVideos(myDescribedVideosUrl, setVideos, currentPage + 1)
   }
   const loadMoreResultsAI = () => {
+    setLoadMoreAIVideos(true)
     setCurrentPageAI(currentPageAI + 1)
+    getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI + 1)
   }
 
   const loadMoreResultsDraft = () => {
+    setLoadMoreDraftVideos(true)
     setCurrentPageDraft(currentPageDraft + 1)
+    getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft + 1)
   }
 
   const YDLoadMoreButton =
@@ -185,7 +231,7 @@ const UserDescribedVideos = () => {
     )
 
   const YDLoadMoreButtonDraft =
-    videosAI.length >= 20 ? (
+    videosDraft.length >= 20 ? (
       <div className="w3-margin-top w3-center load-more">
         <Button
           title={translate('Load more videos')}
@@ -211,24 +257,14 @@ const UserDescribedVideos = () => {
     if (userId) {
       getUserInfo()
       // Fetch and process My Described Videos
-      const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
-        : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
+
       getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
 
-      // Fetch and process My Draft Videos
-      const myDraftVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-draft-descriptions`
-        : `${apiUrl}/api/audio-descriptions/get-my-draft-descriptions`
       getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft)
 
-      // Fetch and process AI Requested Videos
-      const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
-        : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
       getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI)
     }
-  }, [userId, currentPage])
+  }, [userId, currentPage, currentPageDraft, currentPageAI])
 
   if (
     !userDataStore.getState().isSignedIn ||

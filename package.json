@@ -44,7 +44,7 @@
     "zustand": "^4.3.2"
   },
   "scripts": {
-    "start": "DISABLE_ESLINT_PLUGIN=true craco start",
+    "start": "craco start",
     "build": "craco build",
     "test": "craco test",
     "eject": "craco eject",

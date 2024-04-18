@@ -32,13 +32,23 @@ const SearchBar = () => {
   // Function to handle form submission
   const updateSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const q = encodeURIComponent(enteredValue || search)
+    const searchTerm = enteredValue || search
+
+    if (!searchTerm || searchTerm.trim() === '') {
+      setSearch('')
+      setSuggestions([])
+      setShowDropdown(false)
+      return
+    }
+    const q = encodeURIComponent(searchTerm)
     setUserSearchHistory((prevHistory) => [
-      enteredValue || search,
-      ...prevHistory.filter((item) => item !== (enteredValue || search)),
+      searchTerm,
+      ...prevHistory.filter((item) => item !== searchTerm),
     ])
     localStorage.setItem('userSearchHistory', JSON.stringify(userSearchHistory))
-    navigate(`/search?q=${q}`)
+    if (searchTerm.trim() !== '') {
+      navigate(`/search?q=${q}`)
+    }
     setSearch('')
     setSuggestions([])
     setShowDropdown(false)

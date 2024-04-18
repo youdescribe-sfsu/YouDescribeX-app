@@ -18,6 +18,7 @@ interface Props {
   setUpdateData: React.Dispatch<React.SetStateAction<boolean>>
   clip: Clip
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
+  setUndoDeletedClip: React.Dispatch<React.SetStateAction<boolean>>
   divWidths: { [key: string]: number }
   handlePlayAudioClip: (startTime: number) => void
   editComponentToggleList: {
@@ -53,6 +54,7 @@ const AudioClip = ({
   setShowSpinner,
   fetchUserVideoData,
   isPreview = false,
+  setUndoDeletedClip,
 }: Props) => {
   // all audio clip data from props
   const clipID = clip.clip_id
@@ -62,7 +64,7 @@ const AudioClip = ({
     ? `scene ${clip.description_type}`
     : clip.clip_title
 
-  const clipDescriptionText = clip.description_text
+  const initialclipDescriptionText = clip.description_text
   const initialClipPlaybackType = clip.playback_type
   const initialClipStartTime = clip.clip_start_time
   const clipDuration = clip.clip_duration
@@ -293,7 +295,7 @@ const AudioClip = ({
   ) => {
     try {
       // check if the clip has been updated
-      if (updatedClipDescriptionText !== clipDescriptionText) {
+      if (updatedClipDescriptionText !== initialclipDescriptionText) {
         // show spinner
         setShowSpinner(true)
 
@@ -494,7 +496,7 @@ const AudioClip = ({
             clipCreatedAt={clipCreatedAt}
             clipId={clipID}
             clipDescriptionType={clipDescriptionType ?? ''}
-            initialClipDescriptionText={clipDescriptionText ?? ''}
+            initialClipDescriptionText={initialclipDescriptionText ?? ''}
             clipPlaybackType={clipPlaybackType}
             clipStartTime={clipStartTime}
             clipDuration={clipDuration}
@@ -512,6 +514,7 @@ const AudioClip = ({
             setNeedRefresh={setNeedRefresh}
             isPreview={isPreview}
             handleClickSaveClipDescription={handleClickSaveClipDescription}
+            setUndoDeletedClip={setUndoDeletedClip}
           />
         )}
       </div>

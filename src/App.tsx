@@ -197,29 +197,29 @@ const App = () => {
         const authUser = process.env.REACT_APP_USER_ID || ''
         url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google/localhost`
         // console.log('url: ', url)
-        if (authUser) {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              Authorization: authUser, // Custom header with the user ID
-            },
-            credentials: 'include',
-          })
-          const data = await response.json()
-          console.log('data: ', data)
-          setUserName(data.result.name)
-          setUserId(data.result._id)
-          setUserToken(data.result.token)
-          setUserPicture(data.result.picture)
-          setUserAdmin(data.result.admin)
-          setSignedIn(true)
-          setCookie(
-            data.result._id,
-            data.result.token,
-            data.result.name,
-            data.result.picture,
-          )
-        }
+        // if (authUser) {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Authorization: '591ccdc32805421bd3af5910', // Custom header with the user ID
+          },
+          credentials: 'include',
+        })
+        const data = await response.json()
+        console.log('data: ', data)
+        setUserName(data.result.name)
+        setUserId(data.result._id)
+        setUserToken(data.result.token)
+        setUserPicture(data.result.picture)
+        setUserAdmin(data.result.admin)
+        setSignedIn(true)
+        setCookie(
+          data.result._id,
+          data.result.token,
+          data.result.name,
+          data.result.picture,
+        )
+        // }
       } else {
         // console.log('url: ', url)
         const response = await fetch(url, {

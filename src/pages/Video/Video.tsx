@@ -41,6 +41,8 @@ import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
 import axios, { AxiosResponse } from 'axios'
 import { Feedbacks, VideoDescriberRoot } from './video_describer'
+import LanguageSelector from './LanguageSelector'
+// import iso6391 from 'iso-639-1'
 
 interface IADUserId {
   [key: string]: {
@@ -62,6 +64,23 @@ const Video = () => {
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
   const [rating, setRating] = useState<number>(0)
+  // const codes = iso6391.getAllCodes()
+
+  const languages = [
+    { code: 'en-US', name: 'English (United States)' },
+    { code: 'en-GB', name: 'English (United Kingdom)' },
+    { code: 'zh-CN', name: 'Chinese (Simplified, China)' },
+    { code: 'zh-TW', name: 'Chinese (Traditional, Taiwan)' },
+    { code: 'ko-KR', name: 'Korean (South Korea)' },
+    { code: 'fr-FR', name: 'French (France)' },
+    { code: 'fr-CA', name: 'French (Canada)' },
+    { code: 'ar-SA', name: 'Arabic (Saudi Arabia)' },
+    { code: 'ar-EG', name: 'Arabic (Egypt)' },
+    { code: 'ru-RU', name: 'Russian (Russia)' },
+    { code: 'de-DE', name: 'German (Germany)' },
+    { code: 'es-ES', name: 'Spanish (Spain)' },
+    { code: 'es-MX', name: 'Spanish (Mexico)' },
+  ]
 
   // Loading Spinner
   const [showSpinner, setShowSpinner] = useState(true)
@@ -118,6 +137,8 @@ const Video = () => {
   const [clipStack, setClipStack] = useState<Clip[]>([])
   const [clipStackSize, setClipStackSize] = useState<number>(5)
   const [currentClipIndex, setCurrentClipIndex] = useState<number>(0)
+
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false)
 
   const clipStackRef = useRef(clipStack)
   const clipIDRef = useRef(playedAudioClip)
@@ -308,7 +329,6 @@ const Video = () => {
 
   const parseVideoData = (videoData: VideoDescriberRoot) => {
     // TODO: Add Types
-    console.log('Video Data', videoData)
     const adIds: any[] = []
     const adIdsUsers: IADUserId = {}
     const adIdsAudioClips: any = {}
@@ -328,8 +348,17 @@ const Video = () => {
             overall_rating_votes_sum: ad.overall_rating_votes_sum,
             feedbacks: ad.feedbacks,
             picture: ad.user.picture,
-            name: ad.user.name,
+            name:
+              ad.user.user_type && ad.user.user_type === 'AI'
+                ? 'AI Description Draft'
+                : ad.user.name,
           }
+        } else {
+          // If adIdsUsers[ad._id] already exists, update the name property conditionally
+          adIdsUsers[ad._id].name =
+            ad.user.user_type && ad.user.user_type === 'AI'
+              ? 'AI Description Draft'
+              : ad.user.name
         }
 
         // adIdsUsers[ad._id].overall_rating_votes_counter =
@@ -417,8 +446,6 @@ const Video = () => {
       a.clip_start_time < b.clip_start_time ? -1 : 1,
     )
 
-    // // console.log('Sorted Clips', sortedClipData)
-    console.log('audioClipsData', sortedClipData)
     setAudioClips([...sortedClipData])
     const maxStackSize =
       sortedClipData.length > 100 ? 10 : Math.min(sortedClipData.length, 5)
@@ -445,10 +472,12 @@ const Video = () => {
     // Use custom fetch for cross-browser compatability
     ourFetch(url)
       .then((data: any) => {
-        // console.log(
-        //   'Current Video Duration',
-        //   data.items[0].contentDetails.duration,
-        // )
+        if (data.items.length === 0) {
+          console.log('Video Unavailable!')
+          alert('Video Unavailable!')
+          return
+        }
+
         const videoDurationInSeconds = convertISO8601ToSeconds(
           data.items[0].contentDetails.duration,
         )
@@ -869,7 +898,6 @@ const Video = () => {
     if (audioDescriptionsIdsUsers) {
       // console.log('Updating describer Cards')
       const describers = audioDescriptionsIdsUsers
-
       const describerCards: ReactNode[] = []
       let describerIds = Object.keys(describers)
 
@@ -1225,7 +1253,8 @@ const Video = () => {
     }
   }
 
-  const handleGenerateAIDescriptions = async () => {
+  const handleGenerateAIDescriptions = async (languageCode: string) => {
+    console.log({ 'inside api': languageCode })
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
         translate(
@@ -1276,6 +1305,7 @@ const Video = () => {
         url,
         {
           youtube_id: videoId,
+          selectedLanguageCode: languageCode,
         },
         {
           withCredentials: true,
@@ -1297,6 +1327,24 @@ const Video = () => {
         'Something went wrong, AI Descriptions are not available at the moment. Please try again later.',
       )
     }
+  }
+  const handleRequestAIDescriptions = () => {
+    // Show the language selector modal
+    setShowLanguageSelector(true)
+  }
+
+  // Function to handle the confirmation of language selection
+  const handleLanguageConfirm = (selectedLanguageCode: string) => {
+    // Generate AI descriptions with the selected language
+    handleGenerateAIDescriptions(selectedLanguageCode)
+    // Close the language selector modal
+    setShowLanguageSelector(false)
+  }
+
+  // Function to handle canceling language selection
+  const handleLanguageCancel = () => {
+    // Close the language selector modal
+    setShowLanguageSelector(false)
   }
 
   const handlePreviewAudioDescription = async () => {
@@ -1358,7 +1406,7 @@ const Video = () => {
             ariaLabel="Add a new description for this video"
             text={translate('Add Freestyle Description')}
             color="w3-yellow w3-block w3-margin-top"
-            onClick={() => handleAddDescription()}
+            onClick={handleAddDescription}
           />
           {requestAiDescription.requested ? (
             <Button
@@ -1375,7 +1423,17 @@ const Video = () => {
               text={translate('Request AI Descriptions')}
               color="w3-light-blue w3-block w3-margin-top"
               disabled={requestAiDescription.requested}
-              onClick={() => handleGenerateAIDescriptions()}
+              onClick={handleRequestAIDescriptions}
+            />
+          )}
+          {/* Language selector modal */}
+          {showLanguageSelector && (
+            <LanguageSelector
+              show={showLanguageSelector}
+              handleClose={handleLanguageCancel}
+              handleGenerateAIDescriptions={handleLanguageConfirm}
+              languages={languages}
+              showLanguageSelector={showLanguageSelector}
             />
           )}
         </>
@@ -1401,8 +1459,19 @@ const Video = () => {
             text={translate('Request AI Descriptions')}
             color="w3-light-blue w3-block w3-margin-top"
             disabled={requestAiDescription.requested}
-            onClick={() => handleGenerateAIDescriptions()}
+            // onClick={() => handleGenerateAIDescriptions()}
+            onClick={() => handleRequestAIDescriptions()}
           />
+          {/* Language selector modal */}
+          {showLanguageSelector && (
+            <LanguageSelector
+              show={showLanguageSelector}
+              handleClose={handleLanguageCancel}
+              handleGenerateAIDescriptions={handleLanguageConfirm}
+              languages={languages} // assuming languages are available here
+              showLanguageSelector={showLanguageSelector}
+            />
+          )}
         </>
       )
     } else {
