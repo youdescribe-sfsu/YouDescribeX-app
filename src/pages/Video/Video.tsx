@@ -401,6 +401,7 @@ const Video = () => {
 
   const prepareAudioClips = (selectedAdId: string, adIdsAudioClips: any) => {
     const selectedAudioClips = adIdsAudioClips[selectedAdId]
+    console.log({ selectedAudioClips })
     if (selectedAudioClips.length > 100) {
       setClipStackSize(10)
     }
@@ -432,7 +433,7 @@ const Video = () => {
         clipStackData.push(clip)
       }
     }
-    // // console.log('Clip Stack', clipStackData)
+    console.log('Clip Stack', clipStackData)
     setClipStack(clipStackData)
     getYTVideoInfo()
   }
@@ -470,6 +471,7 @@ const Video = () => {
         //   convertSecondsToEditorFormat(videoDurationInSeconds),
         // )
         document.title = `YouDescribe - ${data.items[0].snippet.title}`
+
         setShowSpinner(false)
       })
       .catch((err) => {
@@ -481,12 +483,19 @@ const Video = () => {
   }
 
   useEffect(() => {
-    if (clipStack.length === clipStackSize) {
-      setShowSpinner(false)
-    } else if (
+    if (
+      clipStack.length === clipStackSize ||
       clipStack?.length === audioDescriptionsIdsAudioClips[selectedADId]?.length
     ) {
       setShowSpinner(false)
+    } else {
+      // setShowSpinner(false)
+      toast.error(
+        "Sorry, we couldn't load the video. Please try again later.",
+        {
+          autoClose: 8000,
+        },
+      )
     }
   }, [audioDescriptionsIdsAudioClips, clipStack, clipStackSize, selectedADId])
 

@@ -18,8 +18,10 @@ const UserDescribedVideos = () => {
   const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
+  const [videosDraft, setVideosDraft] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [currentPageAI, setCurrentPageAI] = useState(1)
+  const [currentPageDraft, setCurrentPageDraft] = useState(1)
   const { userId } = useParams()
 
   const getUserInfo = async () => {
@@ -132,6 +134,10 @@ const UserDescribedVideos = () => {
     setCurrentPageAI(currentPageAI + 1)
   }
 
+  const loadMoreResultsDraft = () => {
+    setCurrentPageDraft(currentPageDraft + 1)
+  }
+
   const YDLoadMoreButton =
     videos.length >= 20 ? (
       <div className="w3-margin-top w3-center load-more">
@@ -173,7 +179,30 @@ const UserDescribedVideos = () => {
           color="w3-indigo"
           text="Load more"
           ariaLabel="Load More"
-          onClick={loadMoreResults}
+          onClick={loadMoreResultsAI}
+        />
+      </div>
+    )
+
+  const YDLoadMoreButtonDraft =
+    videosAI.length >= 20 ? (
+      <div className="w3-margin-top w3-center load-more">
+        <Button
+          title={translate('Load more videos')}
+          ariaLabel="Load More"
+          color="w3-indigo"
+          text="Load more"
+          onClick={loadMoreResultsDraft}
+        />
+      </div>
+    ) : (
+      <div className="w3-margin-top w3-center load-more w3-hide">
+        <Button
+          title={translate('Load more videos')}
+          color="w3-indigo"
+          text="Load more"
+          ariaLabel="Load More"
+          onClick={loadMoreResultsDraft}
         />
       </div>
     )
@@ -187,11 +216,17 @@ const UserDescribedVideos = () => {
         : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
       getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
 
+      // Fetch and process My Draft Videos
+      const myDraftVideosUrl = process.env.REACT_APP_USE_YDX
+        ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-draft-descriptions`
+        : `${apiUrl}/api/audio-descriptions/get-my-draft-descriptions`
+      getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft)
+
       // Fetch and process AI Requested Videos
       const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
         ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-All-Ai-DescriptionRequests`
         : `${apiUrl}/api/create-user-links/get-All-Ai-DescriptionRequests`
-      getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPage)
+      getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI)
     }
   }, [userId, currentPage])
 
@@ -230,6 +265,17 @@ const UserDescribedVideos = () => {
             <div className="w3-row classic-container row">{videos}</div>
 
             {YDLoadMoreButton}
+          </section>
+          <section>
+            <header className="w3-container w3-indigo">
+              <h2 className="classic-h2">{translate('MY DRAFT VIDEOS')}</h2>
+            </header>
+
+            {showSpinner ? <Spinner /> : null}
+
+            <div className="w3-row classic-container row">{videosDraft}</div>
+
+            {YDLoadMoreButtonDraft}
           </section>
           <section>
             <header className="w3-container w3-indigo">
