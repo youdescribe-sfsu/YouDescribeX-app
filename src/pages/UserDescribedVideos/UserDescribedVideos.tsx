@@ -109,9 +109,13 @@ const UserDescribedVideos = () => {
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
   ) => {
     const videoComponents = []
-    console.log('************************')
-    console.log(setStateFunction)
-    const existingVideos = setStateFunction === setVideos ? videos : videosAI
+    const existingVideos =
+      setStateFunction === setVideos
+        ? videos
+        : setStateFunction === setAIVideos
+        ? videosAI
+        : videosDraft
+
     for (let i = 0; i < youTubeVideosArray.items.length; i += 1) {
       const item = youTubeVideosArray.items[i]
       const youDescribeVideoId = youDescribeVideosIds[i]
@@ -150,7 +154,9 @@ const UserDescribedVideos = () => {
     const loadMoreFlag =
       setStateFunction === setVideos
         ? setShowLoadMoreButton
-        : setShowLoadMoreAIButton
+        : setStateFunction === setAIVideos
+        ? setShowLoadMoreAIButton
+        : setShowLoadMoreDraftButton
 
     if (videoComponents.length > 20) {
       loadMoreFlag(true)
@@ -159,7 +165,11 @@ const UserDescribedVideos = () => {
     }
 
     const loadMoreSpinnerFlag =
-      setStateFunction === setVideos ? setLoadMoreVideos : setLoadMoreAIVideos
+      setStateFunction === setVideos
+        ? setLoadMoreVideos
+        : setStateFunction === setAIVideos
+        ? setLoadMoreAIVideos
+        : setLoadMoreDraftVideos
     loadMoreSpinnerFlag(false)
 
     setShowSpinner(false)
