@@ -133,23 +133,19 @@ const Wishlist = () => {
 
   const cancelRequest = useRef<CancelTokenSource | null>(null)
 
-  const caseInsensitiveSort = (rowA: any, rowB: any, sortField: string) => {
-    if (sortField === 'aiRequested') {
-      console.log('inside this sort')
-      const aValue = rowA.aiRequested ? 1 : 0
-      const bValue = rowB.aiRequested ? 1 : 0
-      return aValue - bValue
-    } else {
-      const a = rowA[sortField].toLowerCase()
-      const b = rowB[sortField].toLowerCase()
-      if (a > b) {
-        return 1
-      }
-      if (b > a) {
-        return -1
-      }
-      return 0
+  const caseInsensitiveSort = (rowA: any, rowB: any) => {
+    const a = rowA.title.toLowerCase()
+    const b = rowB.title.toLowerCase()
+
+    if (a > b) {
+      return 1
     }
+
+    if (b > a) {
+      return -1
+    }
+
+    return 0
   }
 
   const columns: TableColumn<any>[] = [
@@ -184,7 +180,7 @@ const Wishlist = () => {
       sortable: true,
       wrap: true,
       hide: 'sm' as Media,
-      sortFunction: (a, b) => caseInsensitiveSort(a, b, 'category'),
+      sortFunction: caseInsensitiveSort,
       sortField: 'category',
     },
     {
@@ -208,7 +204,6 @@ const Wishlist = () => {
       cell: (row) => (row.aiRequested ? 'Available' : 'Not Available'),
       grow: 1.5,
       sortable: true,
-      sortFunction: (a, b) => caseInsensitiveSort(a, b, 'aiRequested'),
       wrap: true,
       sortField: 'aiRequested',
     },
@@ -903,8 +898,6 @@ const Wishlist = () => {
           paginationTotalRows={totalRows}
           onChangePage={(page) => handlePageChange(page)}
           onSort={(column, direction) => {
-            console.log({ column: column.sortField })
-            console.log({ columndir: direction })
             loadTableVideos(0, perPage, column.sortField, direction)
           }}
           sortServer
