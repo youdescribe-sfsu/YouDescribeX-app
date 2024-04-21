@@ -30,6 +30,8 @@ type DataState = VideosState | null
 type FetchVideosDataFunction = (
   dataState: DataState,
   setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+  url: string,
+  setVideosData: SetVideosData,
 ) => Promise<void>
 
 const CustomButton = ({
@@ -112,6 +114,11 @@ const Wishlist = () => {
   const [perPage, setPerPage] = useState(10)
   const [totalRows, setTotalRows] = useState(0)
   const [wishlistData, setWishlistData] = useState<VideosState | null>(null)
+  const [videosData, setVideosData] = useState<VideosState | null>(null)
+  const [recentAIRequested, setrecentAIRequested] =
+    useState<VideosState | null>(null)
+  const [recentAIRequestedSpinner, setRecentAIRequestedSpinner] = useState(true) // For loading state
+
   const [showWishlistSpinner, setShowWishlistSpinner] = useState(true)
   // const [youTubeIds, setYouTubeIds] = useState<string[]>([])
   // const [youDescribeIds, setYouDescribeIds] = useState<string[]>([])
@@ -231,22 +238,21 @@ const Wishlist = () => {
     }
   }
 
-  const fetchAndSetWishlistData: FetchVideosDataFunction = async (
+  const fetchAndSetVideosData: FetchVideosDataFunction = async (
     dataState,
     setLoadingState,
+    url,
+    setVideosData,
   ) => {
     const pageNumber = dataState?.currentPage || 1
 
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-user-wishlist`,
-        {
-          params: {
-            pageNumber: pageNumber,
-          },
-          withCredentials: true,
+      const response = await axios.get(url, {
+        params: {
+          pageNumber: pageNumber,
         },
-      )
+        withCredentials: true,
+      })
 
       // console.log('==============================')
       // console.log(response.data)
@@ -323,7 +329,7 @@ const Wishlist = () => {
         )
       }
       // console.log('videoCardsComponents', videoCardsComponents)
-      const newWishlistData = {
+      const newVideosData: VideosState = {
         data: videoCardsComponents,
         totalVideos: videoCardsComponents.length,
         totalPages: calculatedTotalVideoPages,
@@ -331,7 +337,7 @@ const Wishlist = () => {
         videoComponentData: videoCardsComponents,
       }
 
-      setWishlistData(newWishlistData)
+      setVideosData(newVideosData)
 
       setLoadingState(false)
     } catch (error) {
@@ -343,9 +349,12 @@ const Wishlist = () => {
   const handleNextPage = (
     currentDataState: VideosState | null,
     setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+    url: string,
+    setVideosData: SetVideosData,
   ) => {
     if (!currentDataState) return
-    fetchAndSetWishlistData(
+
+    fetchAndSetVideosData(
       {
         ...currentDataState,
         currentPage: Math.min(
@@ -354,21 +363,27 @@ const Wishlist = () => {
         ),
       },
       setVideoLoadingState,
+      url,
+      setVideosData,
     )
   }
 
   const handlePreviousPage = (
     currentDataState: VideosState | null,
     setVideoLoadingState: React.Dispatch<React.SetStateAction<boolean>>,
+    url: string,
+    setVideosData: SetVideosData,
   ) => {
     if (!currentDataState) return
-    fetchAndSetWishlistData(
+    fetchAndSetVideosData(
       {
         ...currentDataState,
         currentPage: Math.max(currentDataState.currentPage - 1, 1),
       },
 
       setVideoLoadingState,
+      url,
+      setVideosData,
     )
   }
 
@@ -411,11 +426,27 @@ const Wishlist = () => {
     }
   }
 
+  const wishlistUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-user-wishlist`
+  const aiRequestedUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-All-AI-descriptions`
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
     loadTableVideos(currentPageNumber, perPage)
     loadTopVideos()
-    fetchAndSetWishlistData(wishlistData, setShowWishlistSpinner)
+
+    fetchAndSetVideosData(
+      wishlistData,
+      setShowWishlistSpinner,
+      wishlistUrl,
+      setWishlistData,
+    )
+    fetchAndSetVideosData(
+      recentAIRequested,
+      setRecentAIRequestedSpinner,
+      aiRequestedUrl,
+      setrecentAIRequested,
+    )
+
+    // fetchAndSetWishlistData(wishlistData, setShowWishlistSpinner)
   }, [userDataStore.getState().userId])
 
   /*
@@ -714,8 +745,10 @@ const Wishlist = () => {
                     await handlePreviousPage(
                       wishlistData,
                       setShowWishlistSpinner,
+                      wishlistUrl,
+                      setWishlistData,
                     )
-                    setShowWishlistSpinner(false) // Optionally, hide spinner after loading
+                    setShowWishlistSpinner(false)
                   }}
                   disabled={wishlistData.currentPage === 1}
                 >
@@ -732,8 +765,13 @@ const Wishlist = () => {
                   className="next-wishlist-icon"
                   onClick={async () => {
                     setShowWishlistSpinner(true) // Optionally, show spinner while loading
-                    await handleNextPage(wishlistData, setShowWishlistSpinner)
-                    setShowWishlistSpinner(false) // Optionally, hide spinner after loading
+                    await handleNextPage(
+                      wishlistData,
+                      setShowWishlistSpinner,
+                      wishlistUrl,
+                      setWishlistData,
+                    )
+                    setRecentAIRequestedSpinner(false)
                   }}
                   disabled={
                     wishlistData.currentPage === wishlistData.totalPages
@@ -750,6 +788,64 @@ const Wishlist = () => {
           </div>
         </div>
       )}
+
+      <header className="w3-container w3-indigo">
+        <h2 className="classic-h2">{translate('RECENT AI DESCRIPTIONS')}</h2>
+      </header>
+
+      <div className="d-flex justify-content-center custom-carousel">
+        <div className="custom-carousel">
+          {!recentAIRequested && <CustomSpinner />}
+          {recentAIRequested && recentAIRequested?.data.length > 0 && (
+            <div className="d-flex justify-content-between align-items-center h-100">
+              <CustomButton
+                className="prev-wishlist-icon"
+                onClick={async () => {
+                  setRecentAIRequestedSpinner(true)
+                  await handlePreviousPage(
+                    recentAIRequested,
+                    setRecentAIRequestedSpinner,
+                    aiRequestedUrl,
+                    setrecentAIRequested,
+                  )
+                  setRecentAIRequestedSpinner(false)
+                }}
+                disabled={recentAIRequested.currentPage === 1}
+              >
+                &lt;
+              </CustomButton>
+
+              <div className="w3-row classic-container wishlist-video-row ">
+                {recentAIRequested.data}
+              </div>
+
+              <CustomButton
+                className="next-wishlist-icon"
+                onClick={async () => {
+                  setRecentAIRequestedSpinner(true)
+                  await handleNextPage(
+                    recentAIRequested,
+                    setRecentAIRequestedSpinner,
+                    aiRequestedUrl,
+                    setrecentAIRequested,
+                  )
+                  setRecentAIRequestedSpinner(false)
+                }}
+                disabled={
+                  recentAIRequested.currentPage === recentAIRequested.totalPages
+                }
+              >
+                &gt;
+              </CustomButton>
+            </div>
+          )}
+
+          {recentAIRequested?.data.length === 0 && (
+            <p className="history-text">No AI Requested Videos.</p>
+          )}
+        </div>
+      </div>
+
       <form
         onSubmit={(e: any) => {
           e.preventDefault()
@@ -801,9 +897,9 @@ const Wishlist = () => {
           paginationServer
           paginationTotalRows={totalRows}
           onChangePage={(page) => handlePageChange(page)}
-          onSort={(column, direction) =>
+          onSort={(column, direction) => {
             loadTableVideos(0, perPage, column.sortField, direction)
-          }
+          }}
           sortServer
           onChangeRowsPerPage={(newPerPage) => handlePerRowsChange(newPerPage)}
           customStyles={{
