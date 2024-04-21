@@ -560,137 +560,191 @@ const Video = () => {
     playedAudioClip: string,
     playedClipPath: string,
   ) => {
-    // Return early if not in playing state
-    if (currentState !== 1) return
-
-    // Check if there are any clips left to play
-    if (clipStackRef.current.length === 0) {
-      console.debug('No clips left to play')
-      return
-    }
-
-    // Return early if any audio clip is currently playing
-    if (
-      currentInlineACRef.current?.playing() ||
-      currentExtendedACRef.current?.playing()
-    ) {
-      console.debug('A clip is currently playing')
-      return
-    }
-
-    // Determine the type of audio clip to play
-    const currentClip = clipStackRef.current[0]
-    const isInlineClip = currentClip.playback_type === 'inline'
-
-    // Calculate the clip's start and end times relative to the current time
-    const clipStartTime = currentClip.clip_start_time
-    const clipEndTime = currentClip.clip_end_time
-
-    if (isInlineClip) {
-      // Handle inline clip playback
-      if (
-        (clipStartTime <= currentTimeRef.current &&
-          clipEndTime >= currentTimeRef.current) ||
-        (clipStartTime <= currentTimeRef.current &&
-          clipStartTime >= previousTimeRef.current)
-      ) {
-        console.debug('Playing inline clip')
-
-        // Return early if an inline clip is already playing
-        if (currentInlineACRef.current?.playing()) {
-          console.debug('An inline clip is already playing')
-          return
-        }
-
-        // Play the inline clip
-        const currentAudio = currentClip.clip_audio
-        const seekTime = currentTimeRef.current - clipStartTime
-
-        // Ensure seek time is within valid range
-        if (seekTime < 0) {
-          console.debug('Seek time is negative, skipping')
-          return
-        }
-
-        console.debug(`Seeking to ${seekTime} seconds`)
-        currentAudio?.seek(seekTime)
-        currentAudio?.play()
-        setCurrInlineAC(currentAudio)
-
-        // Set played audio clip and path
-        setPlayedAudioClip(currentClip.clip_id)
-        setRecentAudioPlayedTime(currentTimeRef.current)
-        setPlayedClipPath(currentClip.clip_audio_path)
-
-        // Event listeners for play and end
-        currentAudio?.once('play', () => {
-          currentAudio.volume(descriptionVolumeRef.current / 100)
-        })
-        currentAudio?.once('end', () => {
-          setCurrInlineAC(undefined)
-          currentAudio.unload()
-        })
-
-        // Update the clip stack
-        const newClip =
-          audioClips[currentClipIndexRef.current + clipStackSize - 1]
-        if (newClip) {
-          newClip.clip_audio = new Howl({
-            src: newClip.clip_audio_path,
-            html5: true,
-          })
-          setClipStack([
-            ...clipStackRef.current.slice(1, clipStackSize),
-            newClip,
-          ])
-        } else {
-          setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-        }
-
-        // Increment the current clip index
-        setCurrentClipIndex(currentClipIndexRef.current + 1)
+    // playing
+    if (currentState === 1) {
+      // If all clips have been played, skip check
+      if (clipStackRef.current.length === 0) {
+        // console.log('No Clips left to play')
+        return
       }
-    } else {
-      // Handle extended clip playback
+
+      // If a clip is currently playing, skip check
       if (
-        clipStartTime <= currentTimeRef.current + 0.1 &&
-        clipStartTime >= previousTimeRef.current - 0.1
+        currentInlineACRef.current?.playing() ||
+        currentExtendedACRef.current?.playing()
       ) {
-        console.debug('Playing extended clip')
+        console.info('A clip is currently playing')
+        return
+      }
 
-        // Return early if an extended clip is already playing
-        if (currentExtendedACRef.current?.playing()) {
-          console.debug('An extended clip is already playing')
-          return
+      // If an inline clip is supposed to be playing right now but the user has either skipped to a time in the middle of the clip
+      // Or there was an overlap which caused the start time of the clip to be skipped
+      // Play the clip by seeking to the current time
+      if (clipStackRef.current[0].playback_type === 'inline') {
+        if (
+          (clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
+            clipStackRef.current[0].clip_end_time >= currentTimeRef.current) ||
+          (clipStackRef.current[0].clip_start_time <= currentTimeRef.current &&
+            clipStackRef.current[0].clip_start_time >= previousTimeRef.current)
+        ) {
+          console.warn(
+            'An inline clip is supposed to be playing right now',
+            currentTimeRef.current,
+          )
+
+          // If an Inline Clip is Playing - Return
+          if (currentInlineACRef.current?.playing()) {
+            console.info('An inline clip is already playing')
+            return
+          }
+          // If the clip is not playing, play it
+          console.info('Playing clip by Seeking to current time')
+          // Play Inline Clip
+          const currentFilteredClip = clipStackRef.current[0]
+          // console.log('Clip to be Played', currentFilteredClip)
+
+          setPlayedAudioClip(currentFilteredClip.clip_id)
+          //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
+          setRecentAudioPlayedTime(currentTimeRef.current)
+          const clipAudioPath = currentFilteredClip.clip_audio_path
+          // console.log('PLaying clip', clipAudioPath)
+
+          if (clipAudioPath !== playedClipPath) {
+            // console.log('Updating Clip Index (inline clip)')
+            setCurrentClipIndex(currentClipIndexRef.current + 1)
+            setPlayedClipPath(clipAudioPath)
+            // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
+            const currentAudio = currentFilteredClip.clip_audio
+            // console.log('Playing inline clip')
+            if (
+              currentAudio?.playing() ||
+              currentInlineACRef.current?.playing()
+              // currentFilteredClip.clip_id === clipIDRef.current
+            ) {
+              // console.log('Clip is already playing')
+              return
+            }
+            // console.log(
+            //   'Seeking to',
+            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
+            //   'seconds',
+            // )
+
+            currentAudio?.seek(
+              currentTimeRef.current - currentFilteredClip.clip_start_time,
+            )
+            currentAudio?.play()
+            // see onStateChange() - storing current inline clip.
+            setCurrInlineAC(currentAudio)
+
+            // Load a new clip and add it to the stack
+            // console.log('Current Clip Index', currentClipIndexRef.current)
+
+            const newClip =
+              audioClips[currentClipIndexRef.current + clipStackSize - 1]
+            // console.log('New CLIP (seeked inline) => ', newClip)
+            if (newClip) {
+              newClip.clip_audio = new Howl({
+                src: newClip.clip_audio_path,
+                html5: true,
+              })
+              setClipStack([
+                ...clipStackRef.current.slice(1, clipStackSize),
+                newClip,
+              ])
+            } else {
+              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+            }
+
+            // ended event listener, to set the currInlineAC back to null
+            currentAudio?.once('play', function () {
+              setPlayedAudioClip(currentFilteredClip.clip_id)
+              // Set AD Volume
+              currentAudio.volume(descriptionVolumeRef.current / 100)
+            })
+            currentAudio?.once('end', function () {
+              setCurrInlineAC(undefined)
+              // Unload current clip
+              currentAudio.unload()
+            })
+          }
         }
-
-        const currentAudio = currentClip.clip_audio
-        if (!currentAudio?.playing()) {
-          currentAudio?.play()
+      }
+      // Case for playing extended clips when the player come across their start or end times
+      // Compare current window with clip at current clip index
+      else {
+        if (
+          clipStackRef.current[0].clip_start_time <=
+            currentTimeRef.current + 0.1 &&
+          clipStackRef.current[0].clip_start_time >=
+            previousTimeRef.current - 0.1
+        ) {
+          const currentFilteredClip = clipStackRef.current[0]
+          // console.log('Updating Clip Index')
+          setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
+          // Play the clip only if it wasn't played recently
+          if (playedAudioClip !== currentFilteredClip.clip_id) {
+            setPlayedAudioClip(currentFilteredClip.clip_id)
+            //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
+            setRecentAudioPlayedTime(currentTimeRef.current)
+            const clipAudioPath = currentFilteredClip.clip_audio_path
+            if (clipAudioPath !== playedClipPath) {
+              setPlayedClipPath(clipAudioPath)
+              // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
+              const currentAudio = currentFilteredClip.clip_audio
+              currentEvent?.pauseVideo()
+              if (!currentAudio?.playing()) {
+                currentAudio?.play()
+              }
+              // see onStateChange() - storing current Extended Clip
+              setCurrExtendedAC(currentAudio)
+              // Add a new clip to the stack
+              // console.log('Current Clip Index', currentClipIndexRef.current)
+              const newClip =
+                audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+              // console.log('New CLIP (normal extended) => ', newClip)
+              if (newClip) {
+                newClip.clip_audio = new Howl({
+                  src: newClip.clip_audio_path,
+                  html5: true,
+                })
+                setClipStack([
+                  ...clipStackRef.current.slice(1, clipStackSize),
+                  newClip,
+                ])
+              } else {
+                setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+              }
+              // youtube video should be played after the clip has finished playing
+              // eslint-disable-next-line no-loop-func
+              currentAudio?.once('play', function () {
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+              })
+              currentAudio?.once('end', function () {
+                setCurrExtendedAC(undefined) // setting back to null, as it is played completely.
+                currentEvent?.playVideo()
+                // Unload current clip
+                currentAudio.unload()
+                setCurrentExtACPaused(false) // reset the play/pause state
+              })
+            }
+          }
         }
-
-        setCurrExtendedAC(currentAudio)
-        currentEvent?.pauseVideo()
-
-        // Set played audio clip and path
-        setPlayedAudioClip(currentClip.clip_id)
-        setRecentAudioPlayedTime(currentTimeRef.current)
-        setPlayedClipPath(currentClip.clip_audio_path)
-
-        // Event listeners for play and end
-        currentAudio?.once('play', () => {
-          currentAudio.volume(descriptionVolumeRef.current / 100)
-        })
-        currentAudio?.once('end', () => {
-          setCurrExtendedAC(undefined)
-          currentEvent?.playVideo()
-          currentAudio.unload()
-          setCurrentExtACPaused(false)
-        })
-
-        // Update the clip stack
+      }
+      // Check for Skips - This usually occurs when an extended clip was overlapped by an inline clip
+      if (
+        clipStackRef.current[0].playback_type === 'extended' &&
+        !currentInlineACRef.current?.playing() &&
+        !currentExtendedACRef.current?.playing() &&
+        clipStackRef.current[0].clip_start_time <= currentTimeRef.current
+      ) {
+        // A skip has most likely occurred
+        console.error('SKIP DETECTED', clipStackRef.current[0])
+        // Add a new clip to the stack
+        // console.log('Current Clip Index', currentClipIndexRef.current)
         const newClip =
           audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+        // console.log('New CLIP (normal extended) => ', newClip)
         if (newClip) {
           newClip.clip_audio = new Howl({
             src: newClip.clip_audio_path,
@@ -703,32 +757,6 @@ const Video = () => {
         } else {
           setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
         }
-
-        // Increment the current clip index
-        setCurrentClipIndex(currentClipIndexRef.current + 1)
-      }
-    }
-
-    // Check for skipped clips
-    if (
-      currentClip.playback_type === 'extended' &&
-      !currentInlineACRef.current?.playing() &&
-      !currentExtendedACRef.current?.playing() &&
-      currentClip.clip_start_time <= currentTimeRef.current
-    ) {
-      console.debug('Skip detected')
-
-      // Add a new clip to the stack
-      const newClip =
-        audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-      if (newClip) {
-        newClip.clip_audio = new Howl({
-          src: newClip.clip_audio_path,
-          html5: true,
-        })
-        setClipStack([...clipStackRef.current.slice(1, clipStackSize), newClip])
-      } else {
-        setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
       }
     }
   }
