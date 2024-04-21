@@ -319,7 +319,6 @@ const Video = () => {
     const url = `${apiUrl}/videos/${videoId}`
     ourFetch(url)
       .then((res) => {
-        console.log({ res: res.result })
         parseVideoData(res.result)
       })
       .catch((err) => {
@@ -338,7 +337,6 @@ const Video = () => {
       videoData.audio_descriptions &&
       videoData.audio_descriptions.length > 0
     ) {
-      console.log('inside if')
       videoData.audio_descriptions.forEach((ad) => {
         adIds.push(ad._id)
 
@@ -371,7 +369,6 @@ const Video = () => {
         adIdsAudioClips[ad._id] = []
 
         if (ad.audio_clips.length > 0) {
-          console.log(ad.audio_clips)
           ad.audio_clips.forEach((audioClip) => {
             // Check for undefined file_path or file_name and skip if missing
             if (!audioClip.file_path || !audioClip.file_name) {
