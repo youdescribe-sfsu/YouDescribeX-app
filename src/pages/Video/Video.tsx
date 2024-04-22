@@ -699,6 +699,7 @@ const Video = () => {
               if (!currentAudio?.playing()) {
                 // **Apply fade-in effect**
                 currentAudio?.fade(0, descriptionVolumeRef.current / 100, 0.5) // Fade in over 0.5 seconds
+
                 currentAudio?.play()
               }
               // see onStateChange() - storing current Extended Clip
@@ -765,7 +766,6 @@ const Video = () => {
       }
     }
   }
-
   // YouTube Player Functions
   const onStateChange = (event: any) => {
     const currentTime = event.target.getCurrentTime()
