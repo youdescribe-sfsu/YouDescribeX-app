@@ -555,7 +555,6 @@ const Video = () => {
     setPreviousTime(time)
   }
 
-  // To Play audio files based on current time
   const playAudioAtCurrentTime = async (
     updatedCurrentTime: number,
     playedAudioClip: string,
@@ -604,6 +603,22 @@ const Video = () => {
           const currentFilteredClip = clipStackRef.current[0]
           // console.log('Clip to be Played', currentFilteredClip)
 
+          // Play the inline clip
+          const currentAudio = currentFilteredClip.clip_audio
+          const seekTime =
+            currentTimeRef.current - currentFilteredClip.clip_start_time
+
+          // Ensure seek time is within valid range
+          if (seekTime < 0) {
+            console.debug('Seek time is negative, skipping')
+            return
+          }
+
+          console.debug(`Seeking to ${seekTime} seconds`)
+          currentAudio?.seek(seekTime)
+          currentAudio?.play()
+          setCurrInlineAC(currentAudio)
+
           setPlayedAudioClip(currentFilteredClip.clip_id)
           //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
@@ -615,7 +630,7 @@ const Video = () => {
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
             // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-            const currentAudio = currentFilteredClip.clip_audio
+
             // console.log('Playing inline clip')
             if (
               currentAudio?.playing() ||
@@ -631,12 +646,15 @@ const Video = () => {
             //   'seconds',
             // )
 
-            currentAudio?.seek(
-              currentTimeRef.current - currentFilteredClip.clip_start_time,
-            )
-            // **Apply fade-in effect**
-            currentAudio?.fade(0, descriptionVolumeRef.current / 100, 0.5) // Fade in over 0.5 seconds
-            currentAudio?.play()
+            // Event listeners for play and end
+            currentAudio?.once('play', () => {
+              currentAudio.volume(descriptionVolumeRef.current / 100)
+            })
+            currentAudio?.once('end', () => {
+              setCurrInlineAC(undefined)
+              currentAudio.unload()
+            })
+
             // see onStateChange() - storing current inline clip.
             setCurrInlineAC(currentAudio)
 
@@ -658,18 +676,6 @@ const Video = () => {
             } else {
               setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
             }
-
-            // ended event listener, to set the currInlineAC back to null
-            currentAudio?.once('play', function () {
-              setPlayedAudioClip(currentFilteredClip.clip_id)
-              // Set AD Volume
-              currentAudio.volume(descriptionVolumeRef.current / 100)
-            })
-            currentAudio?.once('end', function () {
-              setCurrInlineAC(undefined)
-              // Unload current clip
-              currentAudio.unload()
-            })
           }
         }
       }
@@ -697,13 +703,26 @@ const Video = () => {
               const currentAudio = currentFilteredClip.clip_audio
               currentEvent?.pauseVideo()
               if (!currentAudio?.playing()) {
-                // **Apply fade-in effect**
-                currentAudio?.fade(0, descriptionVolumeRef.current / 100, 0.5) // Fade in over 0.5 seconds
-
                 currentAudio?.play()
               }
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
+              currentEvent?.pauseVideo()
+              // Set played audio clip and path
+              setPlayedAudioClip(currentFilteredClip.clip_id)
+              setRecentAudioPlayedTime(currentTimeRef.current)
+              setPlayedClipPath(currentFilteredClip.clip_audio_path)
+
+              // Event listeners for play and end
+              currentAudio?.once('play', () => {
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+              })
+              currentAudio?.once('end', () => {
+                setCurrExtendedAC(undefined)
+                currentEvent?.playVideo()
+                currentAudio.unload()
+                setCurrentExtACPaused(false)
+              })
               // Add a new clip to the stack
               // console.log('Current Clip Index', currentClipIndexRef.current)
               const newClip =
@@ -721,18 +740,6 @@ const Video = () => {
               } else {
                 setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
               }
-              // youtube video should be played after the clip has finished playing
-              // eslint-disable-next-line no-loop-func
-              currentAudio?.once('play', function () {
-                currentAudio.volume(descriptionVolumeRef.current / 100)
-              })
-              currentAudio?.once('end', function () {
-                setCurrExtendedAC(undefined) // setting back to null, as it is played completely.
-                currentEvent?.playVideo()
-                // Unload current clip
-                currentAudio.unload()
-                setCurrentExtACPaused(false) // reset the play/pause state
-              })
             }
           }
         }
