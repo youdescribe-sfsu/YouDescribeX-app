@@ -157,8 +157,8 @@ const History = () => {
         },
         withCredentials: true,
       })
-      const responseData = response.data.result
-      const totalVideosLength = response.data.totalVideos
+      const responseData = response.data.videos
+      const totalVideosLength = response.data.total
       const calculatedTotalVideoPages = Math.ceil(
         totalVideosLength / itemsPerPage,
       )

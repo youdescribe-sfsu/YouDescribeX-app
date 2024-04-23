@@ -44,7 +44,6 @@ const UserDescribedVideos = () => {
     ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
     : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
 
-  // Fetch and process My Draft Videos
   const myDraftVideosUrl = process.env.REACT_APP_USE_YDX
     ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-draft-descriptions`
     : `${apiUrl}/api/audio-descriptions/get-my-draft-descriptions`
@@ -72,18 +71,17 @@ const UserDescribedVideos = () => {
         withCredentials: true,
       })
       .then((response) => {
-        const videosArray = response.data.result
-
-        // console.log({ videosArray })
-        // setUserVideosArray(videosArray)
+        const videosArray = response.data.videos
+        const totalVideos = response.data.total
         for (let i = 0; i < videosArray.length; i += 1) {
           youTubeVideoIds.push(videosArray[i].youtube_video_id)
           youDescribeVideosIds.push(videosArray[i].video_id)
           audioDescriptionIds.push(videosArray[i].audio_description_id)
         }
         youTubeIds = youTubeVideoIds.join(',')
+        return { youTubeIds, totalVideos }
       })
-      .then(() => {
+      .then(({ youTubeIds, totalVideos }) => {
         const url = `${youTubeApiUrl}/videos?id=${youTubeIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
         ourFetch(url).then((data) => {
           window.localStorage.setItem(
@@ -97,6 +95,8 @@ const UserDescribedVideos = () => {
             youDescribeVideosIds,
             audioDescriptionIds,
             setStateFunction,
+            totalVideos,
+            page,
           )
         })
       })
@@ -107,6 +107,8 @@ const UserDescribedVideos = () => {
     youDescribeVideosIds: string[],
     audioDescriptionIds: string[],
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
+    totalVideos: number,
+    page: number,
   ) => {
     const videoComponents = []
     const existingVideos =
@@ -144,13 +146,14 @@ const UserDescribedVideos = () => {
             author={author}
             views={views}
             time={time}
-            // buttons={setStateFunction === setVideos ? 'edit' : ''}
             buttons="edit"
           />
         </div>,
       )
     }
+
     const updatedVideos = [...existingVideos, ...videoComponents]
+
     const loadMoreFlag =
       setStateFunction === setVideos
         ? setShowLoadMoreButton
@@ -158,11 +161,7 @@ const UserDescribedVideos = () => {
         ? setShowLoadMoreAIButton
         : setShowLoadMoreDraftButton
 
-    if (videoComponents.length > 20) {
-      loadMoreFlag(true)
-    } else {
-      loadMoreFlag(false)
-    }
+    loadMoreFlag(totalVideos > page * 20)
 
     const loadMoreSpinnerFlag =
       setStateFunction === setVideos
@@ -182,6 +181,7 @@ const UserDescribedVideos = () => {
     setCurrentPage(currentPage + 1)
     getUserVideos(myDescribedVideosUrl, setVideos, currentPage + 1)
   }
+
   const loadMoreResultsAI = () => {
     setLoadMoreAIVideos(true)
     setCurrentPageAI(currentPageAI + 1)
@@ -194,87 +194,60 @@ const UserDescribedVideos = () => {
     getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft + 1)
   }
 
-  const YDLoadMoreButton =
-    videos.length >= 20 ? (
-      <div className="w3-margin-top w3-center load-more">
-        <Button
-          title={translate('Load more videos')}
-          ariaLabel="Load More"
-          color="w3-indigo"
-          text="Load more"
-          onClick={loadMoreResults}
-        />
-      </div>
-    ) : (
-      <div className="w3-margin-top w3-center load-more w3-hide">
-        <Button
-          title={translate('Load more videos')}
-          color="w3-indigo"
-          text="Load more"
-          ariaLabel="Load More"
-          onClick={loadMoreResults}
-        />
-      </div>
-    )
+  const YDLoadMoreButton = showLoadMoreButton ? (
+    <div className="w3-margin-top w3-center load-more">
+      <Button
+        title={translate('Load more videos')}
+        ariaLabel="Load More"
+        color="w3-indigo"
+        text="Load more"
+        onClick={loadMoreResults}
+      />
+    </div>
+  ) : null
 
-  const YDLoadMoreButtonAI =
-    videosAI.length >= 20 ? (
-      <div className="w3-margin-top w3-center load-more">
-        <Button
-          title={translate('Load more videos')}
-          ariaLabel="Load More"
-          color="w3-indigo"
-          text="Load more"
-          onClick={loadMoreResultsAI}
-        />
-      </div>
-    ) : (
-      <div className="w3-margin-top w3-center load-more w3-hide">
-        <Button
-          title={translate('Load more videos')}
-          color="w3-indigo"
-          text="Load more"
-          ariaLabel="Load More"
-          onClick={loadMoreResultsAI}
-        />
-      </div>
-    )
+  const YDLoadMoreButtonAI = showLoadMoreAIButton ? (
+    <div className="w3-margin-top w3-center load-more">
+      <Button
+        title={translate('Load more videos')}
+        ariaLabel="Load More"
+        color="w3-indigo"
+        text="Load more"
+        onClick={loadMoreResultsAI}
+      />
+    </div>
+  ) : null
 
-  const YDLoadMoreButtonDraft =
-    videosDraft.length >= 20 ? (
-      <div className="w3-margin-top w3-center load-more">
-        <Button
-          title={translate('Load more videos')}
-          ariaLabel="Load More"
-          color="w3-indigo"
-          text="Load more"
-          onClick={loadMoreResultsDraft}
-        />
-      </div>
-    ) : (
-      <div className="w3-margin-top w3-center load-more w3-hide">
-        <Button
-          title={translate('Load more videos')}
-          color="w3-indigo"
-          text="Load more"
-          ariaLabel="Load More"
-          onClick={loadMoreResultsDraft}
-        />
-      </div>
-    )
+  const YDLoadMoreButtonDraft = showLoadMoreDraftButton ? (
+    <div className="w3-margin-top w3-center load-more">
+      <Button
+        title={translate('Load more videos')}
+        ariaLabel="Load More"
+        color="w3-indigo"
+        text="Load more"
+        onClick={loadMoreResultsDraft}
+      />
+    </div>
+  ) : null
 
   useEffect(() => {
     if (userId) {
       getUserInfo()
-      // Fetch and process My Described Videos
-
       getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
+    }
+  }, [userId, currentPage])
 
+  useEffect(() => {
+    if (userId) {
       getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft)
+    }
+  }, [userId, currentPageDraft])
 
+  useEffect(() => {
+    if (userId) {
       getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI)
     }
-  }, [userId, currentPage, currentPageDraft, currentPageAI])
+  }, [userId, currentPageAI])
 
   if (
     !userDataStore.getState().isSignedIn ||
