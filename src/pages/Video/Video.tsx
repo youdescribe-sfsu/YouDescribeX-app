@@ -1280,6 +1280,15 @@ const Video = () => {
       return
     }
 
+    if (videoDurationInSeconds > 600) {
+      toast.error(
+        translate(
+          'YouDescribe currently supports videos that are 10 minutes or less. Please wait for further updates.',
+        ),
+      )
+      return
+    }
+
     if (requestAiDescription.status === 'pending') {
       setRequestAiDescription({
         status: 'pending',
@@ -1345,6 +1354,14 @@ const Video = () => {
     }
   }
   const handleRequestAIDescriptions = () => {
+    if (videoDurationInSeconds > 600) {
+      toast.error(
+        translate(
+          'YouDescribe currently supports videos that are 10 minutes or less. Please wait for further updates.',
+        ),
+      )
+      return
+    }
     // Show the language selector modal
     setShowLanguageSelector(true)
   }
