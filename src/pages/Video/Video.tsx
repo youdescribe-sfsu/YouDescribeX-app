@@ -577,7 +577,7 @@ const Video = () => {
         return
       }
 
-      const bufferDuration = 100
+      const bufferDuration = 50
 
       // If an inline clip is supposed to be playing right now but the user has either skipped to a time in the middle of the clip
       // Or there was an overlap which caused the start time of the clip to be skipped
