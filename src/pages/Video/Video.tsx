@@ -577,7 +577,7 @@ const Video = () => {
         return
       }
 
-      const bufferDuration = 50
+      const bufferDuration = 200
 
       // If an inline clip is supposed to be playing right now but the user has either skipped to a time in the middle of the clip
       // Or there was an overlap which caused the start time of the clip to be skipped
@@ -616,48 +616,56 @@ const Video = () => {
 
           console.debug(`Seeking to ${seekTime} seconds`)
           currentAudio?.seek(seekTime)
-          currentAudio?.play()
 
-          setCurrInlineAC(currentAudio)
-          setPlayedAudioClip(currentFilteredClip.clip_id)
-          setRecentAudioPlayedTime(currentTimeRef.current)
-          const clipAudioPath = currentFilteredClip.clip_audio_path
+          setTimeout(() => {
+            currentAudio?.play()
+            console.debug('Playing the audio clip')
 
-          if (clipAudioPath !== playedClipPath) {
-            setCurrentClipIndex(currentClipIndexRef.current + 1)
-            setPlayedClipPath(clipAudioPath)
+            // Set the necessary states and attach event listeners
+            setCurrInlineAC(currentAudio)
+            setPlayedAudioClip(currentFilteredClip.clip_id)
+            setRecentAudioPlayedTime(currentTimeRef.current)
 
-            // Event listeners for play and end
-            currentAudio?.once('play', () => {
-              currentAudio.volume(descriptionVolumeRef.current / 100)
-            })
+            const clipAudioPath = currentFilteredClip.clip_audio_path
 
-            currentAudio?.once('end', () => {
-              // Introduce a delay before moving to the next audio clip
-              setTimeout(() => {
-                setCurrInlineAC(undefined)
-                currentAudio.unload()
+            if (clipAudioPath !== playedClipPath) {
+              setCurrentClipIndex(currentClipIndexRef.current + 1)
+              setPlayedClipPath(clipAudioPath)
 
-                // Load a new clip and add it to the stack
-                const newClip =
-                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-                if (newClip) {
-                  newClip.clip_audio = new Howl({
-                    src: newClip.clip_audio_path,
-                    html5: true,
-                  })
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                    newClip,
-                  ])
-                } else {
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                  ])
-                }
-              }, bufferDuration) // Add the buffer time here
-            })
-          }
+              // Event listeners for play and end
+              currentAudio?.once('play', () => {
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+              })
+
+              currentAudio?.once('end', () => {
+                // Introduce a delay before moving to the next audio clip
+                setTimeout(() => {
+                  setCurrInlineAC(undefined)
+                  currentAudio.unload()
+
+                  // Load a new clip and add it to the stack
+                  const newClip =
+                    audioClips[
+                      currentClipIndexRef.current + (clipStackSize - 1)
+                    ]
+                  if (newClip) {
+                    newClip.clip_audio = new Howl({
+                      src: newClip.clip_audio_path,
+                      html5: true,
+                    })
+                    setClipStack([
+                      ...clipStackRef.current.slice(1, clipStackSize),
+                      newClip,
+                    ])
+                  } else {
+                    setClipStack([
+                      ...clipStackRef.current.slice(1, clipStackSize),
+                    ])
+                  }
+                }, bufferDuration)
+              })
+            }
+          }, bufferDuration) // Add the buffer time here
         }
       }
 
