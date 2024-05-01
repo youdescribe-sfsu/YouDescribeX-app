@@ -614,58 +614,60 @@ const Video = () => {
             return
           }
 
-          console.debug(`Seeking to ${seekTime} seconds`)
-          currentAudio?.seek(seekTime)
+          // Ensure the audio clip is fully loaded before seeking and playing
+          if (currentAudio?.state() !== 'loaded') {
+            console.debug('Waiting for audio clip to load')
+            currentAudio?.once('load', () => {
+              console.debug('Audio clip loaded')
+              currentAudio.seek(seekTime)
+              currentAudio.play()
+            })
+          } else {
+            console.debug('Audio clip already loaded')
+            currentAudio.seek(seekTime)
+            currentAudio.play()
+          }
 
-          setTimeout(() => {
-            currentAudio?.play()
-            console.debug('Playing the audio clip')
+          setCurrInlineAC(currentAudio)
+          setPlayedAudioClip(currentFilteredClip.clip_id)
+          setRecentAudioPlayedTime(currentTimeRef.current)
+          const clipAudioPath = currentFilteredClip.clip_audio_path
 
-            // Set the necessary states and attach event listeners
-            setCurrInlineAC(currentAudio)
-            setPlayedAudioClip(currentFilteredClip.clip_id)
-            setRecentAudioPlayedTime(currentTimeRef.current)
+          if (clipAudioPath !== playedClipPath) {
+            setCurrentClipIndex(currentClipIndexRef.current + 1)
+            setPlayedClipPath(clipAudioPath)
 
-            const clipAudioPath = currentFilteredClip.clip_audio_path
+            // Event listeners for play and end
+            currentAudio?.once('play', () => {
+              currentAudio.volume(descriptionVolumeRef.current / 100)
+            })
 
-            if (clipAudioPath !== playedClipPath) {
-              setCurrentClipIndex(currentClipIndexRef.current + 1)
-              setPlayedClipPath(clipAudioPath)
+            currentAudio?.once('end', () => {
+              // Introduce a delay before moving to the next audio clip
+              setTimeout(() => {
+                setCurrInlineAC(undefined)
+                currentAudio.unload()
 
-              // Event listeners for play and end
-              currentAudio?.once('play', () => {
-                currentAudio.volume(descriptionVolumeRef.current / 100)
-              })
-
-              currentAudio?.once('end', () => {
-                // Introduce a delay before moving to the next audio clip
-                setTimeout(() => {
-                  setCurrInlineAC(undefined)
-                  currentAudio.unload()
-
-                  // Load a new clip and add it to the stack
-                  const newClip =
-                    audioClips[
-                      currentClipIndexRef.current + (clipStackSize - 1)
-                    ]
-                  if (newClip) {
-                    newClip.clip_audio = new Howl({
-                      src: newClip.clip_audio_path,
-                      html5: true,
-                    })
-                    setClipStack([
-                      ...clipStackRef.current.slice(1, clipStackSize),
-                      newClip,
-                    ])
-                  } else {
-                    setClipStack([
-                      ...clipStackRef.current.slice(1, clipStackSize),
-                    ])
-                  }
-                }, bufferDuration)
-              })
-            }
-          }, bufferDuration) // Add the buffer time here
+                // Load a new clip and add it to the stack
+                const newClip =
+                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+                if (newClip) {
+                  newClip.clip_audio = new Howl({
+                    src: newClip.clip_audio_path,
+                    html5: true,
+                  })
+                  setClipStack([
+                    ...clipStackRef.current.slice(1, clipStackSize),
+                    newClip,
+                  ])
+                } else {
+                  setClipStack([
+                    ...clipStackRef.current.slice(1, clipStackSize),
+                  ])
+                }
+              }, bufferDuration) // Add the buffer time here
+            })
+          }
         }
       }
 
