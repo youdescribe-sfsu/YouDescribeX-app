@@ -254,10 +254,6 @@ const Wishlist = () => {
         withCredentials: true,
       })
 
-      // console.log('==============================')
-      // console.log(response.data)
-      // console.log('==============================')
-
       const totalVideosLength = response.data.totalVideos
       const calculatedTotalVideoPages = Math.ceil(
         totalVideosLength / itemsPerPage,
@@ -280,9 +276,7 @@ const Wishlist = () => {
         })
       }
 
-      // console.log('topYouTubeIds', topYouTubeIds)
       const youTubeResponse = await fetchVideoDetails(topYouTubeIds)
-      // console.log('youTubeResponse', youTubeResponse)
       const videoCardsComponents = []
 
       for (let i = 0; i < youTubeResponse.items.length; i += 1) {
@@ -328,7 +322,6 @@ const Wishlist = () => {
           </div>,
         )
       }
-      // console.log('videoCardsComponents', videoCardsComponents)
       const newVideosData: VideosState = {
         data: videoCardsComponents,
         totalVideos: videoCardsComponents.length,
@@ -353,7 +346,6 @@ const Wishlist = () => {
     setVideosData: SetVideosData,
   ) => {
     if (!currentDataState) return
-
     fetchAndSetVideosData(
       {
         ...currentDataState,
@@ -512,7 +504,6 @@ const Wishlist = () => {
           ',',
         )}&key=wishlist`
         ourFetch(url).then((response) => {
-          // console.log(response)
           parseTableData(
             response.result,
             votes,
@@ -523,7 +514,6 @@ const Wishlist = () => {
         })
       })
       .catch((err) => {
-        // console.log(err)
         setTotalRows(0)
         setRows([])
       })
@@ -583,7 +573,6 @@ const Wishlist = () => {
 
   const loadTopVideos = () => {
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-top-wishlist`
-    // // console.log(userDataStore.getState())
     if (cancelRequest.current) {
       cancelRequest.current.cancel()
     }
@@ -595,7 +584,6 @@ const Wishlist = () => {
       })
       .then((response) => {
         const wishListItems = response.data
-        // console.log(wishListItems)
         const topYouTubeIds = []
         const topYouDescribeIds = []
         const topVotes = []
