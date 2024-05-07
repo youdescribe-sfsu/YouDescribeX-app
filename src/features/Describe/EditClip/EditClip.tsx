@@ -586,14 +586,14 @@ const EditClip = ({
                 name="description"
                 value={clipDescriptionText}
                 onChange={(e) => setClipDescriptionText(e.target.value)}
-                disabled={isPreview}
+                // disabled={isPreview}
               ></TextareaAutosize>
               {/* play, save & Delete buttons */}
               <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
                 <Button
                   className="btn rounded btn-sm text-white bg-danger ydx-button"
                   onClick={() => setIsDeleteModal(true)}
-                  disabled={isPreview}
+                  // disabled={isPreview}
                 >
                   <i className="fa fa-trash" /> {'  '} Delete
                 </Button>
@@ -601,7 +601,7 @@ const EditClip = ({
                   type="button"
                   className="btn rounded btn-sm text-white save-desc-btn ydx-button"
                   onClick={saveClipDescription}
-                  disabled={isPreview}
+                  // disabled={isPreview}
                 >
                   <i className="fa fa-save" /> {'  '} Save
                 </Button>
