@@ -1,0 +1,178 @@
+#history {
+  /* Firefox */
+  min-height: -moz-calc(100vh - 54px);
+  /* WebKit */
+  min-height: -webkit-calc(100vh - 54px);
+  /* Opera */
+  min-height: -o-calc(100vh - 54px);
+  /* Standard */
+  min-height: calc(100vh - 54px);
+}
+.pag-items {
+  justify-content: center !important;
+  font-size: 18px; /* Adjust the font size as desired */
+  margin: 0 1px; /* Add some margin between the page numbers */
+  cursor: pointer; /* Add pointer cursor for better interaction */
+  border: 2px solid #3f51b5;
+  background-color: #3f51b5;
+  margin-bottom: 15px;
+}
+.pagination {
+  justify-content: center !important;
+  font-size: 18px; /* Adjust the font size as desired */
+  margin: 0 5px; /* Add some margin between the page numbers */
+  cursor: pointer; /* Add pointer cursor for better interaction */
+  //   border: 1px solid #000;
+}
+
+.pag-items.active {
+  font-weight: bold; /* Make the active page number bold if needed */
+  background-color: #3f51b5 !important;
+}
+/* Custom CSS for styling the Carousel */
+.custom-carousel {
+  position: relative;
+min-height: 290px;
+display: flex;
+}
+
+/* Style the Carousel control buttons (prev and next) */
+.custom-carousel .prev-icon,
+.custom-carousel .next-icon {
+  position: absolute;
+  top: 50%; /* Vertically center the buttons */
+  transform: translateY(-50%);
+  width: 4%;
+  height: 10%; /* Adjust the width as needed */
+  background-color: rgb(62, 111, 202); /* Background color for buttons */
+  border: none; /* Remove button borders */
+  color: white; /* Text color for buttons */
+  cursor: pointer;
+  height: 25%;
+  margin: 15px;
+  font-size: 25px;
+}
+
+/* Hide default Carousel buttons */
+.custom-carousel.carousel .carousel-control-prev,
+.custom-carousel.carousel .carousel-control-next {
+  display: none !important;
+}
+
+/* Style for custom buttons */
+.custom-carousel .custom-carousel-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.custom-carousel-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+// .custom-carousel .prev-icon {
+//   left: 13%;
+// }
+
+// .custom-carousel .next-icon {
+//   right: 13%;
+// }
+
+.custom-carousel .prev-icon {
+  left: 5%; /* Adjust the left position for smaller screens */
+}
+
+.custom-carousel .next-icon {
+  right: 5%; /* Adjust the right position for smaller screens */
+}
+
+@media (min-width: 768px) and (max-width: 1150px) {
+  .custom-carousel .prev-icon {
+    left: 2%; /* Adjust the left position for medium-sized screens */
+  }
+
+  .custom-carousel .next-icon {
+    right: 2%; /* Adjust the right position for medium-sized screens */
+  }
+}
+@media (min-width: 1150px) and (max-width: 1250px) {
+  .custom-carousel .prev-icon {
+    left: 4%; /* Adjust the left position for medium-sized screens */
+  }
+
+  .custom-carousel .next-icon {
+    right: 4%; /* Adjust the right position for medium-sized screens */
+  }
+}
+
+@media (min-width: 1300px) {
+  .custom-carousel .prev-icon {
+    left: 8%; /* Adjust the left position for larger screens */
+  }
+
+  .custom-carousel .next-icon {
+    right: 8%; /* Adjust the right position for larger screens */
+  }
+}
+
+/* Style for carousel indicators */
+.custom-carousel .carousel-indicators {
+  text-align: center;
+  padding-top: 35px;
+  margin-top: 10px;
+}
+
+.custom-carousel .carousel-indicators li {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px;
+  background-color: #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.custom-carousel .carousel-indicators li.active {
+  background-color: #3f51b5; /* Change to your desired active color */
+}
+.history-text {
+  font-family: Verdana, sans-serif;
+  font-size: 25px;
+  line-height: 1.5;
+  margin-top: 40px;
+  text-align: center;
+}
+/* For larger screens (e.g., desktops) */
+:root {
+  --items-per-page: 4;
+}
+
+/* Define your media queries as before */
+@media (min-width: 1024px) {
+  :root {
+    --items-per-page: 4;
+  }
+}
+
+/* For medium-sized screens (e.g., tablets) */
+@media (max-width: 1023px) and (min-width: 768px) {
+  :root {
+    --items-per-page: 3;
+  }
+}
+
+/* For small screens (e.g., mobile devices) */
+@media (max-width: 767px) {
+  :root {
+    --items-per-page: 2;
+  }
+}
+@media (max-width: 700px) {
+  :root {
+    --items-per-page: 1;
+  }
+}

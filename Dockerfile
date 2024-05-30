@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as the base image
-FROM node:18-alpine
+FROM node:18-alpine AS build
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -9,6 +9,18 @@ COPY . .
 
 RUN echo "REACT_APP_LOGROCKET_ID $REACT_APP_LOGROCKET_ID"
 RUN echo "REACT_APP_YDX_BACKEND_URL=$REACT_APP_YDX_BACKEND_URL"
+
+ARG REACT_APP_LOGROCKET_ID
+ARG REACT_APP_ENVIRONMENT
+ARG REACT_APP_REDIRECT_URL
+ARG REACT_APP_YOUTUBE_API_URL
+ARG REACT_APP_YOUTUBE_API_KEY
+ARG REACT_APP_GOOGLE_CLIENT_ID
+ARG REACT_APP_USE_YDX
+ARG REACT_APP_YDX_BACKEND_URL
+ARG REACT_APP_CLASSIC_BACKEND_URL
+ARG REACT_APP_CLASSIC_BACKEND_URL_VERSION
+ARG PORT
 
 # Set environment variables directly in the Dockerfile
 ENV REACT_APP_LOGROCKET_ID=$REACT_APP_LOGROCKET_ID
@@ -45,14 +57,20 @@ RUN echo "REACT_APP_YDX_BACKEND_URL=$REACT_APP_YDX_BACKEND_URL"
 # Build the application
 RUN npm run build
 
-# Remove the Node modules
-# RUN rm -rf node_modules
+# Stage 2: Create the production image
+FROM node:18-alpine
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the build output from the previous stage
+COPY --from=build /app/build ./build
+COPY --from=build /app/server.js .
 
 # Install the production dependencies
 RUN npm install express http-proxy
 
-# Remove the development dependencies
-RUN npm prune --production
+ENV PORT=$PORT
 
 ARG APP_PORT
 ENV APP_PORT=${APP_PORT}

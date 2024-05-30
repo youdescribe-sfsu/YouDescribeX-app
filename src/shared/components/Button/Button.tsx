@@ -8,6 +8,7 @@ interface Props {
   onClick?: (e: any) => void
   text: ReactNode
   classNames?: string
+  disabled?: boolean
 }
 
 const Button = ({
@@ -18,6 +19,7 @@ const Button = ({
   onClick,
   text,
   classNames,
+  disabled = false,
 }: Props) => {
   return (
     <div id="button">
@@ -27,6 +29,7 @@ const Button = ({
         title={title}
         className={`w3-btn ${color} ${classNames}`}
         onClick={onClick}
+        disabled={disabled}
       >
         {text}
       </button>

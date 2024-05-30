@@ -11,13 +11,15 @@ import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import Button from '@/shared/components/Button/Button'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const Home = () => {
-  const [dbResult, setDbResult] = useState<any[]>([])
+  // const [dbResult, setDbResult] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const [searchQuery, setSearchQuery] = useState('')
+  // const [searchQuery, setSearchQuery] = useState('')
   const [videos, setVideos] = useState<any[]>([])
-  const [showSpinner, setShowSpinner] = useState(false)
+  const [showSpinner, setShowSpinner] = useState(true)
+  const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
 
   const navigate = useNavigate()
 
@@ -30,30 +32,29 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const fetchingVideosToHome = (page: number = currentPage) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const youDescribeVideosIds: any[] = []
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const youTubeVideosIds: any[] = []
-    let ids = ''
-    const url = `${apiUrl}/videos?page=${page}`
-    ourFetch(url)
-      .then((response) => {
-        setDbResult(response.result)
-        const result = response.result
-        for (let i = 0; i < result.length; i += 1) {
-          youTubeVideosIds.push(result[i].youtube_id)
-          youDescribeVideosIds.push(result[i]._id)
-        }
-        ids = youTubeVideosIds.join(',')
-      })
-      .then(() => {
-        const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${ids}&key=home`
-        setShowSpinner(false)
-        ourFetch(url).then((response) => {
-          parseFetchedData(JSON.parse(response.result), youDescribeVideosIds)
-        })
-      })
+  const fetchingVideosToHome = async (page: number = currentPage) => {
+    try {
+      const url = `${apiUrl}/videos?page=${page}`
+      const response = await ourFetch(url)
+      const allResults = response.result // Assuming allResults is defined
+      console.log('result', allResults)
+
+      const youDescribeVideosIds = allResults.map((result: any) => result._id)
+      const youTubeVideosIds = allResults
+        .map((result: any) => result.youtube_id)
+        .join(',')
+
+      const youtubeDataUrl = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${youTubeVideosIds}&key=home`
+      const youtubeDataResponse = await ourFetch(youtubeDataUrl)
+
+      setShowSpinner(false)
+      setLoadMoreVideos(false)
+      parseFetchedData(youtubeDataResponse.result, youDescribeVideosIds)
+    } catch (error) {
+      // Handle errors here
+      toast.error('Error fetching videos. Please try again later.')
+      console.error(error)
+    }
   }
 
   const parseFetchedData = (data: any, youDescribeVideosIds: any) => {
@@ -113,6 +114,7 @@ const Home = () => {
   }
 
   const loadMoreResults = () => {
+    setLoadMoreVideos(true)
     setCurrentPage(currentPage + 1)
     fetchingVideosToHome(currentPage + 1)
   }
@@ -125,7 +127,7 @@ const Home = () => {
       ourFetch(url).then((response) => {
         const user = response.result
         if (user.policy_review === '') {
-          alert(
+          toast.error(
             'YouDescribe has been updated, please update your notification preferences in the next page.',
           )
           navigate(`/profile/` + userDataStore.getState().userId)
@@ -134,9 +136,11 @@ const Home = () => {
     }
   }
 
-  const YDLoadMoreButton =
-    videos.length >= 20 ? (
-      <div className="w3-margin-top w3-center load-more">
+  const YDLoadMoreButton = (
+    <div className="w3-margin-top w3-center load-more">
+      {LoadMoreVideos ? (
+        <Spinner />
+      ) : videos.length >= 20 ? (
         <Button
           title={translate('Load more videos')}
           ariaLabel="Load More"
@@ -144,18 +148,9 @@ const Home = () => {
           text="Load more"
           onClick={loadMoreResults}
         />
-      </div>
-    ) : (
-      <div className="w3-margin-top w3-center load-more w3-hide">
-        <Button
-          title={translate('Load more videos')}
-          color="w3-indigo"
-          text="Load more"
-          ariaLabel="Load More"
-          onClick={loadMoreResults}
-        />
-      </div>
-    )
+      ) : null}
+    </div>
+  )
 
   return (
     <main id="home" title="YouDescribe home page">

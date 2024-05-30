@@ -1,12 +1,10 @@
-import React, { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import path from 'path-browserify'
-import './Navbar.css'
-import clsx from 'clsx'
-import SignInButton from './SignInButton/SignInButton'
 import { translate, userDataStore } from '@/App'
-import UserAvatar from './UserAvatar/UserAvatar'
+import path from 'path-browserify'
+import { Link, useLocation } from 'react-router-dom'
+import './Navbar.css'
 import SearchBar from './SearchBar/SearchBar'
+import SignInButton from './SignInButton/SignInButton'
+import UserAvatar from './UserAvatar/UserAvatar'
 
 interface Props {
   newGoogleAuth: () => void
@@ -51,6 +49,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
       return <SignInButton newGoogleAuth={newGoogleAuth} />
     }
   }
+  const myHistoryUrl = `/videos/history`
 
   return (
     <nav id="navbar" className="classic-nav navbar">
@@ -100,16 +99,18 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
 
           {/* Right-sided navbar links */}
           <div className="w3-right w3-hide-small w3-hide-medium">
-            <Link
-              to="/home"
-              className="classic-link w3-bar-item w3-small"
-              style={{ position: 'relative', top: '11px', padding: '8px' }}
-            >
-              <i className="fa fa-home" aria-hidden="true">
-                &nbsp;&nbsp;
-              </i>
-              {translate('RECENT DESCRIPTIONS')}
-            </Link>
+            {userDataStore.getState().userId && (
+              <Link
+                to={myHistoryUrl}
+                className="classic-link w3-bar-item w3-small"
+                style={{ position: 'relative', top: '11px', padding: '8px' }}
+              >
+                <i className="fa fa-home" aria-hidden="true">
+                  &nbsp;&nbsp;
+                </i>
+                {translate('HISTORY')}
+              </Link>
+            )}
             <Link
               to="/wishlist"
               className="classic-link w3-bar-item w3-small"
@@ -118,10 +119,11 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
               <i className="fa fa-heart" aria-hidden="true">
                 &nbsp;&nbsp;
               </i>
-              {translate('WISH LIST')}
+              {translate('WISHLIST')}
             </Link>
-            <a
-              href={`${process.env.REACT_APP_REDIRECT_URL}/support`}
+            {/* <a
+              // href={`${process.env.REACT_APP_REDIRECT_URL}support`}
+              href={`${apiUrl}support`}
               target="_self"
               className="classic-link w3-bar-item w3-small"
               style={{ position: 'relative', top: '11px', padding: '8px' }}
@@ -131,7 +133,17 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
                 &nbsp;&nbsp;
               </i>
               {translate('SUPPORT')}
-            </a>
+            </a> */}
+            <Link
+              to="/support"
+              className="classic-link w3-bar-item w3-small"
+              style={{ position: 'relative', top: '11px', padding: '8px' }}
+            >
+              <i className="fa fa-question-circle" aria-hidden="true">
+                &nbsp;&nbsp;
+              </i>
+              {translate('SUPPORT')}
+            </Link>
             <div
               className="w3-bar-item"
               style={{ position: 'relative', top: '2px' }}
@@ -174,7 +186,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
           onClick={() => document.getElementById('wish-list-heading')?.focus()}
         >
           <i className="fa fa-heart" aria-hidden="true" />{' '}
-          {translate('WISH LIST')}
+          {translate('WISHLIST')}
         </Link>
         {signInComponent()}
       </div>

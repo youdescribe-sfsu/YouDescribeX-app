@@ -16,7 +16,7 @@
     }
   },
   "rules": {
-    "prettier/prettier": ["error", { "endOfLine": "lf" }],
+    "prettier/prettier": ["error", { "endOfLine": "auto" }],
     "react/react-in-jsx-scope": "off",
     "react/jsx-uses-react": "error",
     "react/jsx-uses-vars": "error",
@@ -24,7 +24,8 @@
       "error",
       { "extensions": [".ts", ".tsx"] }
     ],
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
+    "@typescript-eslint/no-explicit-any": "off" // Allow the use of 'any'
   },
   "settings": {
     "react": {

@@ -31,22 +31,22 @@ const Footer = () => {
         <Link to="/credits" className="footer-links">
           {translate('Credits')}
         </Link>
-        <a
-          href={`${process.env.REACT_APP_REDIRECT_URL}/contact`}
+        <Link
+          to="/contact"
           target="_self"
           className="footer-links"
           rel="noreferrer"
         >
           {translate('Contact Us')}
-        </a>
-        <a
-          href={`${process.env.REACT_APP_REDIRECT_URL}/support`}
+        </Link>
+        <Link
+          to={`/support`}
           target="_self"
           className="footer-links"
           rel="noreferrer"
         >
           {translate('Support')}
-        </a>
+        </Link>
       </div>
       <h6 className="classic-h6">
         Copyright © {getYear()}, The Smith-Kettlewell Eye Research Institute,{' '}

@@ -16,6 +16,7 @@ import { ToastContainer } from 'react-toastify' // for toast messages
 import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
 import Home from './pages/Home/Home'
+import VideoEmbed from './pages/VideoEmbed/VideoEmbed'
 import Navbar from './shared/components/Navbar/Navbar'
 import Polyglot from 'node-polyglot'
 import getLanguage from './shared/utils/getLanguage'
@@ -27,11 +28,43 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { apiUrl } from './shared/config'
 import Search from './pages/Search/Search'
+import Support from './pages/Support/Support'
+import About from './pages/Support/About'
+import Describers from './pages/Support/Describers'
+import EmbedTutorial from './pages/Support/EmbedTutorial'
+import Tutorial from './pages/Support/Tutorial'
+import Viewers from './pages/Support/Viewers'
+import Privacy from './pages/Support/Privacy'
+import SystemUpgradeWarning from './pages/Support/SystemUpgradeWarning'
 import UnsupportedBrowser from './pages/UnsupportedBrowser/UnsupportedBrowser'
 import { detect } from 'detect-browser'
 import Credits from './pages/Credits/Credits'
 import CreditsDetails from './pages/CreditsDetails/CreditsDetails'
 import UserDescribedVideos from './pages/UserDescribedVideos/UserDescribedVideos'
+import History from './pages/History/History'
+import ReactGA from 'react-ga'
+import ReactGA4 from 'react-ga4'
+import { createBrowserHistory } from 'history'
+import PublishedAudioDescriptions from './pages/PublishedAudioDescriptions/PublishedAudioDescriptions'
+import Video_v2 from './pages/Video/Video_v2'
+import Contact from './pages/Contact/Contact'
+import ourFetch from './shared/utils/ourFetch'
+
+const history = createBrowserHistory()
+//const trackingId = "UA-171142756-3"; //live site key
+const trackingIdUA = 'UA-174046676-1' //dev key
+const trackingIdGA = 'G-46Y1989R9T' // GA4 key
+ReactGA.initialize(trackingIdUA)
+ReactGA4.initialize(trackingIdGA)
+
+history.listen((location) => {
+  ReactGA.set({ page: location.location.pathname }) // Update the user's current page
+  ReactGA.pageview(location.location.pathname) // Record a pageview for the given page
+
+  // Google Analytics 4
+  ReactGA4.set({ page: location.location.pathname }) // Update the user's current page
+  ReactGA4.send(location.location.pathname) // Record a pageview for the given page
+})
 
 const polyglot = new Polyglot({
   locale: getLanguage(),
@@ -40,6 +73,12 @@ const polyglot = new Polyglot({
 
 export const translate = polyglot.t.bind(polyglot)
 
+const resetCookie = () => {
+  document.cookie = `userId=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
+  document.cookie = `userToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
+  document.cookie = `userName=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
+  document.cookie = `userPicture=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
+}
 interface UserStore {
   isSignedIn: boolean
   userId: string
@@ -53,6 +92,7 @@ interface UserStore {
   setUserName: (userName: string) => void
   setUserPicture: (userPicture: string) => void
   setUserAdmin: (userAdmin: number) => void
+  clearUserData: () => void // New action to clear all data
 }
 
 export const userDataStore = create<UserStore>()(
@@ -69,20 +109,32 @@ export const userDataStore = create<UserStore>()(
     setUserName: (userName: string) => set({ userName }),
     setUserPicture: (userPicture: string) => set({ userPicture }),
     setUserAdmin: (userAdmin: number) => set({ userAdmin }),
+    clearUserData: () => {
+      set({
+        isSignedIn: false,
+        userId: '',
+        userToken: '',
+        userName: '',
+        userPicture: '',
+        userAdmin: 0,
+      })
+      localStorage.clear()
+      resetCookie()
+    },
   })),
 )
 
 const App = () => {
-  const { userId, userToken, userName, userPicture } = userDataStore(
-    (state) => {
+  const { userId, userToken, userName, userPicture, clearUserData } =
+    userDataStore((state) => {
       return {
         userId: state.userId,
         userToken: state.userToken,
         userName: state.userName,
         userPicture: state.userPicture,
+        clearUserData: state.clearUserData,
       }
-    },
-  )
+    })
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -141,39 +193,60 @@ const App = () => {
       } else {
         url = `${apiUrl}/auth/login/success`
       }
-      console.log(url)
-      const response = await fetch(url, { credentials: 'include' })
-      const data = await response.json()
-      setUserName(data.result.name)
-      setUserId(data.result._id)
-      setUserToken(data.result.token)
-      setUserPicture(data.result.picture)
-      setUserAdmin(data.result.admin)
-      setSignedIn(true)
-      setCookie(
-        data.result._id,
-        data.result.token,
-        data.result.name,
-        data.result.picture,
-      )
+      if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+        const authUser = process.env.REACT_APP_USER_ID || ''
+        url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google/localhost`
+        // console.log('url: ', url)
+        if (authUser) {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              Authorization: authUser, // Custom header with the user ID
+            },
+            credentials: 'include',
+          })
+          const data = await response.json()
+          console.log('data: ', data)
+          setUserName(data.result.name)
+          setUserId(data.result._id)
+          setUserToken(data.result.token)
+          setUserPicture(data.result.picture)
+          setUserAdmin(data.result.admin)
+          setSignedIn(true)
+          setCookie(
+            data.result._id,
+            data.result.token,
+            data.result.name,
+            data.result.picture,
+          )
+        }
+      } else {
+        // console.log('url: ', url)
+        const response = await fetch(url, {
+          credentials: 'include',
+        })
+        const data = await response.json()
+        setUserName(data.result.name)
+        setUserId(data.result._id)
+        setUserToken(data.result.token)
+        setUserPicture(data.result.picture)
+        setUserAdmin(data.result.admin)
+        setSignedIn(true)
+        setCookie(
+          data.result._id,
+          data.result.token,
+          data.result.name,
+          data.result.picture,
+        )
+      }
     } catch (error) {
-      console.log(error)
+      // console.log(error)
     }
   }
 
   const signOut = () => {
-    setSignedIn(false)
-    setUserId('')
-    setUserName('')
-    setUserToken('')
-    setUserAdmin(0)
-    resetCookie()
-    let url
-    if (process.env.REACT_APP_USE_YDX) {
-      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/logout`
-    } else {
-      url = `${apiUrl}/auth/logout`
-    }
+    clearUserData()
+    const url = `${apiUrl}/auth/logout?url=${window.location.href}`
     window.open(url, '_self')
   }
 
@@ -210,13 +283,6 @@ const App = () => {
     document.cookie = `userPicture=${picture};path=/`
   }
 
-  const resetCookie = () => {
-    document.cookie = `userId=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
-    document.cookie = `userToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
-    document.cookie = `userName=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
-    document.cookie = `userPicture=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
-  }
-
   const getCookie = (cname: string) => {
     const name = cname + '='
     const decodedCookie = decodeURIComponent(document.cookie)
@@ -233,13 +299,21 @@ const App = () => {
     return ''
   }
 
+  const isEmbedRoute = window.location.pathname.includes('/embed/')
+
   return (
-    <html className="classic-html">
-      <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
-      <body
+    <>
+      {!isEmbedRoute && (
+        <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
+      )}
+      <div
         className="classic-body"
         style={{
-          paddingTop: location.pathname.includes('editor') ? '0px' : '54px',
+          paddingTop:
+            location.pathname.includes('editor') ||
+            location.pathname.includes('embed')
+              ? '0px'
+              : '54px',
         }}
       >
         <Routes>
@@ -249,21 +323,44 @@ const App = () => {
           />
           <Route path="/home" element={<Home />} />
           <Route path="/video/:videoId" element={<Video />} />
+          {/* <Route path="/video/v2/:videoId" element={<Video_v2 />} /> */}
+          <Route path="/embed/:videoId" element={<VideoEmbed />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/search" element={<Search />} />
+          <Route path="/support" element={<Support />} />
           <Route path="/credits" element={<Credits />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/credits-details" element={<CreditsDetails />} />
           <Route path="/unsupported-browser" element={<UnsupportedBrowser />} />
           <Route
             path="/videos/user/:userId"
             element={<UserDescribedVideos />}
           />
+          <Route path="/videos/history" element={<History />} />
           <Route path="/" element={<Navigate to="/home" />} />
           <Route path="/userstudy/:participantId" element={<UserStudyHome />} />
           <Route path="/videopage/:youtubeVideoId" element={<PlayVideo />} />
           <Route path="/*" element={<PageNotFound />} />
+          <Route path="/support/about" element={<About />} />
+          <Route path="/support/describers" element={<Describers />} />
+          <Route path="/support/tutorial" element={<Tutorial />} />
+          <Route path="/support/embed_tutorial" element={<EmbedTutorial />} />
+          <Route path="/support/viewers" element={<Viewers />} />
+          <Route path="/support/privacy" element={<Privacy />} />
+          <Route
+            path="/support/system-upgrade-warning"
+            element={<SystemUpgradeWarning />}
+          />
+          <Route
+            path="/audio-description/:youtubeVideoId/:audioDescriptionId"
+            element={<PublishedAudioDescriptions />}
+          />
+          <Route
+            path="/audio-description/preview/:youtubeVideoId/:audioDescriptionId"
+            element={<PublishedAudioDescriptions />}
+          />
         </Routes>
-      </body>
+      </div>
       <ToastContainer
         className="toast-btn"
         position="top-center"
@@ -274,8 +371,8 @@ const App = () => {
         pauseOnHover
         theme="colored"
       />
-      <Footer />
-    </html>
+      {!isEmbedRoute && <Footer />}
+    </>
   )
 }
 

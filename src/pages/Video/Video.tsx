@@ -18,7 +18,7 @@ import React, {
   useState,
 } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify'
+import { Id, ToastContainer } from 'react-toastify'
 import YouTube from 'react-youtube'
 import { Options, YouTubePlayer } from 'youtube-player/dist/types'
 import './video.scss'
@@ -39,7 +39,21 @@ import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
 import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
+import { Feedbacks, VideoDescriberRoot } from './video_describer'
+import LanguageSelector from './LanguageSelector'
+// import iso6391 from 'iso-639-1'
+
+interface IADUserId {
+  [key: string]: {
+    overall_rating_votes_counter: number
+    overall_rating_average: number
+    overall_rating_votes_sum: number
+    feedbacks: Feedbacks
+    picture: string
+    name: string
+  }
+}
 
 const Video = () => {
   const { videoId } = useParams()
@@ -50,6 +64,23 @@ const Video = () => {
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
   const [rating, setRating] = useState<number>(0)
+  // const codes = iso6391.getAllCodes()
+
+  const languages = [
+    { code: 'en-US', name: 'English (United States)' },
+    { code: 'en-GB', name: 'English (United Kingdom)' },
+    { code: 'zh-CN', name: 'Chinese (Simplified, China)' },
+    { code: 'zh-TW', name: 'Chinese (Traditional, Taiwan)' },
+    { code: 'ko-KR', name: 'Korean (South Korea)' },
+    { code: 'fr-FR', name: 'French (France)' },
+    { code: 'fr-CA', name: 'French (Canada)' },
+    { code: 'ar-SA', name: 'Arabic (Saudi Arabia)' },
+    { code: 'ar-EG', name: 'Arabic (Egypt)' },
+    { code: 'ru-RU', name: 'Russian (Russia)' },
+    { code: 'de-DE', name: 'German (Germany)' },
+    { code: 'es-ES', name: 'Spanish (Spain)' },
+    { code: 'es-MX', name: 'Spanish (Mexico)' },
+  ]
 
   // Loading Spinner
   const [showSpinner, setShowSpinner] = useState(true)
@@ -57,7 +88,7 @@ const Video = () => {
   // Data from API
   const [audioDescriptionsIds, setAudioDescriptionsIds] = useState<any[]>([])
   const [audioDescriptionsIdsUsers, setAudioDescriptionsIdsUsers] =
-    useState<any>({})
+    useState<IADUserId | null>(null)
   const [audioDescriptionsIdsAudioClips, setAudioDescriptionsIdsAudioClips] =
     useState<any>({})
 
@@ -107,6 +138,8 @@ const Video = () => {
   const [clipStackSize, setClipStackSize] = useState<number>(5)
   const [currentClipIndex, setCurrentClipIndex] = useState<number>(0)
 
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false)
+
   const clipStackRef = useRef(clipStack)
   const clipIDRef = useRef(playedAudioClip)
 
@@ -121,6 +154,54 @@ const Video = () => {
   const currentExtendedACRef = useRef(currExtendedAC)
 
   const [previousYTTime, setPreviousYTTime] = useState(0.0)
+
+  const [requestAiDescription, setRequestAiDescription] = useState<{
+    status: string
+    requested: boolean
+    url?: string
+    aiDescriptionId?: string
+    preview?: boolean
+  }>({
+    status: 'notavailable',
+    requested: false,
+  })
+
+  const [buttonLoading, setButtonLoading] = useState(false)
+  const toastId = React.useRef<null | Id>(null)
+
+  useEffect(() => {
+    // Pause and unload current inline audio clip
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.pause()
+      currentInlineACRef.current.unload()
+    }
+    // Pause and unload current extended audio clip
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.pause()
+      currentExtendedACRef.current.unload()
+    }
+
+    // Clear the timer for audio clip updates
+    if (timer) {
+      clearInterval(timer)
+    }
+
+    // Cleanup selected audio description and its related data
+    return () => {
+      // Make sure to clear any intervals or timeouts as well
+      if (currentInlineACRef.current) {
+        currentInlineACRef.current.stop()
+        setCurrInlineAC(undefined)
+      }
+      if (currentExtendedACRef.current) {
+        currentExtendedACRef.current.stop()
+        setCurrExtendedAC(undefined)
+      }
+      if (timer) {
+        clearInterval(timer)
+      }
+    }
+  }, [])
 
   // Update Refs
   useEffect(() => {
@@ -143,13 +224,12 @@ const Video = () => {
 
   useEffect(() => {
     clipStackRef.current = clipStack
-    console.log('New Clip Stack', clipStack)
+    // console.log('New Clip Stack', clipStack)
   }, [clipStack])
 
   useEffect(() => {
     currentEventRef.current = currentEvent
     currentEventRef.current?.setVolume(youTubeVolume)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEvent])
 
   useEffect(() => {
@@ -159,15 +239,17 @@ const Video = () => {
     if (currentExtendedACRef.current?.playing()) {
       currentExtendedACRef.current?.volume(descriptionVolume / 100)
     }
+    descriptionVolumeRef.current = descriptionVolume
     localStorage.setItem('descriptionVolume', descriptionVolume.toString())
   }, [descriptionVolume])
 
   useEffect(() => {
-    if (currentEventRef && currentInlineACRef.current?.playing()) {
+    if (currentEventRef) {
       currentEventRef.current?.setVolume(youTubeVolume)
     }
+    youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
-  }, [youTubeVolume])
+  }, [youTubeVolume, currentEventRef])
 
   //
   // END OF YDX STATE VARIABLES
@@ -192,10 +274,46 @@ const Video = () => {
 
   // Fetch Data on Page Load
   useEffect(() => {
+    // console.log(videoId)
     if (videoId) {
       fetchVideoData()
     }
   }, [])
+
+  useEffect(() => {
+    if (userDataStore.getState().isSignedIn) {
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/ai-description-status`
+
+      axios
+        .post<{
+          status: string
+          requested: boolean
+        }>(
+          url,
+          {
+            youtube_id: videoId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        .then((response) => {
+          const data = response.data
+          setRequestAiDescription(data)
+        })
+        .catch((error) => {
+          if (error.response && error.response.status === 500) {
+            // Handle the 500 Internal Server Error here
+            const errorMessage =
+              'Internal Server Error: Something went wrong on the server side.Please try again later! '
+            toast.error(errorMessage)
+          }
+        })
+    }
+  }, [userDataStore.getState().isSignedIn])
 
   const fetchVideoData = () => {
     const url = `${apiUrl}/videos/${videoId}`
@@ -205,38 +323,74 @@ const Video = () => {
       })
       .catch((err) => {
         console.log(err)
-        navigate('/not-found')
+        // navigate('/not-found')
       })
   }
 
-  const parseVideoData = (videoData: any) => {
+  const parseVideoData = (videoData: VideoDescriberRoot) => {
     // TODO: Add Types
     const adIds: any[] = []
-    const adIdsUsers: any = {}
+    const adIdsUsers: IADUserId = {}
     const adIdsAudioClips: any = {}
 
     if (
-      videoData?.audio_descriptions?.find(
-        (ad: any) => ad.status === 'published',
-      )
+      videoData.audio_descriptions &&
+      videoData.audio_descriptions.length > 0
     ) {
-      videoData.audio_descriptions.forEach((ad: any) => {
-        if (ad.status === 'published') {
-          adIds.push(ad._id)
-          adIdsUsers[ad._id] = ad.user
-          adIdsUsers[ad._id].overall_rating_votes_counter =
-            ad.overall_rating_votes_counter
-          adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_average
-          adIdsUsers[ad._id].overall_rating_votes_sum =
-            ad.overall_rating_votes_sum
-          adIdsUsers[ad._id].feedbacks = ad.feedbacks
-          adIdsAudioClips[ad._id] = []
-          if (ad.audio_clips.length > 0) {
-            ad.audio_clips.forEach((audioClip: any) => {
-              audioClip.url = `${audioClipsUploadsPath}${audioClip.file_path}/${audioClip.file_name}`
-              adIdsAudioClips[ad._id].push(audioClip)
-            })
+      videoData.audio_descriptions.forEach((ad) => {
+        adIds.push(ad._id)
+
+        // Initialize adIdsUsers[ad._id] as an object if it doesn't exist
+        if (!adIdsUsers[ad._id]) {
+          adIdsUsers[ad._id] = {
+            overall_rating_votes_counter: ad.overall_rating_votes_counter,
+            overall_rating_average: ad.overall_rating_votes_average,
+            overall_rating_votes_sum: ad.overall_rating_votes_sum,
+            feedbacks: ad.feedbacks,
+            picture: ad.user.picture,
+            name:
+              ad.user.user_type && ad.user.user_type === 'AI'
+                ? 'AI Description Draft'
+                : ad.user.name,
           }
+        } else {
+          // If adIdsUsers[ad._id] already exists, update the name property conditionally
+          adIdsUsers[ad._id].name =
+            ad.user.user_type && ad.user.user_type === 'AI'
+              ? 'AI Description Draft'
+              : ad.user.name
+        }
+
+        // adIdsUsers[ad._id].overall_rating_votes_counter =
+        //   ad.overall_rating_votes_counter;
+        // adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_votes_average;
+        // adIdsUsers[ad._id].overall_rating_votes_sum = ad.overall_rating_votes_sum;
+        // adIdsUsers[ad._id].feedbacks = ad.feedbacks as De[];
+        adIdsAudioClips[ad._id] = []
+
+        if (ad.audio_clips.length > 0) {
+          ad.audio_clips.forEach((audioClip) => {
+            // Check for undefined file_path or file_name and skip if missing
+            if (!audioClip.file_path || !audioClip.file_name) {
+              console.warn(
+                `Missing file_path or file_name for audioClip:`,
+                audioClip,
+              )
+              return // Skip this audio clip
+            }
+
+            const filePath = audioClip.file_path.replace(/^\./, '')
+            audioClip.url = `${audioClipsUploadsPath(
+              `${filePath}/${audioClip.file_name}`,
+            )}`
+
+            // Initialize adIdsAudioClips[ad._id] as an array if not defined
+            if (!adIdsAudioClips[ad._id]) {
+              adIdsAudioClips[ad._id] = []
+            }
+
+            adIdsAudioClips[ad._id].push(audioClip)
+          })
         }
       })
 
@@ -272,14 +426,14 @@ const Video = () => {
     if (!selectedAd) {
       selectedAd = getHighestRatedAudioDescription(adIdsUsers)
     }
-    console.log('Selected AD', selectedAd)
+    // console.log('Selected AD', selectedAd)
 
     if (
       audioDescriptionsIds?.length &&
       audioDescriptionsIds?.indexOf(selectedAd) === -1
     ) {
-      console.log('Navigating to Not Found')
-      navigate('/not-found')
+      // console.log('Navigating to Not Found')
+      // navigate('/not-found')
     }
     setSearchParams((params) => {
       if (selectedAd) params.set('ad', selectedAd)
@@ -306,8 +460,6 @@ const Video = () => {
       a.clip_start_time < b.clip_start_time ? -1 : 1,
     )
 
-    // console.log('Sorted Clips', sortedClipData)
-
     setAudioClips([...sortedClipData])
     const maxStackSize =
       sortedClipData.length > 100 ? 10 : Math.min(sortedClipData.length, 5)
@@ -322,22 +474,24 @@ const Video = () => {
         clipStackData.push(clip)
       }
     }
-    // console.log('Clip Stack', clipStackData)
+
     setClipStack(clipStackData)
     getYTVideoInfo()
   }
 
   const getYTVideoInfo = () => {
-    // console.log('6 -> getYTVideoInfo');
+    // // console.log('6 -> getYTVideoInfo');
     const url = `${youTubeApiUrl}/videos?id=${videoId}&part=contentDetails,snippet,statistics&forUsername=iamOTHER&key=${youTubeApiKey}`
 
     // Use custom fetch for cross-browser compatability
     ourFetch(url)
       .then((data: any) => {
-        console.log(
-          'Current Video Duration',
-          data.items[0].contentDetails.duration,
-        )
+        if (data.items.length === 0) {
+          console.log('Video Unavailable!')
+          alert('Video Unavailable!')
+          return
+        }
+
         const videoDurationInSeconds = convertISO8601ToSeconds(
           data.items[0].contentDetails.duration,
         )
@@ -360,20 +514,20 @@ const Video = () => {
         //   convertSecondsToEditorFormat(videoDurationInSeconds),
         // )
         document.title = `YouDescribe - ${data.items[0].snippet.title}`
+
         setShowSpinner(false)
       })
       .catch((err) => {
-        console.log('Unable to load the video you are trying to edit.', err)
-        alert(
+        // console.log('Unable to load the video you are trying to edit.', err)
+        toast.error(
           'Thank you for visiting YouDescribe. This video is not viewable at this time due to YouTube API key limits. Our key is reset by Google at midnight Pacific time.',
         )
       })
   }
 
   useEffect(() => {
-    if (clipStack.length === clipStackSize) {
-      setShowSpinner(false)
-    } else if (
+    if (
+      clipStack.length === clipStackSize ||
       clipStack?.length === audioDescriptionsIdsAudioClips[selectedADId]?.length
     ) {
       setShowSpinner(false)
@@ -401,7 +555,6 @@ const Video = () => {
     setPreviousTime(time)
   }
 
-  // To Play audio files based on current time
   const playAudioAtCurrentTime = async (
     updatedCurrentTime: number,
     playedAudioClip: string,
@@ -411,7 +564,7 @@ const Video = () => {
     if (currentState === 1) {
       // If all clips have been played, skip check
       if (clipStackRef.current.length === 0) {
-        console.log('No Clips left to play')
+        // console.log('No Clips left to play')
         return
       }
 
@@ -423,6 +576,8 @@ const Video = () => {
         console.info('A clip is currently playing')
         return
       }
+
+      const bufferDuration = 200
 
       // If an inline clip is supposed to be playing right now but the user has either skipped to a time in the middle of the clip
       // Or there was an overlap which caused the start time of the clip to be skipped
@@ -439,84 +594,83 @@ const Video = () => {
             currentTimeRef.current,
           )
 
-          // If an Inline Clip is Playing - Return
+          // If an inline clip is already playing, return
           if (currentInlineACRef.current?.playing()) {
             console.info('An inline clip is already playing')
             return
           }
-          // If the clip is not playing, play it
-          console.info('Playing clip by Seeking to current time')
-          // Play Inline Clip
-          const currentFilteredClip = clipStackRef.current[0]
-          console.log('Clip to be Played', currentFilteredClip)
 
+          console.info('Playing clip by seeking to current time')
+          const currentFilteredClip = clipStackRef.current[0]
+
+          // Play the inline clip
+          const currentAudio = currentFilteredClip.clip_audio
+          const seekTime =
+            currentTimeRef.current - currentFilteredClip.clip_start_time
+
+          // Ensure seek time is within valid range
+          if (seekTime < 0) {
+            console.debug('Seek time is negative, skipping')
+            return
+          }
+
+          // Ensure the audio clip is fully loaded before seeking and playing
+          if (currentAudio?.state() !== 'loaded') {
+            console.debug('Waiting for audio clip to load')
+            currentAudio?.once('load', () => {
+              console.debug('Audio clip loaded')
+              currentAudio.seek(seekTime)
+              currentAudio.play()
+            })
+          } else {
+            console.debug('Audio clip already loaded')
+            currentAudio.seek(seekTime)
+            currentAudio.play()
+          }
+
+          setCurrInlineAC(currentAudio)
           setPlayedAudioClip(currentFilteredClip.clip_id)
-          //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
-          console.log('PLaying clip', clipAudioPath)
 
           if (clipAudioPath !== playedClipPath) {
-            console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
-            // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-            const currentAudio = currentFilteredClip.clip_audio
-            console.log('Playing inline clip')
-            if (
-              currentAudio?.playing() ||
-              currentInlineACRef.current?.playing()
-              // currentFilteredClip.clip_id === clipIDRef.current
-            ) {
-              console.log('Clip is already playing')
-              return
-            }
-            console.log(
-              'Seeking to',
-              currentTimeRef.current - currentFilteredClip.clip_start_time,
-              'seconds',
-            )
 
-            currentAudio?.seek(
-              currentTimeRef.current - currentFilteredClip.clip_start_time,
-            )
-            currentAudio?.play()
-            // see onStateChange() - storing current inline clip.
-            setCurrInlineAC(currentAudio)
-
-            // Load a new clip and add it to the stack
-            console.log('Current Clip Index', currentClipIndexRef.current)
-
-            const newClip =
-              audioClips[currentClipIndexRef.current + clipStackSize - 1]
-            console.log('New CLIP (seeked inline) => ', newClip)
-            if (newClip) {
-              newClip.clip_audio = new Howl({
-                src: newClip.clip_audio_path,
-                html5: true,
-              })
-              setClipStack([
-                ...clipStackRef.current.slice(1, clipStackSize),
-                newClip,
-              ])
-            } else {
-              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-            }
-
-            // ended event listener, to set the currInlineAC back to null
-            currentAudio?.once('play', function () {
-              setPlayedAudioClip(currentFilteredClip.clip_id)
-              // Set AD Volume
+            // Event listeners for play and end
+            currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
             })
-            currentAudio?.once('end', function () {
-              setCurrInlineAC(undefined)
-              // Unload current clip
-              currentAudio.unload()
+
+            currentAudio?.once('end', () => {
+              // Introduce a delay before moving to the next audio clip
+              setTimeout(() => {
+                setCurrInlineAC(undefined)
+                currentAudio.unload()
+
+                // Load a new clip and add it to the stack
+                const newClip =
+                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+                if (newClip) {
+                  newClip.clip_audio = new Howl({
+                    src: newClip.clip_audio_path,
+                    html5: true,
+                  })
+                  setClipStack([
+                    ...clipStackRef.current.slice(1, clipStackSize),
+                    newClip,
+                  ])
+                } else {
+                  setClipStack([
+                    ...clipStackRef.current.slice(1, clipStackSize),
+                  ])
+                }
+              }, bufferDuration) // Add the buffer time here
             })
           }
         }
       }
+
       // Case for playing extended clips when the player come across their start or end times
       // Compare current window with clip at current clip index
       else {
@@ -527,7 +681,7 @@ const Video = () => {
             previousTimeRef.current - 0.1
         ) {
           const currentFilteredClip = clipStackRef.current[0]
-          console.log('Updating Clip Index')
+          // console.log('Updating Clip Index')
           setCurrentClipIndex(currentClipIndexRef.current + 1) // Update current clip index
           // Play the clip only if it wasn't played recently
           if (playedAudioClip !== currentFilteredClip.clip_id) {
@@ -545,11 +699,27 @@ const Video = () => {
               }
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
+              currentEvent?.pauseVideo()
+              // Set played audio clip and path
+              setPlayedAudioClip(currentFilteredClip.clip_id)
+              setRecentAudioPlayedTime(currentTimeRef.current)
+              setPlayedClipPath(currentFilteredClip.clip_audio_path)
+
+              // Event listeners for play and end
+              currentAudio?.once('play', () => {
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+              })
+              currentAudio?.once('end', () => {
+                setCurrExtendedAC(undefined)
+                currentEvent?.playVideo()
+                currentAudio.unload()
+                setCurrentExtACPaused(false)
+              })
               // Add a new clip to the stack
-              console.log('Current Clip Index', currentClipIndexRef.current)
+              // console.log('Current Clip Index', currentClipIndexRef.current)
               const newClip =
                 audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-              console.log('New CLIP (normal extended) => ', newClip)
+              // console.log('New CLIP (normal extended) => ', newClip)
               if (newClip) {
                 newClip.clip_audio = new Howl({
                   src: newClip.clip_audio_path,
@@ -562,18 +732,6 @@ const Video = () => {
               } else {
                 setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
               }
-              // youtube video should be played after the clip has finished playing
-              // eslint-disable-next-line no-loop-func
-              currentAudio?.once('play', function () {
-                currentAudio.volume(descriptionVolumeRef.current / 100)
-              })
-              currentAudio?.once('end', function () {
-                setCurrExtendedAC(undefined) // setting back to null, as it is played completely.
-                currentEvent?.playVideo()
-                // Unload current clip
-                currentAudio.unload()
-                setCurrentExtACPaused(false) // reset the play/pause state
-              })
             }
           }
         }
@@ -588,10 +746,10 @@ const Video = () => {
         // A skip has most likely occurred
         console.error('SKIP DETECTED', clipStackRef.current[0])
         // Add a new clip to the stack
-        console.log('Current Clip Index', currentClipIndexRef.current)
+        // console.log('Current Clip Index', currentClipIndexRef.current)
         const newClip =
           audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-        console.log('New CLIP (normal extended) => ', newClip)
+        // console.log('New CLIP (normal extended) => ', newClip)
         if (newClip) {
           newClip.clip_audio = new Howl({
             src: newClip.clip_audio_path,
@@ -607,7 +765,6 @@ const Video = () => {
       }
     }
   }
-
   // YouTube Player Functions
   const onStateChange = (event: any) => {
     const currentTime = event.target.getCurrentTime()
@@ -712,7 +869,7 @@ const Video = () => {
   }
 
   const updateClipStackData = useCallback(() => {
-    console.log('Updating Clip Stack | Current Time =', currentTimeRef.current)
+    // console.log('Updating Clip Stack | Current Time =', currentTimeRef.current)
 
     const newClipIndex = audioClips.findIndex(
       (clip) =>
@@ -721,7 +878,7 @@ const Video = () => {
           clip.clip_end_time > currentTimeRef.current),
     )
     setCurrentClipIndex(newClipIndex)
-    console.log('Current Clip Index', newClipIndex)
+    // console.log('Current Clip Index', newClipIndex)
 
     // slice audio clips from newClipIndex to newClipIndex + 5
     const clipStackData = []
@@ -747,49 +904,53 @@ const Video = () => {
   //
 
   useEffect(() => {
-    console.log('Updating describer Cards')
-    const describers = audioDescriptionsIdsUsers
-    const describerCards: ReactNode[] = []
-    let describerIds = Object.keys(describers)
+    if (audioDescriptionsIdsUsers) {
+      // console.log('Updating describer Cards')
+      const describers = audioDescriptionsIdsUsers
+      const describerCards: ReactNode[] = []
+      let describerIds = Object.keys(describers)
 
-    if (describerIds.length) {
-      // document.getElementById('no-descriptions').style.display = 'none'
+      if (describerIds.length) {
+        // document.getElementById('no-descriptions').style.display = 'none'
+      }
+      if (describerIds.length && describerIds[0] !== selectedADId) {
+        const selectedIdIndex = describerIds.indexOf(selectedADId)
+        describerIds = describerIds
+          .splice(selectedIdIndex, 1)
+          .concat(describerIds)
+      }
+
+      describerIds.forEach((describerId, i) => {
+        describerCards.push(
+          <DescriberCard
+            key={i}
+            handleDescriberChange={handleDescriberChange}
+            handleRatingPopup={handleRatingPopup}
+            handleFeedbackPopup={handleFeedbackPopup}
+            describerId={describerId}
+            selectedDescriberId={selectedADId}
+            picture={describers[describerId].picture}
+            name={describers[describerId].name}
+            overall_rating_average={
+              describers[describerId].overall_rating_average
+            }
+            handleRating={() => {
+              // console.log('Handle Rating')
+            }}
+            videoId={videoId}
+          />,
+        )
+      })
+
+      setDescriberCards(describerCards)
     }
-    if (describerIds.length && describerIds[0] !== selectedADId) {
-      const selectedIdIndex = describerIds.indexOf(selectedADId)
-      describerIds = describerIds
-        .splice(selectedIdIndex, 1)
-        .concat(describerIds)
-    }
-
-    describerIds.forEach((describerId, i) => {
-      describerCards.push(
-        <DescriberCard
-          key={i}
-          handleDescriberChange={handleDescriberChange}
-          handleRatingPopup={handleRatingPopup}
-          describerId={describerId}
-          selectedDescriberId={selectedADId}
-          picture={describers[describerId].picture}
-          name={describers[describerId].name}
-          overall_rating_average={
-            describers[describerId].overall_rating_average
-          }
-          handleRating={() => {
-            console.log('Handle Rating')
-          }}
-        />,
-      )
-    })
-
-    setDescriberCards(describerCards)
   }, [audioDescriptionsIdsUsers, selectedADId])
 
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to vote'))
+      toast.error(translate('You have to be logged in in order to vote'))
     } else {
-      const url = `${apiUrl}/wishlist`
+      const url = `${apiUrl}/wishlist/add-one-wishlist-item`
       ourFetch(url, true, {
         method: 'POST',
         headers: {
@@ -802,17 +963,18 @@ const Video = () => {
         }),
       })
         .then((res) => {
-          console.log('Success upVote')
+          toast.success(translate('Success upVote'))
         })
         .catch((err) => {
-          switch (err.code) {
-            case 67:
-              alert(
-                translate('It is not possible to vote again for this video.'),
-              )
+          switch (err.status) {
+            case 400:
+              toast.error(translate(err.message))
+              break
+            case 200:
+              toast.success(translate(err.message))
               break
             default:
-              alert(
+              toast.error(
                 translate(
                   'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
                 ),
@@ -862,11 +1024,11 @@ const Video = () => {
   }
 
   const handleRatingSubmit = (rating: number) => {
-    if (rating === 0) alert('You must select a rating')
+    if (rating === 0) toast.error('You must select a rating')
     else if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to vote'))
+      toast.error(translate('You have to be logged in in order to vote'))
     } else {
-      const url = `${apiUrl}/audiodescriptionsrating/${selectedADId}`
+      const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
       setRating(rating)
       ourFetch(url, true, {
         method: 'POST',
@@ -880,25 +1042,27 @@ const Video = () => {
         }),
       })
         .then((res) => {
-          if (rating === 5) {
-            // alert(`You have successfully given this description a rating of ${rating}`);
-            const ratingPopup = document.getElementById('rating-popup')
-            const ratingSuccess = document.getElementById('rating-success')
-            if (ratingPopup) {
-              ratingPopup.style.display = 'none'
-            }
-            if (ratingSuccess) {
-              ratingSuccess.style.display = 'block'
-              ratingSuccess.focus()
-              setTimeout(() => (ratingSuccess.style.display = 'none'), 1000)
-            }
-
-            /* start of email */
-            sendOptInEmail(2, rating, [])
-            /* end of email */
-          } else {
-            // this.handleFeedbackPopup();
+          // if (rating === 5) {
+          // toast.error(`You have successfully given this description a rating of ${rating}`);
+          const ratingPopup = document.getElementById('rating-popup')
+          const ratingSuccess = document.getElementById('rating-success')
+          if (ratingPopup) {
+            ratingPopup.style.display = 'none'
           }
+          if (ratingSuccess) {
+            ratingSuccess.style.display = 'block'
+            ratingSuccess.focus()
+            setTimeout(() => (ratingSuccess.style.display = 'none'), 1000)
+          }
+
+          /* start of email */
+          sendOptInEmail(2, rating, [])
+          /* end of email */
+
+          // }
+          // else {
+          //   // this.handleFeedbackPopup();
+          // }
           const describers = { ...audioDescriptionsIdsUsers }
           const selectedId = selectedADId
 
@@ -921,8 +1085,8 @@ const Video = () => {
           setAudioDescriptionsIdsUsers(describers)
         })
         .catch((err) => {
-          console.log(err)
-          alert(
+          // console.log(err)
+          toast.error(
             translate(
               'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
             ),
@@ -932,8 +1096,7 @@ const Video = () => {
   }
 
   const handleFeedbackSubmit = (feedback: any) => {
-    const url = `${apiUrl}/audiodescriptionsrating/${selectedADId}`
-
+    const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
     ourFetch(url, true, {
       method: 'POST',
       headers: {
@@ -957,15 +1120,15 @@ const Video = () => {
           feedbackSuccess.focus()
           setTimeout(() => (feedbackSuccess.style.display = 'none'), 1000)
         }
-        // alert('Thanks for your feedback!');
+        // toast.error('Thanks for your feedback!');
 
         /* start of email */
         sendOptInEmail(2, rating, feedback)
         /* end of email */
       })
       .catch((err) => {
-        console.log(err)
-        alert(
+        // console.log(err)
+        toast.error(
           translate(
             'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
           ),
@@ -1001,18 +1164,31 @@ const Video = () => {
       }),
     }
     ourFetch(url, true, optionObj).then((response) => {
-      console.log(response)
+      // console.log(response)
     })
   }
 
   const handleRatingPopup = () => {
     if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to vote'))
+      toast.error(translate('You have to be logged in in order to vote'))
     } else {
       const ratingPopup = document.getElementById('rating-popup')
       if (ratingPopup) {
         ratingPopup.style.display = 'block'
         ratingPopup.focus()
+      }
+    }
+  }
+  const handleFeedbackPopup = () => {
+    if (!userDataStore.getState().isSignedIn) {
+      toast.error(
+        translate('You have to be logged in in order to give feedback'),
+      )
+    } else {
+      const feedbackPopup = document.getElementById('feedback-popup')
+      if (feedbackPopup) {
+        feedbackPopup.style.display = 'block'
+        feedbackPopup.focus()
       }
     }
   }
@@ -1031,7 +1207,7 @@ const Video = () => {
     }
   }
 
-  console.log(videoDurationInSeconds)
+  // console.log(videoDurationInSeconds)
 
   const getAudioSegments = () => {
     return audioClips.map((ad) => {
@@ -1056,9 +1232,11 @@ const Video = () => {
   }
 
   const handleAddDescription = async () => {
-    console.log(userDataStore.getState())
+    // console.log(userDataStore.getState())
     if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to add a description'))
+      toast.error(
+        translate('You have to be logged in in order to add a description'),
+      )
     } else {
       try {
         const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`
@@ -1075,12 +1253,237 @@ const Video = () => {
           },
         )
         const data = response.data
-        console.log(data)
+        // console.log(data)
         navigate(`/editor/${data.url}`)
       } catch (error) {
-        console.log(error)
+        // console.log(error)
         toast.error('Something went wrong, please try again later')
       }
+    }
+  }
+
+  const handleGenerateAIDescriptions = async (languageCode: string) => {
+    if (!userDataStore.getState().isSignedIn) {
+      toast.error(
+        translate(
+          'You have to be logged in in order to ask for AI Descriptions',
+        ),
+      )
+      return
+    }
+
+    if (requestAiDescription.status === 'pending') {
+      setRequestAiDescription({
+        status: 'pending',
+        requested: true,
+      })
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/increase-Request-Count`
+      try {
+        await axios.post(
+          url,
+          {
+            youtube_id: videoId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+      } catch (error) {
+        console.error('Failed to insert user request into MongoDB:', error)
+      }
+
+      toast.error(
+        translate(
+          'AI Descriptions are already requested by another user. Please wait for them to get generated and you will receive an email',
+        ),
+      )
+      return
+    }
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
+
+    try {
+      setRequestAiDescription({
+        status: 'pending',
+        requested: true,
+      })
+      const response = await axios.post(
+        url,
+        {
+          youtube_id: videoId,
+          selectedLanguageCode: languageCode,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = response.data
+      toast.success('AI Descriptions have been requested')
+      // // console.log('data for asdasd:: ', data)
+    } catch (error) {
+      // console.log(error)
+      setRequestAiDescription({
+        status: 'notavailable',
+        requested: false,
+      })
+      toast.error(
+        'Something went wrong, AI Descriptions are not available at the moment. Please try again later.',
+      )
+    }
+  }
+  const handleRequestAIDescriptions = () => {
+    // Show the language selector modal
+    setShowLanguageSelector(true)
+  }
+
+  // Function to handle the confirmation of language selection
+  const handleLanguageConfirm = (selectedLanguageCode: string) => {
+    // Generate AI descriptions with the selected language
+    handleGenerateAIDescriptions(selectedLanguageCode)
+    // Close the language selector modal
+    setShowLanguageSelector(false)
+  }
+
+  // Function to handle canceling language selection
+  const handleLanguageCancel = () => {
+    // Close the language selector modal
+    setShowLanguageSelector(false)
+  }
+
+  const handlePreviewAudioDescription = async () => {
+    try {
+      setButtonLoading(true)
+      if (requestAiDescription && requestAiDescription.aiDescriptionId)
+        navigate(
+          `/audio-description/preview/${videoId}/${requestAiDescription.aiDescriptionId}`,
+        )
+    } catch (error) {
+      if (toastId.current) toast.dismiss(toastId.current)
+      toast.error('Something went wrong, please try again later')
+      // console.log(error)
+    } finally {
+      setButtonLoading(false)
+    }
+  }
+
+  const DescriptionButtons = () => {
+    if (
+      requestAiDescription.status == 'completed' &&
+      requestAiDescription.url &&
+      !requestAiDescription.preview
+    ) {
+      // Go to descriptions with url
+      return (
+        <Button
+          title={translate('Go to descriptions')}
+          ariaLabel="Go to descriptions"
+          text={translate('Go To Descriptions')}
+          color="w3-lime w3-block w3-margin-top"
+          onClick={() =>
+            requestAiDescription.url && navigate(`/${requestAiDescription.url}`)
+          }
+        />
+      )
+    } else if (
+      requestAiDescription.status == 'completed' &&
+      requestAiDescription.url &&
+      requestAiDescription.preview
+    ) {
+      return (
+        <Button
+          title={translate('Preview Available Descriptions')}
+          ariaLabel="Preview Available Descriptions"
+          text={translate('Preview AI Descriptions')}
+          color="w3-indigo w3-block w3-margin-top"
+          onClick={() =>
+            navigate(`/audio-description/${requestAiDescription.url}`)
+          }
+          disabled={requestAiDescription.requested || buttonLoading}
+        />
+      )
+    } else if (requestAiDescription.status === 'pending') {
+      return (
+        <>
+          <Button
+            title={translate('Add a new description for this video')}
+            ariaLabel="Add a new description for this video"
+            text={translate('Add Freestyle Description')}
+            color="w3-yellow w3-block w3-margin-top"
+            onClick={handleAddDescription}
+          />
+          {requestAiDescription.requested ? (
+            <Button
+              title={translate('AI Descriptions requested')}
+              ariaLabel="AI Descriptions requested"
+              text={translate('AI Descriptions requested')}
+              color="w3-brown w3-block w3-margin-top"
+              disabled={true}
+            />
+          ) : (
+            <Button
+              title={translate('Request AI Descriptions')}
+              ariaLabel="Request AI Descriptions"
+              text={translate('Request AI Descriptions')}
+              color="w3-light-blue w3-block w3-margin-top"
+              disabled={requestAiDescription.requested}
+              onClick={handleRequestAIDescriptions}
+            />
+          )}
+          {/* Language selector modal */}
+          {showLanguageSelector && (
+            <LanguageSelector
+              show={showLanguageSelector}
+              handleClose={handleLanguageCancel}
+              handleGenerateAIDescriptions={handleLanguageConfirm}
+              languages={languages}
+              showLanguageSelector={showLanguageSelector}
+            />
+          )}
+        </>
+      )
+    } else if (
+      (requestAiDescription.status == 'notavailable' ||
+        requestAiDescription.status == 'draft') &&
+      !requestAiDescription.requested
+    ) {
+      return (
+        <>
+          <Button
+            title={translate('Add a new description for this video')}
+            ariaLabel="Add a new description for this video"
+            text={translate('Add Freestyle Description')}
+            color="w3-yellow w3-block w3-margin-top"
+            onClick={() => handleAddDescription()}
+            disabled={requestAiDescription.requested}
+          />
+          <Button
+            title={translate('Request AI Descriptions')}
+            ariaLabel="Request AI Descriptions"
+            text={translate('Request AI Descriptions')}
+            color="w3-light-blue w3-block w3-margin-top"
+            disabled={requestAiDescription.requested}
+            // onClick={() => handleGenerateAIDescriptions()}
+            onClick={() => handleRequestAIDescriptions()}
+          />
+          {/* Language selector modal */}
+          {showLanguageSelector && (
+            <LanguageSelector
+              show={showLanguageSelector}
+              handleClose={handleLanguageCancel}
+              handleGenerateAIDescriptions={handleLanguageConfirm}
+              languages={languages} // assuming languages are available here
+              showLanguageSelector={showLanguageSelector}
+            />
+          )}
+        </>
+      )
+    } else {
+      return <></>
     }
   }
 
@@ -1088,7 +1491,7 @@ const Video = () => {
     <div id="video-page" className="video-page">
       <main role="main" className="video-page-main" title="Video page">
         <section id="video-area" className="video-area">
-          <ToastContainer />
+          {/* <ToastContainer /> */}
           <ShareBar videoTitle={videoTitle} />
           <div id="video" className="video">
             {showSpinner ? <Spinner /> : null}
@@ -1177,7 +1580,7 @@ const Video = () => {
               id="describers"
               className="w3-col l4 m4 describers"
               style={{
-                display: Object.keys(audioDescriptionsIdsUsers).length
+                display: Object.keys(audioDescriptionsIdsUsers || {}).length
                   ? 'block'
                   : 'none',
               }}
@@ -1199,13 +1602,7 @@ const Video = () => {
                   ariaLabel="Turn off descriptions for this video"
                   onClick={handleTurnOffDescriptions}
                 />
-                <Button
-                  title={translate('Add a new description for this video')}
-                  ariaLabel="Add a new description for this video"
-                  text={translate('Add description')}
-                  color="w3-indigo w3-block w3-margin-top"
-                  onClick={() => handleAddDescription()}
-                />
+                <DescriptionButtons />
               </div>
             </div>
           ) : (
@@ -1229,27 +1626,32 @@ const Video = () => {
             id="no-descriptions"
             className="w3-col l4 m4"
             style={{
-              display: Object.keys(audioDescriptionsIdsUsers).length
+              display: Object.keys(audioDescriptionsIdsUsers || {}).length
                 ? 'none'
                 : 'block',
             }}
           >
             <div className="w3-card-2">
-              <h3 className="classic-h3">No descriptions available</h3>
+              {requestAiDescription.status === 'available' ? (
+                <h3 className="classic-h3">AI descriptions available</h3>
+              ) : (
+                <h3 className="classic-h3">No descriptions available</h3>
+              )}
               <Button
                 title={translate('Request an audio description for this video')}
                 ariaLabel="Request an audio description for this video"
-                text={translate('Add to wish list')}
+                text={translate('Add to WISHLIST')}
                 color="w3-indigo w3-block w3-margin-top"
                 onClick={() => upVote()}
               />
-              <Button
+              {/* <Button
                 title={translate('Add a new description for this video')}
-                text={translate('Add description')}
+                text={translate('Add Freestyle Description')}
                 ariaLabel="Add a new description for this video"
-                color="w3-indigo w3-block w3-margin-top"
+                color="w3-yellow w3-block w3-margin-top"
                 onClick={() => handleAddDescription()}
-              />
+              /> */}
+              <DescriptionButtons />
             </div>
           </div>
         </section>

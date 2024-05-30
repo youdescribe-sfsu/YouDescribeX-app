@@ -5,6 +5,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import Button from '../Button/Button'
 import { translate, userDataStore } from '@/App'
 import './VideoCard.css'
+import React from 'react'
+import { toast } from 'react-toastify'
 
 interface Props {
   youTubeId: string
@@ -17,11 +19,15 @@ interface Props {
   author: string
   duration?: string
   views?: string
+  statusVal?: string
   time: string
+  userVote?: boolean
+  url?: string
+  aiRequested?: boolean
 }
 
 const VideoCard = ({
-  description,
+  // description,
   audioDescriptionId,
   youTubeId,
   buttons,
@@ -30,41 +36,111 @@ const VideoCard = ({
   thumbnailMediumUrl,
   author,
   duration,
-  views,
-  time,
+  statusVal,
+  url,
+  // views,
+  // time,
+  userVote = false,
+  aiRequested,
 }: Props) => {
   const navigate = useNavigate()
-
-  const upVote = (e: any) => {
+  const [voted, setVoted] = React.useState(userVote)
+  const handleVideoClick = async () => {
+    // console.log('INSIDE HANDLECLICK')
+    try {
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/save-Visited-Videos-History`
+      // console.log('BACKEND URL', url)
+      axios
+        .post(
+          url,
+          {
+            youtube_id: youTubeId,
+            userId: userDataStore.getState().userId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        .then((res) => {
+          const data = res.data
+          // console.log('video click data => ', data)
+          if (res.status != 201) {
+            toast.error('Something went wrong, please try again later.')
+            // toast.error(translate('Something went wrong, please try again later'))
+            return
+          }
+        })
+    } catch (error) {
+      // console.log(error)
+      toast.error('Something went wrong, please try again later')
+    }
+  }
+  const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
-      alert(translate('You have to be logged in in order to vote'))
+      toast.error(translate('You have to be logged in in order to vote'))
     } else {
-      e.currentTarget.className =
-        'w3-btn w3-white w3-text-indigo w3-left w3-text-red'
-      const url = `${apiUrl}/wishlist`
-      ourFetch(url, true, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      if (voted) {
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/removeone`
+        axios
+          .delete(url, {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            data: {
+              youTubeId: youTubeId,
+            },
+          })
+          .then((res) => {
+            setVoted(false)
+            // console.log('Succes remove', res)
+          })
+          .catch((err) => {
+            switch (err.code) {
+              case 67:
+                toast.error(
+                  translate('It is not possible to vote again for this video.'),
+                )
+                break
+              default:
+                toast.error(
+                  translate(
+                    'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
+                  ),
+                )
+            }
+          })
+        return
+      }
+      // e.currentTarget.className =
+      //   'w3-btn w3-white w3-text-indigo w3-left w3-text-red'
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
+
+      axios
+        .post(url, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
           youTubeId: youTubeId,
           userId: userDataStore.getState().userId,
-          userToken: userDataStore.getState().userToken,
-        }),
-      })
+        })
         .then((res) => {
-          console.log('Success upVote', res)
+          setVoted(true)
+          // console.log('Success upVote', res)
         })
         .catch((err) => {
+          // console.log({ err })
           switch (err.code) {
             case 67:
-              alert(
+              toast.error(
                 translate('It is not possible to vote again for this video.'),
               )
               break
             default:
-              alert(
+              toast.error(
                 translate(
                   'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
                 ),
@@ -88,17 +164,18 @@ const VideoCard = ({
         )
         .then((res) => {
           if (res.status != 201) {
-            alert(
+            toast.error(
               translate(
                 'Something went wrong or you may already have described this video. Please try again later!',
               ),
             )
             return
           }
-          navigate('/editor/' + res.data.url)
+
+          navigate(url ? '/editor/' + url : '/video/' + youTubeId)
         })
     } else {
-      alert(
+      toast.error(
         translate('You have to be logged in in order to describe this video'),
       )
     }
@@ -107,7 +184,7 @@ const VideoCard = ({
   const editThisVideo = () => {
     if (userDataStore.getState().isSignedIn) {
       if (audioDescriptionId == null || audioDescriptionId.length <= 0) {
-        alert(
+        toast.error(
           translate(
             'Something went wrong when attempting to edit audio description.',
           ),
@@ -115,7 +192,7 @@ const VideoCard = ({
       }
       navigate(`/editor/${youTubeId}/${audioDescriptionId}`)
     } else {
-      alert(
+      toast.error(
         translate('You have to be logged in in order to describe this video'),
       )
     }
@@ -126,10 +203,13 @@ const VideoCard = ({
       <div>
         <Button
           ariaLabel={translate('Request an audio description for this video')}
-          text={<i className="fa fa-heart" />}
+          // text={<i className="fa fa-heart" />}
           classNames="card-button"
-          color="w3-white w3-text-indigo w3-left"
+          color={'w3-white w3-text-indigo w3-left'}
           onClick={upVote}
+          text={
+            <i className={`fa fa-heart ${voted ? 'heart-selected' : ''}`} />
+          } // Conditional class name based on isSelected
         />
         {/* <span id="vote-count">
           <div>{votes}</div>
@@ -161,8 +241,9 @@ const VideoCard = ({
           <Link
             role="link"
             aria-hidden="true"
-            to={'/video/' + youTubeId}
+            to={url ? '/editor/' + url : '/video/' + youTubeId}
             className=""
+            onClick={handleVideoClick}
           >
             <img alt={title} src={thumbnailMediumUrl} width="100%" />
           </Link>
@@ -178,8 +259,9 @@ const VideoCard = ({
               <h3 className="card-h3 classic-h3">
                 <Link
                   role="link"
-                  to={'/video/' + youTubeId}
+                  to={url ? '/editor/' + url : '/video/' + youTubeId}
                   className="classic-link"
+                  onClick={handleVideoClick}
                 >
                   {title}
                 </Link>
@@ -190,9 +272,27 @@ const VideoCard = ({
                 {translate('Author')}: {author}
               </span>
               <br />
-              <span className="card-span">
+              {votes ? (
+                <span className="card-span">
+                  {'Votes'}: {votes}
+                </span>
+              ) : null}
+              <br />
+
+              {/* <span className="card-span">
                 {'Votes'}: {votes}
-              </span>
+              </span> */}
+              {statusVal ? (
+                <span className="w3-btn w3-indigo card-button ">
+                  {'Status'}: {statusVal}
+                </span>
+              ) : null}
+
+              <div id="card-buttons">{buttonElements}</div>
+
+              {/* <span className="w3-btn w3-indigo w3-right card-button">
+                {'Status'}: {statusVal}
+              </span> */}
               {/* <a href="#">{this.props.describer}</a> */}
             </div>
           </div>
@@ -202,7 +302,10 @@ const VideoCard = ({
               <div className="w3-right">{time}</div>
             </h4>
           </div> */}
-          <div id="card-buttons">{buttonElements}</div>
+
+          {aiRequested ? (
+            <span className="card-span-ai">AI-Desc Available</span>
+          ) : null}
         </div>
       </div>
     </div>

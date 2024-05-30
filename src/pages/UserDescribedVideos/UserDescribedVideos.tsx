@@ -17,7 +17,17 @@ const UserDescribedVideos = () => {
   const [userName, setUserName] = useState('')
   const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
+  const [videosAI, setAIVideos] = useState<any[]>([])
+  const [videosDraft, setVideosDraft] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [currentPageAI, setCurrentPageAI] = useState(1)
+  const [currentPageDraft, setCurrentPageDraft] = useState(1)
+  const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
+  const [LoadMoreAIVideos, setLoadMoreAIVideos] = useState<boolean>(false)
+  const [LoadMoreDraftVideos, setLoadMoreDraftVideos] = useState<boolean>(false)
+  const [showLoadMoreButton, setShowLoadMoreButton] = useState(true)
+  const [showLoadMoreAIButton, setShowLoadMoreAIButton] = useState(true)
+  const [showLoadMoreDraftButton, setShowLoadMoreDraftButton] = useState(true)
   const { userId } = useParams()
 
   const getUserInfo = async () => {
@@ -30,30 +40,48 @@ const UserDescribedVideos = () => {
     })
   }
 
-  const getUserVideos = async () => {
+  const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
+    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
+    : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
+
+  const myDraftVideosUrl = process.env.REACT_APP_USE_YDX
+    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-draft-descriptions`
+    : `${apiUrl}/api/audio-descriptions/get-my-draft-descriptions`
+
+  const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
+    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-user-Ai-DescriptionRequests`
+    : `${apiUrl}/api/create-user-links/get-user-Ai-DescriptionRequests`
+
+  const getUserVideos = async (
+    url: string,
+    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
+    page: number,
+  ) => {
     let youTubeIds = ''
     const youTubeVideoIds: string[] = []
     const youDescribeVideosIds: string[] = []
     const audioDescriptionIds: string[] = []
-    let url
-    if (process.env.REACT_APP_USE_YDX) {
-      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/user/${userId}`
-    } else {
-      url = `${apiUrl}/videos/user/${userId}`
-    }
+
     axios
-      .get(url)
+      .get(url, {
+        params: {
+          paginate: 'false',
+          page: page,
+        },
+        withCredentials: true,
+      })
       .then((response) => {
-        const videosArray = response.data
-        setUserVideosArray(videosArray)
+        const videosArray = response.data.videos
+        const totalVideos = response.data.total
         for (let i = 0; i < videosArray.length; i += 1) {
           youTubeVideoIds.push(videosArray[i].youtube_video_id)
           youDescribeVideosIds.push(videosArray[i].video_id)
           audioDescriptionIds.push(videosArray[i].audio_description_id)
         }
         youTubeIds = youTubeVideoIds.join(',')
+        return { youTubeIds, totalVideos }
       })
-      .then(() => {
+      .then(({ youTubeIds, totalVideos }) => {
         const url = `${youTubeApiUrl}/videos?id=${youTubeIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
         ourFetch(url).then((data) => {
           window.localStorage.setItem(
@@ -61,10 +89,14 @@ const UserDescribedVideos = () => {
             JSON.stringify(data),
           )
           const youTubeVideosArray = data
+
           parseResponseData(
             youTubeVideosArray,
             youDescribeVideosIds,
             audioDescriptionIds,
+            setStateFunction,
+            totalVideos,
+            page,
           )
         })
       })
@@ -74,8 +106,18 @@ const UserDescribedVideos = () => {
     youTubeVideosArray: any,
     youDescribeVideosIds: string[],
     audioDescriptionIds: string[],
+    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
+    totalVideos: number,
+    page: number,
   ) => {
     const videoComponents = []
+    const existingVideos =
+      setStateFunction === setVideos
+        ? videos
+        : setStateFunction === setAIVideos
+        ? videosAI
+        : videosDraft
+
     for (let i = 0; i < youTubeVideosArray.items.length; i += 1) {
       const item = youTubeVideosArray.items[i]
       const youDescribeVideoId = youDescribeVideosIds[i]
@@ -109,43 +151,103 @@ const UserDescribedVideos = () => {
         </div>,
       )
     }
+
+    const updatedVideos = [...existingVideos, ...videoComponents]
+
+    const loadMoreFlag =
+      setStateFunction === setVideos
+        ? setShowLoadMoreButton
+        : setStateFunction === setAIVideos
+        ? setShowLoadMoreAIButton
+        : setShowLoadMoreDraftButton
+
+    loadMoreFlag(totalVideos > page * 20)
+
+    const loadMoreSpinnerFlag =
+      setStateFunction === setVideos
+        ? setLoadMoreVideos
+        : setStateFunction === setAIVideos
+        ? setLoadMoreAIVideos
+        : setLoadMoreDraftVideos
+    loadMoreSpinnerFlag(false)
+
     setShowSpinner(false)
-    setVideos(videoComponents)
+
+    setStateFunction(updatedVideos)
   }
 
   const loadMoreResults = () => {
+    setLoadMoreVideos(true)
     setCurrentPage(currentPage + 1)
+    getUserVideos(myDescribedVideosUrl, setVideos, currentPage + 1)
   }
 
-  const YDLoadMoreButton =
-    videos.length >= 20 ? (
-      <div className="w3-margin-top w3-center load-more">
-        <Button
-          title={translate('Load more videos')}
-          ariaLabel="Load More"
-          color="w3-indigo"
-          text="Load more"
-          onClick={loadMoreResults}
-        />
-      </div>
-    ) : (
-      <div className="w3-margin-top w3-center load-more w3-hide">
-        <Button
-          title={translate('Load more videos')}
-          color="w3-indigo"
-          text="Load more"
-          ariaLabel="Load More"
-          onClick={loadMoreResults}
-        />
-      </div>
-    )
+  const loadMoreResultsAI = () => {
+    setLoadMoreAIVideos(true)
+    setCurrentPageAI(currentPageAI + 1)
+    getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI + 1)
+  }
+
+  const loadMoreResultsDraft = () => {
+    setLoadMoreDraftVideos(true)
+    setCurrentPageDraft(currentPageDraft + 1)
+    getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft + 1)
+  }
+
+  const YDLoadMoreButton = showLoadMoreButton ? (
+    <div className="w3-margin-top w3-center load-more">
+      <Button
+        title={translate('Load more videos')}
+        ariaLabel="Load More"
+        color="w3-indigo"
+        text="Load more"
+        onClick={loadMoreResults}
+      />
+    </div>
+  ) : null
+
+  const YDLoadMoreButtonAI = showLoadMoreAIButton ? (
+    <div className="w3-margin-top w3-center load-more">
+      <Button
+        title={translate('Load more videos')}
+        ariaLabel="Load More"
+        color="w3-indigo"
+        text="Load more"
+        onClick={loadMoreResultsAI}
+      />
+    </div>
+  ) : null
+
+  const YDLoadMoreButtonDraft = showLoadMoreDraftButton ? (
+    <div className="w3-margin-top w3-center load-more">
+      <Button
+        title={translate('Load more videos')}
+        ariaLabel="Load More"
+        color="w3-indigo"
+        text="Load more"
+        onClick={loadMoreResultsDraft}
+      />
+    </div>
+  ) : null
 
   useEffect(() => {
     if (userId) {
       getUserInfo()
-      getUserVideos()
+      getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
     }
-  }, [userId])
+  }, [userId, currentPage])
+
+  useEffect(() => {
+    if (userId) {
+      getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft)
+    }
+  }, [userId, currentPageDraft])
+
+  useEffect(() => {
+    if (userId) {
+      getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI)
+    }
+  }, [userId, currentPageAI])
 
   if (
     !userDataStore.getState().isSignedIn ||
@@ -182,6 +284,28 @@ const UserDescribedVideos = () => {
             <div className="w3-row classic-container row">{videos}</div>
 
             {YDLoadMoreButton}
+          </section>
+          <section>
+            <header className="w3-container w3-indigo">
+              <h2 className="classic-h2">{translate('MY DRAFT VIDEOS')}</h2>
+            </header>
+
+            {showSpinner ? <Spinner /> : null}
+
+            <div className="w3-row classic-container row">{videosDraft}</div>
+
+            {YDLoadMoreButtonDraft}
+          </section>
+          <section>
+            <header className="w3-container w3-indigo">
+              <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
+            </header>
+
+            {showSpinner ? <Spinner /> : null}
+
+            <div className="w3-row classic-container row">{videosAI}</div>
+
+            {YDLoadMoreButtonAI}
           </section>
         </main>
       </div>

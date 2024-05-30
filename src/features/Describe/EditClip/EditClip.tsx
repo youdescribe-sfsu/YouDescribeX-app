@@ -33,6 +33,9 @@ interface Props {
   audioDescriptionId: string
   fetchUserVideoData: () => void
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
+  setUndoDeletedClip: React.Dispatch<React.SetStateAction<boolean>>
+  isPreview?: boolean
+  handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
 }
 
 const EditClip = ({
@@ -58,6 +61,9 @@ const EditClip = ({
   audioDescriptionId,
   fetchUserVideoData,
   setNeedRefresh,
+  isPreview = false,
+  handleClickSaveClipDescription,
+  setUndoDeletedClip,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
@@ -68,7 +74,7 @@ const EditClip = ({
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0)
   const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] =
     useState(0.0)
-
+  const [clipDurationHours, setClipDurationHours] = useState(0.0)
   const [clipDurationMinutes, setClipDurationMinutes] = useState(0.0)
   const [clipDurationSeconds, setClipDurationSeconds] = useState(0.0)
   const [clipDurationMilliSeconds, setClipDurationMilliSeconds] = useState(0.0)
@@ -102,10 +108,11 @@ const EditClip = ({
   const [readySetGo, setReadySetGo] = useState('')
 
   useEffect(() => {
+    setClipDescriptionText(initialClipDescriptionText ?? '')
     handleClipStartTimeInputsRender()
     handleClipEndTimeInputsRender()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clipStartTime, clipEndTime])
+  }, [clipStartTime, clipEndTime, initialClipDescriptionText])
 
   useEffect(() => {
     // setClipDescriptionText(initialClipDescriptionText);
@@ -171,6 +178,7 @@ const EditClip = ({
 
   const handleClipEndTimeInputsRender = () => {
     const cardFormat = convertSecondsToCardFormat(clipEndTime).split(':')
+    setClipDurationHours(parseInt(cardFormat[0]))
     setClipDurationMinutes(parseInt(cardFormat[1]))
     setClipDurationSeconds(parseInt(cardFormat[2]))
     setClipDurationMilliSeconds(parseInt(cardFormat[3]))
@@ -265,13 +273,12 @@ const EditClip = ({
     }
   }
 
-  // lot of if else conditions to ensure correct input in the start time number fields.
-  // const handleOnChangeClipStartTimeHours = (e: any) => {
-  //   setClipStartTimeHours(e.target.value);
-  //   if (e.target.value.length > 2) {
-  //     setClipStartTimeHours(e.target.value.substring(0, 2));
-  //   }
-  // };
+  const handleOnChangeClipStartTimeHours = (e: any) => {
+    setClipStartTimeHours(e.target.value)
+    if (e.target.value.length > 2) {
+      setClipStartTimeHours(e.target.value.substring(0, 2))
+    }
+  }
   const handleOnChangeClipStartTimeMinutes = (e: any) => {
     setClipStartTimeMinutes(e.target.value)
     // if (e.target.value.length > 2) {
@@ -373,55 +380,120 @@ const EditClip = ({
     )
   }
 
-  // handle save clip description - axios call -> generate audio & update endtime, duration
-  const handleClickSaveClipDescription = (e: any) => {
-    e.preventDefault()
-    // check if the clip has been updated
-    if (clipDescriptionText !== initialClipDescriptionText) {
-      // show spinner
-      setShowSpinner(true)
-      axios
-        .put(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
-          {
-            userId: userId,
-            youtubeVideoId: youtubeVideoId,
-            clipDescriptionText: clipDescriptionText,
-            clipDescriptionType: clipDescriptionType,
-            audioDescriptionId: audioDescriptionId,
-          },
-        )
-        .then((res) => {
-          // below prop is used to re-render the parent component i.e. fetch audio clip data
-          setUpdateData(!updateData)
-          setShowSpinner(false) // stop showing spinner
-          toast.success('Description Saved Successfully!!') // show toast message
-        })
-        .catch((err) => {
-          // err.response.data.message has the message text send by the server
-          toast.error(err.response.data.message) // show toast message
-        })
+  const handleBlurClipStartTimeHours = (e: any) => {
+    // Store the current clipStartTimeHours in a temp variable
+    let tempStartTimeHours = clipStartTimeHours
+    // Ensure the input value is within bounds
+    if (e.target.value.length === 1) {
+      setClipStartTimeHours(Number(e.target.value + '0'))
+      tempStartTimeHours = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      }
+    } else if (e.target.value.length === 2) {
+      // If the input is two digits, ensure it's within bounds
+      const inputValue = parseInt(e.target.value, 10)
+      if (inputValue >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      } else {
+        setClipStartTimeHours(inputValue)
+        tempStartTimeHours = inputValue
+      }
+    } else if (e.target.value.length === 0) {
+      // If the input is empty, set it to 0
+      setClipStartTimeHours(0)
+      tempStartTimeHours = 0
     }
+    const calculatedSeconds =
+      +e.target.value * 3600 +
+      +clipStartTimeMinutes * 60 +
+      +clipStartTimeSeconds +
+      +clipStartTimeMilliSeconds / 1000
+
+    if (clipPlaybackType === 'inline') {
+      if (calculatedSeconds + clipDuration <= videoLength) {
+        handleClipStartTimeUpdate(calculatedSeconds)
+      } else {
+        toast.error(
+          'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
+        )
+        handleClipStartTimeInputsRender()
+      }
+    }
+    // extended clip
+    else {
+      // check if the updated start time is more than the videolength, if yes, throw error and retain the old state
+      if (calculatedSeconds < videoLength) {
+        // handleClipStartTimeUpdate is the prop function received from parent component - this runs an axios PUT call and updates the clipStartTime
+        handleClipStartTimeUpdate(calculatedSeconds)
+      } else {
+        toast.error(
+          'Oops!! Start Time cannot be later than the video end time.',
+        ) // show toast error message
+        handleClipStartTimeInputsRender()
+      }
+    }
+  }
+
+  // handle save clip description - axios call -> generate audio & update endtime, duration
+  const saveClipDescription = (e: any) => {
+    e.preventDefault()
+    handleClickSaveClipDescription(clipDescriptionText)
+    // // check if the clip has been updated
+    // if (clipDescriptionText !== initialClipDescriptionText) {
+    //   // show spinner
+    //   setShowSpinner(true)
+    //   axios
+    //     .put(
+    //       `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
+    //       {
+    //         userId: userId,
+    //         youtubeVideoId: youtubeVideoId,
+    //         clipDescriptionText: clipDescriptionText,
+    //         clipDescriptionType: clipDescriptionType,
+    //         audioDescriptionId: audioDescriptionId,
+    //       },
+    //     )
+    //     .then((res) => {
+    //       // below prop is used to re-render the parent component i.e. fetch audio clip data
+    //       setUpdateData(!updateData)
+    //       setShowSpinner(false) // stop showing spinner
+    //       toast.success('Description Saved Successfully!!') // show toast message
+    //     })
+    //     .catch((err) => {
+    //       // err.response.data.message has the message text send by the server
+    //       toast.error(err.response.data.message) // show toast message
+    //     })
+    // }
   }
 
   // delete a clip
   const handleClickDeleteClip = (e: any) => {
     setShowSpinner(true)
     e.preventDefault()
-    console.log(clipId)
+
     axios
       .delete(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/delete-clip/${clipId}`,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          params: {
+            youtubeVideoId: youtubeVideoId,
+          },
+        },
       )
       .then((res) => {
         toast.success(
           'Clip Deleted Successfully!! Please wait while we fetch latest Clip Data',
         )
         fetchUserVideoData()
+        setUndoDeletedClip(true)
         setNeedRefresh(true)
-        // setTimeout(() => {
-        //   window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
-        // }, 3000); // setting the timeout to show the toast message for 4 sec
       })
       .catch((err) => {
         console.error(err)
@@ -469,7 +541,7 @@ const EditClip = ({
           }, 4000) // setting the timeout to show the toast message for 4 sec
         })
         .catch((err) => {
-          console.log(err)
+          // console.log(err)
           toast.error(
             'Error while replacing Audio Clip. Please try again later.',
           )
@@ -514,19 +586,22 @@ const EditClip = ({
                 name="description"
                 value={clipDescriptionText}
                 onChange={(e) => setClipDescriptionText(e.target.value)}
+                disabled={isPreview}
               ></TextareaAutosize>
               {/* play, save & Delete buttons */}
               <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
                 <Button
                   className="btn rounded btn-sm text-white bg-danger ydx-button"
                   onClick={() => setIsDeleteModal(true)}
+                  disabled={isPreview}
                 >
                   <i className="fa fa-trash" /> {'  '} Delete
                 </Button>
                 <Button
                   type="button"
                   className="btn rounded btn-sm text-white save-desc-btn ydx-button"
-                  onClick={handleClickSaveClipDescription}
+                  onClick={saveClipDescription}
+                  disabled={isPreview}
                 >
                   <i className="fa fa-save" /> {'  '} Save
                 </Button>
@@ -563,6 +638,20 @@ const EditClip = ({
               </h6>
               <div className="edit-time-div">
                 <div className="text-dark text-center d-flex justify-content-evenly">
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark ydx-input"
+                    min="0"
+                    value={padNumber(clipStartTimeHours)}
+                    onChange={handleOnChangeClipStartTimeHours}
+                    onBlur={handleBlurClipStartTimeHours}
+                    onKeyDown={(evt) =>
+                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      evt.preventDefault()
+                    }
+                  />
+                  <div className="mx-1">:</div>
                   <input
                     type="number"
                     style={{ width: '25px' }}
@@ -622,6 +711,20 @@ const EditClip = ({
               </h6>
               <div className="edit-time-div">
                 <div className="text-dark text-center d-flex justify-content-evenly">
+                  <input
+                    type="number"
+                    style={{ width: '25px' }}
+                    className="text-white bg-dark ydx-input"
+                    min="0"
+                    value={padNumber(clipDurationHours)}
+                    // onChange={handleOnChangeClipStartTimeMinutes}
+                    // onBlur={handleBlurClipStartTimeMinutes}
+                    onKeyDown={(evt) =>
+                      ['e', 'E', '+', '-'].includes(evt.key) &&
+                      evt.preventDefault()
+                    }
+                  />
+                  <div className="mx-1">:</div>
                   <input
                     type="number"
                     style={{ width: '25px' }}
@@ -687,13 +790,22 @@ const EditClip = ({
         </div>
         {/* vertical divider line */}
         <div className="d-flex justify-content-between align-items-start">
-          <div className="d-flex flex-column align-items-center">
+          <div
+            className="d-flex flex-column align-items-center"
+            style={{
+              visibility: isPreview ? 'hidden' : 'visible',
+            }}
+          >
             <h6>Or</h6>
             <div className="vertical-divider-div"></div>
           </div>
         </div>
         {/* Record & Replace Section */}
-        <div>
+        <div
+          style={{
+            visibility: isPreview ? 'hidden' : 'visible',
+          }}
+        >
           <h6 className="text-white text-center">
             Record & Replace AI&apos;s voice
           </h6>

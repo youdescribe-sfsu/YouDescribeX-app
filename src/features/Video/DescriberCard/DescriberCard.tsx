@@ -1,6 +1,7 @@
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import React, { ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './describerCard.scss'
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
   handleDescriberChange: (describerId: string) => void
   handleRating: (rating: number) => void
   handleRatingPopup: () => void
+  handleFeedbackPopup: () => void
+  videoId?: string
 }
 
 const DescriberCard = ({
@@ -23,17 +26,39 @@ const DescriberCard = ({
   handleDescriberChange,
   handleRating,
   handleRatingPopup,
+  handleFeedbackPopup,
+  videoId,
 }: Props) => {
+  const navigate = useNavigate()
   const getButton = (): ReactNode => {
+    const userName = userDataStore.getState().userName
+    const isDescriber = name === userName
     if (describerId === selectedDescriberId) {
-      return (
+      return isDescriber ? (
         <Button
-          ariaLabel={translate("Rate this describer's audio description")}
-          title={translate("Rate this describer's audio description")}
-          text={translate('Rate description')}
-          color="w3-indigo w3-block"
-          onClick={() => handleRatingPopup()}
+          ariaLabel={translate('Edit your audio description')}
+          title={translate('Edit your audio description')}
+          text={translate('Edit description')}
+          color="w3-indigo w3-block w3-margin-top"
+          onClick={() => navigate(`/editor/${videoId}/${selectedDescriberId}`)}
         />
+      ) : (
+        <>
+          <Button
+            ariaLabel={translate("Rate this describer's audio description")}
+            title={translate("Rate this describer's audio description")}
+            text={translate('Rate description')}
+            color="w3-indigo w3-block w3-margin-top"
+            onClick={() => handleRatingPopup()}
+          />
+          <Button
+            ariaLabel={translate('Provide feedback for this describer')}
+            title={translate('Provide feedback for this describer')}
+            text={translate('Optional feedback')}
+            color="w3-indigo w3-block w3-margin-top"
+            onClick={() => handleFeedbackPopup()}
+          />
+        </>
       )
     }
     return (
@@ -77,11 +102,13 @@ const DescriberCard = ({
       <div className="w3-card-2">
         <div className="w3-row">
           <div className="w3-col l3 m5 s3">
-            <img src={picture} alt={`Profile picture of ${name}`} />
+            {name !== 'AI Description Draft' && (
+              <img src={picture} alt={`Profile picture of ${name}`} />
+            )}
           </div>
           <div className="w3-col l9 m7 s9">
             {name}
-            <div className="rating" aria-hidden="true">
+            <div className="rating-desc" aria-hidden="true">
               {getStars()}
             </div>
             <div className="skip">

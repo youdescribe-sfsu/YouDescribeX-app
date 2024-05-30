@@ -1,8 +1,7 @@
-import React, { ChangeEvent, useMemo, useState } from 'react'
+import { debounce } from 'debounce'
+import { ChangeEvent, useMemo, useState } from 'react'
 import Form from 'react-bootstrap/Form'
 import './videoPlayerControls.scss'
-import { OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { debounce } from 'debounce'
 
 interface Props {
   descriptionVolume: number
@@ -21,32 +20,32 @@ const VideoPlayerControls = ({
     useState<number>(descriptionVolume)
   const [YTValue, setYTValue] = useState<number>(youTubeVideoVolume)
 
-  const showAudioDuckingTooltip = (props: any) => {
-    return (
-      <Tooltip {...props}>
-        Audio ducking will reduce the volume of a video when an audio
-        description is playing. The description volume slider controls the audio
-        description volume and the video volume slider controls the YouTube
-        video volume.
-      </Tooltip>
-    )
-  }
+  // const showAudioDuckingTooltip = (props: any) => {
+  //   return (
+  //     <Tooltip {...props}>
+  //       Audio ducking will reduce the volume of a video when an audio
+  //       description is playing. The description volume slider controls the audio
+  //       description volume and the video volume slider controls the YouTube
+  //       video volume.
+  //     </Tooltip>
+  //   )
+  // }
 
-  const showDescriptionVolumeTooltip = (props: any) => {
-    return (
-      <Tooltip {...props}>
-        The description volume slider controls the audio description volume
-      </Tooltip>
-    )
-  }
+  // const showDescriptionVolumeTooltip = (props: any) => {
+  //   return (
+  //     <Tooltip {...props}>
+  //       The description volume slider controls the audio description volume
+  //     </Tooltip>
+  //   )
+  // }
 
-  const showVideoVolumeTooltip = (props: any) => {
-    return (
-      <Tooltip {...props}>
-        The video volume slider controls the YouTube video volume
-      </Tooltip>
-    )
-  }
+  // const showVideoVolumeTooltip = (props: any) => {
+  //   return (
+  //     <Tooltip {...props}>
+  //       The video volume slider controls the YouTube video volume
+  //     </Tooltip>
+  //   )
+  // }
 
   const handleYouTubeVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
     setYTValue(parseInt(e.target.value))
@@ -56,7 +55,7 @@ const VideoPlayerControls = ({
   const debouncedYouTubeVolumeChange = useMemo(
     () =>
       debounce((value: number) => {
-        console.log('Updating YT Volume', value)
+        // console.log('Updating YT Volume', value)
         setYouTubeVideoVolume(value)
       }, 500),
     [setYouTubeVideoVolume],
@@ -69,7 +68,7 @@ const VideoPlayerControls = ({
   const debouncedDescriptionVolumeChange = useMemo(
     () =>
       debounce((value: number) => {
-        console.log('Updating Description Volume', value)
+        // console.log('Updating Description Volume', value)
         setDescriptionVolume(value)
       }, 500),
     [setDescriptionVolume],

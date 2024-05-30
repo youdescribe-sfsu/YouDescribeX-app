@@ -5,6 +5,8 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import NewAudioClipComponent from '../NewAudioClip/NewAudioClip'
 import ModalComponent from '../../../shared/components/Modal/Modal'
+import { toast } from 'react-toastify'
+import { userDataStore } from '@/App'
 
 interface Props {
   handleClicksFromParent: string
@@ -67,32 +69,37 @@ const InsertPublish = ({
       )
       .then(function (response) {
         reset()
-        console.log(response)
+        // console.log(response)
       })
       .catch(function (error) {
-        console.log(error)
+        // console.log(error)
       })
   }
 
-  const handlePublish = async (e: any) => {
-    console.log('publish')
+  const handlePublish = async (e: any, checkbox: boolean | undefined) => {
+    // console.log('publish')
+
     axios
       .post(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/add-timedata-to-db/addtimedata`,
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/publish-audio-description`,
         {
-          participant_id: participantId,
-          time: seconds,
-          video_id: youtubeVideoId,
+          audioDescriptionId,
+          youtube_id: youtubeVideoId,
+          enrolled_in_collaborative_editing: checkbox,
+        },
+        {
+          withCredentials: true,
         },
       )
       .then(function (response) {
-        reset()
-        console.log(response)
+        setNeedRefresh(true)
+        toast.success('Audio description published successfully!')
+        // console.log(response)
       })
       .catch(function (error) {
-        console.log(error)
+        // console.log(error)
+        toast.error('Error publishing audio description!')
       })
-    navigate(`/userstudy/${participantId}`)
   }
 
   useEffect(() => {
@@ -116,7 +123,7 @@ const InsertPublish = ({
             Insert {showInlineACComponent ? 'Inline' : 'Extended'} Audio Clip
           </h5>
           <NewAudioClipComponent
-            userId={userId}
+            userId={userDataStore.getState().userId}
             youtubeVideoId={youtubeVideoId}
             showInlineACComponent={showInlineACComponent}
             setShowNewACComponent={setShowNewACComponent}
@@ -171,6 +178,8 @@ const InsertPublish = ({
         modalTask={handlePublish}
         show={isModal}
         handleClose={() => setIsModal(false)}
+        showCheckbox={true}
+        checkBoxText="Enroll in Collaborative Editing"
       />
     </React.Fragment>
   )
