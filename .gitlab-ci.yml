@@ -1,101 +1,75 @@
-variables:
-  CI_PROJECT_NAME: youdescribex-app
-  DOCKER_REGISTRY: youdescribe
-  S3_BUCKET: youdescribexci
-  S3_PATH: youdescribex-app
-  CI_REGISTRY: docker.io
-  TAR_FILE_NAME: "youdescribex-app.tar"
-  TAR_FILE_FOLDER: ".docker"
-  TAR_FILE_PATH: "/"
-  DOCKER_IMAGE_TAG: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}.${CI_PIPELINE_ID}"
-
 stages:
   - build
+  - test
   - deploy
 
-cache:
-  paths:
-    - node_modules/
+variables:
+  IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
 
-build-stage:
+services:
+  - docker:19.03.12-dind
+
+before_script:
+  - echo "Starting job on runner: $CI_RUNNER_DESCRIPTION"
+  - echo "Running on branch: $CI_COMMIT_REF_NAME"
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+build:
   stage: build
-  image: docker:20.10.16
-  services:
-    - docker:20.10.16-dind
+  script:
+    - echo "Building Docker image..."
+    - docker build -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
+    - echo "Docker image built and pushed: $IMAGE_NAME"
+  tags:
+    - frontend
+  only:
+    - branches
+    - dev
+    - main
+
+test:
+  stage: test
+  script:
+    - echo "Installing dependencies..."
+    - npm install
+    - echo "Running linting..."
+    - npm run lint
+    - echo "Running tests..."
+    - npm run test
+  tags:
+    - frontend
+  only:
+    - branches
+    - dev
+    - main
+
+deploy_dev:
+  stage: deploy
+  script:
+    - echo "Deploying to development environment..."
+    - docker pull $IMAGE_NAME
+    - docker run -d -p $PORT:$PORT --env-file .env $IMAGE_NAME
+    - echo "Deployment to development environment completed."
   tags:
     - dev, frontend
-  before_script:
-    - docker login -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_PASSWORD" $CI_REGISTRY
-  rules:
-    - if: $CI_COMMIT_BRANCH == "dev"
-      when: always
-  script:
-    - echo "Building YouDescribe Frontend in staging"
-    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t "${DOCKER_IMAGE_TAG}" .
-    - docker push "${DOCKER_IMAGE_TAG}"
-    - echo "Build complete"
+  only:
+    - dev
+  after_script:
+    - echo "Deploy job completed for development environment."
 
-build-prod:
-  stage: build
-  image: docker:20.10.16
-  services:
-    - docker:20.10.16-dind
+deploy_prod:
+  stage: deploy
+  script:
+    - echo "Deploying to production environment..."
+    - docker pull $IMAGE_NAME
+    - docker run -d -p $PORT:$PORT --env-file .env $IMAGE_NAME
+    - echo "Deployment to production environment completed."
   tags:
     - frontend, prod
-  before_script:
-    - docker login -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_PASSWORD" $CI_REGISTRY
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: always
-  script:
-    - echo "Building YouDescribe Frontend in prod"
-    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t "${DOCKER_IMAGE_TAG}" .
-    - docker push "${DOCKER_IMAGE_TAG}"
-    - echo "Build complete"
-
-deploy-stage:
-  stage: deploy
-  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
-  tags:
-    - dev, frontend
-  rules:
-    - if: $CI_COMMIT_BRANCH == "dev"
-      when: on_success
-  script:
-    - echo "Downloading docker-compose.yml from S3"
-    - sed -i "s|#DOCKER_IMAGE_TAG|${DOCKER_IMAGE_TAG}|g" docker_compose_service.yml
-    - sed -i "s|#PORT|${PORT}|g" docker_compose_service.yml
-    - cat docker_compose_service.yml  # Display the modified file for verification
-    - echo "Updating S3 bucket with the new Docker image"
-    - aws s3 cp docker_compose_service.yml "s3://${S3_BUCKET}/${S3_PATH}/docker_compose_service.yml"
-    - |
-      aws s3 cp s3://${S3_BUCKET}/youdescribe-docs/docker_compose_service.yml youdescribe-docs.yml
-      aws s3 cp s3://${S3_BUCKET}/youdescribex-app/docker_compose_service.yml youdescribex-app.yml
-      aws s3 cp s3://${S3_BUCKET}/youdescribex-api/docker_compose_service.yml youdescribex-api.yml
-
-      cat <<EOF > docker-compose_new.yml
-      version: '3'
-      
-      services:
-      $(awk '{printf "  %s\n", $0}' youdescribe-docs.yml)
-      $(awk '{printf "  %s\n", $0}' youdescribex-app.yml)
-      $(awk '{printf "  %s\n", $0}' youdescribex-api.yml)
-      EOF
-
-      aws s3 cp docker-compose_new.yml "s3://${S3_BUCKET}/docker-compose.yml"
-    - echo "Updating the S3 stack with the new Docker image"
-
-deploy-prod:
-  stage: deploy
-  tags:
-    - frontend, prod
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: on_success
-  script:
-    - echo "Stopping old YouDescribe Frontend instance"
-    - docker compose down
-    - echo "Deleting old YouDescribe Frontend container"
-    - echo "Starting up/Deploying newest YouDescribe Frontend build"
-    - docker compose up -d
-    - echo "Finished deploying YouDescribe Frontend build to staging"
+  only:
+    - main
+  after_script:
+    - echo "Deploy job completed for production environment."
