@@ -865,9 +865,12 @@ const Video = () => {
             // console.log('Handle Rating')
           }}
           videoId={videoId}
-          collaborativeEdit={describers[describerId].collaborative_edit 
-                              && (!describers[describerId].depth || describers[describerId].depth< 3)
-                              && checkUserCanCollaborate(describers, describerId)}
+          collaborativeEdit={
+            describers[describerId].collaborative_edit &&
+            (!describers[describerId].depth ||
+              describers[describerId].depth < 3) &&
+            checkUserCanCollaborate(describers, describerId)
+          }
           contributions={describers[describerId].contributions}
         />,
       )
@@ -877,23 +880,23 @@ const Video = () => {
   }, [audioDescriptionsIdsUsers, selectedADId])
 
   const checkUserCanCollaborate = (ads: any, selectedDescriberId: string) => {
-    if (!ads) return false;
-  
-    const userId = userDataStore.getState().userId;
-    const selectedId = selectedDescriberId;
-  
+    if (!ads) return false
+
+    const userId = userDataStore.getState().userId
+    const selectedId = selectedDescriberId
+
     for (const describerId of Object.keys(ads)) {
-      const adUserId = ads[describerId].user._id;
-      const prevAdId = ads[describerId].prev_audio_description;
-      console.log(ads[describerId].user._id);
-  
+      const adUserId = ads[describerId].user._id
+      const prevAdId = ads[describerId].prev_audio_description
+      console.log(ads[describerId].user._id)
+
       if (adUserId === userId && prevAdId === selectedId) {
-        return false;
+        return false
       }
     }
-  
-    return true;
-  };
+
+    return true
+  }
 
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
