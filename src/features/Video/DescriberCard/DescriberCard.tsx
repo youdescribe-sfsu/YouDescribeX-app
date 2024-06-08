@@ -2,7 +2,6 @@ import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import React, { ReactNode } from 'react'
 import Accordion from 'react-bootstrap/Accordion'
-
 import { useNavigate } from 'react-router-dom'
 import './describerCard.scss'
 
