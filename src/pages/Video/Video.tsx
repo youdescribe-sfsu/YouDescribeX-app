@@ -640,16 +640,14 @@ const Video = () => {
             currentTimeRef.current,
           )
 
-          // If an Inline Clip is Playing - Return
+          // If an inline clip is already playing, return
           if (currentInlineACRef.current?.playing()) {
             console.info('An inline clip is already playing')
             return
           }
-          // If the clip is not playing, play it
-          console.info('Playing clip by Seeking to current time')
-          // Play Inline Clip
+
+          console.info('Playing clip by seeking to current time')
           const currentFilteredClip = clipStackRef.current[0]
-          // console.log('Clip to be Played', currentFilteredClip)
 
           // Play the inline clip
           const currentAudio = currentFilteredClip.clip_audio
