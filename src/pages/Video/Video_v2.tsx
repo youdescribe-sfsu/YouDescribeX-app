@@ -854,6 +854,7 @@ const Video = () => {
           handleDescriberChange={handleDescriberChange}
           handleRatingPopup={handleRatingPopup}
           handleFeedbackPopup={handleFeedbackPopup}
+          handleNewCollabEdit={handleNewCollabEdit}
           describerId={describerId}
           selectedDescriberId={selectedADId}
           picture={describers[describerId].picture}
@@ -864,6 +865,8 @@ const Video = () => {
           handleRating={() => {
             // console.log('Handle Rating')
           }}
+          videoId={videoId}
+          collaborativeEdit={describers[describerId].collaborative_edit}
         />,
       )
     })
@@ -928,6 +931,49 @@ const Video = () => {
       audioDescriptionsIdsUsers,
       audioDescriptionsIdsAudioClips,
     )
+  }
+  const handleNewCollabEdit = async (describerId: string) => {
+    // console.log(userDataStore.getState())
+    if (!userDataStore.getState().isSignedIn) {
+      toast.error(
+        translate('You have to be logged in in order to add a description'),
+      )
+    } else {
+      try {
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`
+        const response = await axios.post(
+          url,
+          {
+            youtubeVideoId: videoId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        const data = response.data
+        // console.log(data)
+        const collabUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-collaborative-ad`
+        const collabResponse = await axios.post(
+          collabUrl,
+          {
+            describerId: describerId, // Pass the describerId to the API
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        navigate(`/editor/${data.url}`)
+      } catch (error) {
+        // console.log(error)
+        toast.error('Something went wrong, please try again later')
+      }
+    }
   }
 
   const handleTurnOffDescriptions = () => {

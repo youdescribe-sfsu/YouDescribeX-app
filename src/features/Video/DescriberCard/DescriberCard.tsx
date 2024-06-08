@@ -14,7 +14,9 @@ interface Props {
   handleRating: (rating: number) => void
   handleRatingPopup: () => void
   handleFeedbackPopup: () => void
+  handleNewCollabEdit: (describerId: string) => void
   videoId?: string
+  collaborativeEdit?: boolean
 }
 
 const DescriberCard = ({
@@ -27,11 +29,14 @@ const DescriberCard = ({
   handleRating,
   handleRatingPopup,
   handleFeedbackPopup,
+  handleNewCollabEdit,
   videoId,
+  collaborativeEdit,
 }: Props) => {
   const navigate = useNavigate()
   const getButton = (): ReactNode => {
     const userName = userDataStore.getState().userName
+    console.log('checking describerid', selectedDescriberId)
     const isDescriber = name === userName
     if (describerId === selectedDescriberId) {
       return isDescriber ? (
@@ -58,6 +63,17 @@ const DescriberCard = ({
             color="w3-indigo w3-block w3-margin-top"
             onClick={() => handleFeedbackPopup()}
           />
+          {collaborativeEdit && (
+            <Button
+              ariaLabel={translate(
+                'Provide Collaborative edit for this describer',
+              )}
+              title={translate('Provide Collaborative edit for this describer')}
+              text={translate('Collaborative edit')}
+              color="w3-lime w3-block w3-margin-top"
+              onClick={() => handleNewCollabEdit(describerId)}
+            />
+          )}
         </>
       )
     }
