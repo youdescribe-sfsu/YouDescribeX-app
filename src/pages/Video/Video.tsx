@@ -355,6 +355,7 @@ const Video = () => {
             feedbacks: ad.feedbacks,
             picture: ad.user.picture,
             user: ad.user,
+
             name:
               ad.user?.user_type === 'AI'
                 ? 'AI Description Draft'
@@ -604,8 +605,6 @@ const Video = () => {
         return
       }
 
-      const bufferDuration = 200
-
       // If an inline clip is supposed to be playing right now but the user has either skipped to a time in the middle of the clip
       // Or there was an overlap which caused the start time of the clip to be skipped
       // Play the clip by seeking to the current time
@@ -621,14 +620,16 @@ const Video = () => {
             currentTimeRef.current,
           )
 
-          // If an inline clip is already playing, return
+          // If an Inline Clip is Playing - Return
           if (currentInlineACRef.current?.playing()) {
             console.info('An inline clip is already playing')
             return
           }
-
-          console.info('Playing clip by seeking to current time')
+          // If the clip is not playing, play it
+          console.info('Playing clip by Seeking to current time')
+          // Play Inline Clip
           const currentFilteredClip = clipStackRef.current[0]
+          // console.log('Clip to be Played', currentFilteredClip)
 
           // Play the inline clip
           const currentAudio = currentFilteredClip.clip_audio
@@ -641,63 +642,71 @@ const Video = () => {
             return
           }
 
-          // Ensure the audio clip is fully loaded before seeking and playing
-          if (currentAudio?.state() !== 'loaded') {
-            console.debug('Waiting for audio clip to load')
-            currentAudio?.once('load', () => {
-              console.debug('Audio clip loaded')
-              currentAudio.seek(seekTime)
-              currentAudio.play()
-            })
-          } else {
-            console.debug('Audio clip already loaded')
-            currentAudio.seek(seekTime)
-            currentAudio.play()
-          }
-
+          console.debug(`Seeking to ${seekTime} seconds`)
+          currentAudio?.seek(seekTime)
+          currentAudio?.play()
           setCurrInlineAC(currentAudio)
+
           setPlayedAudioClip(currentFilteredClip.clip_id)
+          //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
+          // console.log('PLaying clip', clipAudioPath)
 
           if (clipAudioPath !== playedClipPath) {
+            // console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
+            // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
+
+            // console.log('Playing inline clip')
+            if (
+              currentAudio?.playing() ||
+              currentInlineACRef.current?.playing()
+              // currentFilteredClip.clip_id === clipIDRef.current
+            ) {
+              // console.log('Clip is already playing')
+              return
+            }
+            // console.log(
+            //   'Seeking to',
+            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
+            //   'seconds',
+            // )
 
             // Event listeners for play and end
             currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
             })
-
             currentAudio?.once('end', () => {
-              // Introduce a delay before moving to the next audio clip
-              setTimeout(() => {
-                setCurrInlineAC(undefined)
-                currentAudio.unload()
-
-                // Load a new clip and add it to the stack
-                const newClip =
-                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-                if (newClip) {
-                  newClip.clip_audio = new Howl({
-                    src: newClip.clip_audio_path,
-                    html5: true,
-                  })
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                    newClip,
-                  ])
-                } else {
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                  ])
-                }
-              }, bufferDuration) // Add the buffer time here
+              setCurrInlineAC(undefined)
+              currentAudio.unload()
             })
+
+            // see onStateChange() - storing current inline clip.
+            setCurrInlineAC(currentAudio)
+
+            // Load a new clip and add it to the stack
+            // console.log('Current Clip Index', currentClipIndexRef.current)
+
+            const newClip =
+              audioClips[currentClipIndexRef.current + clipStackSize - 1]
+            // console.log('New CLIP (seeked inline) => ', newClip)
+            if (newClip) {
+              newClip.clip_audio = new Howl({
+                src: newClip.clip_audio_path,
+                html5: true,
+              })
+              setClipStack([
+                ...clipStackRef.current.slice(1, clipStackSize),
+                newClip,
+              ])
+            } else {
+              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+            }
           }
         }
       }
-
       // Case for playing extended clips when the player come across their start or end times
       // Compare current window with clip at current clip index
       else {
@@ -954,6 +963,7 @@ const Video = () => {
             handleDescriberChange={handleDescriberChange}
             handleRatingPopup={handleRatingPopup}
             handleFeedbackPopup={handleFeedbackPopup}
+            handleNewCollabEdit={handleNewCollabEdit}
             describerId={describerId}
             selectedDescriberId={selectedADId}
             picture={describers[describerId].picture}
@@ -1035,6 +1045,26 @@ const Video = () => {
   }
 
   const handleDescriberChange = (describerId: string) => {
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.pause()
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.pause()
+    }
+    setCurrExtendedAC(undefined)
+    setCurrInlineAC(undefined)
+    currentEventRef.current?.pauseVideo()
+    setSelectedADId(describerId)
+    setSearchParams((params) => {
+      if (describerId) params.set('ad', describerId)
+      return params
+    })
+    setAudioDescriptionActive(
+      audioDescriptionsIdsUsers,
+      audioDescriptionsIdsAudioClips,
+    )
+  }
+  const handleTest = (describerId: string) => {
     if (currentInlineACRef.current?.playing()) {
       currentInlineACRef.current?.pause()
     }
@@ -1353,6 +1383,15 @@ const Video = () => {
       return
     }
 
+    if (videoDurationInSeconds > 600) {
+      toast.error(
+        translate(
+          'YouDescribe currently supports videos that are 10 minutes or less. Please wait for further updates.',
+        ),
+      )
+      return
+    }
+
     if (requestAiDescription.status === 'pending') {
       setRequestAiDescription({
         status: 'pending',
@@ -1418,6 +1457,14 @@ const Video = () => {
     }
   }
   const handleRequestAIDescriptions = () => {
+    if (videoDurationInSeconds > 600) {
+      toast.error(
+        translate(
+          'YouDescribe currently supports videos that are 10 minutes or less. Please wait for further updates.',
+        ),
+      )
+      return
+    }
     // Show the language selector modal
     setShowLanguageSelector(true)
   }

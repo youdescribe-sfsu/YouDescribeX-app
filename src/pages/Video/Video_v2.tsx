@@ -854,6 +854,7 @@ const Video = () => {
           handleDescriberChange={handleDescriberChange}
           handleRatingPopup={handleRatingPopup}
           handleFeedbackPopup={handleFeedbackPopup}
+          handleNewCollabEdit={handleNewCollabEdit}
           describerId={describerId}
           selectedDescriberId={selectedADId}
           picture={describers[describerId].picture}
