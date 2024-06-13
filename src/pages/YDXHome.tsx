@@ -727,6 +727,7 @@ const YDXHome = (): React.ReactElement => {
     switch (event.data) {
       case 0: // end of the video
         clearInterval(timer)
+        setGloballyPaused(true)
         // event.target.seekTo(0);
         break
       case 1: // Playing
