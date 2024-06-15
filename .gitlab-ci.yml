@@ -23,8 +23,8 @@ build_dev:
   stage: build
   script:
     - echo "Building Docker image for development..."
-    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t "${IMAGE_NAME}" .
-    - docker push "${IMAGE_NAME}"
+    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
     - echo "Build complete"
   tags:
     - frontend
@@ -36,8 +36,8 @@ build_prod:
   stage: build
   script:
     - echo "Building Docker image for production..."
-    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t "${IMAGE_NAME}" .
-    - docker push "${IMAGE_NAME}"
+    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
     - echo "Build complete"
   tags:
     - frontend
@@ -49,9 +49,9 @@ deploy_dev:
   stage: deploy
   script:
     - echo "Deploying to development environment..."
-    - docker pull "${IMAGE_NAME}"
-    - docker run -d -p $PORT:$PORT --env-file .env "${IMAGE_NAME}"
-    - echo "Deployment to development environment completed."
+    - docker-compose -f docker-compose.yml pull
+    - docker-compose -f docker-compose.yml down
+    - docker-compose -f docker-compose.yml up -d
   tags:
     - frontend
     - dev
@@ -62,9 +62,9 @@ deploy_prod:
   stage: deploy
   script:
     - echo "Deploying to production environment..."
-    - docker pull "${IMAGE_NAME}"
-    - docker run -d -p $PORT:$PORT --env-file .env "${IMAGE_NAME}"
-    - echo "Deployment to production environment completed."
+    - docker-compose -f docker-compose.yml pull
+    - docker-compose -f docker-compose.yml down
+    - docker-compose -f docker-compose.yml up -d
   tags:
     - frontend
     - prod
