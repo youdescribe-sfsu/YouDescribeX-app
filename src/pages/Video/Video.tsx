@@ -53,6 +53,7 @@ interface IADUserId {
     picture: string
     name: string
     collaborative_edit: boolean
+    contributions: Map<string, number>
   }
 }
 
@@ -355,6 +356,7 @@ const Video = () => {
                 ? 'AI Description Draft'
                 : ad.user.name,
             collaborative_edit: ad.collaborative_editing,
+            contributions: ad.contributions,
           }
         } else {
           // If adIdsUsers[ad._id] already exists, update the name property conditionally
@@ -951,6 +953,7 @@ const Video = () => {
             }}
             videoId={videoId}
             collaborativeEdit={describers[describerId].collaborative_edit}
+            contributions={describers[describerId].contributions}
           />,
         )
       })

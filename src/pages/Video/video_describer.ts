@@ -34,6 +34,7 @@ export interface AudioDescription {
   collaborative_editing: boolean
   __v: number
   feedbacks: Feedbacks
+  contributions: Map<string, number>
 }
 
 export interface AudioClip {
