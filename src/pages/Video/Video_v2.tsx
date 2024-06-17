@@ -864,6 +864,9 @@ const Video = () => {
           handleRating={() => {
             // console.log('Handle Rating')
           }}
+          videoId={videoId}
+          collaborativeEdit={describers[describerId].collaborative_edit}
+          contributions={describers[describerId].contributions}
         />,
       )
     })

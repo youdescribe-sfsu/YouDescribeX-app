@@ -15,6 +15,8 @@ interface Props {
   handleRatingPopup: () => void
   handleFeedbackPopup: () => void
   videoId?: string
+  collaborativeEdit?: boolean,
+  contributions: Map<string, number>
 }
 
 const DescriberCard = ({
@@ -28,6 +30,8 @@ const DescriberCard = ({
   handleRatingPopup,
   handleFeedbackPopup,
   videoId,
+  collaborativeEdit,
+  contributions
 }: Props) => {
   const navigate = useNavigate()
   const getButton = (): ReactNode => {
@@ -97,17 +101,49 @@ const DescriberCard = ({
     return stars
   }
 
+  const getDisplayedName = (): string => {
+    if (!contributions || contributions.size <= 1) {
+      return name
+    }
+    const keysArray = Array.from(Object.keys(contributions));
+    return keysArray.join('/');
+  }
+
+  const renderContributionBars = () => {
+    if (!contributions || contributions.size <= 1) {
+      return null;
+    }
+
+    const maxContribution = Math.max(...Array.from(Object.values(contributions)));
+
+    return (
+      <div className="contribution-bars">
+        {Array.from(Object.entries(contributions)).map(([id, contribution]) => (
+          <div key={id} className="contribution-bar">
+            <div>{id}</div>
+            <div>
+              <div style={{ width: `${(contribution / maxContribution) * 100}%` }}></div>
+              <div>{contribution.toFixed(2)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const needAvatar = name !== 'AI Description Draft' && (!contributions || contributions.size <= 1);
+
   return (
     <div id="describer-card" className="describer-card">
       <div className="w3-card-2">
         <div className="w3-row">
           <div className="w3-col l3 m5 s3">
-            {name !== 'AI Description Draft' && (
+            {needAvatar && (
               <img src={picture} alt={`Profile picture of ${name}`} />
             )}
           </div>
-          <div className="w3-col l9 m7 s9">
-            {name}
+          {needAvatar ? (<div className="w3-col l9 m7 s9">
+            {getDisplayedName()}
             <div className="rating-desc" aria-hidden="true">
               {getStars()}
             </div>
@@ -117,6 +153,21 @@ const DescriberCard = ({
                 : `${Math.round(overall_rating_average)} star rating`}
             </div>
           </div>
+          ):(
+            <div className="w3-col l12 m12 s12">
+              {getDisplayedName()}
+              <div className="rating-desc" aria-hidden="true">
+                {getStars()}
+              </div>
+              <div className="skip">
+                {Number.isNaN(Math.round(overall_rating_average))
+                  ? 'no ratings'
+                  : `${Math.round(overall_rating_average)} star rating`}
+              </div>
+              {renderContributionBars()}
+            </div>
+          
+          )}
         </div>
         <hr aria-hidden="true" />
         {getButton()}

@@ -79,6 +79,22 @@ const InsertPublish = ({
   const handlePublish = async (e: any, checkbox: boolean | undefined) => {
     // console.log('publish')
 
+    axios.post(
+      `${process.env.REACT_APP_YDX_BACKEND_URL}/api//create-user-links/calculate-contributions`,
+      {
+        audioDescriptionId: audioDescriptionId,
+      },
+      {
+        withCredentials: true,
+      },
+    )
+    .then(function (response) {
+      console.log(response)
+    })
+    .catch(function (error) {
+      console.error(error)
+      toast.error('Error calculate contribution!')
+    });
     axios
       .post(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/publish-audio-description`,
