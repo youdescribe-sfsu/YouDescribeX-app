@@ -53,7 +53,7 @@ interface IADUserId {
     picture: string
     name: string
     collaborative_edit: boolean
-
+    contributions: Map<string, number>
   }
 }
 
@@ -374,8 +374,8 @@ const Video = () => {
               ad.user?.user_type === 'AI'
                 ? 'AI Description Draft'
                 : ad.user?.name || 'Unknown',
-              collaborative_edit: ad.collaborative_editing,
-
+            collaborative_edit: ad.collaborative_editing,
+            contributions: ad.contributions,
           }
           console.log(`User data for ${adId}:`, adIdsUsers[adId])
         } else {
@@ -982,6 +982,7 @@ const Video = () => {
             }}
             videoId={videoId}
             collaborativeEdit={describers[describerId].collaborative_edit}
+            contributions={describers[describerId].contributions}
           />,
         )
       })
