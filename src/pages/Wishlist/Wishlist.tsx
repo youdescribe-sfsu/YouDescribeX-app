@@ -896,7 +896,7 @@ const Wishlist = () => {
                 overflow: 'visible !important',
                 whiteSpace: 'break-spaces !important',
                 textOverflow: 'unset !important',
-                overflowWrap: 'break-word !important',
+                OverflowWrap: 'break-word !important',
               },
             },
           }}
