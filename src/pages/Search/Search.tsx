@@ -1,3 +1,6 @@
+import React, { ReactNode, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { translate } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import ClassicSpinner from '@/shared/components/ClassicSpinner/ClassicSpinner'
@@ -8,9 +11,6 @@ import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardForma
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import ourFetch from '@/shared/utils/ourFetch'
-import React, { ReactNode, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { toast } from 'react-toastify'
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -30,6 +30,7 @@ const Search = () => {
     setLoadingYTVideos(true)
     setVideoAlreadyOnYD([]) // Reset videoAlreadyOnYD to an empty array
     setVideosNotOnYD([]) // Reset videosNotOnYD to an empty array
+    setShowYTButton(false) // Reset showYTButton state
     getSearchResultsFromYd(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
@@ -75,7 +76,9 @@ const Search = () => {
         })
     })
   }
+
   const getSearchResultsFromYt = (page = 1) => {
+    setLoadingYTVideos(true)
     const value = searchParams.get('q') ?? ''
     let query = (value || '').trim()
     if (
@@ -87,20 +90,26 @@ const Search = () => {
       query = url.searchParams.get('v') ?? ''
     }
     const urlForYD = `${youTubeApiUrl}/search?part=snippet&q=${query}&maxResults=50&key=${youTubeApiKey}`
-    ourFetch(urlForYD).then((videos: any) => {
-      const videoFoundOnYTIds = []
-      for (let i = 0; i < videos.items.length; i++) {
-        const video = videos.items[i]
-        videoFoundOnYTIds.push(video.id.videoId)
-      }
-      const idsYTvideo = videoFoundOnYTIds.join(',')
-      const urlForYT = `${youTubeApiUrl}/videos?id=${idsYTvideo}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-      ourFetch(urlForYT).then((videosFromYouTube: any) => {
+    ourFetch(urlForYD)
+      .then((videos: any) => {
+        const videoFoundOnYTIds = []
+        for (let i = 0; i < videos.items.length; i++) {
+          const video = videos.items[i]
+          videoFoundOnYTIds.push(video.id.videoId)
+        }
+        const idsYTvideo = videoFoundOnYTIds.join(',')
+        const urlForYT = `${youTubeApiUrl}/videos?id=${idsYTvideo}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
+        return ourFetch(urlForYT)
+      })
+      .then((videosFromYouTube: any) => {
         const videoFromYoutube = videosFromYouTube.items
         setVideosNotOnYD([])
         renderVideosFromYT(videoFromYoutube)
       })
-    })
+      .catch((error) => {
+        console.error('Error fetching YouTube results:', error)
+        setLoadingYTVideos(false)
+      })
   }
 
   const fetchAndRenderVideoFromYD = (
