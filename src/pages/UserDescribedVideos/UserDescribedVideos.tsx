@@ -11,6 +11,7 @@ import ourFetch from '@/shared/utils/ourFetch'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
+import './UserDescribedVideos.css'
 
 const UserDescribedVideos = () => {
   const [showSpinner, setShowSpinner] = useState(true)
@@ -281,6 +282,14 @@ const UserDescribedVideos = () => {
 
             {showSpinner ? <Spinner /> : null}
 
+            {videos.length === 0 && !showSpinner && (
+              <div className="no-videos-message">
+                <i className="fas fa-video-slash no-videos-icon"></i>
+                <p className="no-videos-text">
+                  {translate('No videos to display')}
+                </p>
+              </div>
+            )}
             <div className="w3-row classic-container row">{videos}</div>
 
             {YDLoadMoreButton}
@@ -292,6 +301,14 @@ const UserDescribedVideos = () => {
 
             {showSpinner ? <Spinner /> : null}
 
+            {videosDraft.length === 0 && !showSpinner && (
+              <div className="no-videos-message">
+                <i className="fas fa-video-slash no-videos-icon"></i>
+                <p className="no-videos-text">
+                  {translate('No draft videos to display')}
+                </p>
+              </div>
+            )}
             <div className="w3-row classic-container row">{videosDraft}</div>
 
             {YDLoadMoreButtonDraft}
@@ -303,6 +320,14 @@ const UserDescribedVideos = () => {
 
             {showSpinner ? <Spinner /> : null}
 
+            {videosAI.length === 0 && !showSpinner && (
+              <div className="no-videos-message">
+                <i className="fas fa-video-slash no-videos-icon"></i>
+                <p className="no-videos-text">
+                  {translate('No AI requested videos to display')}
+                </p>
+              </div>
+            )}
             <div className="w3-row classic-container row">{videosAI}</div>
 
             {YDLoadMoreButtonAI}
