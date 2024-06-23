@@ -348,6 +348,7 @@ const Video = () => {
             overall_rating_votes_sum: ad.overall_rating_votes_sum,
             feedbacks: ad.feedbacks,
             picture: ad.user.picture,
+
             name:
               ad.user.user_type && ad.user.user_type === 'AI'
                 ? 'AI Description Draft'
@@ -547,6 +548,7 @@ const Video = () => {
     playedClipPath: string,
   ) => {
     setCurrentTime(time)
+    currentTimeRef.current = time
     // check if the audio is not played recently. do not play it again.
     if (recentAudioPlayedTime !== time) {
       // To Play audio files based on current time
@@ -770,6 +772,7 @@ const Video = () => {
     const currentTime = event.target.getCurrentTime()
     setCurrentEvent(event.target)
     setCurrentTime(currentTime)
+    currentTimeRef.current = currentTime
     setCurrentState(event.data)
     switch (event.data) {
       case 0: // end of the video
@@ -1372,6 +1375,7 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
+    requestAiDescription.status = 'notavailable'
     if (
       requestAiDescription.status == 'completed' &&
       requestAiDescription.url &&
