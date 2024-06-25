@@ -6,9 +6,6 @@ variables:
   CI_PROJECT_NAME: youdescribex-app
   DOCKER_REGISTRY: youdescribe
   CI_REGISTRY: docker.io
-  TAR_FILE_NAME: "youdescribex-app.tar"
-  TAR_FILE_FOLDER: ".docker"
-  TAR_FILE_PATH: "/"
   IMAGE_NAME: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}.${CI_PIPELINE_ID}"
 
 services:
@@ -16,16 +13,25 @@ services:
 
 before_script:
   - echo "Logging into Docker..."
-  - docker login -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_PASSWORD" $CI_REGISTRY
-  - docker info
+  - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USER" --password-stdin $CI_REGISTRY
 
-build_dev:
+.build_template: &build_template
   stage: build
   script:
-    - echo "Building Docker image for development..."
-    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t $IMAGE_NAME .
+    - echo "Building Docker image..."
+    - docker build --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT"
+      --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL"
+      --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL"
+      -t $IMAGE_NAME .
     - docker push $IMAGE_NAME
     - echo "Build complete"
+
+build_dev:
+  <<: *build_template
+  variables:
+    REACT_APP_ENVIRONMENT: development
+    REACT_APP_REDIRECT_URL: $REACT_APP_REDIRECT_URL_DEV
+    REACT_APP_YDX_BACKEND_URL: $REACT_APP_YDX_BACKEND_URL_DEV
   tags:
     - frontend
     - dev
@@ -33,25 +39,29 @@ build_dev:
     - dev
 
 build_prod:
-  stage: build
-  script:
-    - echo "Building Docker image for production..."
-    - docker build --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID" --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT" --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL" --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL" --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX" --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL" --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION" --build-arg PORT="$PORT" --build-arg APP_PORT="$PORT" -t $IMAGE_NAME .
-    - docker push $IMAGE_NAME
-    - echo "Build complete"
+  <<: *build_template
+  variables:
+    REACT_APP_ENVIRONMENT: production
+    REACT_APP_REDIRECT_URL: $REACT_APP_REDIRECT_URL_PROD
+    REACT_APP_YDX_BACKEND_URL: $REACT_APP_YDX_BACKEND_URL_PROD
   tags:
     - frontend
     - prod
   only:
     - main
 
-deploy_dev:
+.deploy_template: &deploy_template
   stage: deploy
   script:
-    - echo "Deploying to development environment..."
-    - docker-compose -f docker-compose-dev.yml pull
-    - docker-compose -f docker-compose-dev.yml down
-    - docker-compose -f docker-compose-dev.yml up -d
+    - echo "Deploying to $CI_ENVIRONMENT_NAME environment..."
+    - docker-compose -f docker-compose.yml pull
+    - docker-compose -f docker-compose.yml down
+    - docker-compose -f docker-compose.yml up -d
+
+deploy_dev:
+  <<: *deploy_template
+  environment:
+    name: dev
   tags:
     - frontend
     - dev
@@ -59,12 +69,9 @@ deploy_dev:
     - dev
 
 deploy_prod:
-  stage: deploy
-  script:
-    - echo "Deploying to production environment..."
-    - docker-compose -f docker-compose-prod.yml pull
-    - docker-compose -f docker-compose-prod.yml down
-    - docker-compose -f docker-compose-prod.yml up -d
+  <<: *deploy_template
+  environment:
+    name: prod
   tags:
     - frontend
     - prod
