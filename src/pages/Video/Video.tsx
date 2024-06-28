@@ -40,7 +40,7 @@ import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
 import axios, { AxiosResponse } from 'axios'
-import { Feedbacks, VideoDescriberRoot } from './video_describer'
+import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
 // import iso6391 from 'iso-639-1'
 
@@ -49,11 +49,14 @@ interface IADUserId {
     overall_rating_votes_counter: number
     overall_rating_average: number
     overall_rating_votes_sum: number
+    user: User
     feedbacks: Feedbacks
     picture: string
     name: string
     collaborative_edit: boolean
     contributions: Map<string, number>
+    prev_audio_description: string
+    depth: number
   }
 }
 
@@ -340,60 +343,44 @@ const Video = () => {
       videoData.audio_descriptions &&
       videoData.audio_descriptions.length > 0
     ) {
-      console.log(
-        `Found ${videoData.audio_descriptions.length} audio descriptions`,
-      )
+      videoData.audio_descriptions.forEach((ad) => {
+        adIds.push(ad._id)
 
-      videoData.audio_descriptions.forEach((ad, index) => {
-        console.log(`Processing audio description ${index + 1}:`, ad)
-
-        if (!ad || typeof ad !== 'object') {
-          console.warn('Invalid audio description object:', ad)
-          return // Skip this iteration
-        }
-
-        const adId = ad._id
-        if (!adId) {
-          console.warn('Audio description missing _id:', ad)
-          return // Skip this iteration
-        }
-
-        adIds.push(adId)
-        console.log(`Added adId: ${adId}`)
-
-        // Initialize or update adIdsUsers[adId]
-        if (!adIdsUsers[adId]) {
-          console.log(`Creating new entry for adId: ${adId}`)
-          adIdsUsers[adId] = {
-            overall_rating_votes_counter: ad.overall_rating_votes_counter || 0,
-            overall_rating_average: ad.overall_rating_votes_average || 0,
-            overall_rating_votes_sum: ad.overall_rating_votes_sum || 0,
-            feedbacks: ad.feedbacks || [],
-            picture: ad.user?.picture || '',
+        // Initialize adIdsUsers[ad._id] as an object if it doesn't exist
+        if (!adIdsUsers[ad._id]) {
+          adIdsUsers[ad._id] = {
+            overall_rating_votes_counter: ad.overall_rating_votes_counter,
+            overall_rating_average: ad.overall_rating_votes_average,
+            overall_rating_votes_sum: ad.overall_rating_votes_sum,
+            feedbacks: ad.feedbacks,
+            picture: ad.user.picture,
+            user: ad.user,
             name:
               ad.user?.user_type === 'AI'
                 ? 'AI Description Draft'
                 : ad.user?.name || 'Unknown',
             collaborative_edit: ad.collaborative_editing,
             contributions: ad.contributions,
+            prev_audio_description: ad.prev_audio_description,
+            depth: ad.depth
           }
-          console.log(`User data for ${adId}:`, adIdsUsers[adId])
+          console.log(`User data for ${ad._id}:`, adIdsUsers[ad._id])
         } else {
-          console.log(`Updating existing entry for adId: ${adId}`)
+          console.log(`Updating existing entry for adId: ${ad._id}`)
           // Update existing entry's name
-          adIdsUsers[adId].name =
+          adIdsUsers[ad._id].name =
             ad.user?.user_type === 'AI'
               ? 'AI Description Draft'
               : ad.user?.name || 'Unknown'
-          console.log(`Updated name for ${adId}:`, adIdsUsers[adId].name)
+          console.log(`Updated name for ${ad._id}:`, adIdsUsers[ad._id].name)
         }
 
         // Initialize adIdsAudioClips[adId]
-        adIdsAudioClips[adId] = []
+        adIdsAudioClips[ad._id] = []
 
         if (Array.isArray(ad.audio_clips) && ad.audio_clips.length > 0) {
           console.log(
-            `Processing ${ad.audio_clips.length} audio clips for adId: ${adId}`,
+            `Processing ${ad.audio_clips.length} audio clips for adId: ${ad._id}`,
           )
 
           ad.audio_clips.forEach((audioClip, clipIndex) => {
@@ -417,7 +404,7 @@ const Video = () => {
               `${filePath}/${audioClip.file_name}`,
             )}`
 
-            adIdsAudioClips[adId].push({
+            adIdsAudioClips[ad._id].push({
               ...audioClip,
               url: clipUrl,
             })
@@ -425,7 +412,7 @@ const Video = () => {
             console.log(`Added audio clip with URL: ${clipUrl}`)
           })
         } else {
-          console.log(`No audio clips found for adId: ${adId}`)
+          console.log(`No audio clips found for adId: ${ad._id}`)
         }
       })
 
@@ -978,7 +965,9 @@ const Video = () => {
               // console.log('Handle Rating')
             }}
             videoId={videoId}
-            collaborativeEdit={describers[describerId].collaborative_edit}
+            collaborativeEdit={describers[describerId].collaborative_edit 
+                                && (!describers[describerId].depth || describers[describerId].depth< 3)
+                                && checkUserCanCollaborate(describers, describerId)}
             contributions={describers[describerId].contributions}
           />,
         )
@@ -988,6 +977,25 @@ const Video = () => {
     }
   }, [audioDescriptionsIdsUsers, selectedADId])
 
+  const checkUserCanCollaborate = (ads: IADUserId | null, selectedDescriberId: string) => {
+    if (!ads) return false;
+  
+    const userId = userDataStore.getState().userId;
+    const selectedId = selectedDescriberId;
+  
+    for (const describerId of Object.keys(ads)) {
+      const adUserId = ads[describerId].user._id;
+      const prevAdId = ads[describerId].prev_audio_description;
+      console.log(ads[describerId].user._id);
+  
+      if (adUserId === userId && prevAdId === selectedId) {
+        return false;
+      }
+    }
+  
+    return true;
+  };
+  
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
@@ -1271,6 +1279,37 @@ const Video = () => {
         />
       )
     })
+  }
+  const handleNewCollabEdit = async (describerId: string) => {
+    if (!userDataStore.getState().isSignedIn) {
+      toast.error(
+        translate('You have to be logged in in order to add a description'),
+      )
+    } else {
+      try {
+        const collabUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-collaborative-ad`
+        const response = await axios.post(
+          collabUrl,
+          {
+            youtubeVideoId: videoId,
+            oldDescriberId: selectedADId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        const data = response.data
+        console.log('inside handle new collab....')
+
+        navigate(`/editor/${data.url}`)
+      } catch (error) {
+        console.log(error)
+        toast.error('Something went wrong, please try again later')
+      }
+    }
   }
 
   const handleAddDescription = async () => {
