@@ -5,9 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="aae9e7e8-8c00-4751-959e-0b08a5e90aa4" name="Changes" comment="changing the parseVideoData function logic">
+      <change afterPath="$PROJECT_DIR$/.idea/YouDescribeX-app.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_3_2_2024_2_05_AM_[Changes]/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_3_2_2024_2_05_AM_[Changes]1/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_3_2_2024_2_05_AM__Changes_.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/watcherTasks.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/features/Describe/InsertPublish/InsertPublish.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/Describe/InsertPublish/InsertPublish.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/features/Video/DescriberCard/DescriberCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/Video/DescriberCard/DescriberCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/features/Video/DescriberCard/describerCard.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/Video/DescriberCard/describerCard.scss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pages/Video/Video.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/Video/Video.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pages/Video/Video_v2.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/Video/Video_v2.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pages/Video/video_describer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/Video/video_describer.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -169,7 +183,7 @@
       <workItem from="1720595165290" duration="573000" />
       <workItem from="1721764122933" duration="11839000" />
       <workItem from="1721849163619" duration="1989000" />
-      <workItem from="1721947884433" duration="4328000" />
+      <workItem from="1721947884433" duration="4413000" />
     </task>
     <task id="LOCAL-00001" summary="bug squash for user descriptions tab">
       <option name="closed" value="true" />
