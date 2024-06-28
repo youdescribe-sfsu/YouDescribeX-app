@@ -40,7 +40,7 @@ import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
 import axios, { AxiosResponse } from 'axios'
-import { Feedbacks, VideoDescriberRoot } from './video_describer'
+import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
 // import iso6391 from 'iso-639-1'
 
@@ -49,11 +49,14 @@ interface IADUserId {
     overall_rating_votes_counter: number
     overall_rating_average: number
     overall_rating_votes_sum: number
+    user: User
     feedbacks: Feedbacks
     picture: string
     name: string
     collaborative_edit: boolean
     contributions: Map<string, number>
+    prev_audio_description: string
+    depth: number
   }
 }
 
@@ -370,12 +373,15 @@ const Video = () => {
             overall_rating_votes_sum: ad.overall_rating_votes_sum || 0,
             feedbacks: ad.feedbacks || [],
             picture: ad.user?.picture || '',
+            user:ad.user,
             name:
               ad.user?.user_type === 'AI'
                 ? 'AI Description Draft'
                 : ad.user?.name || 'Unknown',
             collaborative_edit: ad.collaborative_editing,
             contributions: ad.contributions,
+            prev_audio_description: ad.prev_audio_description,
+            depth: ad.depth
           }
           console.log(`User data for ${adId}:`, adIdsUsers[adId])
         } else {
@@ -981,7 +987,9 @@ const Video = () => {
               // console.log('Handle Rating')
             }}
             videoId={videoId}
-            collaborativeEdit={describers[describerId].collaborative_edit}
+            collaborativeEdit={describers[describerId].collaborative_edit
+                                && (!describers[describerId].depth || describers[describerId].depth< 3)
+                                && checkUserCanCollaborate(describers, describerId)}
             contributions={describers[describerId].contributions}
           />,
         )
@@ -990,6 +998,25 @@ const Video = () => {
       setDescriberCards(describerCards)
     }
   }, [audioDescriptionsIdsUsers, selectedADId])
+
+  const checkUserCanCollaborate = (ads: IADUserId | null, selectedDescriberId: string) => {
+    if (!ads) return false;
+
+    const userId = userDataStore.getState().userId;
+    const selectedId = selectedDescriberId;
+
+    for (const describerId of Object.keys(ads)) {
+      const adUserId = ads[describerId].user._id;
+      const prevAdId = ads[describerId].prev_audio_description;
+      console.log(ads[describerId].user._id);
+
+      if (adUserId === userId && prevAdId === selectedId) {
+        return false;
+      }
+    }
+
+    return true;
+  };
 
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
@@ -1287,7 +1314,7 @@ const Video = () => {
           collabUrl,
           {
             youtubeVideoId: videoId,
-            oldDescriberId: describerId,
+            oldDescriberId: selectedADId,
           },
           {
             withCredentials: true,

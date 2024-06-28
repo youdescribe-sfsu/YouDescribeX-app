@@ -35,6 +35,8 @@ export interface AudioDescription {
   __v: number
   feedbacks: Feedbacks
   contributions: Map<string, number>
+  prev_audio_description: string,
+  depth: number
 }
 
 export interface AudioClip {
