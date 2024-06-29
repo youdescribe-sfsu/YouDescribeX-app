@@ -119,19 +119,19 @@ const History = () => {
 
   const getRecentDescriptionsUrl = () => {
     return process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/audio-descriptions/get-my-descriptions`
       : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
   }
 
   const getUserHistoryUrl = () => {
     return process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/create-user-links/get-Visited-Videos-History`
       : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
   }
 
   const getAiRequestedVideosUrl = () => {
     return process.env.REACT_APP_USE_YDX
-      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-user-Ai-DescriptionRequests`
+      ? `${process.env.REACT_APP_YDX_BACKEND_URL}/create-user-links/get-user-Ai-DescriptionRequests`
       : `${apiUrl}/api/create-user-links/get-user-Ai-DescriptionRequests`
   }
 
