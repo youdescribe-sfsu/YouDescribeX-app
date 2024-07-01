@@ -3,7 +3,7 @@ const apiVersion = 'v1'
 
 // DON'T CHANGE THESE URLS!
 
-const apiUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api`
+const apiUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}`
 // let apiUrl = `http://localhost:8080/${apiVersion}`;
 // let apiUrl = `https://test-api.youdescribe.org/${apiVersion}`;
 
