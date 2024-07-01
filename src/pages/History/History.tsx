@@ -120,19 +120,19 @@ const History = () => {
   const getRecentDescriptionsUrl = () => {
     return process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
-      : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
+      : `${apiUrl}/audio-descriptions/get-my-descriptions`
   }
 
   const getUserHistoryUrl = () => {
     return process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
-      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
+      : `${apiUrl}/create-user-links/get-Visited-Videos-History`
   }
 
   const getAiRequestedVideosUrl = () => {
     return process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-user-Ai-DescriptionRequests`
-      : `${apiUrl}/api/create-user-links/get-user-Ai-DescriptionRequests`
+      : `${apiUrl}/create-user-links/get-user-Ai-DescriptionRequests`
   }
 
   const fetchVideosData: FetchVideosDataFunction = async (
