@@ -12,7 +12,6 @@ const ourFetch = (
   optionObj: {
     method: 'GET' | 'POST' | 'DELETE' | 'PUT'
     headers?: { [key: string]: string }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body?: any
   } = {
     method: 'GET',
@@ -20,19 +19,17 @@ const ourFetch = (
 ): Promise<Response> => {
   return new Promise<Response>((resolve, reject) => {
     const req = new XMLHttpRequest()
-    req.open(optionObj.method, url)
+
+    // Check if the URL is absolute
+    const absoluteUrl = new URL(url, window.location.origin)
+
+    req.open(optionObj.method, absoluteUrl.toString())
+
     if (optionObj.headers) {
       for (const key in optionObj.headers) {
         req.setRequestHeader(key, optionObj.headers[key])
       }
     }
-
-    /* used for visit counter */
-    // if (!sessionStorage.getItem("visit")) {
-    //   sessionStorage.setItem("visit", Date.now());
-    // }
-    // req.setRequestHeader("Visit", sessionStorage.getItem("visit"));
-    /* end of used for visit counter */
 
     req.onload = () => {
       if (req.status === 200) {
@@ -45,6 +42,11 @@ const ourFetch = (
         reject(JSON.parse(req.response))
       }
     }
+
+    req.onerror = () => {
+      reject(new Error('Network error occurred'))
+    }
+
     req.send(optionObj.body)
   })
 }
