@@ -89,29 +89,11 @@ const fetchVideoDetails = async (videoIds: string[]) => {
     const url = `${youTubeApiUrl}/videos?id=${videoIds.join(
       ',',
     )}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-
-    console.log('Fetching video details from URL:', url)
-    console.log('YouTube API URL:', youTubeApiUrl)
-
-    const response: any = await ourFetch(url)
-
-    console.log('Received response:', response)
-
-    if (response.status !== 200) {
-      throw new Error(`YouTube API error: ${response.message}`)
-    }
-
-    window.localStorage.setItem(
-      'userVideosYoutubeData',
-      JSON.stringify(response.result),
-    )
-
-    console.log('Video details stored in localStorage')
-    console.log('Returning items:', response.result.items)
-
-    return response.result.items
+    const data: any = await ourFetch(url)
+    window.localStorage.setItem('userVideosYoutubeData', JSON.stringify(data))
+    return data.items
   } catch (error) {
-    console.error('Error in fetchVideoDetails:', error)
+    console.error('Error fetching video details:', error)
     return []
   }
 }
