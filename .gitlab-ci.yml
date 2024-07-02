@@ -29,7 +29,6 @@ before_script:
 build_dev:
   <<: *build_template
   variables:
-    REACT_APP_ENVIRONMENT: production
     REACT_APP_REDIRECT_URL: $REACT_APP_REDIRECT_URL_DEV
     REACT_APP_YDX_BACKEND_URL: $REACT_APP_YDX_BACKEND_URL_DEV
   tags:
@@ -41,7 +40,6 @@ build_dev:
 build_prod:
   <<: *build_template
   variables:
-    REACT_APP_ENVIRONMENT: production
     REACT_APP_REDIRECT_URL: $REACT_APP_REDIRECT_URL_PROD
     REACT_APP_YDX_BACKEND_URL: $REACT_APP_YDX_BACKEND_URL_PROD
   tags:
