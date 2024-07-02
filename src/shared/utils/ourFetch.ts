@@ -18,10 +18,15 @@ const ourFetch = (
   },
 ): Promise<Response> => {
   return new Promise<Response>((resolve, reject) => {
+    console.log('ourFetch called with URL:', url)
+    console.log('Method:', optionObj.method)
+    console.log('Headers:', optionObj.headers)
+
     const req = new XMLHttpRequest()
 
     // Check if the URL is absolute
     const absoluteUrl = new URL(url, window.location.origin)
+    console.log('Absolute URL:', absoluteUrl.toString())
 
     req.open(optionObj.method, absoluteUrl.toString())
 
@@ -32,6 +37,10 @@ const ourFetch = (
     }
 
     req.onload = () => {
+      console.log('XHR onload triggered')
+      console.log('Status:', req.status)
+      console.log('Response:', req.response)
+
       if (req.status === 200) {
         if (JSONparsing) {
           resolve(JSON.parse(req.response))
@@ -43,11 +52,13 @@ const ourFetch = (
       }
     }
 
-    req.onerror = () => {
+    req.onerror = (error) => {
+      console.error('XHR error:', error)
       reject(new Error('Network error occurred'))
     }
 
     req.send(optionObj.body)
+    console.log('XHR request sent')
   })
 }
 
