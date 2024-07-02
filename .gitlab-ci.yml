@@ -19,9 +19,16 @@ before_script:
   stage: build
   script:
     - echo "Building Docker image..."
-    - docker build --build-arg REACT_APP_ENVIRONMENT="$REACT_APP_ENVIRONMENT"
+    - docker build
       --build-arg REACT_APP_REDIRECT_URL="$REACT_APP_REDIRECT_URL"
       --build-arg REACT_APP_YDX_BACKEND_URL="$REACT_APP_YDX_BACKEND_URL"
+      --build-arg REACT_APP_YOUTUBE_API_URL="$REACT_APP_YOUTUBE_API_URL"
+      --build-arg REACT_APP_YOUTUBE_API_KEY="$REACT_APP_YOUTUBE_API_KEY"
+      --build-arg REACT_APP_LOGROCKET_ID="$REACT_APP_LOGROCKET_ID"
+      --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID"
+      --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX"
+      --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL"
+      --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION"
       -t $IMAGE_NAME .
     - docker push $IMAGE_NAME
     - echo "Build complete"
@@ -29,8 +36,11 @@ before_script:
 build_dev:
   <<: *build_template
   variables:
+    REACT_APP_ENVIRONMENT: development
     REACT_APP_REDIRECT_URL: $REACT_APP_REDIRECT_URL_DEV
     REACT_APP_YDX_BACKEND_URL: $REACT_APP_YDX_BACKEND_URL_DEV
+    REACT_APP_YOUTUBE_API_URL: $REACT_APP_YOUTUBE_API_URL_DEV
+    REACT_APP_YOUTUBE_API_KEY: $REACT_APP_YOUTUBE_API_KEY_DEV
   tags:
     - frontend
     - dev
@@ -40,8 +50,11 @@ build_dev:
 build_prod:
   <<: *build_template
   variables:
+    REACT_APP_ENVIRONMENT: production
     REACT_APP_REDIRECT_URL: $REACT_APP_REDIRECT_URL_PROD
     REACT_APP_YDX_BACKEND_URL: $REACT_APP_YDX_BACKEND_URL_PROD
+    REACT_APP_YOUTUBE_API_URL: $REACT_APP_YOUTUBE_API_URL_PROD
+    REACT_APP_YOUTUBE_API_KEY: $REACT_APP_YOUTUBE_API_KEY_PROD
   tags:
     - frontend
     - prod
