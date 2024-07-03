@@ -1,6 +1,8 @@
 import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import React, { ReactNode } from 'react'
+import Accordion from 'react-bootstrap/Accordion'
+
 import { useNavigate } from 'react-router-dom'
 import './describerCard.scss'
 
@@ -16,7 +18,7 @@ interface Props {
   handleFeedbackPopup: () => void
   handleNewCollabEdit: (describerId: string) => void
   videoId?: string
-  collaborativeEdit?: boolean,
+  collaborativeEdit?: boolean
   contributions: Map<string, number>
 }
 
@@ -33,7 +35,7 @@ const DescriberCard = ({
   handleNewCollabEdit,
   videoId,
   collaborativeEdit,
-  contributions
+  contributions,
 }: Props) => {
   const navigate = useNavigate()
   const getButton = (): ReactNode => {
@@ -119,16 +121,18 @@ const DescriberCard = ({
     if (!contributions || contributions.size <= 1) {
       return name
     }
-    const keysArray = Array.from(Object.keys(contributions));
-    return keysArray.join('/');
+    const keysArray = Array.from(Object.keys(contributions))
+    return keysArray.join('/')
   }
 
   const renderContributionBars = () => {
     if (!contributions || contributions.size <= 1) {
-      return null;
+      return null
     }
 
-    const maxContribution = Math.max(...Array.from(Object.values(contributions)));
+    const maxContribution = Math.max(
+      ...Array.from(Object.values(contributions)),
+    )
 
     return (
       <div className="contribution-bars">
@@ -136,55 +140,68 @@ const DescriberCard = ({
           <div key={id} className="contribution-bar">
             <div>{id}</div>
             <div>
-              <div style={{ width: `${(contribution / maxContribution) * 100}%` }}></div>
+              <div
+                style={{ width: `${(contribution / maxContribution) * 100}%` }}
+              ></div>
               <div>{contribution.toFixed(2)}</div>
             </div>
           </div>
         ))}
       </div>
-    );
-  };
+    )
+  }
 
-  const needAvatar = name !== 'AI Description Draft' && (!contributions || contributions.size <= 1);
+  const needAvatar =
+    name !== 'AI Description Draft' &&
+    (!contributions || contributions.size <= 1)
 
   return (
     <div id="describer-card" className="describer-card">
       <div className="w3-card-2">
         <div className="w3-row">
-          <div className="w3-col l3 m5 s3">
-            {needAvatar && (
-              <img src={picture} alt={`Profile picture of ${name}`} />
-            )}
-          </div>
-          {needAvatar ? (<div className="w3-col l9 m7 s9">
-            {getDisplayedName()}
-            <div className="rating-desc" aria-hidden="true">
-              {getStars()}
-            </div>
-            <div className="skip">
-              {Number.isNaN(Math.round(overall_rating_average))
-                ? 'no ratings'
-                : `${Math.round(overall_rating_average)} star rating`}
-            </div>
-          </div>
-          ):(
-            <div className="w3-col l12 m12 s12">
-              {getDisplayedName()}
-              <div className="rating-desc" aria-hidden="true">
-                {getStars()}
+          {needAvatar && (
+            <>
+              <div className="w3-col l3 m5 s3">
+                <img src={picture} alt={`Profile picture of ${name}`} />
               </div>
-              <div className="skip">
-                {Number.isNaN(Math.round(overall_rating_average))
-                  ? 'no ratings'
-                  : `${Math.round(overall_rating_average)} star rating`}
+              <div className="w3-col l9 m7 s9">
+                {getDisplayedName()}
+                <div className="rating-desc" aria-hidden="true">
+                  {getStars()}
+                </div>
+                <div className="skip">
+                  {Number.isNaN(Math.round(overall_rating_average))
+                    ? 'no ratings'
+                    : `${Math.round(overall_rating_average)} star rating`}
+                </div>
               </div>
-              {renderContributionBars()}
-            </div>
-          
+            </>
+          )}
+          {!needAvatar && (
+            <Accordion defaultActiveKey="0">
+              <Accordion.Item eventKey="0">
+                <Accordion.Header>{getDisplayedName()}</Accordion.Header>
+                <Accordion.Body>
+                  {/* <div className="w3-col l12 m12 s12"> */}
+                  <div className="rating-desc" aria-hidden="true">
+                    {getStars()}
+                  </div>
+                  <div className="skip">
+                    {Number.isNaN(Math.round(overall_rating_average))
+                      ? 'no ratings'
+                      : `${Math.round(overall_rating_average)} star rating`}
+                  </div>
+                  {renderContributionBars()}
+                  <hr aria-hidden="true" />
+                  {getButton()}
+                  {/* </div> */}
+                </Accordion.Body>
+              </Accordion.Item>
+            </Accordion>
           )}
         </div>
-        <hr aria-hidden="true" />
-        {getButton()}
+        {needAvatar && <hr aria-hidden="true" />}
+        {needAvatar && getButton()}
       </div>
     </div>
   )
