@@ -32,6 +32,9 @@ interface Props {
   setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
   fetchUserVideoData: () => void
   isPreview?: boolean
+  setUpdatedDescriptions: React.Dispatch<
+    React.SetStateAction<{ [key: string]: string }>
+  >
 }
 
 const AudioClip = ({
@@ -55,6 +58,7 @@ const AudioClip = ({
   fetchUserVideoData,
   isPreview = false,
   setUndoDeletedClip,
+  setUpdatedDescriptions,
 }: Props) => {
   // all audio clip data from props
   const clipID = clip.clip_id
@@ -71,7 +75,9 @@ const AudioClip = ({
   const clipAudioPath = clip.clip_audio_path
   const isRecorded = clip.is_recorded
   const clipCreatedAt = clip.createdAt
-
+  const [clipDescriptionText, setClipDescriptionText] = useState(
+    clip.description_text,
+  )
   // React State Variables
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [clipPlaybackType, setClipPlayBackType] = useState('')
@@ -343,6 +349,18 @@ const AudioClip = ({
     }
   }
 
+  useEffect(() => {
+    setClipDescriptionText(clip.description_text)
+  }, [clip.description_text])
+
+  const handleDescriptionChange = (newDescription: string) => {
+    setClipDescriptionText(newDescription)
+    setUpdatedDescriptions((prev) => ({
+      ...prev,
+      [clip.clip_id]: newDescription,
+    }))
+  }
+
   return (
     <React.Fragment>
       {/* React Fragments allow you to wrap or group multiple elements without adding an extra node to the DOM. */}
@@ -515,6 +533,7 @@ const AudioClip = ({
             isPreview={isPreview}
             handleClickSaveClipDescription={handleClickSaveClipDescription}
             setUndoDeletedClip={setUndoDeletedClip}
+            setClipDescText={handleDescriptionChange}
           />
         )}
       </div>
