@@ -93,6 +93,9 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   const [playedClipPath, setPlayedClipPath] = useState('') // store clip_audio_path of the audio clip that is already played.
   // Spinner div
   const [showSpinner, setShowSpinner] = useState(false)
+  const [updatedDescriptions, setUpdatedDescriptions] = useState<{
+    [key: string]: string
+  }>({})
 
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
@@ -1131,6 +1134,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               setNeedRefresh={setNeedRefresh}
               isPreview={isPreviewAudioDescription}
               setUndoDeletedClip={setUndoDeletedClip}
+              setUpdatedDescriptions={setUpdatedDescriptions}
             />
           ))}
         </div>
