@@ -55,42 +55,39 @@ const NewAudioClipComponent = ({
     useState(0.0)
 
   useEffect(() => {
-    // scroll to the bottom of the screen and make the Inline AD component visible
     window.scrollTo({
       left: 0,
       top: document.body.scrollHeight,
       behavior: 'smooth',
     })
-    // following statements execute whenever mediaBlobUrl is updated.. used it in the dependency array
+
     if (mediaBlobUrl) {
-      setRecordedAudio(new Audio(mediaBlobUrl))
-      const aud = new Audio(mediaBlobUrl)
-      // set audio duration if recorded
-      aud.addEventListener(
+      console.log('Setting recorded audio:', mediaBlobUrl)
+      const audio = new Audio(mediaBlobUrl)
+      setRecordedAudio(audio)
+      audio.addEventListener(
         'loadedmetadata',
         function () {
-          if (aud.duration === Infinity) {
-            // set it to bigger than the actual duration
-            aud.currentTime = 1e101
-            aud.ontimeupdate = function () {
+          if (audio.duration === Infinity) {
+            audio.currentTime = 1e101
+            audio.ontimeupdate = function () {
               this.ontimeupdate = () => {
                 return
               }
-              setNewACDuration(aud.duration)
-              aud.currentTime = 0
+              setNewACDuration(audio.duration)
+              audio.currentTime = 0
             }
           } else {
-            setNewACDuration(aud.duration)
+            setNewACDuration(audio.duration)
           }
         },
         false,
       )
     }
+
     handleClipStartTimeInputsRender()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mediaBlobUrl])
 
-  // render the values in the input[type='number'] fields of the start time - renders everytime the props_clip_start_time value changes
   const handleClipStartTimeInputsRender = () => {
     setClipStartTimeHours(
       Number(convertSecondsToCardFormat(currentTime).split(':')[0]),
@@ -289,9 +286,6 @@ const NewAudioClipComponent = ({
   // to save the new audio clip into the database
   const handleSaveNewAudioClip = (e: any) => {
     e.preventDefault()
-    if (mediaBlobUrl) {
-      clearBlobUrl()
-    }
     if (newACTitle === '') {
       toast.error('Please enter a Title')
     } else {
@@ -302,10 +296,10 @@ const NewAudioClipComponent = ({
       } else {
         setShowSpinner(true)
         if (mediaBlobUrl) {
-          // axios call to backend with isRecorded true
+          console.log('Saving recorded audio...', mediaBlobUrl)
           saveNewClipInDB({ isRecorded: true })
         } else {
-          // axios call to backend with isRecorded false
+          console.log('Saving text description...')
           saveNewClipInDB({ isRecorded: false })
         }
       }
@@ -314,7 +308,6 @@ const NewAudioClipComponent = ({
 
   const saveNewClipInDB = async ({ isRecorded }: any) => {
     const newACPlaybackType = showInlineACComponent ? 'inline' : 'extended'
-    // create a new FormData object for easy file uploads
     const formData = new FormData()
     formData.append('newACTitle', newACTitle)
     formData.append('newACType', newACType)
@@ -323,42 +316,47 @@ const NewAudioClipComponent = ({
     formData.append('isRecorded', isRecorded)
     formData.append('youtubeVideoId', youtubeVideoId)
     formData.append('userId', userId)
+
     if (!isRecorded) {
       formData.append('newACDescriptionText', newACDescriptionText)
     } else {
-      const audioBlob = await fetch(mediaBlobUrl ?? '').then((r) => r.blob()) // get blob from the audio URI
+      if (!mediaBlobUrl) {
+        console.error('mediaBlobUrl is undefined')
+        toast.error('Error processing audio recording. Please try again.')
+        setShowSpinner(false)
+        return
+      }
+
+      const audioBlob = await fetch(mediaBlobUrl).then((r) => {
+        if (!r.ok)
+          throw new Error(`Network response was not ok: ${r.statusText}`)
+        return r.blob()
+      })
       const audioFile = new File([audioBlob], 'voice.mp3', {
         type: 'audio/mp3',
       })
-      // formData.append('newACDescriptionText', '');
       formData.append('newACDescriptionText', newACDescriptionText)
       formData.append('newACDuration', String(newACDuration))
       formData.append('file', audioFile)
     }
-    // upload formData using axios
-    axios
-      .post(
+
+    try {
+      const response = await axios.post(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/add-new-clip/${audioDescriptionId}`,
         formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        },
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
-      .then((res) => {
-        toast.success(`New Clip Added Successfully!!\n${res.data}`)
-        // setTimeout(() => {
-        //   window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
-        // }, 4000); // setting the timeout to show the toast message for 2 sec
-        setShowNewACComponent(false)
-        setNeedRefresh(true)
-      })
-      .catch((err) => {
-        // console.log(err.response.data.message)
-        toast.error('Error Adding New Clip. Please try again later.')
-      })
+      toast.success(`New Clip Added Successfully!!\n${response.data}`)
+      setShowNewACComponent(false)
+      setNeedRefresh(true)
+    } catch (error) {
+      console.error('Error adding new clip:', error)
+      toast.error('Error Adding New Clip. Please try again later.')
+    } finally {
+      setShowSpinner(false)
+    }
   }
 
-  // handle Record Ready Set Go
   const handleReadySetGo = () => {
     const _321Go = ['3', '2', '1', 'Go', 'start']
     // using the concept of closures & IIFE in JavaScript
