@@ -410,6 +410,9 @@ const Video = () => {
               return // Skip this audio clip
             }
 
+        if (ad.audio_clips.length > 0) {
+          ad.audio_clips.forEach((audioClip) => {
+            // Check for undefined file_path or file_name and skip if missing
             if (!audioClip.file_path || !audioClip.file_name) {
               console.warn(
                 'Missing file_path or file_name for audioClip:',
