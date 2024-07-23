@@ -333,74 +333,81 @@ const Video = () => {
   }
 
   const parseVideoData = (videoData: VideoDescriberRoot) => {
-    // TODO: Add Types
-    const adIds: any[] = []
+    const adIds: string[] = []
     const adIdsUsers: IADUserId = {}
-    const adIdsAudioClips: any = {}
+    const adIdsAudioClips: { [key: string]: any[] } = {}
 
     if (
       videoData.audio_descriptions &&
       videoData.audio_descriptions.length > 0
     ) {
       videoData.audio_descriptions.forEach((ad) => {
-        adIds.push(ad._id)
+        if (!ad || typeof ad !== 'object') {
+          console.warn('Invalid audio description object:', ad)
+          return // Skip this iteration
+        }
 
-        // Initialize adIdsUsers[ad._id] as an object if it doesn't exist
-        if (!adIdsUsers[ad._id]) {
-          adIdsUsers[ad._id] = {
-            overall_rating_votes_counter: ad.overall_rating_votes_counter,
-            overall_rating_average: ad.overall_rating_votes_average,
-            overall_rating_votes_sum: ad.overall_rating_votes_sum,
-            feedbacks: ad.feedbacks,
-            picture: ad.user.picture,
+        const adId = ad._id
+        if (!adId) {
+          console.warn('Audio description missing _id:', ad)
+          return // Skip this iteration
+        }
+
+        adIds.push(adId)
+
+        // Initialize or update adIdsUsers[adId]
+        if (!adIdsUsers[adId]) {
+          adIdsUsers[adId] = {
+            overall_rating_votes_counter: ad.overall_rating_votes_counter || 0,
+            overall_rating_average: ad.overall_rating_votes_average || 0,
+            overall_rating_votes_sum: ad.overall_rating_votes_sum || 0,
+            feedbacks: ad.feedbacks || [],
+            picture: ad.user?.picture || '',
             user: ad.user,
-
             name:
-              ad.user.user_type && ad.user.user_type === 'AI'
+              ad.user?.user_type === 'AI'
                 ? 'AI Description Draft'
-                : ad.user.name,
+                : ad.user?.name || 'Unknown',
             collaborative_edit: ad.collaborative_editing,
             contributions: ad.contributions,
             prev_audio_description: ad.prev_audio_description,
-            depth: ad.depth
+            depth: ad.depth,
           }
         } else {
-          // If adIdsUsers[ad._id] already exists, update the name property conditionally
-          adIdsUsers[ad._id].name =
-            ad.user.user_type && ad.user.user_type === 'AI'
+          // Update existing entry's name
+          adIdsUsers[adId].name =
+            ad.user?.user_type === 'AI'
               ? 'AI Description Draft'
-              : ad.user.name
+              : ad.user?.name || 'Unknown'
         }
 
-        // adIdsUsers[ad._id].overall_rating_votes_counter =
-        //   ad.overall_rating_votes_counter;
-        // adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_votes_average;
-        // adIdsUsers[ad._id].overall_rating_votes_sum = ad.overall_rating_votes_sum;
-        // adIdsUsers[ad._id].feedbacks = ad.feedbacks as De[];
-        adIdsAudioClips[ad._id] = []
+        // Initialize adIdsAudioClips[adId]
+        adIdsAudioClips[adId] = []
 
-        if (ad.audio_clips.length > 0) {
+        if (Array.isArray(ad.audio_clips) && ad.audio_clips.length > 0) {
           ad.audio_clips.forEach((audioClip) => {
-            // Check for undefined file_path or file_name and skip if missing
+            if (!audioClip || typeof audioClip !== 'object') {
+              console.warn('Invalid audio clip object:', audioClip)
+              return // Skip this audio clip
+            }
+
             if (!audioClip.file_path || !audioClip.file_name) {
               console.warn(
-                `Missing file_path or file_name for audioClip:`,
+                'Missing file_path or file_name for audioClip:',
                 audioClip,
               )
               return // Skip this audio clip
             }
 
             const filePath = audioClip.file_path.replace(/^\./, '')
-            audioClip.url = `${audioClipsUploadsPath(
+            const clipUrl = `${audioClipsUploadsPath(
               `${filePath}/${audioClip.file_name}`,
             )}`
 
-            // Initialize adIdsAudioClips[ad._id] as an array if not defined
-            if (!adIdsAudioClips[ad._id]) {
-              adIdsAudioClips[ad._id] = []
-            }
-
-            adIdsAudioClips[ad._id].push(audioClip)
+            adIdsAudioClips[adId].push({
+              ...audioClip,
+              url: clipUrl,
+            })
           })
         }
       })
@@ -410,6 +417,7 @@ const Video = () => {
       setAudioDescriptionsIdsAudioClips(adIdsAudioClips)
       setAudioDescriptionActive(adIdsUsers, adIdsAudioClips)
     } else {
+      console.log('No audio descriptions available')
       getYTVideoInfo()
     }
   }
@@ -588,6 +596,8 @@ const Video = () => {
         return
       }
 
+      const bufferDuration = 200
+
       // If an inline clip is supposed to be playing right now but the user has either skipped to a time in the middle of the clip
       // Or there was an overlap which caused the start time of the clip to be skipped
       // Play the clip by seeking to the current time
@@ -625,71 +635,63 @@ const Video = () => {
             return
           }
 
-          console.debug(`Seeking to ${seekTime} seconds`)
-          currentAudio?.seek(seekTime)
-          currentAudio?.play()
-          setCurrInlineAC(currentAudio)
+          // Ensure the audio clip is fully loaded before seeking and playing
+          if (currentAudio?.state() !== 'loaded') {
+            console.debug('Waiting for audio clip to load')
+            currentAudio?.once('load', () => {
+              console.debug('Audio clip loaded')
+              currentAudio.seek(seekTime)
+              currentAudio.play()
+            })
+          } else {
+            console.debug('Audio clip already loaded')
+            currentAudio.seek(seekTime)
+            currentAudio.play()
+          }
 
+          setCurrInlineAC(currentAudio)
           setPlayedAudioClip(currentFilteredClip.clip_id)
-          //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
-          // console.log('PLaying clip', clipAudioPath)
 
           if (clipAudioPath !== playedClipPath) {
-            // console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
-            // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-
-            // console.log('Playing inline clip')
-            if (
-              currentAudio?.playing() ||
-              currentInlineACRef.current?.playing()
-              // currentFilteredClip.clip_id === clipIDRef.current
-            ) {
-              // console.log('Clip is already playing')
-              return
-            }
-            // console.log(
-            //   'Seeking to',
-            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
-            //   'seconds',
-            // )
 
             // Event listeners for play and end
             currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
             })
+
             currentAudio?.once('end', () => {
-              setCurrInlineAC(undefined)
-              currentAudio.unload()
+              // Introduce a delay before moving to the next audio clip
+              setTimeout(() => {
+                setCurrInlineAC(undefined)
+                currentAudio.unload()
+
+                // Load a new clip and add it to the stack
+                const newClip =
+                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+                if (newClip) {
+                  newClip.clip_audio = new Howl({
+                    src: newClip.clip_audio_path,
+                    html5: true,
+                  })
+                  setClipStack([
+                    ...clipStackRef.current.slice(1, clipStackSize),
+                    newClip,
+                  ])
+                } else {
+                  setClipStack([
+                    ...clipStackRef.current.slice(1, clipStackSize),
+                  ])
+                }
+              }, bufferDuration) // Add the buffer time here
             })
-
-            // see onStateChange() - storing current inline clip.
-            setCurrInlineAC(currentAudio)
-
-            // Load a new clip and add it to the stack
-            // console.log('Current Clip Index', currentClipIndexRef.current)
-
-            const newClip =
-              audioClips[currentClipIndexRef.current + clipStackSize - 1]
-            // console.log('New CLIP (seeked inline) => ', newClip)
-            if (newClip) {
-              newClip.clip_audio = new Howl({
-                src: newClip.clip_audio_path,
-                html5: true,
-              })
-              setClipStack([
-                ...clipStackRef.current.slice(1, clipStackSize),
-                newClip,
-              ])
-            } else {
-              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-            }
           }
         }
       }
+
       // Case for playing extended clips when the player come across their start or end times
       // Compare current window with clip at current clip index
       else {
@@ -958,9 +960,12 @@ const Video = () => {
               // console.log('Handle Rating')
             }}
             videoId={videoId}
-            collaborativeEdit={describers[describerId].collaborative_edit 
-                                && (!describers[describerId].depth || describers[describerId].depth< 3)
-                                && checkUserCanCollaborate(describers, describerId)}
+            collaborativeEdit={
+              describers[describerId].collaborative_edit &&
+              (!describers[describerId].depth ||
+                describers[describerId].depth < 3) &&
+              checkUserCanCollaborate(describers, describerId)
+            }
             contributions={describers[describerId].contributions}
           />,
         )
@@ -970,25 +975,28 @@ const Video = () => {
     }
   }, [audioDescriptionsIdsUsers, selectedADId])
 
-  const checkUserCanCollaborate = (ads: IADUserId | null, selectedDescriberId: string) => {
-    if (!ads) return false;
-  
-    const userId = userDataStore.getState().userId;
-    const selectedId = selectedDescriberId;
-  
+  const checkUserCanCollaborate = (
+    ads: IADUserId | null,
+    selectedDescriberId: string,
+  ) => {
+    if (!ads) return false
+
+    const userId = userDataStore.getState().userId
+    const selectedId = selectedDescriberId
+
     for (const describerId of Object.keys(ads)) {
-      const adUserId = ads[describerId].user._id;
-      const prevAdId = ads[describerId].prev_audio_description;
-      console.log(ads[describerId].user._id);
-  
+      const adUserId = ads[describerId].user._id
+      const prevAdId = ads[describerId].prev_audio_description
+      console.log(ads[describerId].user._id)
+
       if (adUserId === userId && prevAdId === selectedId) {
-        return false;
+        return false
       }
     }
-  
-    return true;
-  };
-  
+
+    return true
+  }
+
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
