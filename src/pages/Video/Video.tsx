@@ -381,7 +381,7 @@ const Video = () => {
             collaborative_edit: ad.collaborative_editing,
             contributions: ad.contributions,
             prev_audio_description: ad.prev_audio_description,
-            depth: ad.depth
+            depth: ad.depth,
           }
           console.log(`User data for ${adId}:`, adIdsUsers[adId])
         } else {
@@ -987,9 +987,12 @@ const Video = () => {
               // console.log('Handle Rating')
             }}
             videoId={videoId}
-            collaborativeEdit={describers[describerId].collaborative_edit
-                                && (!describers[describerId].depth || describers[describerId].depth< 3)
-                                && checkUserCanCollaborate(describers, describerId)}
+            collaborativeEdit={
+              describers[describerId].collaborative_edit &&
+              (!describers[describerId].depth ||
+                describers[describerId].depth < 3) &&
+              checkUserCanCollaborate(describers, describerId)
+            }
             contributions={describers[describerId].contributions}
           />,
         )
@@ -999,25 +1002,25 @@ const Video = () => {
     }
   }, [audioDescriptionsIdsUsers, selectedADId])
 
-  const checkUserCanCollaborate = (ads: IADUserId | null, selectedDescriberId: string) => {
-    if (!ads) return false;
+  const checkUserCanCollaborate = (
+    ads: IADUserId | null,
+    selectedDescriberId: string,
+  ) => {
+    if (!ads) return false
 
-    const userId = userDataStore.getState().userId;
-    const selectedId = selectedDescriberId;
-
+    const userId = userDataStore.getState().userId
+    const selectedId = selectedDescriberId
     for (const describerId of Object.keys(ads)) {
-      const adUserId = ads[describerId].user._id;
-      const prevAdId = ads[describerId].prev_audio_description;
-      console.log(ads[describerId].user._id);
-
+      const adUserId = ads[describerId].user._id
+      const prevAdId = ads[describerId].prev_audio_description
+      console.log(ads[describerId].user._id)
       if (adUserId === userId && prevAdId === selectedId) {
-        return false;
+        return false
       }
     }
 
-    return true;
-  };
-
+    return true
+  }
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
