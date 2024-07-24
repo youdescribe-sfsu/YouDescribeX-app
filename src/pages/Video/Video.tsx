@@ -328,6 +328,8 @@ const Video = () => {
   }
 
   const parseVideoData = (videoData: VideoDescriberRoot) => {
+    console.log('Starting parseVideoData with:', videoData)
+
     const adIds: string[] = []
     const adIdsUsers: IADUserId = {}
     const adIdsAudioClips: { [key: string]: any[] } = {}
@@ -336,7 +338,13 @@ const Video = () => {
       videoData.audio_descriptions &&
       videoData.audio_descriptions.length > 0
     ) {
-      videoData.audio_descriptions.forEach((ad) => {
+      console.log(
+        `Found ${videoData.audio_descriptions.length} audio descriptions`,
+      )
+
+      videoData.audio_descriptions.forEach((ad, index) => {
+        console.log(`Processing audio description ${index + 1}:`, ad)
+
         if (!ad || typeof ad !== 'object') {
           console.warn('Invalid audio description object:', ad)
           return // Skip this iteration
@@ -349,9 +357,11 @@ const Video = () => {
         }
 
         adIds.push(adId)
+        console.log(`Added adId: ${adId}`)
 
         // Initialize or update adIdsUsers[adId]
         if (!adIdsUsers[adId]) {
+          console.log(`Creating new entry for adId: ${adId}`)
           adIdsUsers[adId] = {
             overall_rating_votes_counter: ad.overall_rating_votes_counter || 0,
             overall_rating_average: ad.overall_rating_votes_average || 0,
@@ -363,19 +373,28 @@ const Video = () => {
                 ? 'AI Description Draft'
                 : ad.user?.name || 'Unknown',
           }
+          console.log(`User data for ${adId}:`, adIdsUsers[adId])
         } else {
+          console.log(`Updating existing entry for adId: ${adId}`)
           // Update existing entry's name
           adIdsUsers[adId].name =
             ad.user?.user_type === 'AI'
               ? 'AI Description Draft'
               : ad.user?.name || 'Unknown'
+          console.log(`Updated name for ${adId}:`, adIdsUsers[adId].name)
         }
 
         // Initialize adIdsAudioClips[adId]
         adIdsAudioClips[adId] = []
 
         if (Array.isArray(ad.audio_clips) && ad.audio_clips.length > 0) {
-          ad.audio_clips.forEach((audioClip) => {
+          console.log(
+            `Processing ${ad.audio_clips.length} audio clips for adId: ${adId}`,
+          )
+
+          ad.audio_clips.forEach((audioClip, clipIndex) => {
+            console.log(`Processing audio clip ${clipIndex + 1}:`, audioClip)
+
             if (!audioClip || typeof audioClip !== 'object') {
               console.warn('Invalid audio clip object:', audioClip)
               return // Skip this audio clip
@@ -398,9 +417,17 @@ const Video = () => {
               ...audioClip,
               url: clipUrl,
             })
+
+            console.log(`Added audio clip with URL: ${clipUrl}`)
           })
+        } else {
+          console.log(`No audio clips found for adId: ${adId}`)
         }
       })
+
+      console.log('Final adIds:', adIds)
+      console.log('Final adIdsUsers:', adIdsUsers)
+      console.log('Final adIdsAudioClips:', adIdsAudioClips)
 
       setAudioDescriptionsIds(adIds)
       setAudioDescriptionsIdsUsers(adIdsUsers)
