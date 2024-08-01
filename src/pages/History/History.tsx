@@ -90,7 +90,6 @@ const fetchVideoDetails = async (videoIds: string[]) => {
       ',',
     )}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
     const data: any = await ourFetch(url)
-    // const jsonData = await data.json();
     window.localStorage.setItem('userVideosYoutubeData', JSON.stringify(data))
     return data.items
   } catch (error) {
@@ -100,9 +99,6 @@ const fetchVideoDetails = async (videoIds: string[]) => {
 }
 
 const History = () => {
-  // const [showSpinner, setShowSpinner] = useState(true)
-  // const [videos, setVideos] = useState<any[]>([])
-
   // Recent Descriptions
   const [recentDescriptions, setRecentDescriptions] =
     useState<VideosState | null>(null)
@@ -124,19 +120,19 @@ const History = () => {
   const getRecentDescriptionsUrl = () => {
     return process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-my-descriptions`
-      : `${apiUrl}/api/audio-descriptions/get-my-descriptions`
+      : `${apiUrl}/audio-descriptions/get-my-descriptions`
   }
 
   const getUserHistoryUrl = () => {
     return process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-Visited-Videos-History`
-      : `${apiUrl}/api/create-user-links/get-Visited-Videos-History`
+      : `${apiUrl}/create-user-links/get-Visited-Videos-History`
   }
 
   const getAiRequestedVideosUrl = () => {
     return process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-user-Ai-DescriptionRequests`
-      : `${apiUrl}/api/create-user-links/get-user-Ai-DescriptionRequests`
+      : `${apiUrl}/create-user-links/get-user-Ai-DescriptionRequests`
   }
 
   const fetchVideosData: FetchVideosDataFunction = async (
@@ -146,8 +142,6 @@ const History = () => {
     setLoadingState,
   ) => {
     try {
-      // console.log('fetchVideosData')
-      // console.log(dataState)
       const pageNumber = dataState?.currentPage || 1
       setLoadingState(true)
       const response = await axios.get(apiEndpoint, {
@@ -200,12 +194,9 @@ const History = () => {
         videoComponentData: videoData,
       })
       setLoadingState(false)
-      // setShowSpinner(false)
     } catch (error) {
       console.error(`Error fetching ${apiEndpoint}:`, error)
       setLoadingState(false)
-      // setShowSpinner(false)
-      // Handle error, perhaps set an error state to show to the user
     }
   }
 
@@ -335,7 +326,10 @@ const History = () => {
             )}
 
             {recentDescriptions?.data.length === 0 && (
-              <p className="history-text">No Recent descriptions to view</p>
+              <div className="no-videos-message">
+                <i className="fas fa-video-slash no-videos-icon"></i>
+                <p className="no-videos-text">No Recent descriptions to view</p>
+              </div>
             )}
           </div>
         </section>
@@ -403,9 +397,12 @@ const History = () => {
             )}
 
             {aiRequestedVideos?.data.length === 0 && (
-              <p className="history-text">
-                Please request AI descriptions to view AI Requested videos.
-              </p>
+              <div className="no-videos-message">
+                <i className="fas fa-video-slash no-videos-icon"></i>
+                <p className="no-videos-text">
+                  Please request AI descriptions to view AI Requested videos.
+                </p>
+              </div>
             )}
           </div>
         </section>
@@ -472,7 +469,10 @@ const History = () => {
             )}
 
             {historyVideos?.data.length === 0 && (
-              <p className="history-text">No history to view.</p>
+              <div className="no-videos-message">
+                <i className="fas fa-video-slash no-videos-icon"></i>
+                <p className="no-videos-text">No history to view.</p>
+              </div>
             )}
           </div>
         </section>

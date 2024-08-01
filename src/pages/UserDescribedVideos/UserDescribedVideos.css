@@ -1,0 +1,20 @@
+.no-videos-message {
+  text-align: center;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  font-weight: bold; /* Make the message bold */
+}
+
+.no-videos-icon {
+  font-size: 48px;
+  color: #ccc;
+  margin-bottom: 10px;
+}
+
+.no-videos-text {
+  font-size: 18px;
+  font-weight: bold; /* Make the text bold */
+}

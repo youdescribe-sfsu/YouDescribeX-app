@@ -328,77 +328,113 @@ const Video = () => {
   }
 
   const parseVideoData = (videoData: VideoDescriberRoot) => {
-    // TODO: Add Types
-    const adIds: any[] = []
+    console.log('Starting parseVideoData with:', videoData)
+
+    const adIds: string[] = []
     const adIdsUsers: IADUserId = {}
-    const adIdsAudioClips: any = {}
+    const adIdsAudioClips: { [key: string]: any[] } = {}
 
     if (
       videoData.audio_descriptions &&
       videoData.audio_descriptions.length > 0
     ) {
-      videoData.audio_descriptions.forEach((ad) => {
-        adIds.push(ad._id)
+      console.log(
+        `Found ${videoData.audio_descriptions.length} audio descriptions`,
+      )
 
-        // Initialize adIdsUsers[ad._id] as an object if it doesn't exist
-        if (!adIdsUsers[ad._id]) {
-          adIdsUsers[ad._id] = {
-            overall_rating_votes_counter: ad.overall_rating_votes_counter,
-            overall_rating_average: ad.overall_rating_votes_average,
-            overall_rating_votes_sum: ad.overall_rating_votes_sum,
-            feedbacks: ad.feedbacks,
-            picture: ad.user.picture,
-            name:
-              ad.user.user_type && ad.user.user_type === 'AI'
-                ? 'AI Description Draft'
-                : ad.user.name,
-          }
-        } else {
-          // If adIdsUsers[ad._id] already exists, update the name property conditionally
-          adIdsUsers[ad._id].name =
-            ad.user.user_type && ad.user.user_type === 'AI'
-              ? 'AI Description Draft'
-              : ad.user.name
+      videoData.audio_descriptions.forEach((ad, index) => {
+        console.log(`Processing audio description ${index + 1}:`, ad)
+
+        if (!ad || typeof ad !== 'object') {
+          console.warn('Invalid audio description object:', ad)
+          return // Skip this iteration
         }
 
-        // adIdsUsers[ad._id].overall_rating_votes_counter =
-        //   ad.overall_rating_votes_counter;
-        // adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_votes_average;
-        // adIdsUsers[ad._id].overall_rating_votes_sum = ad.overall_rating_votes_sum;
-        // adIdsUsers[ad._id].feedbacks = ad.feedbacks as De[];
-        adIdsAudioClips[ad._id] = []
+        const adId = ad._id
+        if (!adId) {
+          console.warn('Audio description missing _id:', ad)
+          return // Skip this iteration
+        }
 
-        if (ad.audio_clips.length > 0) {
-          ad.audio_clips.forEach((audioClip) => {
-            // Check for undefined file_path or file_name and skip if missing
+        adIds.push(adId)
+        console.log(`Added adId: ${adId}`)
+
+        // Initialize or update adIdsUsers[adId]
+        if (!adIdsUsers[adId]) {
+          console.log(`Creating new entry for adId: ${adId}`)
+          adIdsUsers[adId] = {
+            overall_rating_votes_counter: ad.overall_rating_votes_counter || 0,
+            overall_rating_average: ad.overall_rating_votes_average || 0,
+            overall_rating_votes_sum: ad.overall_rating_votes_sum || 0,
+            feedbacks: ad.feedbacks || [],
+            picture: ad.user?.picture || '',
+            name:
+              ad.user?.user_type === 'AI'
+                ? 'AI Description Draft'
+                : ad.user?.name || 'Unknown',
+          }
+          console.log(`User data for ${adId}:`, adIdsUsers[adId])
+        } else {
+          console.log(`Updating existing entry for adId: ${adId}`)
+          // Update existing entry's name
+          adIdsUsers[adId].name =
+            ad.user?.user_type === 'AI'
+              ? 'AI Description Draft'
+              : ad.user?.name || 'Unknown'
+          console.log(`Updated name for ${adId}:`, adIdsUsers[adId].name)
+        }
+
+        // Initialize adIdsAudioClips[adId]
+        adIdsAudioClips[adId] = []
+
+        if (Array.isArray(ad.audio_clips) && ad.audio_clips.length > 0) {
+          console.log(
+            `Processing ${ad.audio_clips.length} audio clips for adId: ${adId}`,
+          )
+
+          ad.audio_clips.forEach((audioClip, clipIndex) => {
+            console.log(`Processing audio clip ${clipIndex + 1}:`, audioClip)
+
+            if (!audioClip || typeof audioClip !== 'object') {
+              console.warn('Invalid audio clip object:', audioClip)
+              return // Skip this audio clip
+            }
+
             if (!audioClip.file_path || !audioClip.file_name) {
               console.warn(
-                `Missing file_path or file_name for audioClip:`,
+                'Missing file_path or file_name for audioClip:',
                 audioClip,
               )
               return // Skip this audio clip
             }
 
             const filePath = audioClip.file_path.replace(/^\./, '')
-            audioClip.url = `${audioClipsUploadsPath(
+            const clipUrl = `${audioClipsUploadsPath(
               `${filePath}/${audioClip.file_name}`,
             )}`
 
-            // Initialize adIdsAudioClips[ad._id] as an array if not defined
-            if (!adIdsAudioClips[ad._id]) {
-              adIdsAudioClips[ad._id] = []
-            }
+            adIdsAudioClips[adId].push({
+              ...audioClip,
+              url: clipUrl,
+            })
 
-            adIdsAudioClips[ad._id].push(audioClip)
+            console.log(`Added audio clip with URL: ${clipUrl}`)
           })
+        } else {
+          console.log(`No audio clips found for adId: ${adId}`)
         }
       })
+
+      console.log('Final adIds:', adIds)
+      console.log('Final adIdsUsers:', adIdsUsers)
+      console.log('Final adIdsAudioClips:', adIdsAudioClips)
 
       setAudioDescriptionsIds(adIds)
       setAudioDescriptionsIdsUsers(adIdsUsers)
       setAudioDescriptionsIdsAudioClips(adIdsAudioClips)
       setAudioDescriptionActive(adIdsUsers, adIdsAudioClips)
     } else {
+      console.log('No audio descriptions available')
       getYTVideoInfo()
     }
   }

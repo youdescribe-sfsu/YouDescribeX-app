@@ -12,29 +12,35 @@ const ourFetch = (
   optionObj: {
     method: 'GET' | 'POST' | 'DELETE' | 'PUT'
     headers?: { [key: string]: string }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body?: any
   } = {
     method: 'GET',
   },
 ): Promise<Response> => {
   return new Promise<Response>((resolve, reject) => {
+    console.log('ourFetch called with URL:', url)
+    console.log('Method:', optionObj.method)
+    console.log('Headers:', optionObj.headers)
+
     const req = new XMLHttpRequest()
-    req.open(optionObj.method, url)
+
+    // Check if the URL is absolute
+    const absoluteUrl = new URL(url, window.location.origin)
+    console.log('Absolute URL:', absoluteUrl.toString())
+
+    req.open(optionObj.method, absoluteUrl.toString())
+
     if (optionObj.headers) {
       for (const key in optionObj.headers) {
         req.setRequestHeader(key, optionObj.headers[key])
       }
     }
 
-    /* used for visit counter */
-    // if (!sessionStorage.getItem("visit")) {
-    //   sessionStorage.setItem("visit", Date.now());
-    // }
-    // req.setRequestHeader("Visit", sessionStorage.getItem("visit"));
-    /* end of used for visit counter */
-
     req.onload = () => {
+      console.log('XHR onload triggered')
+      console.log('Status:', req.status)
+      console.log('Response:', req.response)
+
       if (req.status === 200) {
         if (JSONparsing) {
           resolve(JSON.parse(req.response))
@@ -45,7 +51,14 @@ const ourFetch = (
         reject(JSON.parse(req.response))
       }
     }
+
+    req.onerror = (error) => {
+      console.error('XHR error:', error)
+      reject(new Error('Network error occurred'))
+    }
+
     req.send(optionObj.body)
+    console.log('XHR request sent')
   })
 }
 

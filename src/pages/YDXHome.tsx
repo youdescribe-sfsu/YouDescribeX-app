@@ -725,9 +725,18 @@ const YDXHome = (): React.ReactElement => {
     setCurrentTime(currentTime)
     setCurrentState(event.data)
     switch (event.data) {
-      case 0: // end of the video
+      case 0: // End of the video
+        setGloballyPaused(true)
+        setCurrentClipIndex(0) // Reset current clip index
+
+        setPlayedAudioClip('')
+        setPlayedClipPath('')
+        setRecentAudioPlayedTime(0.0)
+        setCurrInlineAC(undefined)
+        setCurrExtendedAC(undefined)
+        setIsActive(false) // Ensure the timer is paused
         clearInterval(timer)
-        // event.target.seekTo(0);
+        console.log('Video ended, states reset')
         break
       case 1: // Playing
         // Case for Extended Audio Clips:
