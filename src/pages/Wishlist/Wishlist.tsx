@@ -698,212 +698,229 @@ const Wishlist = () => {
   }
 
   return (
-    <main id="wish-list" title="Wish list page" className="wish-list">
-      <div className="w3-container w3-indigo">
-        <h2 id="wish-list-heading" className="classic-h2" tabIndex={-1}>
-          {translate('WISHLIST')}
-        </h2>
-      </div>
-      {showSpinner ? <Spinner /> : null}
-      <div className="w3-row-padding classic-container w3-margin-top most-requested-title">
-        Top 5 Most Requested Videos
-      </div>
-      <div className="w3-row-padding classic-container wishlist-video-row">
-        {videoCardsComponents}
-      </div>
-      <header className="w3-container w3-indigo">
-        {userDataStore.getState().isSignedIn ? (
-          <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
-        ) : (
-          <h2 className="classic-h2">{translate('WISHLIST')}</h2>
-        )}
-      </header>
+      <main id="wish-list" title="Wish list page" className="wish-list">
+        <div className="w3-container w3-indigo">
+          <h2 id="wish-list-heading" className="classic-h2" tabIndex={-1}>
+            {translate('WISHLIST')}
+          </h2>
+        </div>
 
-      {userDataStore.getState().isSignedIn && (
-        <div className="d-flex justify-content-center custom-carousel">
-          <div className="custom-carousel">
-            {!wishlistData && <CustomSpinner />}
-            {wishlistData && wishlistData?.data.length > 0 && (
-              <div className="d-flex justify-content-between align-items-center h-100">
-                {/* Custom previous button */}
-                <CustomButton
-                  className="prev-wishlist-icon"
-                  onClick={async () => {
-                    setShowWishlistSpinner(true) // Optionally, show spinner while loading
-                    await handlePreviousPage(
-                      wishlistData,
-                      setShowWishlistSpinner,
-                      wishlistUrl,
-                      setWishlistData,
-                    )
-                    setShowWishlistSpinner(false)
-                  }}
-                  disabled={wishlistData.currentPage === 1}
-                >
-                  &lt;
-                </CustomButton>
-
-                {/* Content for displaying videos */}
-                <div className="w3-row classic-container wishlist-video-row ">
-                  {wishlistData.data}
-                </div>
-
-                {/* Custom next button */}
-                <CustomButton
-                  className="next-wishlist-icon"
-                  onClick={async () => {
-                    setShowWishlistSpinner(true) // Optionally, show spinner while loading
-                    await handleNextPage(
-                      wishlistData,
-                      setShowWishlistSpinner,
-                      wishlistUrl,
-                      setWishlistData,
-                    )
-                    setRecentAIRequestedSpinner(false)
-                  }}
-                  disabled={
-                    wishlistData.currentPage === wishlistData.totalPages
-                  }
-                >
-                  &gt;
-                </CustomButton>
-              </div>
-            )}
-
-            {wishlistData?.data.length === 0 && (
-              <p className="history-text">No videos in your wishlist.</p>
-            )}
+        <section className="top-requested-section">
+          <div className="w3-row-padding classic-container w3-margin-top most-requested-title">
+            Top 5 Most Requested Videos
           </div>
-        </div>
-      )}
+          {showSpinner ? <Spinner /> : null}
+          <div className="w3-row-padding classic-container wishlist-video-row">
+            {videoCardsComponents}
+          </div>
+        </section>
 
-      <header className="w3-container w3-indigo">
-        <h2 className="classic-h2">{translate('RECENT AI DESCRIPTIONS')}</h2>
-      </header>
+        <section className="my-wishlist-section">
+          <header className="w3-container w3-indigo">
+            <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
+          </header>
 
-      <div className="d-flex justify-content-center custom-carousel">
-        <div className="custom-carousel">
-          {!recentAIRequested && <CustomSpinner />}
-          {recentAIRequested && recentAIRequested?.data.length > 0 && (
-            <div className="d-flex justify-content-between align-items-center h-100">
-              <CustomButton
-                className="prev-wishlist-icon"
-                onClick={async () => {
-                  setRecentAIRequestedSpinner(true)
-                  await handlePreviousPage(
-                    recentAIRequested,
-                    setRecentAIRequestedSpinner,
-                    aiRequestedUrl,
-                    setrecentAIRequested,
-                  )
-                  setRecentAIRequestedSpinner(false)
-                }}
-                disabled={recentAIRequested.currentPage === 1}
-              >
-                &lt;
-              </CustomButton>
+          {userDataStore.getState().isSignedIn ? (
+              <div className="d-flex justify-content-center custom-carousel">
+                <div className="custom-carousel">
+                  {!wishlistData && <CustomSpinner />}
+                  {wishlistData && wishlistData?.data.length > 0 && (
+                      <div className="d-flex justify-content-between align-items-center h-100">
+                        <CustomButton
+                            className="prev-wishlist-icon"
+                            onClick={async () => {
+                              setShowWishlistSpinner(true);
+                              await handlePreviousPage(
+                                  wishlistData,
+                                  setShowWishlistSpinner,
+                                  wishlistUrl,
+                                  setWishlistData,
+                              );
+                              setShowWishlistSpinner(false);
+                            }}
+                            disabled={wishlistData.currentPage === 1}
+                        >
+                          &lt;
+                        </CustomButton>
 
-              <div className="w3-row classic-container wishlist-video-row ">
-                {recentAIRequested.data}
+                        <div className="w3-row classic-container wishlist-video-row ">
+                          {wishlistData.data}
+                        </div>
+
+                        <CustomButton
+                            className="next-wishlist-icon"
+                            onClick={async () => {
+                              setShowWishlistSpinner(true);
+                              await handleNextPage(
+                                  wishlistData,
+                                  setShowWishlistSpinner,
+                                  wishlistUrl,
+                                  setWishlistData,
+                              );
+                              setRecentAIRequestedSpinner(false);
+                            }}
+                            disabled={
+                                wishlistData.currentPage === wishlistData.totalPages
+                            }
+                        >
+                          &gt;
+                        </CustomButton>
+                      </div>
+                  )}
+
+                  {wishlistData?.data.length === 0 && (
+                      <p className="history-text">No videos in your wishlist.</p>
+                  )}
+                </div>
               </div>
+          ) : (
+              <div className="login-prompt">
+                <p>{translate('Log in to create and view your personal wishlist')}</p>
+                <button onClick={() => {/* Handle login */}} className="login-button">
+                  {translate('Log In / Sign Up')}
+                </button>
+              </div>
+          )}
+        </section>
 
-              <CustomButton
-                className="next-wishlist-icon"
-                onClick={async () => {
-                  setRecentAIRequestedSpinner(true)
-                  await handleNextPage(
-                    recentAIRequested,
-                    setRecentAIRequestedSpinner,
-                    aiRequestedUrl,
-                    setrecentAIRequested,
-                  )
-                  setRecentAIRequestedSpinner(false)
-                }}
-                disabled={
-                  recentAIRequested.currentPage === recentAIRequested.totalPages
-                }
-              >
-                &gt;
-              </CustomButton>
+        <section className="recent-ai-descriptions-section">
+          <header className="w3-container w3-indigo">
+            <h2 className="classic-h2">{translate('RECENT AI DESCRIPTIONS')}</h2>
+          </header>
+
+          {userDataStore.getState().isSignedIn ? (
+              <div className="d-flex justify-content-center custom-carousel">
+                <div className="custom-carousel">
+                  {!recentAIRequested && <CustomSpinner />}
+                  {recentAIRequested && recentAIRequested?.data.length > 0 && (
+                      <div className="d-flex justify-content-between align-items-center h-100">
+                        <CustomButton
+                            className="prev-wishlist-icon"
+                            onClick={async () => {
+                              setRecentAIRequestedSpinner(true);
+                              await handlePreviousPage(
+                                  recentAIRequested,
+                                  setRecentAIRequestedSpinner,
+                                  aiRequestedUrl,
+                                  setrecentAIRequested,
+                              );
+                              setRecentAIRequestedSpinner(false);
+                            }}
+                            disabled={recentAIRequested.currentPage === 1}
+                        >
+                          &lt;
+                        </CustomButton>
+
+                        <div className="w3-row classic-container wishlist-video-row ">
+                          {recentAIRequested.data}
+                        </div>
+
+                        <CustomButton
+                            className="next-wishlist-icon"
+                            onClick={async () => {
+                              setRecentAIRequestedSpinner(true);
+                              await handleNextPage(
+                                  recentAIRequested,
+                                  setRecentAIRequestedSpinner,
+                                  aiRequestedUrl,
+                                  setrecentAIRequested,
+                              );
+                              setRecentAIRequestedSpinner(false);
+                            }}
+                            disabled={
+                                recentAIRequested.currentPage === recentAIRequested.totalPages
+                            }
+                        >
+                          &gt;
+                        </CustomButton>
+                      </div>
+                  )}
+
+                  {recentAIRequested?.data.length === 0 && (
+                      <p className="history-text">No AI Requested Videos.</p>
+                  )}
+                </div>
+              </div>
+          ) : (
+              <div className="login-prompt">
+                <p>{translate('Log in to view recent AI-generated descriptions')}</p>
+                <button onClick={() => {/* Handle login */}} className="login-button">
+                  {translate('Log In / Sign Up')}
+                </button>
+              </div>
+          )}
+        </section>
+
+        <form
+            onSubmit={(e: any) => {
+              e.preventDefault();
+              loadTableVideos(0, perPage);
+            }}
+        >
+          <div className="w3-row-padding classic-container search-container">
+            <span className="category-label">Category</span>
+            <div className="category-select">
+              <Select
+                  options={allCategories.map((category) => {
+                    const option = { value: category, label: category };
+                    if (category === 'How-To & Style') {
+                      option.value = 'Howto & Style';
+                    }
+                    return option;
+                  })}
+                  placeholder="All"
+                  isMulti
+                  onChange={handleCategoryChange}
+              />
             </div>
-          )}
-
-          {recentAIRequested?.data.length === 0 && (
-            <p className="history-text">No AI Requested Videos.</p>
-          )}
-        </div>
-      </div>
-
-      <form
-        onSubmit={(e: any) => {
-          e.preventDefault()
-          loadTableVideos(0, perPage)
-        }}
-      >
-        <div className="w3-row-padding classic-container search-container">
-          <span className="category-label">Category</span>
-          <div className="category-select">
-            <Select
-              options={allCategories.map((category) => {
-                const option = { value: category, label: category }
-                if (category === 'How-To & Style') {
-                  option.value = 'Howto & Style'
-                }
-                return option
-              })}
-              placeholder="All"
-              isMulti
-              onChange={handleCategoryChange}
+            <span className="search-label">Wishlist Search</span>
+            <input
+                type="text"
+                placeholder="Search Wishlist"
+                className="search-input"
+                value={search}
+                onChange={handleChange}
             />
           </div>
-          <span className="search-label">Wishlist Search</span>
-          <input
-            type="text"
-            placeholder="Search Wishlist"
-            className="search-input"
-            value={search}
-            onChange={handleChange}
+          <div className="search-button-container">
+            <button
+                className="w3-btn w3-indigo search-button"
+                onClick={() => loadTableVideos(0, perPage)}
+                type="submit"
+            >
+              Search
+            </button>
+          </div>
+        </form>
+        <div className="table-container">
+          <DataTable
+              title="All Wishlist Videos"
+              columns={columns}
+              data={rows}
+              responsive
+              pagination
+              paginationServer
+              paginationTotalRows={totalRows}
+              onChangePage={(page) => handlePageChange(page)}
+              onSort={(column, direction) => {
+                loadTableVideos(0, perPage, column.sortField, direction);
+              }}
+              sortServer
+              onChangeRowsPerPage={(newPerPage) => handlePerRowsChange(newPerPage)}
+              customStyles={{
+                cells: {
+                  style: {
+                    overflow: 'visible !important',
+                    whiteSpace: 'break-spaces !important',
+                    textOverflow: 'unset !important',
+                    OverflowWrap: 'break-word !important',
+                  },
+                },
+              }}
           />
         </div>
-        <div className="search-button-container">
-          <button
-            className="w3-btn w3-indigo search-button"
-            onClick={() => loadTableVideos(0, perPage)}
-            type="submit"
-          >
-            Search
-          </button>
-        </div>
-      </form>
-      <div className="table-container">
-        <DataTable
-          title="All Wishlist Videos"
-          columns={columns}
-          data={rows}
-          responsive
-          pagination
-          paginationServer
-          paginationTotalRows={totalRows}
-          onChangePage={(page) => handlePageChange(page)}
-          onSort={(column, direction) => {
-            loadTableVideos(0, perPage, column.sortField, direction)
-          }}
-          sortServer
-          onChangeRowsPerPage={(newPerPage) => handlePerRowsChange(newPerPage)}
-          customStyles={{
-            cells: {
-              style: {
-                overflow: 'visible !important',
-                whiteSpace: 'break-spaces !important',
-                textOverflow: 'unset !important',
-                OverflowWrap: 'break-word !important',
-              },
-            },
-          }}
-        />
-      </div>
-    </main>
-  )
+      </main>
+  );
 }
 
 export default Wishlist
