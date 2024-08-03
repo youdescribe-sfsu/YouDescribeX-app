@@ -40,10 +40,10 @@ const InsertPublish = ({
   // destructuring props
   // props which handles clicks of New Inline and New Extended buttons from Button Component
   const navigate = useNavigate()
-  // const [timeData,setTimeData] = useState(seconds);
   const [showInlineACComponent, setShowInlineACComponent] = useState(false)
   const [showNewACComponent, setShowNewACComponent] = useState(false)
   const [isModal, setIsModal] = useState(false)
+  const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(false)
 
   const handleClickInsertInline = (e: any) => {
     e.preventDefault()
@@ -57,7 +57,6 @@ const InsertPublish = ({
     setShowInlineACComponent(false)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClickPublish = (e: any) => {
     axios
       .post(
@@ -69,10 +68,9 @@ const InsertPublish = ({
       )
       .then(function (response) {
         reset()
-        // console.log(response)
       })
       .catch(function (error) {
-        // console.log(error)
+        console.error(error)
       })
   }
 
@@ -81,11 +79,28 @@ const InsertPublish = ({
 
     axios
       .post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api//create-user-links/calculate-contributions`,
+        {
+          audioDescriptionId: audioDescriptionId,
+        },
+        {
+          withCredentials: true,
+        },
+      )
+      .then(function (response) {
+        console.log(response)
+      })
+      .catch(function (error) {
+        console.error(error)
+        toast.error('Error calculate contribution!')
+      })
+    axios
+      .post(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/publish-audio-description`,
         {
           audioDescriptionId,
           youtube_id: youtubeVideoId,
-          enrolled_in_collaborative_editing: checkbox,
+          enrolled_in_collaborative_editing: enrollInCollabEdit,
         },
         {
           withCredentials: true,
@@ -94,10 +109,9 @@ const InsertPublish = ({
       .then(function (response) {
         setNeedRefresh(true)
         toast.success('Audio description published successfully!')
-        // console.log(response)
       })
       .catch(function (error) {
-        // console.log(error)
+        console.error(error)
         toast.error('Error publishing audio description!')
       })
   }
@@ -134,9 +148,7 @@ const InsertPublish = ({
             setNeedRefresh={setNeedRefresh}
           />
         </>
-      ) : (
-        <></>
-      )}
+      ) : null}
 
       <div className="d-flex justify-content-between my-3">
         <div>
@@ -157,7 +169,20 @@ const InsertPublish = ({
             Insert Extended
           </button>
         </div>
-        <div className="mx-4">
+        <div className="mx-4 d-flex align-items-center">
+          <input
+            type="checkbox"
+            checked={enrollInCollabEdit}
+            onChange={(e) => setEnrollInCollabEdit(e.target.checked)}
+            id="collabEditCheckbox"
+            className="form-check-input me-2"
+          />
+          <label
+            htmlFor="collabEditCheckbox"
+            className="form-check-label text-white me-3"
+          >
+            Enroll in Collaborative Editing
+          </label>
           <button
             type="button"
             className="btn publish-bg text-white ydx-button"
@@ -170,7 +195,7 @@ const InsertPublish = ({
           </button>
         </div>
       </div>
-      {/* Publish Modal Confirmation Modal - opens when user hits Publish buton and asks for a confirmation */}
+      {/* Publish Modal Confirmation Modal - opens when user hits Publish button and asks for a confirmation */}
       <ModalComponent
         id="publishModal"
         title="Publish"
@@ -178,8 +203,6 @@ const InsertPublish = ({
         modalTask={handlePublish}
         show={isModal}
         handleClose={() => setIsModal(false)}
-        showCheckbox={true}
-        checkBoxText="Enroll in Collaborative Editing"
       />
     </React.Fragment>
   )

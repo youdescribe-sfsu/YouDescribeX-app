@@ -40,7 +40,7 @@ import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
 import axios, { AxiosResponse } from 'axios'
-import { Feedbacks, VideoDescriberRoot } from './video_describer'
+import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
 // import iso6391 from 'iso-639-1'
 
@@ -49,9 +49,14 @@ interface IADUserId {
     overall_rating_votes_counter: number
     overall_rating_average: number
     overall_rating_votes_sum: number
+    user: User
     feedbacks: Feedbacks
     picture: string
     name: string
+    collaborative_edit: boolean
+    contributions: Map<string, number>
+    prev_audio_description: string
+    depth: number
   }
 }
 
@@ -338,58 +343,45 @@ const Video = () => {
       videoData.audio_descriptions &&
       videoData.audio_descriptions.length > 0
     ) {
-      console.log(
-        `Found ${videoData.audio_descriptions.length} audio descriptions`,
-      )
+      videoData.audio_descriptions.forEach((ad) => {
+        adIds.push(ad._id)
 
-      videoData.audio_descriptions.forEach((ad, index) => {
-        console.log(`Processing audio description ${index + 1}:`, ad)
+        // Initialize adIdsUsers[ad._id] as an object if it doesn't exist
+        if (!adIdsUsers[ad._id]) {
+          adIdsUsers[ad._id] = {
+            overall_rating_votes_counter: ad.overall_rating_votes_counter,
+            overall_rating_average: ad.overall_rating_votes_average,
+            overall_rating_votes_sum: ad.overall_rating_votes_sum,
+            feedbacks: ad.feedbacks,
+            picture: ad.user.picture,
+            user: ad.user,
 
-        if (!ad || typeof ad !== 'object') {
-          console.warn('Invalid audio description object:', ad)
-          return // Skip this iteration
-        }
-
-        const adId = ad._id
-        if (!adId) {
-          console.warn('Audio description missing _id:', ad)
-          return // Skip this iteration
-        }
-
-        adIds.push(adId)
-        console.log(`Added adId: ${adId}`)
-
-        // Initialize or update adIdsUsers[adId]
-        if (!adIdsUsers[adId]) {
-          console.log(`Creating new entry for adId: ${adId}`)
-          adIdsUsers[adId] = {
-            overall_rating_votes_counter: ad.overall_rating_votes_counter || 0,
-            overall_rating_average: ad.overall_rating_votes_average || 0,
-            overall_rating_votes_sum: ad.overall_rating_votes_sum || 0,
-            feedbacks: ad.feedbacks || [],
-            picture: ad.user?.picture || '',
             name:
               ad.user?.user_type === 'AI'
                 ? 'AI Description Draft'
                 : ad.user?.name || 'Unknown',
+            collaborative_edit: ad.collaborative_editing,
+            contributions: ad.contributions,
+            prev_audio_description: ad.prev_audio_description,
+            depth: ad.depth,
           }
-          console.log(`User data for ${adId}:`, adIdsUsers[adId])
+          console.log(`User data for ${ad._id}:`, adIdsUsers[ad._id])
         } else {
-          console.log(`Updating existing entry for adId: ${adId}`)
+          console.log(`Updating existing entry for adId: ${ad._id}`)
           // Update existing entry's name
-          adIdsUsers[adId].name =
+          adIdsUsers[ad._id].name =
             ad.user?.user_type === 'AI'
               ? 'AI Description Draft'
               : ad.user?.name || 'Unknown'
-          console.log(`Updated name for ${adId}:`, adIdsUsers[adId].name)
+          console.log(`Updated name for ${ad._id}:`, adIdsUsers[ad._id].name)
         }
 
         // Initialize adIdsAudioClips[adId]
-        adIdsAudioClips[adId] = []
+        adIdsAudioClips[ad._id] = []
 
         if (Array.isArray(ad.audio_clips) && ad.audio_clips.length > 0) {
           console.log(
-            `Processing ${ad.audio_clips.length} audio clips for adId: ${adId}`,
+            `Processing ${ad.audio_clips.length} audio clips for adId: ${ad._id}`,
           )
 
           ad.audio_clips.forEach((audioClip, clipIndex) => {
@@ -413,7 +405,7 @@ const Video = () => {
               `${filePath}/${audioClip.file_name}`,
             )}`
 
-            adIdsAudioClips[adId].push({
+            adIdsAudioClips[ad._id].push({
               ...audioClip,
               url: clipUrl,
             })
@@ -421,7 +413,7 @@ const Video = () => {
             console.log(`Added audio clip with URL: ${clipUrl}`)
           })
         } else {
-          console.log(`No audio clips found for adId: ${adId}`)
+          console.log(`No audio clips found for adId: ${ad._id}`)
         }
       })
 
@@ -613,8 +605,6 @@ const Video = () => {
         return
       }
 
-      const bufferDuration = 200
-
       // If an inline clip is supposed to be playing right now but the user has either skipped to a time in the middle of the clip
       // Or there was an overlap which caused the start time of the clip to be skipped
       // Play the clip by seeking to the current time
@@ -630,14 +620,16 @@ const Video = () => {
             currentTimeRef.current,
           )
 
-          // If an inline clip is already playing, return
+          // If an Inline Clip is Playing - Return
           if (currentInlineACRef.current?.playing()) {
             console.info('An inline clip is already playing')
             return
           }
-
-          console.info('Playing clip by seeking to current time')
+          // If the clip is not playing, play it
+          console.info('Playing clip by Seeking to current time')
+          // Play Inline Clip
           const currentFilteredClip = clipStackRef.current[0]
+          // console.log('Clip to be Played', currentFilteredClip)
 
           // Play the inline clip
           const currentAudio = currentFilteredClip.clip_audio
@@ -650,63 +642,71 @@ const Video = () => {
             return
           }
 
-          // Ensure the audio clip is fully loaded before seeking and playing
-          if (currentAudio?.state() !== 'loaded') {
-            console.debug('Waiting for audio clip to load')
-            currentAudio?.once('load', () => {
-              console.debug('Audio clip loaded')
-              currentAudio.seek(seekTime)
-              currentAudio.play()
-            })
-          } else {
-            console.debug('Audio clip already loaded')
-            currentAudio.seek(seekTime)
-            currentAudio.play()
-          }
-
+          console.debug(`Seeking to ${seekTime} seconds`)
+          currentAudio?.seek(seekTime)
+          currentAudio?.play()
           setCurrInlineAC(currentAudio)
+
           setPlayedAudioClip(currentFilteredClip.clip_id)
+          //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
+          // console.log('PLaying clip', clipAudioPath)
 
           if (clipAudioPath !== playedClipPath) {
+            // console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
+            // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
+
+            // console.log('Playing inline clip')
+            if (
+              currentAudio?.playing() ||
+              currentInlineACRef.current?.playing()
+              // currentFilteredClip.clip_id === clipIDRef.current
+            ) {
+              // console.log('Clip is already playing')
+              return
+            }
+            // console.log(
+            //   'Seeking to',
+            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
+            //   'seconds',
+            // )
 
             // Event listeners for play and end
             currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
             })
-
             currentAudio?.once('end', () => {
-              // Introduce a delay before moving to the next audio clip
-              setTimeout(() => {
-                setCurrInlineAC(undefined)
-                currentAudio.unload()
-
-                // Load a new clip and add it to the stack
-                const newClip =
-                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-                if (newClip) {
-                  newClip.clip_audio = new Howl({
-                    src: newClip.clip_audio_path,
-                    html5: true,
-                  })
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                    newClip,
-                  ])
-                } else {
-                  setClipStack([
-                    ...clipStackRef.current.slice(1, clipStackSize),
-                  ])
-                }
-              }, bufferDuration) // Add the buffer time here
+              setCurrInlineAC(undefined)
+              currentAudio.unload()
             })
+
+            // see onStateChange() - storing current inline clip.
+            setCurrInlineAC(currentAudio)
+
+            // Load a new clip and add it to the stack
+            // console.log('Current Clip Index', currentClipIndexRef.current)
+
+            const newClip =
+              audioClips[currentClipIndexRef.current + clipStackSize - 1]
+            // console.log('New CLIP (seeked inline) => ', newClip)
+            if (newClip) {
+              newClip.clip_audio = new Howl({
+                src: newClip.clip_audio_path,
+                html5: true,
+              })
+              setClipStack([
+                ...clipStackRef.current.slice(1, clipStackSize),
+                newClip,
+              ])
+            } else {
+              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+            }
           }
         }
       }
-
       // Case for playing extended clips when the player come across their start or end times
       // Compare current window with clip at current clip index
       else {
@@ -963,6 +963,7 @@ const Video = () => {
             handleDescriberChange={handleDescriberChange}
             handleRatingPopup={handleRatingPopup}
             handleFeedbackPopup={handleFeedbackPopup}
+            handleNewCollabEdit={handleNewCollabEdit}
             describerId={describerId}
             selectedDescriberId={selectedADId}
             picture={describers[describerId].picture}
@@ -974,6 +975,13 @@ const Video = () => {
               // console.log('Handle Rating')
             }}
             videoId={videoId}
+            collaborativeEdit={
+              describers[describerId].collaborative_edit &&
+              (!describers[describerId].depth ||
+                describers[describerId].depth < 3) &&
+              checkUserCanCollaborate(describers, describerId)
+            }
+            contributions={describers[describerId].contributions}
           />,
         )
       })
@@ -981,6 +989,28 @@ const Video = () => {
       setDescriberCards(describerCards)
     }
   }, [audioDescriptionsIdsUsers, selectedADId])
+
+  const checkUserCanCollaborate = (
+    ads: IADUserId | null,
+    selectedDescriberId: string,
+  ) => {
+    if (!ads) return false
+
+    const userId = userDataStore.getState().userId
+    const selectedId = selectedDescriberId
+
+    for (const describerId of Object.keys(ads)) {
+      const adUserId = ads[describerId].user._id
+      const prevAdId = ads[describerId].prev_audio_description
+      console.log(ads[describerId].user._id)
+
+      if (adUserId === userId && prevAdId === selectedId) {
+        return false
+      }
+    }
+
+    return true
+  }
 
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
@@ -1021,6 +1051,26 @@ const Video = () => {
   }
 
   const handleDescriberChange = (describerId: string) => {
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.pause()
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.pause()
+    }
+    setCurrExtendedAC(undefined)
+    setCurrInlineAC(undefined)
+    currentEventRef.current?.pauseVideo()
+    setSelectedADId(describerId)
+    setSearchParams((params) => {
+      if (describerId) params.set('ad', describerId)
+      return params
+    })
+    setAudioDescriptionActive(
+      audioDescriptionsIdsUsers,
+      audioDescriptionsIdsAudioClips,
+    )
+  }
+  const handleTest = (describerId: string) => {
     if (currentInlineACRef.current?.playing()) {
       currentInlineACRef.current?.pause()
     }
@@ -1266,6 +1316,37 @@ const Video = () => {
       )
     })
   }
+  const handleNewCollabEdit = async (describerId: string) => {
+    if (!userDataStore.getState().isSignedIn) {
+      toast.error(
+        translate('You have to be logged in in order to add a description'),
+      )
+    } else {
+      try {
+        const collabUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-collaborative-ad`
+        const response = await axios.post(
+          collabUrl,
+          {
+            youtubeVideoId: videoId,
+            oldDescriberId: selectedADId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        const data = response.data
+        console.log('inside handle new collab....')
+
+        navigate(`/editor/${data.url}`)
+      } catch (error) {
+        console.log(error)
+        toast.error('Something went wrong, please try again later')
+      }
+    }
+  }
 
   const handleAddDescription = async () => {
     // console.log(userDataStore.getState())
@@ -1303,6 +1384,15 @@ const Video = () => {
       toast.error(
         translate(
           'You have to be logged in in order to ask for AI Descriptions',
+        ),
+      )
+      return
+    }
+
+    if (videoDurationInSeconds > 600) {
+      toast.error(
+        translate(
+          'YouDescribe currently supports videos that are 10 minutes or less. Please wait for further updates.',
         ),
       )
       return
@@ -1373,6 +1463,14 @@ const Video = () => {
     }
   }
   const handleRequestAIDescriptions = () => {
+    if (videoDurationInSeconds > 600) {
+      toast.error(
+        translate(
+          'YouDescribe currently supports videos that are 10 minutes or less. Please wait for further updates.',
+        ),
+      )
+      return
+    }
     // Show the language selector modal
     setShowLanguageSelector(true)
   }

@@ -36,6 +36,7 @@ interface Props {
   setUndoDeletedClip: React.Dispatch<React.SetStateAction<boolean>>
   isPreview?: boolean
   handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
+  setClipDescText: (description: string) => void
 }
 
 const EditClip = ({
@@ -64,6 +65,7 @@ const EditClip = ({
   isPreview = false,
   handleClickSaveClipDescription,
   setUndoDeletedClip,
+  setClipDescText,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
@@ -585,7 +587,10 @@ const EditClip = ({
                 id="description"
                 name="description"
                 value={clipDescriptionText}
-                onChange={(e) => setClipDescriptionText(e.target.value)}
+                onChange={(e) => {
+                  setClipDescriptionText(e.target.value)
+                  setClipDescText(e.target.value)
+                }}
                 disabled={isPreview}
               ></TextareaAutosize>
               {/* play, save & Delete buttons */}

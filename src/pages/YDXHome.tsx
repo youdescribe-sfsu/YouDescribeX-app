@@ -65,6 +65,7 @@ const YDXHome = (): React.ReactElement => {
   const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<any[]>([]) // stores dialog-timestamps data for a video from backend db
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPublished, setIsPublished] = useState(true) // holds the published state of the Video & Audio Description
+  const [isCollaborativeVersion, setCollaborativeVersion] = useState(false) // holds the Collaborative Version state of the Video & Audio Description
   const [audioClips, setAudioClips] = useState<Clip[]>([]) // stores list of Audio Clips data for a video from backend db
   const audioClipsListRef = useRef<HTMLDivElement>(null)
   // store current extended & inline Audio Clips to pause/play based on the YT video current state
@@ -79,6 +80,9 @@ const YDXHome = (): React.ReactElement => {
   // Spinner div
   const [showSpinner, setShowSpinner] = useState(false)
   const [undoDeletedClipInfo, setUndoDeletedClip] = useState(false)
+  const [updatedDescriptions, setUpdatedDescriptions] = useState<{
+    [key: string]: string
+  }>({})
 
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
@@ -368,8 +372,10 @@ const YDXHome = (): React.ReactElement => {
           return res.data
         })
         .then((data) => {
+          console.log({ data })
           setShowSpinner(false)
           setIsPublished(data.is_published)
+          setCollaborativeVersion(data.is_collaborative_version)
           // data is nested - so AudioClips data is in res.data.Audio_Clips
           const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) =>
             convertClipObject(clip),
@@ -956,6 +962,79 @@ const YDXHome = (): React.ReactElement => {
       })
   }
 
+  const handleSaveAllClips = async () => {
+    setShowSpinner(true)
+    try {
+      for (const clip of audioClips) {
+        const updatedDescription = updatedDescriptions[clip.clip_id]
+        if (updatedDescription) {
+          await handleClickSaveClipDescription(
+            clip.clip_id,
+            updatedDescription,
+            clip.description_type,
+          )
+        }
+      }
+
+      // Calculate contributions after all clips are saved
+      try {
+        await axios.post(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/calculate-contributions`,
+          {
+            audioDescriptionId: audioDescriptionId,
+          },
+          {
+            withCredentials: true,
+          },
+        )
+
+        toast.success('Contributions Calculated Successfully!!')
+      } catch (err) {
+        console.error(err)
+        toast.error(
+          'An error occurred while calculating contributions. Please try again!!',
+        )
+      }
+
+      toast.success('All Descriptions Saved Successfully!!')
+    } catch (err) {
+      toast.error(
+        'An error occurred while saving all descriptions. Please try again!!',
+      )
+    } finally {
+      setShowSpinner(false)
+    }
+  }
+
+  // Function to save a single clip description
+  const handleClickSaveClipDescription = async (
+    clipId: string,
+    updatedClipDescriptionText: string,
+    clipDescriptionType: string | undefined,
+  ) => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
+        {
+          userId: user,
+          youtubeVideoId,
+          clipDescriptionText: updatedClipDescriptionText,
+          clipDescriptionType: clipDescriptionType ?? '',
+          audioDescriptionId,
+        },
+      )
+
+      setUpdateData(!updateData)
+    } catch (err: any) {
+      if (err.response) {
+        toast.error(err.response.data.message) // show toast message
+      } else {
+        console.error(err)
+        toast.error('An error occurred. Please try again!!')
+      }
+    }
+  }
+
   return (
     <div className="ydx-body ydx-html">
       {/* Spinner div - displayed based on showSpinner */}
@@ -1110,6 +1189,7 @@ const YDXHome = (): React.ReactElement => {
               fetchUserVideoData={fetchUserVideoData}
               setNeedRefresh={setNeedRefresh}
               setUndoDeletedClip={setUndoDeletedClip}
+              setUpdatedDescriptions={setUpdatedDescriptions}
             />
           ))}
         </div>
@@ -1129,7 +1209,26 @@ const YDXHome = (): React.ReactElement => {
             setNeedRefresh={setNeedRefresh}
           />
         )}
-        {isPublished && (
+        {isPublished && isCollaborativeVersion && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              marginBottom: '20px',
+              marginRight: '20px',
+            }}
+          >
+            <button
+              className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
+              onClick={handleSaveAllClips}
+            >
+              <i className="fa fa-save" /> {'   '}
+              Save All
+            </button>
+          </div>
+        )}
+        {isPublished && !isCollaborativeVersion && (
           <div
             style={{
               display: 'flex',
