@@ -114,12 +114,11 @@ const Wishlist = () => {
   const [perPage, setPerPage] = useState(10)
   const [totalRows, setTotalRows] = useState(0)
   const [wishlistData, setWishlistData] = useState<VideosState | null>(null)
-  const [videosData, setVideosData] = useState<VideosState | null>(null)
   const [recentAIRequested, setrecentAIRequested] =
     useState<VideosState | null>(null)
-  const [recentAIRequestedSpinner, setRecentAIRequestedSpinner] = useState(true) // For loading state
+  const [, setRecentAIRequestedSpinner] = useState(true) // For loading state
 
-  const [showWishlistSpinner, setShowWishlistSpinner] = useState(true)
+  const [, setShowWishlistSpinner] = useState(true)
   // const [youTubeIds, setYouTubeIds] = useState<string[]>([])
   // const [youDescribeIds, setYouDescribeIds] = useState<string[]>([])
   // const [votes, setVotes] = useState<number[]>([])
@@ -302,8 +301,6 @@ const Wishlist = () => {
         const time = convertTimeToCardFormat(
           Number(now - publishedAt.getMilliseconds()),
         )
-
-        const voted = votedArr[i].voted
         videoCardsComponents.push(
           <div className="wishlist-video-card" key={_id}>
             <VideoCard
@@ -393,10 +390,6 @@ const Wishlist = () => {
         )
         .then((res) => {
           if (res.status != 201) {
-            // toast.error(
-            //   translate(
-            //     'Something went wrong or you may already have described this video. Please try again later!',
-            //   ),
             toast.error(
               translate(
                 'Something went wrong or you may already have described this video. Please try again later!',
@@ -409,9 +402,6 @@ const Wishlist = () => {
           navigate('/video/' + youTubeId)
         })
     } else {
-      // toast.error(
-      //   translate('You have to be logged in in order to describe this video'),
-      // )
       toast.error(
         translate('You have to be logged in in order to describe this video'),
       )
@@ -513,7 +503,7 @@ const Wishlist = () => {
           )
         })
       })
-      .catch((err) => {
+      .catch(() => {
         setTotalRows(0)
         setRows([])
       })
@@ -704,135 +694,151 @@ const Wishlist = () => {
           {translate('WISHLIST')}
         </h2>
       </div>
-      {showSpinner ? <Spinner /> : null}
-      <div className="w3-row-padding classic-container w3-margin-top most-requested-title">
-        Top 5 Most Requested Videos
-      </div>
-      <div className="w3-row-padding classic-container wishlist-video-row">
-        {videoCardsComponents}
-      </div>
-      <header className="w3-container w3-indigo">
-        {userDataStore.getState().isSignedIn ? (
+
+      <section className="top-requested-section">
+        <div className="w3-row-padding classic-container w3-margin-top most-requested-title">
+          Top 5 Most Requested Videos
+        </div>
+        {showSpinner ? <Spinner /> : null}
+        <div className="w3-row-padding classic-container wishlist-video-row">
+          {videoCardsComponents}
+        </div>
+      </section>
+
+      <section className="my-wishlist-section">
+        <header className="w3-container w3-indigo">
           <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
-        ) : (
-          <h2 className="classic-h2">{translate('WISHLIST')}</h2>
-        )}
-      </header>
+        </header>
 
-      {userDataStore.getState().isSignedIn && (
-        <div className="d-flex justify-content-center custom-carousel">
-          <div className="custom-carousel">
-            {!wishlistData && <CustomSpinner />}
-            {wishlistData && wishlistData?.data.length > 0 && (
-              <div className="d-flex justify-content-between align-items-center h-100">
-                {/* Custom previous button */}
-                <CustomButton
-                  className="prev-wishlist-icon"
-                  onClick={async () => {
-                    setShowWishlistSpinner(true) // Optionally, show spinner while loading
-                    await handlePreviousPage(
-                      wishlistData,
-                      setShowWishlistSpinner,
-                      wishlistUrl,
-                      setWishlistData,
-                    )
-                    setShowWishlistSpinner(false)
-                  }}
-                  disabled={wishlistData.currentPage === 1}
-                >
-                  &lt;
-                </CustomButton>
+        {userDataStore.getState().isSignedIn ? (
+          <div className="d-flex justify-content-center custom-carousel">
+            <div className="custom-carousel">
+              {!wishlistData && <CustomSpinner />}
+              {wishlistData && wishlistData?.data.length > 0 && (
+                <div className="d-flex justify-content-between align-items-center h-100">
+                  <CustomButton
+                    className="prev-wishlist-icon"
+                    onClick={async () => {
+                      setShowWishlistSpinner(true)
+                      handlePreviousPage(
+                        wishlistData,
+                        setShowWishlistSpinner,
+                        wishlistUrl,
+                        setWishlistData,
+                      )
+                      setShowWishlistSpinner(false)
+                    }}
+                    disabled={wishlistData.currentPage === 1}
+                  >
+                    &lt;
+                  </CustomButton>
 
-                {/* Content for displaying videos */}
-                <div className="w3-row classic-container wishlist-video-row ">
-                  {wishlistData.data}
+                  <div className="w3-row classic-container wishlist-video-row ">
+                    {wishlistData.data}
+                  </div>
+
+                  <CustomButton
+                    className="next-wishlist-icon"
+                    onClick={async () => {
+                      setShowWishlistSpinner(true)
+                      handleNextPage(
+                        wishlistData,
+                        setShowWishlistSpinner,
+                        wishlistUrl,
+                        setWishlistData,
+                      )
+                      setRecentAIRequestedSpinner(false)
+                    }}
+                    disabled={
+                      wishlistData.currentPage === wishlistData.totalPages
+                    }
+                  >
+                    &gt;
+                  </CustomButton>
                 </div>
+              )}
 
-                {/* Custom next button */}
-                <CustomButton
-                  className="next-wishlist-icon"
-                  onClick={async () => {
-                    setShowWishlistSpinner(true) // Optionally, show spinner while loading
-                    await handleNextPage(
-                      wishlistData,
-                      setShowWishlistSpinner,
-                      wishlistUrl,
-                      setWishlistData,
-                    )
-                    setRecentAIRequestedSpinner(false)
-                  }}
-                  disabled={
-                    wishlistData.currentPage === wishlistData.totalPages
-                  }
-                >
-                  &gt;
-                </CustomButton>
-              </div>
-            )}
-
-            {wishlistData?.data.length === 0 && (
-              <p className="history-text">No videos in your wishlist.</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      <header className="w3-container w3-indigo">
-        <h2 className="classic-h2">{translate('RECENT AI DESCRIPTIONS')}</h2>
-      </header>
-
-      <div className="d-flex justify-content-center custom-carousel">
-        <div className="custom-carousel">
-          {!recentAIRequested && <CustomSpinner />}
-          {recentAIRequested && recentAIRequested?.data.length > 0 && (
-            <div className="d-flex justify-content-between align-items-center h-100">
-              <CustomButton
-                className="prev-wishlist-icon"
-                onClick={async () => {
-                  setRecentAIRequestedSpinner(true)
-                  await handlePreviousPage(
-                    recentAIRequested,
-                    setRecentAIRequestedSpinner,
-                    aiRequestedUrl,
-                    setrecentAIRequested,
-                  )
-                  setRecentAIRequestedSpinner(false)
-                }}
-                disabled={recentAIRequested.currentPage === 1}
-              >
-                &lt;
-              </CustomButton>
-
-              <div className="w3-row classic-container wishlist-video-row ">
-                {recentAIRequested.data}
-              </div>
-
-              <CustomButton
-                className="next-wishlist-icon"
-                onClick={async () => {
-                  setRecentAIRequestedSpinner(true)
-                  await handleNextPage(
-                    recentAIRequested,
-                    setRecentAIRequestedSpinner,
-                    aiRequestedUrl,
-                    setrecentAIRequested,
-                  )
-                  setRecentAIRequestedSpinner(false)
-                }}
-                disabled={
-                  recentAIRequested.currentPage === recentAIRequested.totalPages
-                }
-              >
-                &gt;
-              </CustomButton>
+              {wishlistData?.data.length === 0 && (
+                <p className="history-text">No videos in your wishlist.</p>
+              )}
             </div>
-          )}
+          </div>
+        ) : (
+          <div className="login-prompt">
+            <p>
+              {translate('Log in to create and view your personal wishlist')}
+            </p>
+          </div>
+        )}
+      </section>
 
-          {recentAIRequested?.data.length === 0 && (
-            <p className="history-text">No AI Requested Videos.</p>
-          )}
-        </div>
-      </div>
+      <section className="recent-ai-descriptions-section">
+        <header className="w3-container w3-indigo">
+          <h2 className="classic-h2">{translate('RECENT AI DESCRIPTIONS')}</h2>
+        </header>
+
+        {userDataStore.getState().isSignedIn ? (
+          <div className="d-flex justify-content-center custom-carousel">
+            <div className="custom-carousel">
+              {!recentAIRequested && <CustomSpinner />}
+              {recentAIRequested && recentAIRequested?.data.length > 0 && (
+                <div className="d-flex justify-content-between align-items-center h-100">
+                  <CustomButton
+                    className="prev-wishlist-icon"
+                    onClick={async () => {
+                      setRecentAIRequestedSpinner(true)
+                      handlePreviousPage(
+                        recentAIRequested,
+                        setRecentAIRequestedSpinner,
+                        aiRequestedUrl,
+                        setrecentAIRequested,
+                      )
+                      setRecentAIRequestedSpinner(false)
+                    }}
+                    disabled={recentAIRequested.currentPage === 1}
+                  >
+                    &lt;
+                  </CustomButton>
+
+                  <div className="w3-row classic-container wishlist-video-row ">
+                    {recentAIRequested.data}
+                  </div>
+
+                  <CustomButton
+                    className="next-wishlist-icon"
+                    onClick={async () => {
+                      setRecentAIRequestedSpinner(true)
+                      handleNextPage(
+                        recentAIRequested,
+                        setRecentAIRequestedSpinner,
+                        aiRequestedUrl,
+                        setrecentAIRequested,
+                      )
+                      setRecentAIRequestedSpinner(false)
+                    }}
+                    disabled={
+                      recentAIRequested.currentPage ===
+                      recentAIRequested.totalPages
+                    }
+                  >
+                    &gt;
+                  </CustomButton>
+                </div>
+              )}
+
+              {recentAIRequested?.data.length === 0 && (
+                <p className="history-text">No AI Requested Videos.</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="login-prompt">
+            <p>
+              {translate('Log in to view recent AI-generated descriptions')}
+            </p>
+          </div>
+        )}
+      </section>
 
       <form
         onSubmit={(e: any) => {
