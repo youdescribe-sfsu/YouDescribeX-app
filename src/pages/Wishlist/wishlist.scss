@@ -59,8 +59,8 @@
 
 .table-container {
   width: 376px;
-  padding: 0px 8px 16px 8px;
-  margin: 0px auto;
+  padding: 0 8px 16px 8px;
+  margin: 0 auto;
   @media screen and (max-width: 601px) {
     width: 97%;
     padding: 0 0 8px 0;
@@ -195,16 +195,4 @@
   position: relative;
   overflow: hidden;
   padding: 0 40px;
-}
-
-.wishlist-video-row {
-  display: flex;
-  transition: transform 0.3s ease;
-  width: calc(100% * (var(--items-per-page) / 4));
-}
-
-.wishlist-video-card {
-  flex: 0 0 calc(100% / var(--items-per-page));
-  max-width: calc(100% / var(--items-per-page));
-  padding: 0 10px;
 }

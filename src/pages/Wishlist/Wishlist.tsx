@@ -768,14 +768,6 @@ const Wishlist = () => {
             <p>
               {translate('Log in to create and view your personal wishlist')}
             </p>
-            <button
-              onClick={() => {
-                /* Handle login */
-              }}
-              className="login-button"
-            >
-              {translate('Log In / Sign Up')}
-            </button>
           </div>
         )}
       </section>
@@ -844,14 +836,6 @@ const Wishlist = () => {
             <p>
               {translate('Log in to view recent AI-generated descriptions')}
             </p>
-            <button
-              onClick={() => {
-                /* Handle login */
-              }}
-              className="login-button"
-            >
-              {translate('Log In / Sign Up')}
-            </button>
           </div>
         )}
       </section>
