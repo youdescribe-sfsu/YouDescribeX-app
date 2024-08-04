@@ -759,7 +759,9 @@ const Wishlist = () => {
               )}
 
               {wishlistData?.data.length === 0 && (
-                <p className="history-text">No videos in your wishlist.</p>
+                <div className="no-videos-message">
+                  {translate('No videos in your wishlist')}
+                </div>
               )}
             </div>
           </div>
@@ -827,7 +829,9 @@ const Wishlist = () => {
               )}
 
               {recentAIRequested?.data.length === 0 && (
-                <p className="history-text">No AI Requested Videos.</p>
+                <div className="no-videos-message">
+                  {translate('No AI Requested Videos')}
+                </div>
               )}
             </div>
           </div>
