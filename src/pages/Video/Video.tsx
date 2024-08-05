@@ -68,18 +68,18 @@ const Video = () => {
 
   const languages = [
     { code: 'en-US', name: 'English (United States)' },
-    { code: 'en-GB', name: 'English (United Kingdom)' },
-    { code: 'zh-CN', name: 'Chinese (Simplified, China)' },
-    { code: 'zh-TW', name: 'Chinese (Traditional, Taiwan)' },
-    { code: 'ko-KR', name: 'Korean (South Korea)' },
-    { code: 'fr-FR', name: 'French (France)' },
-    { code: 'fr-CA', name: 'French (Canada)' },
-    { code: 'ar-SA', name: 'Arabic (Saudi Arabia)' },
-    { code: 'ar-EG', name: 'Arabic (Egypt)' },
-    { code: 'ru-RU', name: 'Russian (Russia)' },
-    { code: 'de-DE', name: 'German (Germany)' },
-    { code: 'es-ES', name: 'Spanish (Spain)' },
-    { code: 'es-MX', name: 'Spanish (Mexico)' },
+    // { code: 'en-GB', name: 'English (United Kingdom)' },
+    // { code: 'zh-CN', name: 'Chinese (Simplified, China)' },
+    // { code: 'zh-TW', name: 'Chinese (Traditional, Taiwan)' },
+    // { code: 'ko-KR', name: 'Korean (South Korea)' },
+    // { code: 'fr-FR', name: 'French (France)' },
+    // { code: 'fr-CA', name: 'French (Canada)' },
+    // { code: 'ar-SA', name: 'Arabic (Saudi Arabia)' },
+    // { code: 'ar-EG', name: 'Arabic (Egypt)' },
+    // { code: 'ru-RU', name: 'Russian (Russia)' },
+    // { code: 'de-DE', name: 'German (Germany)' },
+    // { code: 'es-ES', name: 'Spanish (Spain)' },
+    // { code: 'es-MX', name: 'Spanish (Mexico)' },
   ]
 
   // Loading Spinner
