@@ -18,7 +18,7 @@ import React, {
   useState,
 } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Id, ToastContainer } from 'react-toastify'
+import { Id } from 'react-toastify'
 import YouTube from 'react-youtube'
 import { Options, YouTubePlayer } from 'youtube-player/dist/types'
 import './video.scss'
@@ -39,10 +39,9 @@ import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
 import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
-import axios, { AxiosResponse } from 'axios'
+import axios from 'axios'
 import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
-// import iso6391 from 'iso-639-1'
 
 interface IADUserId {
   [key: string]: {
@@ -101,11 +100,11 @@ const Video = () => {
   const [videoTitle, setVideoTitle] = useState('')
   const [videoAuthor, setVideoAuthor] = useState('')
   const [videoPublishedAt, setVideoPublishedAt] = useState('')
-  const [videoDescription, setVideoDescription] = useState('')
+  const [, setVideoDescription] = useState('')
   const [videoViews, setVideoViews] = useState('')
   const [videoLikes, setVideoLikes] = useState('')
   const [videoDurationInSeconds, setVideoDurationInSeconds] = useState(0)
-  const [videoDurationToDisplay, setVideoDurationToDisplay] = useState('')
+  const [, setVideoDurationToDisplay] = useState('')
 
   // Balancer value for volume controls
   const [descriptionVolume, setDescriptionVolume] = useState(
@@ -129,14 +128,14 @@ const Video = () => {
   // store current extended & inline Audio Clips to pause/play based on the YT video current state
   const [currExtendedAC, setCurrExtendedAC] = useState<Howl>() // see onStateChange() - stop extended ac, when Video is played.
   const [currInlineAC, setCurrInlineAC] = useState<Howl>()
-  const [isCurrentExtACPaused, setCurrentExtACPaused] = useState(false) // Manages the play/pause state of an extended audio clip
+  const [, setCurrentExtACPaused] = useState(false) // Manages the play/pause state of an extended audio clip
 
   const [recentAudioPlayedTime, setRecentAudioPlayedTime] = useState(0.0) // used to store the time of a recent AD played to stop playing the same Audio twice concurrently - due to an issue found in updateTime() method because it returns the same currentTime twice or more
   const [playedAudioClip, setPlayedAudioClip] = useState('') // store clipId of the audio clip that is already played.
   const [playedClipPath, setPlayedClipPath] = useState('') // store clip_audio_path of the audio clip that is already played.
 
   const [isActive, setIsActive] = useState(false)
-  const [samplingRate, setSamplingRate] = useState(200)
+  const [samplingRate] = useState(200)
 
   const [previousTime, setPreviousTime] = useState(0.0)
   const [clipStack, setClipStack] = useState<Clip[]>([])
@@ -1679,6 +1678,7 @@ const Video = () => {
           className="classic-container w3-row video-info"
         >
           <RatingPopup
+            audioDescriptionId={selectedADId}
             rating={rating}
             setRating={setRating}
             handleRatingSubmit={handleRatingSubmit}

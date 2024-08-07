@@ -1,9 +1,12 @@
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
-import React, { Dispatch, SetStateAction } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import './ratingPopup.scss'
+import { apiUrl } from '@/shared/config'
+import ourFetch from '@/shared/utils/ourFetch'
 
 interface Props {
+  audioDescriptionId: string
   rating: number
   setRating: Dispatch<SetStateAction<number>>
   handleRatingSubmit: (rating: number) => void
@@ -11,11 +14,49 @@ interface Props {
 }
 
 const RatingPopup = ({
+  audioDescriptionId,
   rating,
   setRating,
   handleRatingSubmit,
   handleRatingPopupClose,
 }: Props) => {
+  const [userRating, setUserRating] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchUserRating = async () => {
+      try {
+        const userId = userDataStore.getState().userId
+        const url = `${apiUrl}/audio-descriptions/ratings/user/${audioDescriptionId}?userId=${userId}`
+        const response = await ourFetch(url)
+        setUserRating(response.result)
+        if (response.result !== null) {
+          setRating(response.result)
+        }
+      } catch (error) {
+        console.error('Error fetching user rating:', error)
+      }
+    }
+
+    fetchUserRating()
+  }, [audioDescriptionId, setRating])
+
+  const renderStars = () => {
+    const stars = []
+    for (let i = 5; i >= 1; i--) {
+      stars.push(
+        <button
+          key={i}
+          onClick={() => handleRatingSubmit(i)}
+          className={`star ${i <= (rating || userRating || 0) ? 'filled' : ''}`}
+          tabIndex={-1}
+        >
+          ★
+        </button>,
+      )
+    }
+    return stars
+  }
+
   return (
     <div id="rating-popup" tabIndex={-1}>
       <div id="rating-popup-contents">
@@ -29,21 +70,7 @@ const RatingPopup = ({
           )}
         </p>
         <div className="rating" aria-hidden="true">
-          <button onClick={() => handleRatingSubmit(5)} tabIndex={-1}>
-            ★
-          </button>
-          <button onClick={() => handleRatingSubmit(4)} tabIndex={-1}>
-            ★
-          </button>
-          <button onClick={() => handleRatingSubmit(3)} tabIndex={-1}>
-            ★
-          </button>
-          <button onClick={() => handleRatingSubmit(2)} tabIndex={-1}>
-            ★
-          </button>
-          <button onClick={() => handleRatingSubmit(1)} tabIndex={-1}>
-            ★
-          </button>
+          {renderStars()}
         </div>
         <form
           className="skip"
@@ -58,6 +85,7 @@ const RatingPopup = ({
             name="rating"
             value="1"
             onChange={() => setRating(1)}
+            checked={rating === 1}
           />
           <label htmlFor="rating-1"> 1 star</label>
           <br />
@@ -67,6 +95,7 @@ const RatingPopup = ({
             name="rating"
             value="2"
             onChange={() => setRating(2)}
+            checked={rating === 2}
           />
           <label htmlFor="rating-2"> 2 stars</label>
           <br />
@@ -76,6 +105,7 @@ const RatingPopup = ({
             name="rating"
             value="3"
             onChange={() => setRating(3)}
+            checked={rating === 3}
           />
           <label htmlFor="rating-3"> 3 stars</label>
           <br />
@@ -85,6 +115,7 @@ const RatingPopup = ({
             name="rating"
             value="4"
             onChange={() => setRating(4)}
+            checked={rating === 4}
           />
           <label htmlFor="rating-4"> 4 stars</label>
           <br />
@@ -94,6 +125,7 @@ const RatingPopup = ({
             name="rating"
             value="5"
             onChange={() => setRating(5)}
+            checked={rating === 5}
           />
           <label htmlFor="rating-5"> 5 stars</label>
           <br />
