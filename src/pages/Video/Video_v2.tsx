@@ -1427,6 +1427,7 @@ const Video = () => {
           className="classic-container w3-row video-info"
         >
           <RatingPopup
+            audioDescriptionId={selectedADId}
             rating={rating}
             setRating={setRating}
             handleRatingSubmit={handleRatingSubmit}
