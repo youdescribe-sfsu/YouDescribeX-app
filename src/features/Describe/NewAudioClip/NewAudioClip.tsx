@@ -29,611 +29,274 @@ const NewAudioClipComponent = ({
   audioDescriptionId,
   setNeedRefresh,
 }: Props) => {
-  // for audio Recording
-  // variable and function declaration of the react-media-recorder package
-  const { status, startRecording, stopRecording, mediaBlobUrl, clearBlobUrl } =
-    useReactMediaRecorder({ audio: true }) // using only the audio recorder here
-  const [readySetGo, setReadySetGo] = useState('')
-  // this state variable keeps track of the play/pause state of the recorded audio
-  const [isRecordedAudioPlaying, setIsRecordedAudioPlaying] = useState(false)
-  // this state variable is updated whenever mediaBlobUrl is updated. i.e. whenever a new recording is created
-  const [recordedAudio, setRecordedAudio] = useState<HTMLAudioElement>()
-
-  // state variables - for new AD
   const [newACTitle, setNewACTitle] = useState('')
-  const [newACType, setNewACType] = useState('Visual') // default for Visual
+  const [newACType, setNewACType] = useState('Visual')
   const [newACDescriptionText, setNewACDescriptionText] = useState('')
-  const [newACStartTime, setNewACStartTime] = useState(0.0)
+  const [newACStartTime, setNewACStartTime] = useState(currentTime)
   const [newACDuration, setNewACDuration] = useState(0.0)
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordingError, setRecordingError] = useState<string | null>(null)
 
-  // use 3 state variables to hold the value of 3 input type number fields
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0)
-  const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0)
-  const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0)
-  const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] =
-    useState(0.0)
+  const [clipStartTimeHours, setClipStartTimeHours] = useState(0)
+  const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0)
+  const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0)
+  const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] = useState(0)
+
+  const { status, startRecording, stopRecording, mediaBlobUrl, clearBlobUrl } =
+    useReactMediaRecorder({
+      audio: true,
+      onStop: (blobUrl) => {
+        const audio = new Audio(blobUrl)
+        audio.addEventListener('loadedmetadata', () => {
+          setNewACDuration(audio.duration)
+        })
+      },
+    })
 
   useEffect(() => {
-    // scroll to the bottom of the screen and make the Inline AD component visible
-    window.scrollTo({
-      left: 0,
-      top: document.body.scrollHeight,
-      behavior: 'smooth',
-    })
-    // following statements execute whenever mediaBlobUrl is updated.. used it in the dependency array
-    if (mediaBlobUrl) {
-      setRecordedAudio(new Audio(mediaBlobUrl))
-      const aud = new Audio(mediaBlobUrl)
-      // set audio duration if recorded
-      aud.addEventListener(
-        'loadedmetadata',
-        function () {
-          if (aud.duration === Infinity) {
-            // set it to bigger than the actual duration
-            aud.currentTime = 1e101
-            aud.ontimeupdate = function () {
-              this.ontimeupdate = () => {
-                return
-              }
-              setNewACDuration(aud.duration)
-              aud.currentTime = 0
-            }
-          } else {
-            setNewACDuration(aud.duration)
-          }
-        },
-        false,
-      )
-    }
     handleClipStartTimeInputsRender()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediaBlobUrl])
+  }, [currentTime])
 
-  // render the values in the input[type='number'] fields of the start time - renders everytime the props_clip_start_time value changes
   const handleClipStartTimeInputsRender = () => {
-    setClipStartTimeHours(
-      Number(convertSecondsToCardFormat(currentTime).split(':')[0]),
-    )
-    setClipStartTimeMinutes(
-      Number(convertSecondsToCardFormat(currentTime).split(':')[1]),
-    )
-    setClipStartTimeSeconds(
-      Number(convertSecondsToCardFormat(currentTime).split(':')[2]),
-    )
-    setClipStartTimeMilliSeconds(
-      Number(convertSecondsToCardFormat(currentTime).split(':')[3]),
-    )
+    const cardFormat = convertSecondsToCardFormat(currentTime).split(':')
+    setClipStartTimeHours(parseInt(cardFormat[0]))
+    setClipStartTimeMinutes(parseInt(cardFormat[1]))
+    setClipStartTimeSeconds(parseInt(cardFormat[2]))
+    setClipStartTimeMilliSeconds(parseInt(cardFormat[3]))
     setNewACStartTime(currentTime)
   }
 
-  // calculate the Start Time in seconds from the Hours, Minutes & Seconds passed from handleBlur functions
-  const calculateClipStartTimeinSeconds = (
-    milliseconds: number,
-    minutes: number,
-    seconds: number,
-  ) => {
-    const calculatedSeconds = +milliseconds / 1000 + +minutes * 60 + +seconds
-    // check if the updated start time is more than the videolength, if yes, throw error and retain the old state
-    if (calculatedSeconds > videoLength) {
-      toast.error('Oops!! Start Time cannot be later than the video end time.') // show toast error message
-      handleClipStartTimeInputsRender()
-    } else {
-      setNewACStartTime(calculatedSeconds)
-    }
+  const handleStartRecording = () => {
+    setIsRecording(true)
+    setRecordingError(null)
+    startRecording()
   }
 
-  const handleOnChangeClipStartTimeHours = (e: any) => {
-    setClipStartTimeHours(e.target.value)
-    if (e.target.value.length > 2) {
-      setClipStartTimeHours(e.target.value.substring(0, 2))
-    }
-  }
-  const handleOnChangeClipStartTimeMinutes = (e: any) => {
-    setClipStartTimeMinutes(e.target.value)
-    // if (e.target.value.length > 2) {
-    //   setClipStartTimeMinutes(e.target.value.substring(0, 2));
-    // } else if (e.target.value.length === 2) {
-    //   if (parseInt(e.target.value) >= 60) {
-    //     setClipStartTimeMinutes('59');
-    //   }
-    // }
-  }
-  const handleOnChangeClipStartTimeSeconds = (e: any) => {
-    setClipStartTimeSeconds(e.target.value)
-    if (e.target.value.length > 2) {
-      setClipStartTimeSeconds(e.target.value.substring(0, 2))
-    } else if (e.target.value.length === 2) {
-      if (parseInt(e.target.value) >= 60) {
-        setClipStartTimeSeconds(59)
-      }
-    }
+  const handleStopRecording = () => {
+    setIsRecording(false)
+    stopRecording()
   }
 
-  const handleOnChangeClipStartTimeMilliSeconds = (e: any) => {
-    setClipStartTimeMilliSeconds(e.target.value)
-    if (e.target.value.length > 2) {
-      setClipStartTimeMilliSeconds(e.target.value.substring(0, 2))
-    } else if (e.target.value.length === 2) {
-      if (parseInt(e.target.value) >= 60) {
-        setClipStartTimeMilliSeconds(59)
-      }
-    }
-  }
-  const handleBlurClipStartTimeMilliSeconds = (e: any) => {
-    // store the current clipStartTimeHours in a temp variable,
-    // so that when calculateClipStartTimeinSeconds without going into the loops,
-    // it has the previous value in it
-    let tempStartTimeMilliSeconds = clipStartTimeMilliSeconds
-    if (e.target.value.length === 1) {
-      setClipStartTimeMilliSeconds(Number(e.target.value + '0'))
-      tempStartTimeMilliSeconds = Number(e.target.value + '0')
-      if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeMilliSeconds(59)
-        tempStartTimeMilliSeconds = 59
-      }
-    } else if (e.target.value.length === 0) {
-      setClipStartTimeMilliSeconds(0)
-      tempStartTimeMilliSeconds = 0
-    }
-    // call the function which will update the clipStartTime in the parent component and the db is updated too.
-    calculateClipStartTimeinSeconds(
-      tempStartTimeMilliSeconds,
-      clipStartTimeMinutes,
-      clipStartTimeSeconds,
-    )
-  }
-  const handleBlurClipStartTimeHours = (e: any) => {
-    // Store the current clipStartTimeHours in a temp variable
-    let tempStartTimeHours = clipStartTimeHours
-    // Ensure the input value is within bounds
-    if (e.target.value.length === 1) {
-      setClipStartTimeHours(Number(e.target.value + '0'))
-      tempStartTimeHours = Number(e.target.value + '0')
-      if (parseInt(e.target.value + '0') >= 24) {
-        setClipStartTimeHours(23)
-        tempStartTimeHours = 23
-      }
-    } else if (e.target.value.length === 2) {
-      // If the input is two digits, ensure it's within bounds
-      const inputValue = parseInt(e.target.value, 10)
-      if (inputValue >= 24) {
-        setClipStartTimeHours(23)
-        tempStartTimeHours = 23
-      } else {
-        setClipStartTimeHours(inputValue)
-        tempStartTimeHours = inputValue
-      }
-    } else if (e.target.value.length === 0) {
-      // If the input is empty, set it to 0
-      setClipStartTimeHours(0)
-      tempStartTimeHours = 0
-    }
-    const calculatedSeconds =
-      +e.target.value * 3600 +
-      +clipStartTimeMinutes * 60 +
-      +clipStartTimeSeconds +
-      +clipStartTimeMilliSeconds / 1000
-
-    // Check if the updated start time is greater than the video length
-    if (calculatedSeconds > videoLength) {
-      toast.error('Oops!! Start Time cannot be later than the video end time.')
-      handleClipStartTimeInputsRender()
-    } else {
-      setNewACStartTime(calculatedSeconds)
-    }
-  }
-
-  const handleBlurClipStartTimeMinutes = (e: any) => {
-    // store the current clipStartTimeMinutes in a temp variable,
-    // so that when calculateClipStartTimeinSeconds without going into the loops,
-    // it has the previous value in it
-    let tempStartTimeMinutes = clipStartTimeMinutes
-    if (e.target.value.length === 1) {
-      setClipStartTimeMinutes(Number(e.target.value + '0'))
-      tempStartTimeMinutes = Number(e.target.value + '0')
-      if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeMinutes(59)
-        tempStartTimeMinutes = 59
-      }
-    } else if (e.target.value.length === 0) {
-      setClipStartTimeMinutes(0)
-      tempStartTimeMinutes = 0
-    }
-    // call the function which will update the clipStartTime in the parent component and the db is updated too.
-    calculateClipStartTimeinSeconds(
-      clipStartTimeMilliSeconds,
-      tempStartTimeMinutes,
-      clipStartTimeSeconds,
-    )
-  }
-  const handleBlurClipStartTimeSeconds = (e: any) => {
-    // store the current clipStartTimeSeconds in a temp variable,
-    // so that when calculateClipStartTimeinSeconds without going into the loops,
-    // it has the previous value in it
-    let tempStartTimeSeconds = clipStartTimeSeconds
-    if (e.target.value.length === 1) {
-      setClipStartTimeSeconds(Number(e.target.value + '0'))
-      tempStartTimeSeconds = Number(e.target.value + '0')
-      if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeSeconds(59)
-        tempStartTimeSeconds = 59
-      }
-    } else if (e.target.value.length === 0) {
-      setClipStartTimeSeconds(0)
-      tempStartTimeSeconds = 0
-    }
-    // call the function which will update the clipStartTime in the parent component and the db is updated too.
-    calculateClipStartTimeinSeconds(
-      clipStartTimeMilliSeconds,
-      clipStartTimeMinutes,
-      tempStartTimeSeconds,
+  const calculateClipStartTimeinSeconds = () => {
+    return (
+      clipStartTimeHours * 3600 +
+      clipStartTimeMinutes * 60 +
+      clipStartTimeSeconds +
+      clipStartTimeMilliSeconds / 1000
     )
   }
 
-  // function for toggling play pause functionality of the recorded audio - on button click
-  const handlePlayPauseRecordedAudio = () => {
-    if (isRecordedAudioPlaying) {
-      recordedAudio?.pause()
-      setIsRecordedAudioPlaying(false)
-    } else {
-      recordedAudio?.play()
-      setIsRecordedAudioPlaying(true)
-      // this is for setting setIsRecordedAudioPlaying variable to false, once the playback is completed.
-      recordedAudio?.addEventListener('ended', function () {
-        setIsRecordedAudioPlaying(false)
-      })
-    }
-  }
-
-  // to save the new audio clip into the database
-  const handleSaveNewAudioClip = (e: any) => {
+  const handleSaveNewAudioClip = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (mediaBlobUrl) {
-      clearBlobUrl()
-    }
-    if (newACTitle === '') {
-      toast.error('Please enter a Title')
-    } else {
-      if (!newACDescriptionText && !mediaBlobUrl) {
-        toast.error(
-          'Please enter a description text for the New Clip or record one',
-        )
-      } else {
-        setShowSpinner(true)
-        if (mediaBlobUrl) {
-          // axios call to backend with isRecorded true
-          saveNewClipInDB({ isRecorded: true })
-        } else {
-          // axios call to backend with isRecorded false
-          saveNewClipInDB({ isRecorded: false })
-        }
-      }
-    }
-  }
+    setShowSpinner(true)
 
-  const saveNewClipInDB = async ({ isRecorded }: any) => {
-    const newACPlaybackType = showInlineACComponent ? 'inline' : 'extended'
-    // create a new FormData object for easy file uploads
+    if (!newACTitle) {
+      toast.error('Please enter a Title')
+      setShowSpinner(false)
+      return
+    }
+
+    if (!newACDescriptionText && !mediaBlobUrl) {
+      toast.error('Please enter a description text or record audio')
+      setShowSpinner(false)
+      return
+    }
+
     const formData = new FormData()
     formData.append('newACTitle', newACTitle)
     formData.append('newACType', newACType)
-    formData.append('newACPlaybackType', newACPlaybackType)
-    formData.append('newACStartTime', String(newACStartTime))
-    formData.append('isRecorded', isRecorded)
+    formData.append(
+      'newACPlaybackType',
+      showInlineACComponent ? 'inline' : 'extended',
+    )
+    formData.append('newACStartTime', String(calculateClipStartTimeinSeconds()))
+    formData.append('isRecorded', String(!!mediaBlobUrl))
     formData.append('youtubeVideoId', youtubeVideoId)
     formData.append('userId', userId)
-    if (!isRecorded) {
-      formData.append('newACDescriptionText', newACDescriptionText)
-    } else {
-      const audioBlob = await fetch(mediaBlobUrl ?? '').then((r) => r.blob()) // get blob from the audio URI
-      const audioFile = new File([audioBlob], 'voice.mp3', {
-        type: 'audio/mp3',
-      })
-      // formData.append('newACDescriptionText', '');
-      formData.append('newACDescriptionText', newACDescriptionText)
+    formData.append('newACDescriptionText', newACDescriptionText)
+
+    if (mediaBlobUrl) {
+      const audioBlob = await fetch(mediaBlobUrl).then((r) => r.blob())
+      formData.append('file', audioBlob, 'recorded_audio.webm')
       formData.append('newACDuration', String(newACDuration))
-      formData.append('file', audioFile)
     }
-    // upload formData using axios
-    axios
-      .post(
+
+    try {
+      const response = await axios.post(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/add-new-clip/${audioDescriptionId}`,
         formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        },
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
-      .then((res) => {
-        toast.success(`New Clip Added Successfully!!\n${res.data}`)
-        // setTimeout(() => {
-        //   window.location.reload(); // force reload the page to pull the new audio clip on to the page - Any other efficient way??
-        // }, 4000); // setting the timeout to show the toast message for 2 sec
-        setShowNewACComponent(false)
-        setNeedRefresh(true)
-      })
-      .catch((err) => {
-        // console.log(err.response.data.message)
-        toast.error('Error Adding New Clip. Please try again later.')
-      })
-  }
-
-  // handle Record Ready Set Go
-  const handleReadySetGo = () => {
-    const _321Go = ['3', '2', '1', 'Go', 'start']
-    // using the concept of closures & IIFE in JavaScript
-    _321Go.forEach((val, i) => {
-      setTimeout(
-        (function (i_local) {
-          return function () {
-            setReadySetGo(i_local)
-          }
-        })(val),
-        1000 * i,
-      )
-    })
-    // start recording once ready set go is completed
-    setTimeout(() => {
-      startRecording()
-    }, 3700)
+      toast.success(`New Clip Added Successfully!!\n${response.data}`)
+      setShowNewACComponent(false)
+      setNeedRefresh(true)
+    } catch (error) {
+      console.error(error)
+      toast.error('Error Adding New Clip. Please try again later.')
+    } finally {
+      setShowSpinner(false)
+    }
   }
 
   return (
     <div className="text-white component mt-2 rounded border border-1 border-white mx-5 d-flex flex-column pb-3 justify-content-between">
-      {/* close icon to the top right */}
       <div className="mx-2 text-end">
         <i
-          className="fa fa-close fs-4 close-icon "
-          onClick={() => {
-            setShowNewACComponent(false)
-          }}
+          className="fa fa-close fs-4 close-icon"
+          onClick={() => setShowNewACComponent(false)}
         ></i>
       </div>
-      {/* div for radio button, title, type, start time */}
-      <div className="d-flex justify-content-evenly align-items-start">
-        {/* Inline or Extended Radio Button */}
-        <div className="">
-          {showInlineACComponent ? (
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input ydx-input"
-                type="radio"
-                id="radio1"
-                value="inline"
-                defaultChecked
-              />
-              <div className="inline-bg text-dark inline-extended-radio px-2">
-                <label className="inline-extended-label">Inline</label>
-              </div>
-            </div>
-          ) : (
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input ydx-input"
-                type="radio"
-                id="radio2"
-                value="extended"
-                defaultChecked
-              />
-              <div className="extended-bg text-white inline-extended-radio px-2">
-                <label className="inline-extended-label">Extended</label>
-              </div>
-            </div>
-          )}
-        </div>
-        {/* Title Text box div */}
-        <div className="d-flex justify-content-evenly align-items-center">
-          <h6 className="text-white fw-bolder mb-0">Title:</h6>
-          <input
-            type="text"
-            className="form-control form-control-sm text-center mx-2 ydx-input"
-            placeholder="Title goes here.."
-            value={newACTitle}
-            onChange={(e) => setNewACTitle(e.target.value)}
-          />
-        </div>
-        {/* type dropdown div */}
-        <div className="d-flex justify-content-evenly align-items-center">
-          <h6 className="text-white fw-bolder mb-0">Type:</h6>
-          <select
-            className="form-select form-select-sm text-center mx-2"
-            aria-label="Select the type of new AD"
-            required
-            defaultValue={'Visual'}
-            onChange={(e) => setNewACType(e.target.value)}
-          >
-            <option value="Visual">Visual</option>
-            <option value="Text on Screen">Text on Screen</option>
-          </select>
-        </div>
-        {/* Start Time Div */}
-        <div className="d-flex justify-content-evenly flex-column align-items-center">
+      <form onSubmit={handleSaveNewAudioClip}>
+        <div className="d-flex justify-content-evenly align-items-start mb-3">
+          <div className="form-check form-check-inline">
+            <input
+              className="form-check-input ydx-input"
+              type="radio"
+              id="inlineRadio"
+              value="inline"
+              checked={showInlineACComponent}
+              readOnly
+            />
+            <label
+              className={`inline-extended-label ${
+                showInlineACComponent
+                  ? 'inline-bg text-dark'
+                  : 'extended-bg text-white'
+              }`}
+            >
+              {showInlineACComponent ? 'Inline' : 'Extended'}
+            </label>
+          </div>
           <div className="d-flex justify-content-evenly align-items-center">
+            <h6 className="text-white fw-bolder mb-0 me-2">Title:</h6>
+            <input
+              type="text"
+              className="form-control form-control-sm text-center ydx-input"
+              placeholder="Title goes here.."
+              value={newACTitle}
+              onChange={(e) => setNewACTitle(e.target.value)}
+              required
+            />
+          </div>
+          <div className="d-flex justify-content-evenly align-items-center">
+            <h6 className="text-white fw-bolder mb-0 me-2">Type:</h6>
+            <select
+              className="form-select form-select-sm text-center"
+              value={newACType}
+              onChange={(e) => setNewACType(e.target.value)}
+              required
+            >
+              <option value="Visual">Visual</option>
+              <option value="Text on Screen">Text on Screen</option>
+            </select>
+          </div>
+          <div className="d-flex justify-content-evenly flex-column align-items-center">
             <h6 className="text-white fw-bolder mx-2">Start Time:</h6>
-            <div className="edit-time-div mx-auto">
+            <div className="edit-time-div">
               <div className="text-dark text-center d-flex justify-content-evenly">
-                <input
-                  type="number"
-                  style={{ width: '25px', height: '28px' }}
-                  className="text-white bg-dark ydx-input"
-                  min="0"
-                  value={clipStartTimeHours}
-                  onChange={handleOnChangeClipStartTimeHours}
-                  onBlur={handleBlurClipStartTimeHours}
-                  onKeyDown={(evt) =>
-                    ['e', 'E', '+', '-'].includes(evt.key) &&
-                    evt.preventDefault()
-                  }
-                />
-                <div className="mx-1">:</div>
-                <input
-                  type="number"
-                  style={{ width: '25px', height: '28px' }}
-                  className="text-white bg-dark ydx-input"
-                  min="0"
-                  value={clipStartTimeMinutes}
-                  onChange={handleOnChangeClipStartTimeMinutes}
-                  onBlur={handleBlurClipStartTimeMinutes}
-                  onKeyDown={(evt) =>
-                    ['e', 'E', '+', '-'].includes(evt.key) &&
-                    evt.preventDefault()
-                  }
-                />
-                <div className="mx-1">:</div>
-                <input
-                  type="number"
-                  style={{ width: '25px', height: '28px' }}
-                  className="text-white bg-dark ydx-input"
-                  value={clipStartTimeSeconds}
-                  onChange={handleOnChangeClipStartTimeSeconds}
-                  onBlur={handleBlurClipStartTimeSeconds}
-                  onKeyDown={(evt) =>
-                    ['e', 'E', '+', '-'].includes(evt.key) &&
-                    evt.preventDefault()
-                  }
-                />
-                <div className="mx-1">:</div>
-                <input
-                  type="number"
-                  style={{ width: '25px', height: '28px' }}
-                  className="text-white bg-dark ydx-input"
-                  value={clipStartTimeMilliSeconds}
-                  onChange={handleOnChangeClipStartTimeMilliSeconds}
-                  onBlur={handleBlurClipStartTimeMilliSeconds}
-                  onKeyDown={(evt) =>
-                    ['e', 'E', '+', '-'].includes(evt.key) &&
-                    evt.preventDefault()
-                  }
-                />
+                {[
+                  clipStartTimeHours,
+                  clipStartTimeMinutes,
+                  clipStartTimeSeconds,
+                  clipStartTimeMilliSeconds,
+                ].map((value, index) => (
+                  <React.Fragment key={index}>
+                    {index > 0 && <div className="mx-1">:</div>}
+                    <input
+                      type="number"
+                      style={{ width: '25px', height: '28px' }}
+                      className="text-white bg-dark ydx-input"
+                      value={value.toString().padStart(2, '0')}
+                      onChange={(e) => {
+                        const newValue = Math.min(
+                          parseInt(e.target.value) || 0,
+                          index === 1 || index === 2 ? 59 : 99,
+                        )
+                        switch (index) {
+                          case 0:
+                            setClipStartTimeHours(newValue)
+                            break
+                          case 1:
+                            setClipStartTimeMinutes(newValue)
+                            break
+                          case 2:
+                            setClipStartTimeSeconds(newValue)
+                            break
+                          case 3:
+                            setClipStartTimeMilliSeconds(newValue)
+                            break
+                        }
+                      }}
+                      onBlur={() =>
+                        setNewACStartTime(calculateClipStartTimeinSeconds())
+                      }
+                    />
+                  </React.Fragment>
+                ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <hr className="m-2" />
-      {/* div below hr to enter description / record audio */}
-      <div className="d-flex justify-content-evenly align-items-start">
-        <div className="d-flex justify-content-center align-items-start flex-column">
-          <h6 className="text-white">Add New Clip Description:</h6>
-          <textarea
-            className="form-control form-control-sm border rounded description-textarea"
-            rows={3}
-            id="description"
-            name="description"
-            placeholder="Start writing a Text Description.."
-            value={newACDescriptionText}
-            onChange={(e) => {
-              // if (mediaBlobUrl) {
-              //   clearBlobUrl()
-              // }
-              setNewACDescriptionText(e.target.value)
-            }}
-          ></textarea>
-        </div>
-        {/* vertical divider line */}
-        <div className="d-flex flex-column align-items-center">
-          <h6>Or</h6>
-          <div
-            className="vertical-divider-div"
-            style={{ height: '65px' }}
-          ></div>
-        </div>
-        {/* Recording Div */}
-        <div className="text-center">
-          <h6 className="text-white text-center">Record New Audio Clip</h6>
-          <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 w-100 my-2">
-            <div className="mx-1">
-              {status === 'recording' && readySetGo !== '' ? (
+        <div className="d-flex justify-content-evenly align-items-start mb-3">
+          <div className="d-flex justify-content-center align-items-start flex-column">
+            <h6 className="text-white">Add New Clip Description:</h6>
+            <textarea
+              className="form-control form-control-sm border rounded description-textarea"
+              rows={3}
+              placeholder="Start writing a Text Description.."
+              value={newACDescriptionText}
+              onChange={(e) => setNewACDescriptionText(e.target.value)}
+            ></textarea>
+          </div>
+          <div className="d-flex flex-column align-items-center">
+            <h6>Or</h6>
+            <div
+              className="vertical-divider-div"
+              style={{ height: '65px' }}
+            ></div>
+          </div>
+          <div className="text-center">
+            <h6 className="text-white text-center">Record New Audio Clip</h6>
+            <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 w-100 my-2">
+              {!isRecording ? (
                 <button
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  title="Click to Stop Recording"
                   type="button"
                   className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
-                  onClick={stopRecording} // default functions given by the react-media-recorder package
-                >
-                  <i className="fa fa-stop text-danger" />
-                </button>
-              ) : (readySetGo === '' && status !== 'recording') ||
-                (readySetGo === 'start' && status === 'stopped') ? (
-                <button
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  title="Click to Start Recording your voice"
-                  type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
-                  onClick={handleReadySetGo} // default functions given by the react-media-recorder package
+                  onClick={handleStartRecording}
+                  disabled={status === 'recording'}
                 >
                   <i className="fa fa-microphone text-danger" />
                 </button>
-              ) : readySetGo !== 'start' ? (
+              ) : (
                 <button
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  title="Ready Set Go"
                   type="button"
                   className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
-                  disabled
+                  onClick={handleStopRecording}
+                  disabled={status !== 'recording'}
                 >
-                  <b className="fs-6">{readySetGo}</b>
+                  <i className="fa fa-stop text-danger" />
                 </button>
-              ) : (
-                <></>
+              )}
+              {mediaBlobUrl && (
+                <audio src={mediaBlobUrl} controls className="ml-3" />
               )}
             </div>
-            {/* No recording to Play */}
-            {!mediaBlobUrl ? (
-              <div
-                data-bs-toggle="tooltip"
-                data-bs-placement="bottom"
-                title="No recording to Play"
-              >
-                <button
-                  type="button"
-                  className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
-                  disabled
-                >
-                  Listen
-                </button>
-              </div>
-            ) : isRecordedAudioPlaying ? ( //Listen to your recording
-              <button
-                type="button"
-                className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
-                data-bs-toggle="tooltip"
-                data-bs-placement="bottom"
-                title="Listen to your recording"
-                onClick={handlePlayPauseRecordedAudio} // toggle function for play / pause
-              >
-                Pause/Stop
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
-                data-bs-toggle="tooltip"
-                data-bs-placement="bottom"
-                title="Listen to your recording"
-                onClick={handlePlayPauseRecordedAudio} // toggle function for play / pause
-              >
-                Listen
-              </button>
+            {status === 'recording' && <div>Recording in progress...</div>}
+            {recordingError && (
+              <div className="text-danger">{recordingError}</div>
             )}
+            <div>Recording Duration: {newACDuration.toFixed(2)} sec</div>
           </div>
-          <div>Recording Duration: {newACDuration.toFixed(2)} sec</div>
         </div>
-      </div>
-      <hr className="m-2" />
-      {/* Save New AD Button */}
-      <div className="text-center mt-1">
-        <button
-          type="button"
-          className="btn rounded btn-sm text-white save-desc-btn ydx-button"
-          onClick={handleSaveNewAudioClip}
-        >
-          <i className="fa fa-save" /> {'  '} Save
-        </button>
-      </div>
+        <div className="text-center mt-3">
+          <button
+            type="submit"
+            className="btn rounded btn-sm text-white save-desc-btn ydx-button"
+          >
+            <i className="fa fa-save" /> Save
+          </button>
+        </div>
+      </form>
     </div>
   )
 }
