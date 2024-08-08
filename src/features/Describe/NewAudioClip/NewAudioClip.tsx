@@ -168,8 +168,8 @@ const NewAudioClipComponent = ({
         ></i>
       </div>
       <form onSubmit={handleSaveNewAudioClip}>
-        <div className="d-flex justify-content-evenly align-items-start mb-3">
-          <div className="form-check form-check-inline">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="form-check form-check-inline ms-3">
             <input
               className="form-check-input ydx-input"
               type="radio"
@@ -179,7 +179,7 @@ const NewAudioClipComponent = ({
               readOnly
             />
             <label
-              className={`inline-extended-label ${
+              className={`inline-extended-label px-2 ${
                 showInlineACComponent
                   ? 'inline-bg text-dark'
                   : 'extended-bg text-white'
@@ -188,7 +188,7 @@ const NewAudioClipComponent = ({
               {showInlineACComponent ? 'Inline' : 'Extended'}
             </label>
           </div>
-          <div className="d-flex justify-content-evenly align-items-center">
+          <div className="d-flex align-items-center">
             <h6 className="text-white fw-bolder mb-0 me-2">Title:</h6>
             <input
               type="text"
@@ -199,7 +199,7 @@ const NewAudioClipComponent = ({
               required
             />
           </div>
-          <div className="d-flex justify-content-evenly align-items-center">
+          <div className="d-flex align-items-center">
             <h6 className="text-white fw-bolder mb-0 me-2">Type:</h6>
             <select
               className="form-select form-select-sm text-center"
@@ -211,8 +211,8 @@ const NewAudioClipComponent = ({
               <option value="Text on Screen">Text on Screen</option>
             </select>
           </div>
-          <div className="d-flex justify-content-evenly flex-column align-items-center">
-            <h6 className="text-white fw-bolder mx-2">Start Time:</h6>
+          <div className="d-flex flex-column align-items-center me-3">
+            <h6 className="text-white fw-bolder mb-2">Start Time:</h6>
             <div className="edit-time-div">
               <div className="text-dark text-center d-flex justify-content-evenly">
                 {[
@@ -225,7 +225,7 @@ const NewAudioClipComponent = ({
                     {index > 0 && <div className="mx-1">:</div>}
                     <input
                       type="number"
-                      style={{ width: '25px', height: '28px' }}
+                      style={{ width: '30px', height: '28px' }}
                       className="text-white bg-dark ydx-input"
                       value={value.toString().padStart(2, '0')}
                       onChange={(e) => {
@@ -258,37 +258,33 @@ const NewAudioClipComponent = ({
             </div>
           </div>
         </div>
-        <div className="d-flex justify-content-evenly align-items-start mb-3">
-          <div className="d-flex flex-column align-items-center">
-            <h6 className="text-white mb-2">Choose Description Method:</h6>
-            <div>
-              <button
-                type="button"
-                className={`btn btn-sm me-2 ${
-                  descriptionMethod === 'text' ? 'btn-primary' : 'btn-secondary'
-                }`}
-                onClick={() => setDescriptionMethod('text')}
-              >
-                Text Description
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm ${
-                  descriptionMethod === 'audio'
-                    ? 'btn-primary'
-                    : 'btn-secondary'
-                }`}
-                onClick={() => setDescriptionMethod('audio')}
-              >
-                Audio Recording
-              </button>
-            </div>
+        <div className="d-flex flex-column align-items-center mb-3">
+          <h6 className="text-white mb-2">Choose Description Method:</h6>
+          <div className="btn-group" role="group">
+            <button
+              type="button"
+              className={`btn btn-sm ${
+                descriptionMethod === 'text' ? 'btn-primary' : 'btn-secondary'
+              }`}
+              onClick={() => setDescriptionMethod('text')}
+            >
+              Text Description
+            </button>
+            <button
+              type="button"
+              className={`btn btn-sm ${
+                descriptionMethod === 'audio' ? 'btn-primary' : 'btn-secondary'
+              }`}
+              onClick={() => setDescriptionMethod('audio')}
+            >
+              Audio Recording
+            </button>
           </div>
         </div>
 
         {descriptionMethod === 'text' ? (
-          <div className="d-flex justify-content-center align-items-start flex-column mb-3">
-            <h6 className="text-white">Add New Clip Description:</h6>
+          <div className="d-flex justify-content-center align-items-start flex-column mb-3 mx-3">
+            <h6 className="text-white mb-2">Add New Clip Description:</h6>
             <textarea
               className="form-control form-control-sm border rounded description-textarea"
               rows={3}
@@ -299,8 +295,10 @@ const NewAudioClipComponent = ({
           </div>
         ) : (
           <div className="text-center mb-3">
-            <h6 className="text-white text-center">Record New Audio Clip</h6>
-            <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 w-100 my-2">
+            <h6 className="text-white text-center mb-2">
+              Record New Audio Clip
+            </h6>
+            <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 mx-3 my-2">
               {!isRecording ? (
                 <button
                   type="button"
@@ -321,14 +319,22 @@ const NewAudioClipComponent = ({
                 </button>
               )}
               {mediaBlobUrl && (
-                <audio src={mediaBlobUrl} controls className="ml-3" />
+                <audio
+                  src={mediaBlobUrl}
+                  controls
+                  className="ml-3 flex-grow-1"
+                />
               )}
             </div>
-            {status === 'recording' && <div>Recording in progress...</div>}
+            {status === 'recording' && (
+              <div className="text-warning">Recording in progress...</div>
+            )}
             {recordingError && (
               <div className="text-danger">{recordingError}</div>
             )}
-            <div>Recording Duration: {recordingDuration.toFixed(1)} sec</div>
+            <div className="text-light">
+              Recording Duration: {recordingDuration.toFixed(1)} sec
+            </div>
           </div>
         )}
         <div className="text-center mt-3">
