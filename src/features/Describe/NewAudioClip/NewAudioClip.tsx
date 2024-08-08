@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
 import '@/assets/css/audioDesc.css'
@@ -25,7 +25,6 @@ const NewAudioClipComponent = ({
   showInlineACComponent,
   setShowNewACComponent,
   currentTime,
-  videoLength,
   audioDescriptionId,
   setNeedRefresh,
 }: Props) => {
@@ -33,9 +32,12 @@ const NewAudioClipComponent = ({
   const [newACType, setNewACType] = useState('Visual')
   const [newACDescriptionText, setNewACDescriptionText] = useState('')
   const [newACStartTime, setNewACStartTime] = useState(currentTime)
-  const [newACDuration, setNewACDuration] = useState(0.0)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingError, setRecordingError] = useState<string | null>(null)
+  const [descriptionMethod, setDescriptionMethod] = useState<'text' | 'audio'>(
+    'text',
+  )
+  const [recordingDuration, setRecordingDuration] = useState(0)
 
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0)
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0)
@@ -45,17 +47,27 @@ const NewAudioClipComponent = ({
   const { status, startRecording, stopRecording, mediaBlobUrl, clearBlobUrl } =
     useReactMediaRecorder({
       audio: true,
-      onStop: (blobUrl) => {
-        const audio = new Audio(blobUrl)
-        audio.addEventListener('loadedmetadata', () => {
-          setNewACDuration(audio.duration)
-        })
-      },
     })
 
   useEffect(() => {
     handleClipStartTimeInputsRender()
   }, [currentTime])
+
+  const updateRecordingDuration = useCallback(() => {
+    setRecordingDuration((prevDuration) => prevDuration + 0.1)
+  }, [])
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+    if (isRecording) {
+      interval = setInterval(updateRecordingDuration, 100)
+    } else if (!isRecording && recordingDuration !== 0) {
+      setRecordingDuration(0)
+    }
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [isRecording, updateRecordingDuration])
 
   const handleClipStartTimeInputsRender = () => {
     const cardFormat = convertSecondsToCardFormat(currentTime).split(':')
@@ -69,6 +81,7 @@ const NewAudioClipComponent = ({
   const handleStartRecording = () => {
     setIsRecording(true)
     setRecordingError(null)
+    setRecordingDuration(0)
     startRecording()
   }
 
@@ -96,8 +109,14 @@ const NewAudioClipComponent = ({
       return
     }
 
-    if (!newACDescriptionText && !mediaBlobUrl) {
-      toast.error('Please enter a description text or record audio')
+    if (descriptionMethod === 'text' && !newACDescriptionText) {
+      toast.error('Please enter a description text')
+      setShowSpinner(false)
+      return
+    }
+
+    if (descriptionMethod === 'audio' && !mediaBlobUrl) {
+      toast.error('Please record an audio description')
       setShowSpinner(false)
       return
     }
@@ -110,15 +129,17 @@ const NewAudioClipComponent = ({
       showInlineACComponent ? 'inline' : 'extended',
     )
     formData.append('newACStartTime', String(calculateClipStartTimeinSeconds()))
-    formData.append('isRecorded', String(!!mediaBlobUrl))
+    formData.append('isRecorded', String(descriptionMethod === 'audio'))
     formData.append('youtubeVideoId', youtubeVideoId)
     formData.append('userId', userId)
-    formData.append('newACDescriptionText', newACDescriptionText)
 
-    if (mediaBlobUrl) {
-      const audioBlob = await fetch(mediaBlobUrl).then((r) => r.blob())
+    if (descriptionMethod === 'text') {
+      formData.append('newACDescriptionText', newACDescriptionText)
+    } else {
+      formData.append('newACDescriptionText', '')
+      const audioBlob = await fetch(mediaBlobUrl!).then((r) => r.blob())
       formData.append('file', audioBlob, 'recorded_audio.webm')
-      formData.append('newACDuration', String(newACDuration))
+      formData.append('newACDuration', String(recordingDuration))
     }
 
     try {
@@ -238,7 +259,35 @@ const NewAudioClipComponent = ({
           </div>
         </div>
         <div className="d-flex justify-content-evenly align-items-start mb-3">
-          <div className="d-flex justify-content-center align-items-start flex-column">
+          <div className="d-flex flex-column align-items-center">
+            <h6 className="text-white mb-2">Choose Description Method:</h6>
+            <div>
+              <button
+                type="button"
+                className={`btn btn-sm me-2 ${
+                  descriptionMethod === 'text' ? 'btn-primary' : 'btn-secondary'
+                }`}
+                onClick={() => setDescriptionMethod('text')}
+              >
+                Text Description
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${
+                  descriptionMethod === 'audio'
+                    ? 'btn-primary'
+                    : 'btn-secondary'
+                }`}
+                onClick={() => setDescriptionMethod('audio')}
+              >
+                Audio Recording
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {descriptionMethod === 'text' ? (
+          <div className="d-flex justify-content-center align-items-start flex-column mb-3">
             <h6 className="text-white">Add New Clip Description:</h6>
             <textarea
               className="form-control form-control-sm border rounded description-textarea"
@@ -248,14 +297,8 @@ const NewAudioClipComponent = ({
               onChange={(e) => setNewACDescriptionText(e.target.value)}
             ></textarea>
           </div>
-          <div className="d-flex flex-column align-items-center">
-            <h6>Or</h6>
-            <div
-              className="vertical-divider-div"
-              style={{ height: '65px' }}
-            ></div>
-          </div>
-          <div className="text-center">
+        ) : (
+          <div className="text-center mb-3">
             <h6 className="text-white text-center">Record New Audio Clip</h6>
             <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 w-100 my-2">
               {!isRecording ? (
@@ -285,9 +328,9 @@ const NewAudioClipComponent = ({
             {recordingError && (
               <div className="text-danger">{recordingError}</div>
             )}
-            <div>Recording Duration: {newACDuration.toFixed(2)} sec</div>
+            <div>Recording Duration: {recordingDuration.toFixed(1)} sec</div>
           </div>
-        </div>
+        )}
         <div className="text-center mt-3">
           <button
             type="submit"
