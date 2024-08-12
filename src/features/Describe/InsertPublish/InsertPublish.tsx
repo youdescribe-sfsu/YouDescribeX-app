@@ -43,7 +43,7 @@ const InsertPublish = ({
   const [showInlineACComponent, setShowInlineACComponent] = useState(false)
   const [showNewACComponent, setShowNewACComponent] = useState(false)
   const [isModal, setIsModal] = useState(false)
-  const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(false)
+  const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(true)
 
   const handleClickInsertInline = (e: any) => {
     e.preventDefault()
@@ -75,22 +75,23 @@ const InsertPublish = ({
   }
 
   const handlePublish = async (e: any) => {
-    axios.post(
-      `${process.env.REACT_APP_YDX_BACKEND_URL}/api//create-user-links/calculate-contributions`,
-      {
-        audioDescriptionId: audioDescriptionId,
-      },
-      {
-        withCredentials: true,
-      },
-    )
-    .then(function (response) {
-      console.log(response)
-    })
-    .catch(function (error) {
-      console.error(error)
-      toast.error('Error calculate contribution!')
-    });
+    axios
+      .post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api//create-user-links/calculate-contributions`,
+        {
+          audioDescriptionId: audioDescriptionId,
+        },
+        {
+          withCredentials: true,
+        },
+      )
+      .then(function (response) {
+        console.log(response)
+      })
+      .catch(function (error) {
+        console.error(error)
+        toast.error('Error calculate contribution!')
+      })
     axios
       .post(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/publish-audio-description`,
