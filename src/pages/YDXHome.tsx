@@ -962,6 +962,35 @@ const YDXHome = (): React.ReactElement => {
       })
   }
 
+  const handleUnpublishClick = async (audioDescriptionId: string) => {
+    if (!audioDescriptionId) {
+      toast.error('Audio description ID is undefined!')
+      return
+    }
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/unpublish-audio-description`,
+        {
+          audioDescriptionId: audioDescriptionId,
+          youtube_id: youtubeVideoId,
+        },
+        {
+          withCredentials: true,
+        },
+      )
+
+      // Handle the response
+      console.log(response)
+      setIsPublished(false) // Update the published state
+      setNeedRefresh(true) // Trigger a refresh if needed
+      toast.success('Audio description unpublished successfully!')
+    } catch (error) {
+      console.error('Error unpublishing audio description:', error)
+      toast.error('Error unpublishing audio description!')
+    }
+  }
+
   const handleSaveAllClips = async () => {
     setShowSpinner(true)
     try {
@@ -1240,10 +1269,20 @@ const YDXHome = (): React.ReactElement => {
           >
             <button
               className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
+              style={{ marginRight: '10px' }}
+              onClick={() => {
+                handleUnpublishClick(audioDescriptionId!)
+              }}
+            >
+              <i className="fa fa-times" /> {'   '}
+              Unpublish
+            </button>
+            <button
+              className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
               onClick={() => {
                 handleCopyClick(`
-                ${window.location.origin}/video/${youtubeVideoId}?
-                ad=${audioDescriptionId}`)
+          ${window.location.origin}/video/${youtubeVideoId}?
+          ad=${audioDescriptionId}`)
               }}
             >
               <i className="fa fa-copy" /> {'   '}
