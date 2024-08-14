@@ -919,30 +919,6 @@ const Video = () => {
           .splice(selectedIdIndex, 1)
           .concat(describerIds)
       }
-
-      describerIds.forEach((describerId, i) => {
-        describerCards.push(
-          <DescriberCard
-            key={i}
-            handleDescriberChange={handleDescriberChange}
-            handleRatingPopup={handleRatingPopup}
-            handleFeedbackPopup={handleFeedbackPopup}
-            describerId={describerId}
-            selectedDescriberId={selectedADId}
-            picture={describers[describerId].picture}
-            name={describers[describerId].name}
-            overall_rating_average={
-              describers[describerId].overall_rating_average
-            }
-            handleRating={() => {
-              // console.log('Handle Rating')
-            }}
-            videoId={videoId}
-          />,
-        )
-      })
-
-      setDescriberCards(describerCards)
     }
   }, [audioDescriptionsIdsUsers, selectedADId])
 
