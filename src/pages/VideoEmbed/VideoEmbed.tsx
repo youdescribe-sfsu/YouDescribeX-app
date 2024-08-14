@@ -1,7 +1,11 @@
+import { translate, userDataStore } from '@/App'
+import ShareBar from '@/features/Video/ShareBar/ShareBar'
+import Button from '@/shared/components/Button/Button'
 import Spinner from '@/shared/components/Spinner/Spinner'
 import {
   apiUrl,
   audioClipsUploadsPath,
+  audioDescriptionFeedbacks,
   youTubeApiKey,
   youTubeApiUrl,
 } from '@/shared/config'
@@ -14,6 +18,7 @@ import React, {
   useState,
 } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Id, ToastContainer } from 'react-toastify'
 import YouTube from 'react-youtube'
 import { Options, YouTubePlayer } from 'youtube-player/dist/types'
 import './videoEmbed.scss'
@@ -25,16 +30,57 @@ import {
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import VideoPlayerControls from '@/shared/components/VideoPlayerControls/VideoPlayerControls'
+import YTInfoCard from '@/features/Video/YTInfoCard/YTInfoCard'
 import { convertLikesToCardFormat } from '@/shared/utils/convertLikesToCardFormat'
 import { convertISO8601ToDate } from '@/shared/utils/convertISO8601ToDate'
+import DescriberCard from '@/features/Video/DescriberCard/DescriberCard'
+import RatingPopup from '@/features/Video/RatingPopup/RatingPopup'
+import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
+import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
+import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
+import axios, { AxiosResponse } from 'axios'
+import { Feedbacks, VideoDescriberRoot } from '../Video/video_describer'
+import LanguageSelector from '../Video/LanguageSelector'
+// import iso6391 from 'iso-639-1'
 
-const VideoEmbed = () => {
+interface IADUserId {
+  [key: string]: {
+    overall_rating_votes_counter: number
+    overall_rating_average: number
+    overall_rating_votes_sum: number
+    feedbacks: Feedbacks
+    picture: string
+    name: string
+  }
+}
+
+const Video = () => {
   const { videoId } = useParams()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedADId, setSelectedADId] = useState<string>('')
+
+  const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
+  const [rating, setRating] = useState<number>(0)
+  // const codes = iso6391.getAllCodes()
+
+  const languages = [
+    { code: 'en-US', name: 'English (United States)' },
+    { code: 'en-GB', name: 'English (United Kingdom)' },
+    { code: 'zh-CN', name: 'Chinese (Simplified, China)' },
+    { code: 'zh-TW', name: 'Chinese (Traditional, Taiwan)' },
+    { code: 'ko-KR', name: 'Korean (South Korea)' },
+    { code: 'fr-FR', name: 'French (France)' },
+    { code: 'fr-CA', name: 'French (Canada)' },
+    { code: 'ar-SA', name: 'Arabic (Saudi Arabia)' },
+    { code: 'ar-EG', name: 'Arabic (Egypt)' },
+    { code: 'ru-RU', name: 'Russian (Russia)' },
+    { code: 'de-DE', name: 'German (Germany)' },
+    { code: 'es-ES', name: 'Spanish (Spain)' },
+    { code: 'es-MX', name: 'Spanish (Mexico)' },
+  ]
 
   // Loading Spinner
   const [showSpinner, setShowSpinner] = useState(true)
@@ -42,7 +88,7 @@ const VideoEmbed = () => {
   // Data from API
   const [audioDescriptionsIds, setAudioDescriptionsIds] = useState<any[]>([])
   const [audioDescriptionsIdsUsers, setAudioDescriptionsIdsUsers] =
-    useState<any>({})
+    useState<IADUserId | null>(null)
   const [audioDescriptionsIdsAudioClips, setAudioDescriptionsIdsAudioClips] =
     useState<any>({})
 
@@ -54,6 +100,7 @@ const VideoEmbed = () => {
   const [videoViews, setVideoViews] = useState('')
   const [videoLikes, setVideoLikes] = useState('')
   const [videoDurationInSeconds, setVideoDurationInSeconds] = useState(0)
+  const [videoDurationToDisplay, setVideoDurationToDisplay] = useState('')
 
   // Balancer value for volume controls
   const [descriptionVolume, setDescriptionVolume] = useState(
@@ -91,6 +138,8 @@ const VideoEmbed = () => {
   const [clipStackSize, setClipStackSize] = useState<number>(5)
   const [currentClipIndex, setCurrentClipIndex] = useState<number>(0)
 
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false)
+
   const clipStackRef = useRef(clipStack)
   const clipIDRef = useRef(playedAudioClip)
 
@@ -105,6 +154,54 @@ const VideoEmbed = () => {
   const currentExtendedACRef = useRef(currExtendedAC)
 
   const [previousYTTime, setPreviousYTTime] = useState(0.0)
+
+  const [requestAiDescription, setRequestAiDescription] = useState<{
+    status: string
+    requested: boolean
+    url?: string
+    aiDescriptionId?: string
+    preview?: boolean
+  }>({
+    status: 'notavailable',
+    requested: false,
+  })
+
+  const [buttonLoading, setButtonLoading] = useState(false)
+  const toastId = React.useRef<null | Id>(null)
+
+  useEffect(() => {
+    // Pause and unload current inline audio clip
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.pause()
+      currentInlineACRef.current.unload()
+    }
+    // Pause and unload current extended audio clip
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.pause()
+      currentExtendedACRef.current.unload()
+    }
+
+    // Clear the timer for audio clip updates
+    if (timer) {
+      clearInterval(timer)
+    }
+
+    // Cleanup selected audio description and its related data
+    return () => {
+      // Make sure to clear any intervals or timeouts as well
+      if (currentInlineACRef.current) {
+        currentInlineACRef.current.stop()
+        setCurrInlineAC(undefined)
+      }
+      if (currentExtendedACRef.current) {
+        currentExtendedACRef.current.stop()
+        setCurrExtendedAC(undefined)
+      }
+      if (timer) {
+        clearInterval(timer)
+      }
+    }
+  }, [])
 
   // Update Refs
   useEffect(() => {
@@ -142,15 +239,17 @@ const VideoEmbed = () => {
     if (currentExtendedACRef.current?.playing()) {
       currentExtendedACRef.current?.volume(descriptionVolume / 100)
     }
+    descriptionVolumeRef.current = descriptionVolume
     localStorage.setItem('descriptionVolume', descriptionVolume.toString())
   }, [descriptionVolume])
 
   useEffect(() => {
-    if (currentEventRef && currentInlineACRef.current?.playing()) {
+    if (currentEventRef) {
       currentEventRef.current?.setVolume(youTubeVolume)
     }
+    youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
-  }, [youTubeVolume])
+  }, [youTubeVolume, currentEventRef])
 
   //
   // END OF YDX STATE VARIABLES
@@ -175,10 +274,46 @@ const VideoEmbed = () => {
 
   // Fetch Data on Page Load
   useEffect(() => {
+    // console.log(videoId)
     if (videoId) {
       fetchVideoData()
     }
   }, [])
+
+  useEffect(() => {
+    if (userDataStore.getState().isSignedIn) {
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/ai-description-status`
+
+      axios
+        .post<{
+          status: string
+          requested: boolean
+        }>(
+          url,
+          {
+            youtube_id: videoId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        .then((response) => {
+          const data = response.data
+          setRequestAiDescription(data)
+        })
+        .catch((error) => {
+          if (error.response && error.response.status === 500) {
+            // Handle the 500 Internal Server Error here
+            const errorMessage =
+              'Internal Server Error: Something went wrong on the server side.Please try again later! '
+            toast.error(errorMessage)
+          }
+        })
+    }
+  }, [userDataStore.getState().isSignedIn])
 
   const fetchVideoData = () => {
     const url = `${apiUrl}/videos/${videoId}`
@@ -187,39 +322,75 @@ const VideoEmbed = () => {
         parseVideoData(res.result)
       })
       .catch((err) => {
-        // console.log(err)
-        navigate('/not-found')
+        console.log(err)
+        // navigate('/not-found')
       })
   }
 
-  const parseVideoData = (videoData: any) => {
+  const parseVideoData = (videoData: VideoDescriberRoot) => {
     // TODO: Add Types
     const adIds: any[] = []
-    const adIdsUsers: any = {}
+    const adIdsUsers: IADUserId = {}
     const adIdsAudioClips: any = {}
 
     if (
-      videoData?.audio_descriptions?.find(
-        (ad: any) => ad.status === 'published',
-      )
+      videoData.audio_descriptions &&
+      videoData.audio_descriptions.length > 0
     ) {
-      videoData.audio_descriptions.forEach((ad: any) => {
-        if (ad.status === 'published') {
-          adIds.push(ad._id)
-          adIdsUsers[ad._id] = ad.user
-          adIdsUsers[ad._id].overall_rating_votes_counter =
-            ad.overall_rating_votes_counter
-          adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_average
-          adIdsUsers[ad._id].overall_rating_votes_sum =
-            ad.overall_rating_votes_sum
-          adIdsUsers[ad._id].feedbacks = ad.feedbacks
-          adIdsAudioClips[ad._id] = []
-          if (ad.audio_clips.length > 0) {
-            ad.audio_clips.forEach((audioClip: any) => {
-              audioClip.url = `${audioClipsUploadsPath}${audioClip.file_path}/${audioClip.file_name}`
-              adIdsAudioClips[ad._id].push(audioClip)
-            })
+      videoData.audio_descriptions.forEach((ad) => {
+        adIds.push(ad._id)
+
+        // Initialize adIdsUsers[ad._id] as an object if it doesn't exist
+        if (!adIdsUsers[ad._id]) {
+          adIdsUsers[ad._id] = {
+            overall_rating_votes_counter: ad.overall_rating_votes_counter,
+            overall_rating_average: ad.overall_rating_votes_average,
+            overall_rating_votes_sum: ad.overall_rating_votes_sum,
+            feedbacks: ad.feedbacks,
+            picture: ad.user.picture,
+            name:
+              ad.user.user_type && ad.user.user_type === 'AI'
+                ? 'AI Description Draft'
+                : ad.user.name,
           }
+        } else {
+          // If adIdsUsers[ad._id] already exists, update the name property conditionally
+          adIdsUsers[ad._id].name =
+            ad.user.user_type && ad.user.user_type === 'AI'
+              ? 'AI Description Draft'
+              : ad.user.name
+        }
+
+        // adIdsUsers[ad._id].overall_rating_votes_counter =
+        //   ad.overall_rating_votes_counter;
+        // adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_votes_average;
+        // adIdsUsers[ad._id].overall_rating_votes_sum = ad.overall_rating_votes_sum;
+        // adIdsUsers[ad._id].feedbacks = ad.feedbacks as De[];
+        adIdsAudioClips[ad._id] = []
+
+        if (ad.audio_clips.length > 0) {
+          ad.audio_clips.forEach((audioClip) => {
+            // Check for undefined file_path or file_name and skip if missing
+            if (!audioClip.file_path || !audioClip.file_name) {
+              console.warn(
+                `Missing file_path or file_name for audioClip:`,
+                audioClip,
+              )
+              return // Skip this audio clip
+            }
+
+            const filePath = audioClip.file_path.replace(/^\./, '')
+            audioClip.url = `${audioClipsUploadsPath(
+              `${filePath}/${audioClip.file_name}`,
+            )}`
+
+            // Initialize adIdsAudioClips[ad._id] as an array if not defined
+            if (!adIdsAudioClips[ad._id]) {
+              adIdsAudioClips[ad._id] = []
+            }
+
+            adIdsAudioClips[ad._id].push(audioClip)
+          })
         }
       })
 
@@ -262,7 +433,7 @@ const VideoEmbed = () => {
       audioDescriptionsIds?.indexOf(selectedAd) === -1
     ) {
       // console.log('Navigating to Not Found')
-      navigate('/not-found')
+      // navigate('/not-found')
     }
     setSearchParams((params) => {
       if (selectedAd) params.set('ad', selectedAd)
@@ -289,8 +460,6 @@ const VideoEmbed = () => {
       a.clip_start_time < b.clip_start_time ? -1 : 1,
     )
 
-    // // console.log('Sorted Clips', sortedClipData)
-
     setAudioClips([...sortedClipData])
     const maxStackSize =
       sortedClipData.length > 100 ? 10 : Math.min(sortedClipData.length, 5)
@@ -305,7 +474,7 @@ const VideoEmbed = () => {
         clipStackData.push(clip)
       }
     }
-    // // console.log('Clip Stack', clipStackData)
+
     setClipStack(clipStackData)
     getYTVideoInfo()
   }
@@ -317,10 +486,12 @@ const VideoEmbed = () => {
     // Use custom fetch for cross-browser compatability
     ourFetch(url)
       .then((data: any) => {
-        // console.log(
-        //   'Current Video Duration',
-        //   data.items[0].contentDetails.duration,
-        // )
+        if (data.items.length === 0) {
+          console.log('Video Unavailable!')
+          alert('Video Unavailable!')
+          return
+        }
+
         const videoDurationInSeconds = convertISO8601ToSeconds(
           data.items[0].contentDetails.duration,
         )
@@ -343,6 +514,7 @@ const VideoEmbed = () => {
         //   convertSecondsToEditorFormat(videoDurationInSeconds),
         // )
         document.title = `YouDescribe - ${data.items[0].snippet.title}`
+
         setShowSpinner(false)
       })
       .catch((err) => {
@@ -354,9 +526,8 @@ const VideoEmbed = () => {
   }
 
   useEffect(() => {
-    if (clipStack.length === clipStackSize) {
-      setShowSpinner(false)
-    } else if (
+    if (
+      clipStack.length === clipStackSize ||
       clipStack?.length === audioDescriptionsIdsAudioClips[selectedADId]?.length
     ) {
       setShowSpinner(false)
@@ -384,7 +555,6 @@ const VideoEmbed = () => {
     setPreviousTime(time)
   }
 
-  // To Play audio files based on current time
   const playAudioAtCurrentTime = async (
     updatedCurrentTime: number,
     playedAudioClip: string,
@@ -407,6 +577,8 @@ const VideoEmbed = () => {
         return
       }
 
+      const bufferDuration = 200
+
       // If an inline clip is supposed to be playing right now but the user has either skipped to a time in the middle of the clip
       // Or there was an overlap which caused the start time of the clip to be skipped
       // Play the clip by seeking to the current time
@@ -422,84 +594,83 @@ const VideoEmbed = () => {
             currentTimeRef.current,
           )
 
-          // If an Inline Clip is Playing - Return
+          // If an inline clip is already playing, return
           if (currentInlineACRef.current?.playing()) {
             console.info('An inline clip is already playing')
             return
           }
-          // If the clip is not playing, play it
-          console.info('Playing clip by Seeking to current time')
-          // Play Inline Clip
-          const currentFilteredClip = clipStackRef.current[0]
-          // console.log('Clip to be Played', currentFilteredClip)
 
+          console.info('Playing clip by seeking to current time')
+          const currentFilteredClip = clipStackRef.current[0]
+
+          // Play the inline clip
+          const currentAudio = currentFilteredClip.clip_audio
+          const seekTime =
+            currentTimeRef.current - currentFilteredClip.clip_start_time
+
+          // Ensure seek time is within valid range
+          if (seekTime < 0) {
+            console.debug('Seek time is negative, skipping')
+            return
+          }
+
+          // Ensure the audio clip is fully loaded before seeking and playing
+          if (currentAudio?.state() !== 'loaded') {
+            console.debug('Waiting for audio clip to load')
+            currentAudio?.once('load', () => {
+              console.debug('Audio clip loaded')
+              currentAudio.seek(seekTime)
+              currentAudio.play()
+            })
+          } else {
+            console.debug('Audio clip already loaded')
+            currentAudio.seek(seekTime)
+            currentAudio.play()
+          }
+
+          setCurrInlineAC(currentAudio)
           setPlayedAudioClip(currentFilteredClip.clip_id)
-          //  update recentAudioPlayedTime - which stores the time at which an audio has been played - to stop playing the same audio twice concurrently
           setRecentAudioPlayedTime(currentTimeRef.current)
           const clipAudioPath = currentFilteredClip.clip_audio_path
-          // console.log('PLaying clip', clipAudioPath)
 
           if (clipAudioPath !== playedClipPath) {
-            // console.log('Updating Clip Index (inline clip)')
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
-            // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
-            const currentAudio = currentFilteredClip.clip_audio
-            // console.log('Playing inline clip')
-            if (
-              currentAudio?.playing() ||
-              currentInlineACRef.current?.playing()
-              // currentFilteredClip.clip_id === clipIDRef.current
-            ) {
-              // console.log('Clip is already playing')
-              return
-            }
-            // console.log(
-            //   'Seeking to',
-            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
-            //   'seconds',
-            // )
 
-            currentAudio?.seek(
-              currentTimeRef.current - currentFilteredClip.clip_start_time,
-            )
-            currentAudio?.play()
-            // see onStateChange() - storing current inline clip.
-            setCurrInlineAC(currentAudio)
-
-            // Load a new clip and add it to the stack
-            // console.log('Current Clip Index', currentClipIndexRef.current)
-
-            const newClip =
-              audioClips[currentClipIndexRef.current + clipStackSize - 1]
-            // console.log('New CLIP (seeked inline) => ', newClip)
-            if (newClip) {
-              newClip.clip_audio = new Howl({
-                src: newClip.clip_audio_path,
-                html5: true,
-              })
-              setClipStack([
-                ...clipStackRef.current.slice(1, clipStackSize),
-                newClip,
-              ])
-            } else {
-              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-            }
-
-            // ended event listener, to set the currInlineAC back to null
-            currentAudio?.once('play', function () {
-              setPlayedAudioClip(currentFilteredClip.clip_id)
-              // Set AD Volume
+            // Event listeners for play and end
+            currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
             })
-            currentAudio?.once('end', function () {
-              setCurrInlineAC(undefined)
-              // Unload current clip
-              currentAudio.unload()
+
+            currentAudio?.once('end', () => {
+              // Introduce a delay before moving to the next audio clip
+              setTimeout(() => {
+                setCurrInlineAC(undefined)
+                currentAudio.unload()
+
+                // Load a new clip and add it to the stack
+                const newClip =
+                  audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+                if (newClip) {
+                  newClip.clip_audio = new Howl({
+                    src: newClip.clip_audio_path,
+                    html5: true,
+                  })
+                  setClipStack([
+                    ...clipStackRef.current.slice(1, clipStackSize),
+                    newClip,
+                  ])
+                } else {
+                  setClipStack([
+                    ...clipStackRef.current.slice(1, clipStackSize),
+                  ])
+                }
+              }, bufferDuration) // Add the buffer time here
             })
           }
         }
       }
+
       // Case for playing extended clips when the player come across their start or end times
       // Compare current window with clip at current clip index
       else {
@@ -528,6 +699,22 @@ const VideoEmbed = () => {
               }
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
+              currentEvent?.pauseVideo()
+              // Set played audio clip and path
+              setPlayedAudioClip(currentFilteredClip.clip_id)
+              setRecentAudioPlayedTime(currentTimeRef.current)
+              setPlayedClipPath(currentFilteredClip.clip_audio_path)
+
+              // Event listeners for play and end
+              currentAudio?.once('play', () => {
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+              })
+              currentAudio?.once('end', () => {
+                setCurrExtendedAC(undefined)
+                currentEvent?.playVideo()
+                currentAudio.unload()
+                setCurrentExtACPaused(false)
+              })
               // Add a new clip to the stack
               // console.log('Current Clip Index', currentClipIndexRef.current)
               const newClip =
@@ -545,18 +732,6 @@ const VideoEmbed = () => {
               } else {
                 setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
               }
-              // youtube video should be played after the clip has finished playing
-              // eslint-disable-next-line no-loop-func
-              currentAudio?.once('play', function () {
-                currentAudio.volume(descriptionVolumeRef.current / 100)
-              })
-              currentAudio?.once('end', function () {
-                setCurrExtendedAC(undefined) // setting back to null, as it is played completely.
-                currentEvent?.playVideo()
-                // Unload current clip
-                currentAudio.unload()
-                setCurrentExtACPaused(false) // reset the play/pause state
-              })
             }
           }
         }
@@ -590,7 +765,6 @@ const VideoEmbed = () => {
       }
     }
   }
-
   // YouTube Player Functions
   const onStateChange = (event: any) => {
     const currentTime = event.target.getCurrentTime()
@@ -723,13 +897,78 @@ const VideoEmbed = () => {
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex])
 
+  //
+  //
+  // END OF YDX FUNCTIONS
+  //
+  //
+
+  useEffect(() => {
+    if (audioDescriptionsIdsUsers) {
+      // console.log('Updating describer Cards')
+      const describers = audioDescriptionsIdsUsers
+      const describerCards: ReactNode[] = []
+      let describerIds = Object.keys(describers)
+
+      if (describerIds.length) {
+        // document.getElementById('no-descriptions').style.display = 'none'
+      }
+      if (describerIds.length && describerIds[0] !== selectedADId) {
+        const selectedIdIndex = describerIds.indexOf(selectedADId)
+        describerIds = describerIds
+          .splice(selectedIdIndex, 1)
+          .concat(describerIds)
+      }
+    }
+  }, [audioDescriptionsIdsUsers, selectedADId])
+
+  const handleTurnOffDescriptions = () => {
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.pause()
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.pause()
+    }
+    setCurrExtendedAC(undefined)
+    setCurrInlineAC(undefined)
+    currentEventRef.current?.pauseVideo()
+    setDescriptionsActive(false)
+  }
+
+  const handleTurnOnDescriptions = () => {
+    currentEventRef.current?.pauseVideo()
+    setDescriptionsActive(true)
+  }
+
+  // console.log(videoDurationInSeconds)
+
+  const getAudioSegments = () => {
+    return audioClips.map((ad) => {
+      return (
+        <div
+          key={ad.clip_id}
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            backgroundColor:
+              ad.playback_type === 'extended' ? '#9c27b0' : '#ffeb3b',
+            left: `${(ad.clip_start_time / videoDurationInSeconds) * 100}%`,
+            width:
+              ad.playback_type === 'extended'
+                ? `0.5%`
+                : `${(ad.clip_duration / videoDurationInSeconds) * 100}%`,
+          }}
+        />
+      )
+    })
+  }
+
   return (
-    <div className="video-embed-page">
-      <main role="main" className="video-embed-page-main" title="Video page">
-        <div id="video-area" className="video-embed-area">
-          {/* <ShareBar videoTitle={videoTitle} /> */}
-          {/* <div id="video" className="video"> */}
-          <div className="video-youtube">
+    <div id="video-page" className="video-page">
+      <main role="main" className="video-page-main" title="Video page">
+        <section id="video-area" className="video-area">
+          <div id="video" className="video">
             {showSpinner ? <Spinner /> : null}
             <YouTube
               className="rounded"
@@ -741,30 +980,116 @@ const VideoEmbed = () => {
               onReady={onReady}
             />
           </div>
-          <div className="video-player">
-            {/* <VideoPlayerControls
+          <div className="classic-container audio-ducking-container">
+            <VideoPlayerControls
               descriptionVolume={descriptionVolume}
               setDescriptionVolume={setDescriptionVolume}
               youTubeVideoVolume={youTubeVolume}
               setYouTubeVideoVolume={setYouTubeVolume}
-            /> */}
-            <a
-              id="imageLink"
-              href={`http://youdescribe.org/video/${videoId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                id="youDescribeImage"
-                alt="Watch this video on YouDescribe"
-                src="/assets/img/youdescribe_logo_full_(indigo_and_grey).png"
-              />
-            </a>
+            />
           </div>
-        </div>
+          <div className="classic-container video-timeline" aria-hidden="true">
+            <ProgressBar
+              style={{
+                position: 'relative',
+                height: '15px',
+                backgroundColor: '#f5f5f5',
+                borderRadius: '7px',
+                overflow: 'hidden',
+              }}
+            >
+              {getAudioSegments()}
+            </ProgressBar>
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                zIndex: 20,
+                height: '28px',
+                backgroundColor: 'red',
+                left: `${
+                  (currentTimeRef.current / videoDurationInSeconds) * 100
+                }%`,
+                width: '0.2%',
+              }}
+            />
+          </div>
+        </section>
+        <section
+          id="video-info"
+          className="classic-container w3-row video-info"
+        >
+          <div id="feedback-success" className="feedback-success" tabIndex={-1}>
+            {translate('Thank you for your feedback!')}
+          </div>
+          <div className="w3-col l8 m8">
+            <YTInfoCard
+              videoTitle={videoTitle}
+              videoAuthor={videoAuthor}
+              videoViews={videoViews}
+              videoPublishedAt={videoPublishedAt}
+              videoLikes={videoLikes}
+            />
+          </div>
+          {descriptionsActive ? (
+            <div
+              id="describers"
+              className="w3-col l4 m4 describers"
+              style={{
+                display: Object.keys(audioDescriptionsIdsUsers || {}).length
+                  ? 'block'
+                  : 'none',
+              }}
+            >
+              <div className="w3-card-2">
+                <h3 className="classic-h3">
+                  {translate('Selected description')}
+                </h3>
+                {describerCards[0]}
+                <hr aria-hidden="true" />
+                <h3 className="classic-h3">
+                  {translate('Other description options')}
+                </h3>
+                {describerCards.slice(1)}
+                <Button
+                  title={translate('Turn off descriptions for this video')}
+                  text={translate('Turn off descriptions')}
+                  color="w3-indigo w3-block w3-margin-top"
+                  ariaLabel="Turn off descriptions for this video"
+                  onClick={handleTurnOffDescriptions}
+                />
+              </div>
+            </div>
+          ) : (
+            <div
+              id="descriptions-off"
+              className="w3-col l4 m4 descriptions-off"
+            >
+              <div className="w3-card-2">
+                <h3 className="classic-h3">{translate('Descriptions off')}</h3>
+                <Button
+                  title={translate('Turn on descriptions for this video')}
+                  ariaLabel="Turn on descriptions for this video"
+                  text={translate('Turn on descriptions')}
+                  color="w3-indigo w3-block w3-margin-top"
+                  onClick={handleTurnOnDescriptions}
+                />
+              </div>
+            </div>
+          )}
+          <div
+            id="no-descriptions"
+            className="w3-col l4 m4"
+            style={{
+              display: Object.keys(audioDescriptionsIdsUsers || {}).length
+                ? 'none'
+                : 'block',
+            }}
+          ></div>
+        </section>
       </main>
     </div>
   )
 }
 
-export default VideoEmbed
+export default Video
