@@ -1,11 +1,9 @@
 import { translate, userDataStore } from '@/App'
-import ShareBar from '@/features/Video/ShareBar/ShareBar'
 import Button from '@/shared/components/Button/Button'
 import Spinner from '@/shared/components/Spinner/Spinner'
 import {
   apiUrl,
   audioClipsUploadsPath,
-  audioDescriptionFeedbacks,
   youTubeApiKey,
   youTubeApiUrl,
 } from '@/shared/config'
@@ -30,19 +28,11 @@ import {
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import VideoPlayerControls from '@/shared/components/VideoPlayerControls/VideoPlayerControls'
-import YTInfoCard from '@/features/Video/YTInfoCard/YTInfoCard'
 import { convertLikesToCardFormat } from '@/shared/utils/convertLikesToCardFormat'
 import { convertISO8601ToDate } from '@/shared/utils/convertISO8601ToDate'
-import DescriberCard from '@/features/Video/DescriberCard/DescriberCard'
-import RatingPopup from '@/features/Video/RatingPopup/RatingPopup'
-import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
-import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
-import { ProgressBar } from 'react-bootstrap'
 import { toast } from 'react-toastify'
 import axios, { AxiosResponse } from 'axios'
 import { Feedbacks, VideoDescriberRoot } from '../Video/video_describer'
-import LanguageSelector from '../Video/LanguageSelector'
-// import iso6391 from 'iso-639-1'
 
 interface IADUserId {
   [key: string]: {
@@ -55,32 +45,13 @@ interface IADUserId {
   }
 }
 
-const Video = () => {
+const VideoEmbed = () => {
   const { videoId } = useParams()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedADId, setSelectedADId] = useState<string>('')
-
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
-  const [rating, setRating] = useState<number>(0)
-  // const codes = iso6391.getAllCodes()
-
-  const languages = [
-    { code: 'en-US', name: 'English (United States)' },
-    { code: 'en-GB', name: 'English (United Kingdom)' },
-    { code: 'zh-CN', name: 'Chinese (Simplified, China)' },
-    { code: 'zh-TW', name: 'Chinese (Traditional, Taiwan)' },
-    { code: 'ko-KR', name: 'Korean (South Korea)' },
-    { code: 'fr-FR', name: 'French (France)' },
-    { code: 'fr-CA', name: 'French (Canada)' },
-    { code: 'ar-SA', name: 'Arabic (Saudi Arabia)' },
-    { code: 'ar-EG', name: 'Arabic (Egypt)' },
-    { code: 'ru-RU', name: 'Russian (Russia)' },
-    { code: 'de-DE', name: 'German (Germany)' },
-    { code: 'es-ES', name: 'Spanish (Spain)' },
-    { code: 'es-MX', name: 'Spanish (Mexico)' },
-  ]
 
   // Loading Spinner
   const [showSpinner, setShowSpinner] = useState(true)
@@ -100,7 +71,6 @@ const Video = () => {
   const [videoViews, setVideoViews] = useState('')
   const [videoLikes, setVideoLikes] = useState('')
   const [videoDurationInSeconds, setVideoDurationInSeconds] = useState(0)
-  const [videoDurationToDisplay, setVideoDurationToDisplay] = useState('')
 
   // Balancer value for volume controls
   const [descriptionVolume, setDescriptionVolume] = useState(
@@ -138,8 +108,6 @@ const Video = () => {
   const [clipStackSize, setClipStackSize] = useState<number>(5)
   const [currentClipIndex, setCurrentClipIndex] = useState<number>(0)
 
-  const [showLanguageSelector, setShowLanguageSelector] = useState(false)
-
   const clipStackRef = useRef(clipStack)
   const clipIDRef = useRef(playedAudioClip)
 
@@ -166,7 +134,6 @@ const Video = () => {
     requested: false,
   })
 
-  const [buttonLoading, setButtonLoading] = useState(false)
   const toastId = React.useRef<null | Id>(null)
 
   useEffect(() => {
@@ -279,41 +246,6 @@ const Video = () => {
       fetchVideoData()
     }
   }, [])
-
-  useEffect(() => {
-    if (userDataStore.getState().isSignedIn) {
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/ai-description-status`
-
-      axios
-        .post<{
-          status: string
-          requested: boolean
-        }>(
-          url,
-          {
-            youtube_id: videoId,
-          },
-          {
-            withCredentials: true,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        )
-        .then((response) => {
-          const data = response.data
-          setRequestAiDescription(data)
-        })
-        .catch((error) => {
-          if (error.response && error.response.status === 500) {
-            // Handle the 500 Internal Server Error here
-            const errorMessage =
-              'Internal Server Error: Something went wrong on the server side.Please try again later! '
-            toast.error(errorMessage)
-          }
-        })
-    }
-  }, [userDataStore.getState().isSignedIn])
 
   const fetchVideoData = () => {
     const url = `${apiUrl}/videos/${videoId}`
@@ -940,36 +872,11 @@ const Video = () => {
     setDescriptionsActive(true)
   }
 
-  // console.log(videoDurationInSeconds)
-
-  const getAudioSegments = () => {
-    return audioClips.map((ad) => {
-      return (
-        <div
-          key={ad.clip_id}
-          style={{
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            backgroundColor:
-              ad.playback_type === 'extended' ? '#9c27b0' : '#ffeb3b',
-            left: `${(ad.clip_start_time / videoDurationInSeconds) * 100}%`,
-            width:
-              ad.playback_type === 'extended'
-                ? `0.5%`
-                : `${(ad.clip_duration / videoDurationInSeconds) * 100}%`,
-          }}
-        />
-      )
-    })
-  }
-
   return (
-    <div id="video-page" className="video-page">
-      <main role="main" className="video-page-main" title="Video page">
-        <section id="video-area" className="video-area">
-          <div id="video" className="video">
-            {showSpinner ? <Spinner /> : null}
+    <div className="video-embed-page">
+      <main role="main" className="video-embed-page-main" title="Video page">
+        <div id="video-area" className="video-embed-area">
+          <div id="video" className="video-youtube">
             <YouTube
               className="rounded"
               videoId={videoId}
@@ -980,116 +887,42 @@ const Video = () => {
               onReady={onReady}
             />
           </div>
-          <div className="classic-container audio-ducking-container">
-            <VideoPlayerControls
-              descriptionVolume={descriptionVolume}
-              setDescriptionVolume={setDescriptionVolume}
-              youTubeVideoVolume={youTubeVolume}
-              setYouTubeVideoVolume={setYouTubeVolume}
+          <div className="video-player">
+            {/* <VideoPlayerControls
+            descriptionVolume={descriptionVolume}
+            setDescriptionVolume={setDescriptionVolume}
+            youTubeVideoVolume={youTubeVolume}
+            setYouTubeVideoVolume={setYouTubeVolume}
+          /> */}
+            <Button
+              classNames="mt-5 mb-2"
+              title={
+                descriptionsActive
+                  ? translate('Turn off descriptions for this video')
+                  : translate('Turn on descriptions for this video')
+              }
+              text={
+                descriptionsActive
+                  ? translate('Turn off descriptions')
+                  : translate('Turn on descriptions')
+              }
+              color="w3-indigo"
+              ariaLabel={
+                descriptionsActive
+                  ? 'Turn off descriptions for this video'
+                  : 'Turn on descriptions for this video'
+              }
+              onClick={
+                descriptionsActive
+                  ? handleTurnOffDescriptions
+                  : handleTurnOnDescriptions
+              }
             />
           </div>
-          <div className="classic-container video-timeline" aria-hidden="true">
-            <ProgressBar
-              style={{
-                position: 'relative',
-                height: '15px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: '7px',
-                overflow: 'hidden',
-              }}
-            >
-              {getAudioSegments()}
-            </ProgressBar>
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                zIndex: 20,
-                height: '28px',
-                backgroundColor: 'red',
-                left: `${
-                  (currentTimeRef.current / videoDurationInSeconds) * 100
-                }%`,
-                width: '0.2%',
-              }}
-            />
-          </div>
-        </section>
-        <section
-          id="video-info"
-          className="classic-container w3-row video-info"
-        >
-          <div id="feedback-success" className="feedback-success" tabIndex={-1}>
-            {translate('Thank you for your feedback!')}
-          </div>
-          <div className="w3-col l8 m8">
-            <YTInfoCard
-              videoTitle={videoTitle}
-              videoAuthor={videoAuthor}
-              videoViews={videoViews}
-              videoPublishedAt={videoPublishedAt}
-              videoLikes={videoLikes}
-            />
-          </div>
-          {descriptionsActive ? (
-            <div
-              id="describers"
-              className="w3-col l4 m4 describers"
-              style={{
-                display: Object.keys(audioDescriptionsIdsUsers || {}).length
-                  ? 'block'
-                  : 'none',
-              }}
-            >
-              <div className="w3-card-2">
-                <h3 className="classic-h3">
-                  {translate('Selected description')}
-                </h3>
-                {describerCards[0]}
-                <hr aria-hidden="true" />
-                <h3 className="classic-h3">
-                  {translate('Other description options')}
-                </h3>
-                {describerCards.slice(1)}
-                <Button
-                  title={translate('Turn off descriptions for this video')}
-                  text={translate('Turn off descriptions')}
-                  color="w3-indigo w3-block w3-margin-top"
-                  ariaLabel="Turn off descriptions for this video"
-                  onClick={handleTurnOffDescriptions}
-                />
-              </div>
-            </div>
-          ) : (
-            <div
-              id="descriptions-off"
-              className="w3-col l4 m4 descriptions-off"
-            >
-              <div className="w3-card-2">
-                <h3 className="classic-h3">{translate('Descriptions off')}</h3>
-                <Button
-                  title={translate('Turn on descriptions for this video')}
-                  ariaLabel="Turn on descriptions for this video"
-                  text={translate('Turn on descriptions')}
-                  color="w3-indigo w3-block w3-margin-top"
-                  onClick={handleTurnOnDescriptions}
-                />
-              </div>
-            </div>
-          )}
-          <div
-            id="no-descriptions"
-            className="w3-col l4 m4"
-            style={{
-              display: Object.keys(audioDescriptionsIdsUsers || {}).length
-                ? 'none'
-                : 'block',
-            }}
-          ></div>
-        </section>
+        </div>
       </main>
     </div>
   )
 }
 
-export default Video
+export default VideoEmbed

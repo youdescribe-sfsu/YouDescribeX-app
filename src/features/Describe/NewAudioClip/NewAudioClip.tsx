@@ -192,7 +192,7 @@ const NewAudioClipComponent = ({
             <h6 className="text-white fw-bolder mb-0 me-2">Title:</h6>
             <input
               type="text"
-              className="form-control form-control-sm text-center ydx-input"
+              className="form-control form-control-sm text-center "
               placeholder="Title goes here.."
               value={newACTitle}
               onChange={(e) => setNewACTitle(e.target.value)}
@@ -263,7 +263,7 @@ const NewAudioClipComponent = ({
           <div className="btn-group" role="group">
             <button
               type="button"
-              className={`btn btn-sm ${
+              className={`btn btn-sm m-3 ${
                 descriptionMethod === 'text' ? 'btn-primary' : 'btn-secondary'
               }`}
               onClick={() => setDescriptionMethod('text')}
@@ -272,7 +272,7 @@ const NewAudioClipComponent = ({
             </button>
             <button
               type="button"
-              className={`btn btn-sm ${
+              className={`btn btn-sm m-3 ${
                 descriptionMethod === 'audio' ? 'btn-primary' : 'btn-secondary'
               }`}
               onClick={() => setDescriptionMethod('audio')}
@@ -283,7 +283,7 @@ const NewAudioClipComponent = ({
         </div>
 
         {descriptionMethod === 'text' ? (
-          <div className="d-flex justify-content-center align-items-start flex-column mb-3 mx-3">
+          <div className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3">
             <h6 className="text-white mb-2">Add New Clip Description:</h6>
             <textarea
               className="form-control form-control-sm border rounded description-textarea"
@@ -294,7 +294,7 @@ const NewAudioClipComponent = ({
             ></textarea>
           </div>
         ) : (
-          <div className="text-center mb-3">
+          <div className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3">
             <h6 className="text-white text-center mb-2">
               Record New Audio Clip
             </h6>

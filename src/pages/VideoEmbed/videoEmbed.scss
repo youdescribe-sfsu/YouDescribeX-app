@@ -1,7 +1,7 @@
 .video-embed-area {
   display: flex;
   flex-direction: column;
-  height: 70%;
+  height: 100vh;
   padding: 10px;
 }
 .video-youtube {
@@ -19,8 +19,4 @@
 
 .video-player {
   flex: 5;
-}
-
-.video-embed-page-main {
-  height: 100vh;
 }
