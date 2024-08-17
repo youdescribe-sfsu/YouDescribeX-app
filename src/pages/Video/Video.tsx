@@ -962,7 +962,7 @@ const Video = () => {
             handleDescriberChange={handleDescriberChange}
             handleRatingPopup={handleRatingPopup}
             handleFeedbackPopup={handleFeedbackPopup}
-            handleNewCollabEdit={handleNewCollabEdit}
+            handleNewCollabEdit={() => handleNewCollabEdit(selectedADId)}
             describerId={describerId}
             selectedDescriberId={selectedADId}
             picture={describers[describerId].picture}
@@ -1315,7 +1315,7 @@ const Video = () => {
       )
     })
   }
-  const handleNewCollabEdit = async (describerId: string) => {
+  const handleNewCollabEdit = async (oldDescriberId: string) => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
         translate('You have to be logged in in order to add a description'),
@@ -1327,7 +1327,7 @@ const Video = () => {
           collabUrl,
           {
             youtubeVideoId: videoId,
-            oldDescriberId: selectedADId,
+            oldDescriberId: oldDescriberId,
           },
           {
             withCredentials: true,
@@ -1518,7 +1518,7 @@ const Video = () => {
           text={translate('Go To Descriptions')}
           color="w3-lime w3-block w3-margin-top"
           onClick={() =>
-            requestAiDescription.url && navigate(`/${requestAiDescription.url}`)
+            requestAiDescription.aiDescriptionId && handleNewCollabEdit(requestAiDescription.aiDescriptionId)
           }
         />
       )
