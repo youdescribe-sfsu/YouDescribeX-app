@@ -1518,7 +1518,8 @@ const Video = () => {
           text={translate('Go To Descriptions')}
           color="w3-lime w3-block w3-margin-top"
           onClick={() =>
-            requestAiDescription.aiDescriptionId && handleNewCollabEdit(requestAiDescription.aiDescriptionId)
+            requestAiDescription.aiDescriptionId &&
+            handleNewCollabEdit(requestAiDescription.aiDescriptionId)
           }
         />
       )
