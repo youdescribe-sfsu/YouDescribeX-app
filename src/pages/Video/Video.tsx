@@ -1504,6 +1504,20 @@ const Video = () => {
     }
   }
 
+  const disableGoToDescription = () => {
+    for (const describerId in audioDescriptionsIdsUsers) {
+      const ad = audioDescriptionsIdsUsers[describerId]
+      if (
+        ad.contributions &&
+        ad.prev_audio_description == requestAiDescription.aiDescriptionId &&
+        ad.user._id.toString() == userDataStore.getState().userId.toString()
+      ) {
+        return true
+      }
+    }
+    return false
+  }
+
   const DescriptionButtons = () => {
     if (
       requestAiDescription.status == 'completed' &&
@@ -1521,6 +1535,7 @@ const Video = () => {
             requestAiDescription.aiDescriptionId &&
             handleNewCollabEdit(requestAiDescription.aiDescriptionId)
           }
+          disabled={disableGoToDescription()}
         />
       )
     } else if (
