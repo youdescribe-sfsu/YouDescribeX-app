@@ -975,10 +975,11 @@ const Video = () => {
             }}
             videoId={videoId}
             collaborativeEdit={
-              describers[describerId].collaborative_edit &&
-              (!describers[describerId].depth ||
-                describers[describerId].depth < 3) &&
-              checkUserCanCollaborate(describers, describerId)
+              describers[describerId].user?.user_type === 'AI' ||
+              (describers[describerId].collaborative_edit &&
+                (!describers[describerId].depth ||
+                  describers[describerId].depth < 3) &&
+                checkUserCanCollaborate(describers, describerId))
             }
             contributions={describers[describerId].contributions}
           />,
