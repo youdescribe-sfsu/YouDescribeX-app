@@ -1,13 +1,15 @@
 stages:
   - build
   - deploy
+  - clean
 
 variables:
   CI_PROJECT_NAME: youdescribex-app
   DOCKER_REGISTRY: youdescribe
   CI_REGISTRY: docker.io
-  IMAGE_NAME: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}.${CI_PIPELINE_ID}"
-
+  IMAGE_NAME: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}"
+  LATEST_IMAGE: "${IMAGE_NAME}:latest"
+  VERSIONED_IMAGE: "${IMAGE_NAME}:${CI_COMMIT_REF_NAME}.${CI_PIPELINE_ID}"
 services:
   - docker:24.0.5-dind
 
@@ -29,8 +31,9 @@ before_script:
       --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX"
       --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL"
       --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION"
-      -t $IMAGE_NAME .
-    - docker push $IMAGE_NAME
+      -t $VERSIONED_IMAGE -t $LATEST_IMAGE .
+    - docker push $VERSIONED_IMAGE
+    - docker push $LATEST_IMAGE
     - echo "Build complete"
 
 build_dev:
@@ -65,7 +68,7 @@ build_prod:
     - echo "Deploying to $CI_ENVIRONMENT_NAME environment..."
     - docker-compose -f docker-compose.yml pull
     - docker-compose -f docker-compose.yml down
-    - docker-compose -f docker-compose.yml up -d
+    - docker-compose -f docker-compose.yml up -d --remove-orphans
 
 deploy_dev:
   <<: *deploy_template
@@ -85,4 +88,16 @@ deploy_prod:
     - frontend
     - prod
   only:
+    - main
+
+cleanup:
+  stage: cleanup
+  script:
+    - echo "Cleaning up old images..."
+    - docker image prune -af --filter "until=24h"
+    - docker container prune -f
+  tags:
+    - frontend
+  only:
+    - dev
     - main
