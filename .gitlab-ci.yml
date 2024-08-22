@@ -1,7 +1,7 @@
 stages:
   - build
   - deploy
-  - clean
+  - cleanup
 
 variables:
   CI_PROJECT_NAME: youdescribex-app
@@ -10,6 +10,7 @@ variables:
   IMAGE_NAME: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}"
   LATEST_IMAGE: "${IMAGE_NAME}:latest"
   VERSIONED_IMAGE: "${IMAGE_NAME}:${CI_COMMIT_REF_NAME}.${CI_PIPELINE_ID}"
+
 services:
   - docker:24.0.5-dind
 
