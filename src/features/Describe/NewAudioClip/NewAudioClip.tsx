@@ -171,7 +171,7 @@ const NewAudioClipComponent = ({
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div className="form-check form-check-inline ms-3">
             <input
-              className="form-check-input ydx-input"
+              className="form-check-input ydx-input text-size"
               type="radio"
               id="inlineRadio"
               value="inline"
@@ -181,7 +181,7 @@ const NewAudioClipComponent = ({
             <label
               className={`inline-extended-label px-2 ${
                 showInlineACComponent
-                  ? 'inline-bg text-dark'
+                  ? 'inline-bg text-dark text-size'
                   : 'extended-bg text-white'
               }`}
             >
@@ -189,10 +189,10 @@ const NewAudioClipComponent = ({
             </label>
           </div>
           <div className="d-flex align-items-center">
-            <h6 className="text-white fw-bolder mb-0 me-2">Title:</h6>
+            <h6 className="text-white fw-bolder text-size mb-0 me-2">Title:</h6>
             <input
               type="text"
-              className="form-control form-control-sm text-center "
+              className="form-control form-control-sm  text-size text-center"
               placeholder="Title goes here.."
               value={newACTitle}
               onChange={(e) => setNewACTitle(e.target.value)}
@@ -200,9 +200,9 @@ const NewAudioClipComponent = ({
             />
           </div>
           <div className="d-flex align-items-center">
-            <h6 className="text-white fw-bolder mb-0 me-2">Type:</h6>
+            <h6 className="text-white fw-bolder text-size mb-0 me-2">Type:</h6>
             <select
-              className="form-select form-select-sm text-center"
+              className="form-select form-select-sm text-size text-center"
               value={newACType}
               onChange={(e) => setNewACType(e.target.value)}
               required
@@ -212,9 +212,9 @@ const NewAudioClipComponent = ({
             </select>
           </div>
           <div className="d-flex flex-column align-items-center me-3">
-            <h6 className="text-white fw-bolder mb-2">Start Time:</h6>
+            <h6 className="text-white fw-bolder text-size mb-2">Start Time:</h6>
             <div className="edit-time-div">
-              <div className="text-dark text-center d-flex justify-content-evenly">
+              <div className="text-dark text-size text-center d-flex justify-content-evenly">
                 {[
                   clipStartTimeHours,
                   clipStartTimeMinutes,
@@ -259,11 +259,13 @@ const NewAudioClipComponent = ({
           </div>
         </div>
         <div className="d-flex flex-column align-items-center mb-3">
-          <h6 className="text-white mb-2">Choose Description Method:</h6>
+          <h6 className="text-white text-size mb-2">
+            Choose Description Method:
+          </h6>
           <div className="btn-group" role="group">
             <button
               type="button"
-              className={`btn btn-sm m-3 ${
+              className={`btn btn-md text-size m-2 ${
                 descriptionMethod === 'text' ? 'btn-primary' : 'btn-secondary'
               }`}
               onClick={() => setDescriptionMethod('text')}
@@ -272,7 +274,7 @@ const NewAudioClipComponent = ({
             </button>
             <button
               type="button"
-              className={`btn btn-sm m-3 ${
+              className={`btn btn-md text-size m-2 ${
                 descriptionMethod === 'audio' ? 'btn-primary' : 'btn-secondary'
               }`}
               onClick={() => setDescriptionMethod('audio')}
@@ -284,10 +286,12 @@ const NewAudioClipComponent = ({
 
         {descriptionMethod === 'text' ? (
           <div className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3">
-            <h6 className="text-white mb-2">Add New Clip Description:</h6>
+            <h6 className="text-white text-size mb-2">
+              Add New Clip Description:
+            </h6>
             <textarea
-              className="form-control form-control-sm border rounded description-textarea"
-              rows={3}
+              className="form-control text-size form-control-sm border rounded description-textarea"
+              rows={4}
               placeholder="Start writing a Text Description.."
               value={newACDescriptionText}
               onChange={(e) => setNewACDescriptionText(e.target.value)}
@@ -295,7 +299,7 @@ const NewAudioClipComponent = ({
           </div>
         ) : (
           <div className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3">
-            <h6 className="text-white text-center mb-2">
+            <h6 className="text-white text-size text-center mb-2">
               Record New Audio Clip
             </h6>
             <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 mx-3 my-2">
@@ -342,7 +346,7 @@ const NewAudioClipComponent = ({
             type="submit"
             className="btn rounded btn-sm text-white save-desc-btn ydx-button"
           >
-            <i className="fa fa-save" /> Save
+            <i className="fa fa-save text-size" /> Save
           </button>
         </div>
       </form>

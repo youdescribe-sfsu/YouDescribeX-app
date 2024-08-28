@@ -276,25 +276,25 @@ const EditClip = ({
   }
 
   // const handleOnChangeClipStartTimeHours = (e: any) => {
-  //   setClipStartTimeHours(e.target.value)
+  //   setClipStartTimeHours(Number(e.target.value))
   //   if (e.target.value.length > 2) {
-  //     setClipStartTimeHours(e.target.value.substring(0, 2))
+  //     setClipStartTimeHours(Number(e.target.value.substring(0, 2)))
   //   }
   // }
   // const handleOnChangeClipStartTimeMinutes = (e: any) => {
-  //   setClipStartTimeMinutes(e.target.value)
-  //   // if (e.target.value.length > 2) {
-  //   //   setClipStartTimeMinutes(e.target.value.substring(0, 2));
-  //   // } else if (e.target.value.length === 2) {
-  //   //   if (parseInt(e.target.value) >= 60) {
-  //   //     setClipStartTimeMinutes('59');
-  //   //   }
-  //   // }
+  //   setClipStartTimeMinutes(Number(e.target.value))
+  //   if (e.target.value.length > 2) {
+  //     setClipStartTimeMinutes(e.target.value.substring(0, 2));
+  //   } else if (e.target.value.length === 2) {
+  //     if (parseInt(e.target.value) >= 60) {
+  //       setClipStartTimeMinutes(59);
+  //     }
+  //   }
   // }
   // const handleOnChangeClipStartTimeSeconds = (e: any) => {
-  //   setClipStartTimeSeconds(e.target.value)
+  //   setClipStartTimeSeconds(Number(e.target.value))
   //   if (e.target.value.length > 2) {
-  //     setClipStartTimeSeconds(e.target.value.substring(0, 2))
+  //     setClipStartTimeSeconds(Number(e.target.value.substring(0, 2)))
   //   } else if (e.target.value.length === 2) {
   //     if (parseInt(e.target.value) >= 60) {
   //       setClipStartTimeSeconds(59)
@@ -303,141 +303,141 @@ const EditClip = ({
   // }
 
   // const handleOnChangeClipStartTimeMilliSeconds = (e: any) => {
-  //   setClipStartTimeMilliSeconds(e.target.value)
+  //   setClipStartTimeMilliSeconds(Number(e.target.value))
   //   if (e.target.value.length > 2) {
-  //     setClipStartTimeMilliSeconds(e.target.value.substring(0, 2))
+  //     setClipStartTimeMilliSeconds(Number(e.target.value.substring(0, 2)))
   //   } else if (e.target.value.length === 2) {
   //     if (parseInt(e.target.value) >= 60) {
   //       setClipStartTimeMilliSeconds(59)
   //     }
   //   }
   // }
-  // const handleBlurClipStartTimeMilliSeconds = (e: any) => {
-  //   // store the current clipStartTimeHours in a temp variable,
-  //   // so that when calculateClipStartTimeinSeconds without going into the loops,
-  //   // it has the previous value in it
-  //   let tempStartTimeMilliSeconds = clipStartTimeMilliSeconds
-  //   if (e.target.value.length === 1) {
-  //     setClipStartTimeMilliSeconds(Number(e.target.value + '0'))
-  //     tempStartTimeMilliSeconds = Number(e.target.value + '0')
-  //     if (parseInt(e.target.value + '0') >= 60) {
-  //       setClipStartTimeMilliSeconds(59)
-  //       tempStartTimeMilliSeconds = 59
-  //     }
-  //   } else if (e.target.value.length === 0) {
-  //     setClipStartTimeMilliSeconds(0)
-  //     tempStartTimeMilliSeconds = 0
-  //   }
-  //   // call the function which will update the clipStartTime in the parent component and the db is updated too.
-  //   calculateClipStartTimeinSeconds(
-  //     tempStartTimeMilliSeconds,
-  //     clipStartTimeMinutes,
-  //     clipStartTimeSeconds,
-  //   )
-  // }
-  // const handleBlurClipStartTimeMinutes = (e: any) => {
-  //   // store the current clipStartTimeMinutes in a temp variable,
-  //   // so that when calculateClipStartTimeinSeconds without going into the loops,
-  //   // it has the previous value in it
-  //   let tempStartTimeMinutes = clipStartTimeMinutes
-  //   if (e.target.value.length === 1) {
-  //     setClipStartTimeMinutes(Number(e.target.value + '0'))
-  //     tempStartTimeMinutes = Number(e.target.value + '0')
-  //     if (parseInt(e.target.value + '0') >= 60) {
-  //       setClipStartTimeMinutes(59)
-  //       tempStartTimeMinutes = 59
-  //     }
-  //   } else if (e.target.value.length === 0) {
-  //     setClipStartTimeMinutes(0)
-  //     tempStartTimeMinutes = 0
-  //   }
-  //   // call the function which will update the clipStartTime in the parent component and the db is updated too.
-  //   calculateClipStartTimeinSeconds(
-  //     clipStartTimeMilliSeconds,
-  //     tempStartTimeMinutes,
-  //     clipStartTimeSeconds,
-  //   )
-  // }
-  // const handleBlurClipStartTimeSeconds = (e: any) => {
-  //   // store the current clipStartTimeSeconds in a temp variable,
-  //   // so that when calculateClipStartTimeinSeconds without going into the loops,
-  //   // it has the previous value in it
-  //   let tempStartTimeSeconds = clipStartTimeSeconds
-  //   if (e.target.value.length === 1) {
-  //     setClipStartTimeSeconds(Number(e.target.value + '0'))
-  //     tempStartTimeSeconds = Number(e.target.value + '0')
-  //     if (parseInt(e.target.value + '0') >= 60) {
-  //       setClipStartTimeSeconds(59)
-  //       tempStartTimeSeconds = 59
-  //     }
-  //   } else if (e.target.value.length === 0) {
-  //     setClipStartTimeSeconds(0)
-  //     tempStartTimeSeconds = 0
-  //   }
-  //   // call the function which will update the clipStartTime in the parent component and the db is updated too.
-  //   calculateClipStartTimeinSeconds(
-  //     clipStartTimeMilliSeconds,
-  //     clipStartTimeMinutes,
-  //     tempStartTimeSeconds,
-  //   )
-  // }
+  const handleBlurClipStartTimeMilliSeconds = (e: any) => {
+    // store the current clipStartTimeHours in a temp variable,
+    // so that when calculateClipStartTimeinSeconds without going into the loops,
+    // it has the previous value in it
+    let tempStartTimeMilliSeconds = clipStartTimeMilliSeconds
+    if (e.target.value.length === 1) {
+      setClipStartTimeMilliSeconds(Number(e.target.value + '0'))
+      tempStartTimeMilliSeconds = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 60) {
+        setClipStartTimeMilliSeconds(59)
+        tempStartTimeMilliSeconds = 59
+      }
+    } else if (e.target.value.length === 0) {
+      setClipStartTimeMilliSeconds(0)
+      tempStartTimeMilliSeconds = 0
+    }
+    // call the function which will update the clipStartTime in the parent component and the db is updated too.
+    calculateClipStartTimeinSeconds(
+      tempStartTimeMilliSeconds,
+      clipStartTimeMinutes,
+      clipStartTimeSeconds,
+    )
+  }
+  const handleBlurClipStartTimeMinutes = (e: any) => {
+    // store the current clipStartTimeMinutes in a temp variable,
+    // so that when calculateClipStartTimeinSeconds without going into the loops,
+    // it has the previous value in it
+    let tempStartTimeMinutes = clipStartTimeMinutes
+    if (e.target.value.length === 1) {
+      setClipStartTimeMinutes(Number(e.target.value + '0'))
+      tempStartTimeMinutes = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 60) {
+        setClipStartTimeMinutes(59)
+        tempStartTimeMinutes = 59
+      }
+    } else if (e.target.value.length === 0) {
+      setClipStartTimeMinutes(0)
+      tempStartTimeMinutes = 0
+    }
+    // call the function which will update the clipStartTime in the parent component and the db is updated too.
+    calculateClipStartTimeinSeconds(
+      clipStartTimeMilliSeconds,
+      tempStartTimeMinutes,
+      clipStartTimeSeconds,
+    )
+  }
+  const handleBlurClipStartTimeSeconds = (e: any) => {
+    // store the current clipStartTimeSeconds in a temp variable,
+    // so that when calculateClipStartTimeinSeconds without going into the loops,
+    // it has the previous value in it
+    let tempStartTimeSeconds = clipStartTimeSeconds
+    if (e.target.value.length === 1) {
+      setClipStartTimeSeconds(Number(e.target.value + '0'))
+      tempStartTimeSeconds = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 60) {
+        setClipStartTimeSeconds(59)
+        tempStartTimeSeconds = 59
+      }
+    } else if (e.target.value.length === 0) {
+      setClipStartTimeSeconds(0)
+      tempStartTimeSeconds = 0
+    }
+    // call the function which will update the clipStartTime in the parent component and the db is updated too.
+    calculateClipStartTimeinSeconds(
+      clipStartTimeMilliSeconds,
+      clipStartTimeMinutes,
+      tempStartTimeSeconds,
+    )
+  }
 
-  // const handleBlurClipStartTimeHours = (e: any) => {
-  //   // Store the current clipStartTimeHours in a temp variable
-  //   let tempStartTimeHours = clipStartTimeHours
-  //   // Ensure the input value is within bounds
-  //   if (e.target.value.length === 1) {
-  //     setClipStartTimeHours(Number(e.target.value + '0'))
-  //     tempStartTimeHours = Number(e.target.value + '0')
-  //     if (parseInt(e.target.value + '0') >= 24) {
-  //       setClipStartTimeHours(23)
-  //       tempStartTimeHours = 23
-  //     }
-  //   } else if (e.target.value.length === 2) {
-  //     // If the input is two digits, ensure it's within bounds
-  //     const inputValue = parseInt(e.target.value, 10)
-  //     if (inputValue >= 24) {
-  //       setClipStartTimeHours(23)
-  //       tempStartTimeHours = 23
-  //     } else {
-  //       setClipStartTimeHours(inputValue)
-  //       tempStartTimeHours = inputValue
-  //     }
-  //   } else if (e.target.value.length === 0) {
-  //     // If the input is empty, set it to 0
-  //     setClipStartTimeHours(0)
-  //     tempStartTimeHours = 0
-  //   }
-  //   const calculatedSeconds =
-  //     +e.target.value * 3600 +
-  //     +clipStartTimeMinutes * 60 +
-  //     +clipStartTimeSeconds +
-  //     +clipStartTimeMilliSeconds / 1000
+  const handleBlurClipStartTimeHours = (e: any) => {
+    // Store the current clipStartTimeHours in a temp variable
+    let tempStartTimeHours = clipStartTimeHours
+    // Ensure the input value is within bounds
+    if (e.target.value.length === 1) {
+      setClipStartTimeHours(Number(e.target.value + '0'))
+      tempStartTimeHours = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      }
+    } else if (e.target.value.length === 2) {
+      // If the input is two digits, ensure it's within bounds
+      const inputValue = parseInt(e.target.value, 10)
+      if (inputValue >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      } else {
+        setClipStartTimeHours(inputValue)
+        tempStartTimeHours = inputValue
+      }
+    } else if (e.target.value.length === 0) {
+      // If the input is empty, set it to 0
+      setClipStartTimeHours(0)
+      tempStartTimeHours = 0
+    }
+    const calculatedSeconds =
+      +e.target.value * 3600 +
+      +clipStartTimeMinutes * 60 +
+      +clipStartTimeSeconds +
+      +clipStartTimeMilliSeconds / 1000
 
-  //   if (clipPlaybackType === 'inline') {
-  //     if (calculatedSeconds + clipDuration <= videoLength) {
-  //       handleClipStartTimeUpdate(calculatedSeconds)
-  //     } else {
-  //       toast.error(
-  //         'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
-  //       )
-  //       handleClipStartTimeInputsRender()
-  //     }
-  //   }
-  //   // extended clip
-  //   else {
-  //     // check if the updated start time is more than the videolength, if yes, throw error and retain the old state
-  //     if (calculatedSeconds < videoLength) {
-  //       // handleClipStartTimeUpdate is the prop function received from parent component - this runs an axios PUT call and updates the clipStartTime
-  //       handleClipStartTimeUpdate(calculatedSeconds)
-  //     } else {
-  //       toast.error(
-  //         'Oops!! Start Time cannot be later than the video end time.',
-  //       ) // show toast error message
-  //       handleClipStartTimeInputsRender()
-  //     }
-  //   }
-  // }
+    if (clipPlaybackType === 'inline') {
+      if (calculatedSeconds + clipDuration <= videoLength) {
+        handleClipStartTimeUpdate(calculatedSeconds)
+      } else {
+        toast.error(
+          'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
+        )
+        handleClipStartTimeInputsRender()
+      }
+    }
+    // extended clip
+    else {
+      // check if the updated start time is more than the videolength, if yes, throw error and retain the old state
+      if (calculatedSeconds < videoLength) {
+        // handleClipStartTimeUpdate is the prop function received from parent component - this runs an axios PUT call and updates the clipStartTime
+        handleClipStartTimeUpdate(calculatedSeconds)
+      } else {
+        toast.error(
+          'Oops!! Start Time cannot be later than the video end time.',
+        ) // show toast error message
+        handleClipStartTimeInputsRender()
+      }
+    }
+  }
 
   const handleOnChangeClipStartTimeHours = (e: any) => {
     setClipStartTimeHours(Number(e.target.value))
@@ -694,7 +694,7 @@ const EditClip = ({
                     min="0"
                     value={padNumber(clipStartTimeHours)}
                     onChange={handleOnChangeClipStartTimeHours}
-                    onBlur={handleBlurClipStartTime}
+                    onBlur={handleBlurClipStartTimeHours}
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()
@@ -708,7 +708,7 @@ const EditClip = ({
                     min="0"
                     value={padNumber(clipStartTimeMinutes)}
                     onChange={handleOnChangeClipStartTimeMinutes}
-                    onBlur={handleBlurClipStartTime}
+                    onBlur={handleBlurClipStartTimeMinutes}
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()
@@ -721,7 +721,7 @@ const EditClip = ({
                     className="text-white bg-dark ydx-input"
                     value={padNumber(clipStartTimeSeconds)}
                     onChange={handleOnChangeClipStartTimeSeconds}
-                    onBlur={handleBlurClipStartTime}
+                    onBlur={handleBlurClipStartTimeSeconds}
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()
@@ -734,7 +734,7 @@ const EditClip = ({
                     className="text-white bg-dark ydx-input"
                     value={padNumber(clipStartTimeMilliSeconds)}
                     onChange={handleOnChangeClipStartTimeMilliSeconds}
-                    onBlur={handleBlurClipStartTime}
+                    onBlur={handleBlurClipStartTimeMilliSeconds}
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()

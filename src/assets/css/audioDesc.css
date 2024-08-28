@@ -16,6 +16,10 @@
   margin-left: 5px;
 }
 
+.text-size {
+  font-size: large;
+}
+
 .nudge-btns-div {
   background-color: #3f51b5;
   border: solid 1px;
@@ -124,7 +128,8 @@
 }
 
 .btn-group {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
+  font-size: 1.2rem;
 }
 
 .description-textarea {
