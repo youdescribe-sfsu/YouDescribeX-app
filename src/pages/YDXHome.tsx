@@ -453,9 +453,6 @@ const YDXHome = (): React.ReactElement => {
   const fetchUndoDeletedClipData = async () => {
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/undo-last-deleted`
     try {
-      toastId.current = toast.info('Getting last deleted description', {
-        autoClose: false,
-      })
       const response = await axios.post(
         url,
         {
@@ -469,9 +466,10 @@ const YDXHome = (): React.ReactElement => {
         },
       )
       const data = response.data
-      // console.log(data)
-      navigate(`/editor/${data.url}`)
-      toast.dismiss(toastId.current)
+      setUndoDeletedClip(false)
+      setNeedRefresh(true)
+      navigate(`/editor/${data.clip.youtubeId}/${data.clip.audio_description}`)
+      toast.success('Successfully retrieved and updated the last deleted clip!')
     } catch (error) {
       if (toastId.current) toast.dismiss(toastId.current)
       toast.error('Something went wrong, please try again later')
@@ -1159,12 +1157,12 @@ const YDXHome = (): React.ReactElement => {
             </div>
           )}
           <div className="col-2 mt-3">
-            <p className="text-white fw-bolder">
+            <p className="text-white fw-bolder text-size">
               Audio Clips Count: {audioClips.length}
             </p>
             {undoDeletedClipInfo && ( // Render the undo button if there is deleted clip info
               <Button
-                className="btn rounded btn-sm text-white bg-warning ydx-button"
+                className="btn rounded btn-md text-white bg-warning ydx-button"
                 onClick={fetchUndoDeletedClipData}
                 // disabled={isPreviewAudioDescription}
               >
@@ -1191,6 +1189,22 @@ const YDXHome = (): React.ReactElement => {
           </div>
         </div> */}
         {/* Map Audio Clips Component */}
+        {!isPublished && (
+          <InsertPublish
+            handleClicksFromParent={handleClicksFromParent}
+            setHandleClicksFromParent={setHandleClicksFromParent}
+            userId={user || ''}
+            setShowSpinner={setShowSpinner}
+            youtubeVideoId={youtubeVideoId || ''}
+            currentTime={currentTime}
+            videoLength={videoLength}
+            audioDescriptionId={audioDescriptionId || ''}
+            seconds={seconds}
+            reset={reset}
+            participantId={participant_id || ''}
+            setNeedRefresh={setNeedRefresh}
+          />
+        )}
         <div
           className="audio-desc-component-list"
           id="audio-list"
@@ -1222,22 +1236,7 @@ const YDXHome = (): React.ReactElement => {
             />
           ))}
         </div>
-        {!isPublished && (
-          <InsertPublish
-            handleClicksFromParent={handleClicksFromParent}
-            setHandleClicksFromParent={setHandleClicksFromParent}
-            userId={user || ''}
-            setShowSpinner={setShowSpinner}
-            youtubeVideoId={youtubeVideoId || ''}
-            currentTime={currentTime}
-            videoLength={videoLength}
-            audioDescriptionId={audioDescriptionId || ''}
-            seconds={seconds}
-            reset={reset}
-            participantId={participant_id || ''}
-            setNeedRefresh={setNeedRefresh}
-          />
-        )}
+
         {isPublished && isCollaborativeVersion && (
           <div
             style={{
