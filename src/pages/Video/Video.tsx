@@ -1519,170 +1519,37 @@ const Video = () => {
     return false
   }
 
-  // const DescriptionButtons = () => {
-  //   if (
-  //     requestAiDescription.status == 'completed' &&
-  //     requestAiDescription.url &&
-  //     !requestAiDescription.preview
-  //   ) {
-  //     // Go to descriptions with url
-  //     return (
-  //       <Button
-  //         title={translate('Go to descriptions')}
-  //         ariaLabel="Go to descriptions"
-  //         text={translate('Go To Descriptions')}
-  //         color="w3-lime w3-block w3-margin-top"
-  //         onClick={() =>
-  //           requestAiDescription.aiDescriptionId &&
-  //           handleNewCollabEdit(requestAiDescription.aiDescriptionId)
-  //         }
-  //         disabled={disableGoToDescription()}
-  //       />
-  //     )
-  //   } else if (
-  //     requestAiDescription.status == 'completed' &&
-  //     requestAiDescription.url &&
-  //     requestAiDescription.preview
-  //   ) {
-  //     return (
-  //       <Button
-  //         title={translate('Preview Available Descriptions')}
-  //         ariaLabel="Preview Available Descriptions"
-  //         text={translate('Preview AI Descriptions')}
-  //         color="w3-indigo w3-block w3-margin-top"
-  //         onClick={() =>
-  //           navigate(`/audio-description/${requestAiDescription.url}`)
-  //         }
-  //         disabled={requestAiDescription.requested || buttonLoading}
-  //       />
-  //     )
-  //   } else if (requestAiDescription.status === 'pending') {
-  //     return (
-  //       <>
-  //         <Button
-  //           title={translate('Add a new description for this video')}
-  //           ariaLabel="Add a new description for this video"
-  //           text={translate('Add Freestyle Description')}
-  //           color="w3-yellow w3-block w3-margin-top"
-  //           onClick={handleAddDescription}
-  //         />
-  //         {requestAiDescription.requested ? (
-  //           <Button
-  //             title={translate('AI Descriptions requested')}
-  //             ariaLabel="AI Descriptions requested"
-  //             text={translate('AI Descriptions requested')}
-  //             color="w3-brown w3-block w3-margin-top"
-  //             disabled={true}
-  //           />
-  //         ) : (
-  //           <Button
-  //             title={translate('Request AI Descriptions')}
-  //             ariaLabel="Request AI Descriptions"
-  //             text={translate('Request AI Descriptions')}
-  //             color="w3-light-blue w3-block w3-margin-top"
-  //             disabled={requestAiDescription.requested}
-  //             onClick={handleRequestAIDescriptions}
-  //           />
-  //         )}
-  //         {/* Language selector modal */}
-  //         {showLanguageSelector && (
-  //           <LanguageSelector
-  //             show={showLanguageSelector}
-  //             handleClose={handleLanguageCancel}
-  //             handleGenerateAIDescriptions={handleLanguageConfirm}
-  //             languages={languages}
-  //             showLanguageSelector={showLanguageSelector}
-  //           />
-  //         )}
-  //       </>
-  //     )
-  //   } else if (
-  //     (requestAiDescription.status == 'notavailable' ||
-  //       requestAiDescription.status == 'draft') &&
-  //     !requestAiDescription.requested
-  //   ) {
-  //     return (
-  //       <>
-  //         <Button
-  //           title={translate('Add a new description for this video')}
-  //           ariaLabel="Add a new description for this video"
-  //           text={translate('Add Freestyle Description')}
-  //           color="w3-yellow w3-block w3-margin-top"
-  //           onClick={() => handleAddDescription()}
-  //           disabled={requestAiDescription.requested}
-  //         />
-  //         <Button
-  //           title={translate('Request AI Descriptions')}
-  //           ariaLabel="Request AI Descriptions"
-  //           text={translate('Request AI Descriptions')}
-  //           color="w3-light-blue w3-block w3-margin-top"
-  //           disabled={requestAiDescription.requested}
-  //           // onClick={() => handleGenerateAIDescriptions()}
-  //           onClick={() => handleRequestAIDescriptions()}
-  //         />
-  //         {/* Language selector modal */}
-  //         {showLanguageSelector && (
-  //           <LanguageSelector
-  //             show={showLanguageSelector}
-  //             handleClose={handleLanguageCancel}
-  //             handleGenerateAIDescriptions={handleLanguageConfirm}
-  //             languages={languages} // assuming languages are available here
-  //             showLanguageSelector={showLanguageSelector}
-  //           />
-  //         )}
-  //       </>
-  //     )
-  //   } else {
-  //     return <></>
-  //   }
-  // }
   const DescriptionButtons = () => {
-    // Check if AI descriptions are completed and there's a URL
     if (
       requestAiDescription.status === 'completed' &&
       requestAiDescription.url
     ) {
+      // Go to descriptions with URL
       return (
         <>
-          {/* Go to descriptions button */}
-          {!requestAiDescription.preview ? (
-            <Button
-              title={translate('Go to descriptions')}
-              ariaLabel="Go to descriptions"
-              text={translate('Go To Descriptions')}
-              color="w3-lime w3-block w3-margin-top"
-              onClick={() =>
-                requestAiDescription.aiDescriptionId &&
-                handleNewCollabEdit(requestAiDescription.aiDescriptionId)
-              }
-              disabled={disableGoToDescription()}
-            />
-          ) : (
-            <Button
-              title={translate('Preview Available Descriptions')}
-              ariaLabel="Preview Available Descriptions"
-              text={translate('Preview AI Descriptions')}
-              color="w3-indigo w3-block w3-margin-top"
-              onClick={() =>
-                navigate(`/audio-description/${requestAiDescription.url}`)
-              }
-              disabled={requestAiDescription.requested || buttonLoading}
-            />
-          )}
-          {/* Add Freestyle Description button */}
           <Button
             title={translate('Add a new description for this video')}
             ariaLabel="Add a new description for this video"
             text={translate('Add Freestyle Description')}
             color="w3-yellow w3-block w3-margin-top"
             onClick={handleAddDescription}
+          />
+          <Button
+            title={translate('Go to descriptions')}
+            ariaLabel="Go to descriptions"
+            text={translate('Go To Descriptions')}
+            color="w3-lime w3-block w3-margin-top"
+            onClick={() =>
+              requestAiDescription.aiDescriptionId &&
+              handleNewCollabEdit(requestAiDescription.aiDescriptionId)
+            }
+            disabled={disableGoToDescription()}
           />
         </>
       )
     } else if (requestAiDescription.status === 'pending') {
       return (
         <>
-          {/* Add Freestyle Description button */}
           <Button
             title={translate('Add a new description for this video')}
             ariaLabel="Add a new description for this video"
@@ -1690,7 +1557,6 @@ const Video = () => {
             color="w3-yellow w3-block w3-margin-top"
             onClick={handleAddDescription}
           />
-          {/* AI Description request button */}
           {requestAiDescription.requested ? (
             <Button
               title={translate('AI Descriptions requested')}
@@ -1722,28 +1588,28 @@ const Video = () => {
         </>
       )
     } else if (
-      (requestAiDescription.status === 'notavailable' ||
-        requestAiDescription.status === 'draft') &&
+      (requestAiDescription.status == 'notavailable' ||
+        requestAiDescription.status == 'draft') &&
       !requestAiDescription.requested
     ) {
       return (
         <>
-          {/* Add Freestyle Description button */}
           <Button
             title={translate('Add a new description for this video')}
             ariaLabel="Add a new description for this video"
             text={translate('Add Freestyle Description')}
             color="w3-yellow w3-block w3-margin-top"
-            onClick={handleAddDescription}
+            onClick={() => handleAddDescription()}
+            disabled={requestAiDescription.requested}
           />
-          {/* AI Description request button */}
           <Button
             title={translate('Request AI Descriptions')}
             ariaLabel="Request AI Descriptions"
             text={translate('Request AI Descriptions')}
             color="w3-light-blue w3-block w3-margin-top"
             disabled={requestAiDescription.requested}
-            onClick={handleRequestAIDescriptions}
+            // onClick={() => handleGenerateAIDescriptions()}
+            onClick={() => handleRequestAIDescriptions()}
           />
           {/* Language selector modal */}
           {showLanguageSelector && (
@@ -1751,36 +1617,14 @@ const Video = () => {
               show={showLanguageSelector}
               handleClose={handleLanguageCancel}
               handleGenerateAIDescriptions={handleLanguageConfirm}
-              languages={languages}
+              languages={languages} // assuming languages are available here
               showLanguageSelector={showLanguageSelector}
             />
           )}
         </>
       )
     } else {
-      return (
-        <>
-          {/* Always show the Add Freestyle Description button */}
-          <Button
-            title={translate('Add a new description for this video')}
-            ariaLabel="Add a new description for this video"
-            text={translate('Add Freestyle Description')}
-            color="w3-yellow w3-block w3-margin-top"
-            onClick={handleAddDescription}
-          />
-          {/* Show Request AI Descriptions button if not requested */}
-          {requestAiDescription.status !== 'completed' && (
-            <Button
-              title={translate('Request AI Descriptions')}
-              ariaLabel="Request AI Descriptions"
-              text={translate('Request AI Descriptions')}
-              color="w3-light-blue w3-block w3-margin-top"
-              disabled={requestAiDescription.requested}
-              onClick={handleRequestAIDescriptions}
-            />
-          )}
-        </>
-      )
+      return <></>
     }
   }
 
