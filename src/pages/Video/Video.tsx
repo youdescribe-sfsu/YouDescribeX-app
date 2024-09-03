@@ -1543,7 +1543,7 @@ const Video = () => {
               requestAiDescription.aiDescriptionId &&
               handleNewCollabEdit(requestAiDescription.aiDescriptionId)
             }
-            disabled={disableGoToDescription()}
+            // disabled={disableGoToDescription()}
           />
         </>
       )
