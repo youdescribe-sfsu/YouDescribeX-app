@@ -109,6 +109,7 @@ const InsertPublish = ({
       .then(function (response) {
         setNeedRefresh(true)
         toast.success('Audio description published successfully!')
+        window.location.href = `${window.location.origin}/video/${youtubeVideoId}?ad=${audioDescriptionId}`
       })
       .catch(function (error) {
         console.error(error)
