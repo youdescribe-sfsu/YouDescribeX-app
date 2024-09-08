@@ -888,12 +888,12 @@ const VideoEmbed = () => {
             />
           </div>
           <div className="video-player">
-            {/* <VideoPlayerControls
-            descriptionVolume={descriptionVolume}
-            setDescriptionVolume={setDescriptionVolume}
-            youTubeVideoVolume={youTubeVolume}
-            setYouTubeVideoVolume={setYouTubeVolume}
-          /> */}
+            <VideoPlayerControls
+              descriptionVolume={descriptionVolume}
+              setDescriptionVolume={setDescriptionVolume}
+              youTubeVideoVolume={youTubeVolume}
+              setYouTubeVideoVolume={setYouTubeVolume}
+            />
             <Button
               classNames="mt-5 mb-2"
               title={
