@@ -139,9 +139,7 @@ const DescriberCard = ({
           <div key={id} className="contribution-bar">
             <div>{id}</div>
             <div>
-              <div
-                style={{ width: `${(contribution / maxContribution) * 100}%` }}
-              ></div>
+              <div style={{ width: `${contribution * 100}%` }}></div>
               <div>{contribution.toFixed(2)}</div>
             </div>
           </div>
