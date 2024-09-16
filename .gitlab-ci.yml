@@ -33,7 +33,6 @@ before_script:
       --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL"
       --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION"
       -t $VERSIONED_IMAGE -t $LATEST_IMAGE .
-    - docker push $VERSIONED_IMAGE
     - docker push $LATEST_IMAGE
     - echo "Build complete"
 
@@ -95,8 +94,9 @@ cleanup:
   stage: cleanup
   script:
     - echo "Cleaning up old images..."
-    - docker image prune -af --filter "until=24h"
+    - docker images --format "{{.ID}} {{.Repository}}" | grep "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}" | sort -k2 | awk 'NR>1 {print $1}' | xargs -r docker rmi
     - docker container prune -f
+    - docker image prune -af
   tags:
     - frontend
   only:
