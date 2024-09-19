@@ -930,7 +930,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   const toastId = React.useRef<null | Id>(null)
   const handleGetAIAudioDescription = async () => {
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-ai-descriptions`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/generate-ai-descriptions`
     try {
       true
       toastId.current = toast.info('Generating AI Descriptions', {

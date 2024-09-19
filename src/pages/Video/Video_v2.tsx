@@ -248,7 +248,7 @@ const Video = () => {
 
   useEffect(() => {
     if (userDataStore.getState().isSignedIn) {
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/ai-description-status`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/ai-description-status`
 
       axios
         .post<{
@@ -965,7 +965,7 @@ const Video = () => {
       )
     } else {
       try {
-        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-new-user-ad`
         const response = await axios.post(
           url,
           {
@@ -981,7 +981,7 @@ const Video = () => {
         )
         const data = response.data
         // console.log(data)
-        const collabUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-collaborative-ad`
+        const collabUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-collaborative-ad`
         const collabResponse = await axios.post(
           collabUrl,
           {
@@ -1237,7 +1237,7 @@ const Video = () => {
       )
     } else {
       try {
-        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-new-user-ad`
         const response = await axios.post(
           url,
           {
@@ -1283,7 +1283,7 @@ const Video = () => {
         ),
       )
     }
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
 
     try {
       setRequestAiDescription({

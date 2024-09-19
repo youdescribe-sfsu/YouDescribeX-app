@@ -79,7 +79,7 @@ const InsertPublish = ({
 
     axios
       .post(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api//create-user-links/calculate-contributions`,
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/calculate-contributions`,
         {
           audioDescriptionId: audioDescriptionId,
         },

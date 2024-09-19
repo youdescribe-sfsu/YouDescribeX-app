@@ -48,7 +48,7 @@ const VideoCard = ({
   const handleVideoClick = async () => {
     // console.log('INSIDE HANDLECLICK')
     try {
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/save-Visited-Videos-History`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/save-Visited-Videos-History`
       // console.log('BACKEND URL', url)
       axios
         .post(
@@ -154,7 +154,7 @@ const VideoCard = ({
     if (userDataStore.getState().isSignedIn) {
       axios
         .post(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`,
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-new-user-ad`,
           {
             youtubeVideoId: youTubeId,
           },

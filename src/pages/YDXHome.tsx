@@ -1006,7 +1006,7 @@ const YDXHome = (): React.ReactElement => {
       // Calculate contributions after all clips are saved
       try {
         await axios.post(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/calculate-contributions`,
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/calculate-contributions`,
           {
             audioDescriptionId: audioDescriptionId,
           },

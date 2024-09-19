@@ -50,8 +50,8 @@ const UserDescribedVideos = () => {
     : `${apiUrl}/audio-descriptions/get-my-draft-descriptions`
 
   const aiRequestedVideosUrl = process.env.REACT_APP_USE_YDX
-    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/get-user-Ai-DescriptionRequests`
-    : `${apiUrl}/create-user-links/get-user-Ai-DescriptionRequests`
+    ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/get-user-Ai-DescriptionRequests`
+    : `${apiUrl}/users/get-user-Ai-DescriptionRequests`
 
   const getUserVideos = async (
     url: string,

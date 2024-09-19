@@ -286,7 +286,7 @@ const Video = () => {
 
   useEffect(() => {
     if (userDataStore.getState().isSignedIn) {
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/ai-description-status`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/ai-description-status`
 
       axios
         .post<{
@@ -1323,7 +1323,7 @@ const Video = () => {
       )
     } else {
       try {
-        const collabUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-collaborative-ad`
+        const collabUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-collaborative-ad`
         const response = await axios.post(
           collabUrl,
           {
@@ -1356,7 +1356,7 @@ const Video = () => {
       )
     } else {
       try {
-        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-new-user-ad`
         const response = await axios.post(
           url,
           {
@@ -1403,7 +1403,7 @@ const Video = () => {
         status: 'pending',
         requested: true,
       })
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/increase-Request-Count`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/increase-Request-Count`
       try {
         await axios.post(
           url,
@@ -1428,7 +1428,7 @@ const Video = () => {
       )
       return
     }
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
 
     try {
       setRequestAiDescription({
