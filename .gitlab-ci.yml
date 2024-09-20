@@ -97,7 +97,7 @@ cleanup:
     - docker container prune -f
     - docker image prune -af
   tags:
-    - backend
+    - frontend
   rules:
     - if: $CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "main"
       when: always
