@@ -26,6 +26,10 @@
   box-shadow: 0px 0px 4px 1px rgb(206, 246, 240);
 }
 
+.ydx-button-lable {
+  margin-left: 10px;
+}
+
 .ydx-button:hover {
   box-shadow: 0px 1px 4px 2px bisque, 0px 1px 2px 2px white;
 }
