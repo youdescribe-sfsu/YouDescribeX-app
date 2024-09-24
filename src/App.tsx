@@ -176,12 +176,25 @@ const App = () => {
     newGoogleLogin()
   }, [])
 
+  // const newGoogleAuth = () => {
+  //   let url
+  //   if (process.env.REACT_APP_USE_YDX) {
+  //     url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google`
+  //   } else {
+  //     url = `${apiUrl}/auth/google`
+  //   }
+  //   window.open(url, '_self')
+  // }
+
   const newGoogleAuth = () => {
     let url
+    const currentUrl = window.location.href // Get the current page URL
     if (process.env.REACT_APP_USE_YDX) {
-      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google`
+      url = `${
+        process.env.REACT_APP_YDX_BACKEND_URL
+      }/api/auth/google?redirect=${encodeURIComponent(currentUrl)}`
     } else {
-      url = `${apiUrl}/auth/google`
+      url = `${apiUrl}/auth/google?redirect=${encodeURIComponent(currentUrl)}`
     }
     window.open(url, '_self')
   }
