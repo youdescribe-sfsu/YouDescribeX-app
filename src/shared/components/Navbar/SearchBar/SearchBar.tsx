@@ -41,14 +41,24 @@ const SearchBar = () => {
       return
     }
     const q = encodeURIComponent(searchTerm)
-    setUserSearchHistory((prevHistory) => [
-      searchTerm,
-      ...prevHistory.filter((item) => item !== searchTerm),
-    ])
-    localStorage.setItem('userSearchHistory', JSON.stringify(userSearchHistory))
+
+    // Update search history in the state
+    setUserSearchHistory((prevHistory) => {
+      const updatedHistory = [
+        searchTerm,
+        ...prevHistory.filter((item) => item !== searchTerm),
+      ]
+
+      // Save updated history to localStorage
+      localStorage.setItem('userSearchHistory', JSON.stringify(updatedHistory))
+
+      return updatedHistory
+    })
+
     if (searchTerm.trim() !== '') {
       navigate(`/search?q=${q}`)
     }
+
     setSearch('')
     setSuggestions([])
     setShowDropdown(false)
@@ -74,6 +84,7 @@ const SearchBar = () => {
     }
   }
 
+  // Load search history from localStorage on component mount
   useEffect(() => {
     const storedSearchHistory = localStorage.getItem('userSearchHistory')
     if (storedSearchHistory) {
