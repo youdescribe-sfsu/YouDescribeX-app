@@ -71,12 +71,6 @@
       &:hover ~ button {
         color: gold;
       }
-
-      &:hover:before,
-      &:hover ~ button:before {
-        content: '\2605';
-        color: gold;
-      }
     }
   }
 }
