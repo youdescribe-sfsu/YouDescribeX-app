@@ -59,7 +59,6 @@ const SearchBar = () => {
       navigate(`/search?q=${q}`)
     }
 
-    setSearch('')
     setSuggestions([])
     setShowDropdown(false)
   }
@@ -91,6 +90,16 @@ const SearchBar = () => {
       setUserSearchHistory(JSON.parse(storedSearchHistory))
     }
   }, [])
+
+  useEffect(() => {
+    const clearSearchOnNavigation = () => {
+      if (!location.pathname.startsWith('/search')) {
+        setSearch('') // Clear search term only when leaving the search page
+      }
+    }
+
+    clearSearchOnNavigation()
+  }, [location.pathname])
 
   useEffect(() => {
     inputRef.current?.addEventListener('click', () => setShowDropdown(true))
