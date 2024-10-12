@@ -1237,7 +1237,7 @@ const YDXHome = (): React.ReactElement => {
           ))}
         </div>
 
-        {isPublished && isCollaborativeVersion && (
+        {isPublished && (
           <div
             style={{
               display: 'flex',
@@ -1256,7 +1256,7 @@ const YDXHome = (): React.ReactElement => {
             </button>
           </div>
         )}
-        {isPublished && !isCollaborativeVersion && (
+        {isPublished && (
           <div
             style={{
               display: 'flex',

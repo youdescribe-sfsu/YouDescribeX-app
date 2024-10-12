@@ -53,10 +53,10 @@ const ShareBar = ({ videoTitle }: Props) => {
         title="Share via Email"
       ></a>
       <a
-        title="Embed this video"
+        title="Copy Embed Link"
         href="#"
         className="ssk embed"
-        aria-label="Embed this video, the link will be copied to the clipboard"
+        aria-label="Copy link to embed this video, the link will be copied to the clipboard"
         onClick={() => {
           navigator.clipboard.writeText(
             window.location.href.replace('video', 'embed'), //returns link to the embed page with video id
@@ -75,10 +75,10 @@ const ShareBar = ({ videoTitle }: Props) => {
         <PlusSquareFill></PlusSquareFill>
       </a>
       <a
-        title="Create an html snippet"
+        title="Copy to create an html code snippet"
         href="#"
         className="ssk embed"
-        aria-label="Embed this video, the snippet will be copied to the clipboard"
+        aria-label="Copy the HTML code to embed this video on a website or blog."
         onClick={() => {
           navigator.clipboard.writeText(
             `<iframe width="560" height="315" src="${window.location.href.replace(
