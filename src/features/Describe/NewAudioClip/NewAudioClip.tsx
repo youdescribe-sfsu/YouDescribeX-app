@@ -61,9 +61,10 @@ const NewAudioClipComponent = ({
     let interval: NodeJS.Timeout | null = null
     if (isRecording) {
       interval = setInterval(updateRecordingDuration, 100)
-    } else if (!isRecording && recordingDuration !== 0) {
-      setRecordingDuration(0)
     }
+    // else if (!isRecording && recordingDuration !== 0) {
+    //   setRecordingDuration(0)
+    // }
     return () => {
       if (interval) clearInterval(interval)
     }
@@ -151,6 +152,7 @@ const NewAudioClipComponent = ({
       toast.success(`New Clip Added Successfully!!\n${response.data}`)
       setShowNewACComponent(false)
       setNeedRefresh(true)
+      setRecordingDuration(0)
     } catch (error) {
       console.error(error)
       toast.error('Error Adding New Clip. Please try again later.')
