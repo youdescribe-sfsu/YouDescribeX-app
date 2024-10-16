@@ -93,6 +93,9 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   const [playedClipPath, setPlayedClipPath] = useState('') // store clip_audio_path of the audio clip that is already played.
   // Spinner div
   const [showSpinner, setShowSpinner] = useState(false)
+  const [updatedDescriptions, setUpdatedDescriptions] = useState<{
+    [key: string]: string
+  }>({})
 
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
@@ -927,7 +930,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   const toastId = React.useRef<null | Id>(null)
   const handleGetAIAudioDescription = async () => {
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/generate-ai-descriptions`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/generate-ai-descriptions`
     try {
       true
       toastId.current = toast.info('Generating AI Descriptions', {
@@ -1131,6 +1134,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               setNeedRefresh={setNeedRefresh}
               isPreview={isPreviewAudioDescription}
               setUndoDeletedClip={setUndoDeletedClip}
+              setUpdatedDescriptions={setUpdatedDescriptions}
             />
           ))}
         </div>

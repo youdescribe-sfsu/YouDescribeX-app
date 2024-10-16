@@ -1,5 +1,0 @@
-youdescribex-app:
-    image: #DOCKER_IMAGE_TAG
-    restart: always
-    ports:
-      - "0.0.0.0:#PORT:#PORT"

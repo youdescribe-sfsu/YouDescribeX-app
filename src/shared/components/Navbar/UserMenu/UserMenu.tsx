@@ -53,9 +53,7 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
         </div> */}
         <div className="my-described-videos-button">
           <a
-            href={`${process.env.REACT_APP_REDIRECT_URL}/profile/${
-              userDataStore.getState().userId
-            }`}
+            href={`/profile/${userDataStore.getState().userId}`}
             target="_self"
             title="View my profile"
             onClick={userMenuToggle}

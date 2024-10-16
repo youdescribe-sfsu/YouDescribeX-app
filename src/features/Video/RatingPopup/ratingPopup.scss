@@ -7,6 +7,7 @@
   height: 100vh;
   z-index: 9998;
   background-color: rgba(0, 0, 0, 0.5);
+
   #rating-popup-contents {
     position: fixed;
     z-index: 9999;
@@ -16,9 +17,11 @@
     left: calc(50% - 175px);
     border: 1px solid #3f51b5;
     background-color: white;
+
     a {
       color: #fff;
     }
+
     i {
       position: absolute;
       top: 4px;
@@ -26,29 +29,27 @@
       font-size: 20px;
       cursor: pointer;
     }
+
     h2 {
       margin: 0;
       padding: 8px 0;
       background-color: #3f51b5;
       text-align: center;
     }
+
     p {
       margin: 16px;
       color: grey;
       font-size: 14px;
-      // padding: 16px;
     }
-    /*
-      Ratings Stars
-      (with as little code as possible)
-      */
+
     .rating {
-      // unicode-bidi: bidi-override;
       width: 100%;
       direction: rtl;
-      // margin: auto 0;
       text-align: center;
+      font-size: 24px;
     }
+
     .rating > button {
       color: grey;
       display: inline-block;
@@ -56,21 +57,20 @@
       padding: 0 1px;
       font-size: 24px;
       width: 1.1em;
-      background-color: white;
+      background-color: transparent;
       border: none;
       outline: none;
       cursor: pointer;
-    }
-    .rating > button:hover,
-    .rating > button:hover ~ button {
-      color: transparent;
-    }
-    .rating > button:hover:before,
-    .rating > button:hover ~ button:before {
-      content: '\2605';
-      //  position: absolute;
-      //  left: 0;
-      color: gold;
+      transition: color 0.2s;
+
+      &.filled {
+        color: gold;
+      }
+
+      &:hover,
+      &:hover ~ button {
+        color: gold;
+      }
     }
   }
 }

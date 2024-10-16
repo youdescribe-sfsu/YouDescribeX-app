@@ -48,7 +48,7 @@ const VideoCard = ({
   const handleVideoClick = async () => {
     // console.log('INSIDE HANDLECLICK')
     try {
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/save-Visited-Videos-History`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/save-Visited-Videos-History`
       // console.log('BACKEND URL', url)
       axios
         .post(
@@ -96,11 +96,17 @@ const VideoCard = ({
           })
           .then((res) => {
             setVoted(false)
-            // console.log('Succes remove', res)
+
+            // Show success toast
+            toast.success(
+              translate(
+                res.data.message || 'Removed from wishlist successfully',
+              ),
+            )
           })
           .catch((err) => {
-            switch (err.code) {
-              case 67:
+            switch (err.response?.status) {
+              case 400:
                 toast.error(
                   translate('It is not possible to vote again for this video.'),
                 )
@@ -128,13 +134,19 @@ const VideoCard = ({
           userId: userDataStore.getState().userId,
         })
         .then((res) => {
-          setVoted(true)
-          // console.log('Success upVote', res)
+          if (res.status === 200) {
+            setVoted(true)
+            toast.success(
+              translate(res.data.message || 'Added to wishlist successfully'),
+            )
+          } else {
+            toast.error(translate(res.data?.message || 'Something went wrong!'))
+          }
         })
         .catch((err) => {
           // console.log({ err })
-          switch (err.code) {
-            case 67:
+          switch (err.response?.status) {
+            case 400:
               toast.error(
                 translate('It is not possible to vote again for this video.'),
               )
@@ -154,7 +166,7 @@ const VideoCard = ({
     if (userDataStore.getState().isSignedIn) {
       axios
         .post(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`,
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-new-user-ad`,
           {
             youtubeVideoId: youTubeId,
           },

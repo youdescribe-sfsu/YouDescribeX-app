@@ -36,6 +36,7 @@ interface Props {
   setUndoDeletedClip: React.Dispatch<React.SetStateAction<boolean>>
   isPreview?: boolean
   handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
+  setClipDescText: (description: string) => void
 }
 
 const EditClip = ({
@@ -64,6 +65,7 @@ const EditClip = ({
   isPreview = false,
   handleClickSaveClipDescription,
   setUndoDeletedClip,
+  setClipDescText,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
@@ -273,43 +275,43 @@ const EditClip = ({
     }
   }
 
-  const handleOnChangeClipStartTimeHours = (e: any) => {
-    setClipStartTimeHours(e.target.value)
-    if (e.target.value.length > 2) {
-      setClipStartTimeHours(e.target.value.substring(0, 2))
-    }
-  }
-  const handleOnChangeClipStartTimeMinutes = (e: any) => {
-    setClipStartTimeMinutes(e.target.value)
-    // if (e.target.value.length > 2) {
-    //   setClipStartTimeMinutes(e.target.value.substring(0, 2));
-    // } else if (e.target.value.length === 2) {
-    //   if (parseInt(e.target.value) >= 60) {
-    //     setClipStartTimeMinutes('59');
-    //   }
-    // }
-  }
-  const handleOnChangeClipStartTimeSeconds = (e: any) => {
-    setClipStartTimeSeconds(e.target.value)
-    if (e.target.value.length > 2) {
-      setClipStartTimeSeconds(e.target.value.substring(0, 2))
-    } else if (e.target.value.length === 2) {
-      if (parseInt(e.target.value) >= 60) {
-        setClipStartTimeSeconds(59)
-      }
-    }
-  }
+  // const handleOnChangeClipStartTimeHours = (e: any) => {
+  //   setClipStartTimeHours(Number(e.target.value))
+  //   if (e.target.value.length > 2) {
+  //     setClipStartTimeHours(Number(e.target.value.substring(0, 2)))
+  //   }
+  // }
+  // const handleOnChangeClipStartTimeMinutes = (e: any) => {
+  //   setClipStartTimeMinutes(Number(e.target.value))
+  //   if (e.target.value.length > 2) {
+  //     setClipStartTimeMinutes(e.target.value.substring(0, 2));
+  //   } else if (e.target.value.length === 2) {
+  //     if (parseInt(e.target.value) >= 60) {
+  //       setClipStartTimeMinutes(59);
+  //     }
+  //   }
+  // }
+  // const handleOnChangeClipStartTimeSeconds = (e: any) => {
+  //   setClipStartTimeSeconds(Number(e.target.value))
+  //   if (e.target.value.length > 2) {
+  //     setClipStartTimeSeconds(Number(e.target.value.substring(0, 2)))
+  //   } else if (e.target.value.length === 2) {
+  //     if (parseInt(e.target.value) >= 60) {
+  //       setClipStartTimeSeconds(59)
+  //     }
+  //   }
+  // }
 
-  const handleOnChangeClipStartTimeMilliSeconds = (e: any) => {
-    setClipStartTimeMilliSeconds(e.target.value)
-    if (e.target.value.length > 2) {
-      setClipStartTimeMilliSeconds(e.target.value.substring(0, 2))
-    } else if (e.target.value.length === 2) {
-      if (parseInt(e.target.value) >= 60) {
-        setClipStartTimeMilliSeconds(59)
-      }
-    }
-  }
+  // const handleOnChangeClipStartTimeMilliSeconds = (e: any) => {
+  //   setClipStartTimeMilliSeconds(Number(e.target.value))
+  //   if (e.target.value.length > 2) {
+  //     setClipStartTimeMilliSeconds(Number(e.target.value.substring(0, 2)))
+  //   } else if (e.target.value.length === 2) {
+  //     if (parseInt(e.target.value) >= 60) {
+  //       setClipStartTimeMilliSeconds(59)
+  //     }
+  //   }
+  // }
   const handleBlurClipStartTimeMilliSeconds = (e: any) => {
     // store the current clipStartTimeHours in a temp variable,
     // so that when calculateClipStartTimeinSeconds without going into the loops,
@@ -432,6 +434,50 @@ const EditClip = ({
         toast.error(
           'Oops!! Start Time cannot be later than the video end time.',
         ) // show toast error message
+        handleClipStartTimeInputsRender()
+      }
+    }
+  }
+
+  const handleOnChangeClipStartTimeHours = (e: any) => {
+    setClipStartTimeHours(Number(e.target.value))
+  }
+
+  const handleOnChangeClipStartTimeMinutes = (e: any) => {
+    setClipStartTimeMinutes(Number(e.target.value))
+  }
+
+  const handleOnChangeClipStartTimeSeconds = (e: any) => {
+    setClipStartTimeSeconds(Number(e.target.value))
+  }
+
+  const handleOnChangeClipStartTimeMilliSeconds = (e: any) => {
+    setClipStartTimeMilliSeconds(Number(e.target.value))
+  }
+
+  const handleBlurClipStartTime = () => {
+    const calculatedSeconds =
+      clipStartTimeHours * 3600 +
+      clipStartTimeMinutes * 60 +
+      clipStartTimeSeconds +
+      clipStartTimeMilliSeconds / 1000
+
+    if (clipPlaybackType === 'inline') {
+      if (calculatedSeconds + clipDuration <= videoLength) {
+        handleClipStartTimeUpdate(calculatedSeconds)
+      } else {
+        toast.error(
+          'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
+        )
+        handleClipStartTimeInputsRender()
+      }
+    } else {
+      if (calculatedSeconds < videoLength) {
+        handleClipStartTimeUpdate(calculatedSeconds)
+      } else {
+        toast.error(
+          'Oops!! Start Time cannot be later than the video end time.',
+        )
         handleClipStartTimeInputsRender()
       }
     }
@@ -585,7 +631,10 @@ const EditClip = ({
                 id="description"
                 name="description"
                 value={clipDescriptionText}
-                onChange={(e) => setClipDescriptionText(e.target.value)}
+                onChange={(e) => {
+                  setClipDescriptionText(e.target.value)
+                  setClipDescText(e.target.value)
+                }}
                 disabled={isPreview}
               ></TextareaAutosize>
               {/* play, save & Delete buttons */}

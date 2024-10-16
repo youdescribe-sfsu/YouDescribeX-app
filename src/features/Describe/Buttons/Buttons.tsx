@@ -56,13 +56,8 @@ const Buttons = ({
             className="btn btn-sm play-pause-bg text-white ydx-button"
             onClick={() => handlePlayPause()}
           >
-            {isGloballyPaused ? (
-              <i className="fa fa-play" />
-            ) : (
-              <i className="fa fa-pause" />
-            )}
-            {'    '}
-            {isGloballyPaused ? 'Play' : 'Pause'}
+            <i className="fa fa-play"></i> <i className="fa fa-pause"></i>{' '}
+            <span className="ydx-button-lable">Play / Pause</span>
           </button>
         </div>
         <div className="col-12 text-white">

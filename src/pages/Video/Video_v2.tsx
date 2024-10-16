@@ -248,7 +248,7 @@ const Video = () => {
 
   useEffect(() => {
     if (userDataStore.getState().isSignedIn) {
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/ai-description-status`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/ai-description-status`
 
       axios
         .post<{
@@ -854,6 +854,7 @@ const Video = () => {
           handleDescriberChange={handleDescriberChange}
           handleRatingPopup={handleRatingPopup}
           handleFeedbackPopup={handleFeedbackPopup}
+          handleNewCollabEdit={handleNewCollabEdit}
           describerId={describerId}
           selectedDescriberId={selectedADId}
           picture={describers[describerId].picture}
@@ -864,12 +865,39 @@ const Video = () => {
           handleRating={() => {
             // console.log('Handle Rating')
           }}
+          videoId={videoId}
+          collaborativeEdit={
+            describers[describerId].collaborative_edit &&
+            (!describers[describerId].depth ||
+              describers[describerId].depth < 3) &&
+            checkUserCanCollaborate(describers, describerId)
+          }
+          contributions={describers[describerId].contributions}
         />,
       )
     })
 
     setDescriberCards(describerCards)
   }, [audioDescriptionsIdsUsers, selectedADId])
+
+  const checkUserCanCollaborate = (ads: any, selectedDescriberId: string) => {
+    if (!ads) return false
+
+    const userId = userDataStore.getState().userId
+    const selectedId = selectedDescriberId
+
+    for (const describerId of Object.keys(ads)) {
+      const adUserId = ads[describerId].user._id
+      const prevAdId = ads[describerId].prev_audio_description
+      console.log(ads[describerId].user._id)
+
+      if (adUserId === userId && prevAdId === selectedId) {
+        return false
+      }
+    }
+
+    return true
+  }
 
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
@@ -928,6 +956,50 @@ const Video = () => {
       audioDescriptionsIdsUsers,
       audioDescriptionsIdsAudioClips,
     )
+  }
+  const handleNewCollabEdit = async (describerId: string) => {
+    // console.log(userDataStore.getState())
+    if (!userDataStore.getState().isSignedIn) {
+      toast.error(
+        translate('You have to be logged in in order to add a description'),
+      )
+    } else {
+      try {
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-new-user-ad`
+        const response = await axios.post(
+          url,
+          {
+            youtubeVideoId: videoId,
+            oldDescriberId: selectedADId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        const data = response.data
+        // console.log(data)
+        const collabUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-collaborative-ad`
+        const collabResponse = await axios.post(
+          collabUrl,
+          {
+            describerId: describerId, // Pass the describerId to the API
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        navigate(`/editor/${data.url}`)
+      } catch (error) {
+        // console.log(error)
+        toast.error('Something went wrong, please try again later')
+      }
+    }
   }
 
   const handleTurnOffDescriptions = () => {
@@ -1165,7 +1237,7 @@ const Video = () => {
       )
     } else {
       try {
-        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/create-new-user-ad`
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-new-user-ad`
         const response = await axios.post(
           url,
           {
@@ -1211,7 +1283,7 @@ const Video = () => {
         ),
       )
     }
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/create-user-links/request-ai-descriptions-with-gpu`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
 
     try {
       setRequestAiDescription({
@@ -1355,6 +1427,7 @@ const Video = () => {
           className="classic-container w3-row video-info"
         >
           <RatingPopup
+            audioDescriptionId={selectedADId}
             rating={rating}
             setRating={setRating}
             handleRatingSubmit={handleRatingSubmit}

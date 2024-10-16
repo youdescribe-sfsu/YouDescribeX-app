@@ -24,6 +24,7 @@ import strings from './shared/strings'
 import Video from './pages/Video/Video'
 import Footer from './shared/components/Footer/Footer'
 import Wishlist from './pages/Wishlist/Wishlist'
+import Profile from './pages/Profile/Profile'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { apiUrl } from './shared/config'
@@ -326,6 +327,7 @@ const App = () => {
           {/* <Route path="/video/v2/:videoId" element={<Video_v2 />} /> */}
           <Route path="/embed/:videoId" element={<VideoEmbed />} />
           <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/profile/:userId" element={<Profile />} />
           <Route path="/search" element={<Search />} />
           <Route path="/support" element={<Support />} />
           <Route path="/credits" element={<Credits />} />
