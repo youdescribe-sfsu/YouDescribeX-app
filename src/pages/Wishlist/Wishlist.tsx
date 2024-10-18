@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom'
 import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
 import { toast } from 'react-toastify'
+import parseISO8601Duration from '@/shared/utils/convertISO8601ToTime'
 
 interface VideosState {
   data: any[]
@@ -207,6 +208,14 @@ const Wishlist = () => {
       sortField: 'aiRequested',
     },
     {
+      name: 'Duration',
+      cell: (row) => (row.duration ? row.duration : 'N/A'),
+      grow: 1.5,
+      sortable: true,
+      wrap: true,
+      sortField: 'duration',
+    },
+    {
       cell: (row) => (
         <Button
           ariaLabel={translate('Create an audio description for this video')}
@@ -280,7 +289,6 @@ const Wishlist = () => {
 
       for (let i = 0; i < youTubeResponse.items.length; i += 1) {
         const item = youTubeResponse.items[i]
-
         if (!item.statistics || !item.snippet) {
           continue
         }
@@ -526,7 +534,7 @@ const Wishlist = () => {
       const thumbnailMedium = item.snippet.thumbnails.medium
       const title = item.snippet.title
       const author = item.snippet.channelTitle
-
+      const duration = parseISO8601Duration(item.contentDetails.duration)
       const now = Date.now() + new Date().getTimezoneOffset() * 60000
       const lastUpdatedAt = String(updatedAt[i])
 
@@ -556,6 +564,7 @@ const Wishlist = () => {
         lastVoted: diffToLastUpdate,
         category: category,
         aiRequested: aiReq,
+        duration: duration,
       })
     }
     setRows(rows)
