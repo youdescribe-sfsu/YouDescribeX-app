@@ -48,6 +48,15 @@ const Support = () => (
         <li>
           <Link to="/support/privacy">Privacy Policy</Link>
         </li>
+        <li>
+          <a
+            href="https://forms.gle/rL5XNkUh6gSx2YHY7"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Report a Bug or Issue
+          </a>
+        </li>
       </ul>
 
       <p>
