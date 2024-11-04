@@ -979,7 +979,6 @@ const YDXHome = (): React.ReactElement => {
       )
 
       // Handle the response
-      console.log(response)
       setIsPublished(false) // Update the published state
       setNeedRefresh(true) // Trigger a refresh if needed
       toast.success('Audio description unpublished successfully!')

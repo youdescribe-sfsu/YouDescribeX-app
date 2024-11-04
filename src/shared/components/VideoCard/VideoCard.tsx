@@ -24,6 +24,7 @@ interface Props {
   userVote?: boolean
   url?: string
   aiRequested?: boolean
+  onClick?: () => void
 }
 
 const VideoCard = ({
@@ -42,14 +43,17 @@ const VideoCard = ({
   // time,
   userVote = false,
   aiRequested,
+  onClick,
 }: Props) => {
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
   const handleVideoClick = async () => {
-    // console.log('INSIDE HANDLECLICK')
+    // Trigger the provided onClick prop, if any
+    if (onClick) onClick()
+
+    // Save the visit to backend, as previously defined
     try {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/save-Visited-Videos-History`
-      // console.log('BACKEND URL', url)
       axios
         .post(
           url,
@@ -65,19 +69,15 @@ const VideoCard = ({
           },
         )
         .then((res) => {
-          const data = res.data
-          // console.log('video click data => ', data)
-          if (res.status != 201) {
+          if (res.status !== 201) {
             toast.error('Something went wrong, please try again later.')
-            // toast.error(translate('Something went wrong, please try again later'))
-            return
           }
         })
     } catch (error) {
-      // console.log(error)
       toast.error('Something went wrong, please try again later')
     }
   }
+
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
