@@ -1534,6 +1534,7 @@ const Video = () => {
             color="w3-yellow w3-block w3-margin-top"
             onClick={handleAddDescription}
           />
+
           {/*<Button
             title={translate('Go to descriptions')}
             ariaLabel="Go to descriptions"
@@ -1545,6 +1546,7 @@ const Video = () => {
             }
             // disabled={disableGoToDescription()}
           />*/}
+
         </>
       )
     } else if (requestAiDescription.status === 'pending') {
