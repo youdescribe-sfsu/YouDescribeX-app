@@ -1534,7 +1534,7 @@ const Video = () => {
             color="w3-yellow w3-block w3-margin-top"
             onClick={handleAddDescription}
           />
-          <Button
+          {/*<Button
             title={translate('Go to descriptions')}
             ariaLabel="Go to descriptions"
             text={translate('Go To Descriptions')}
@@ -1544,7 +1544,7 @@ const Video = () => {
               handleNewCollabEdit(requestAiDescription.aiDescriptionId)
             }
             // disabled={disableGoToDescription()}
-          />
+          />*/}
         </>
       )
     } else if (requestAiDescription.status === 'pending') {
