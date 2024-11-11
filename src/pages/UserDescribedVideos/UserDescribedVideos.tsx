@@ -33,35 +33,36 @@ const UserDescribedVideos = () => {
 
   // Function to track video views in localStorage
   const handleView = (videoId: string): void => {
-    console.log('inside handleView', videoId)
     const recentViews: Record<string, number> = JSON.parse(
       localStorage.getItem('recentViews') || '{}',
     )
-    console.log('Current recentViews from localStorage:', recentViews)
-    recentViews[videoId] = Date.now() // Save the current timestamp for the viewed video
+
+    // Update the view timestamp for the given video ID
+    recentViews[videoId] = Date.now()
     localStorage.setItem('recentViews', JSON.stringify(recentViews))
-    console.log('Updated recentViews in localStorage:', recentViews)
   }
 
   const sortByLastViewed = (videos: JSX.Element[]): JSX.Element[] => {
     const recentViews = JSON.parse(localStorage.getItem('recentViews') || '{}')
-    console.log('videos:', videos)
-    console.log({ recentViews })
 
+    // Sort videos based on their `lastViewed` timestamp in `recentViews`
     const sortedVideos = videos.slice().sort((a, b) => {
-      // Extract `youTubeId` from the props using `React.cloneElement`
-      const youTubeIdA = a.props.youTubeId
-      const youTubeIdB = b.props.youTubeId
+      const youTubeIdA = a.props.children.props.youTubeId
+      const youTubeIdB = b.props.children.props.youTubeId
 
       const lastViewedA = recentViews[youTubeIdA] || 0
       const lastViewedB = recentViews[youTubeIdB] || 0
 
-      return lastViewedB - lastViewedA // Sort by most recent first
+      return lastViewedB - lastViewedA // Sort by most recent timestamp first
     })
 
-    console.log('Sorted videos by recentViews:', sortedVideos) // Log sorted order
-
     return sortedVideos
+  }
+
+  const onVideoClick = (videoId: string) => {
+    handleView(videoId) // Update the timestamp in localStorage for this video
+    const sortedVideos = sortByLastViewed(videos) // Sort videos based on updated timestamps
+    setVideos(sortedVideos) // Update the state with the sorted videos
   }
 
   const getUserInfo = async () => {
@@ -181,7 +182,7 @@ const UserDescribedVideos = () => {
             views={views}
             time={time}
             buttons="edit"
-            onClick={() => handleView(youTubeId)}
+            onClick={() => onVideoClick(youTubeId)}
           />
         </div>,
       )
