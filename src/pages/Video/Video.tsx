@@ -1546,7 +1546,6 @@ const Video = () => {
             }
             // disabled={disableGoToDescription()}
           />*/}
-
         </>
       )
     } else if (requestAiDescription.status === 'pending') {
