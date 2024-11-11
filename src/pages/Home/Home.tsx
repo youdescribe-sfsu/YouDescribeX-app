@@ -37,7 +37,6 @@ const Home = () => {
       const url = `${apiUrl}/videos?page=${page}`
       const response = await ourFetch(url)
       const allResults = response.result // Assuming allResults is defined
-      console.log('result', allResults)
 
       const youDescribeVideosIds = allResults.map((result: any) => result._id)
       const youTubeVideosIds = allResults

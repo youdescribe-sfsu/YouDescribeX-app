@@ -31,6 +31,40 @@ const UserDescribedVideos = () => {
   const [showLoadMoreDraftButton, setShowLoadMoreDraftButton] = useState(true)
   const { userId } = useParams()
 
+  // Function to track video views in localStorage
+  const handleView = (videoId: string): void => {
+    const recentViews: Record<string, number> = JSON.parse(
+      localStorage.getItem('recentViews') || '{}',
+    )
+
+    // Update the view timestamp for the given video ID
+    recentViews[videoId] = Date.now()
+    localStorage.setItem('recentViews', JSON.stringify(recentViews))
+  }
+
+  const sortByLastViewed = (videos: JSX.Element[]): JSX.Element[] => {
+    const recentViews = JSON.parse(localStorage.getItem('recentViews') || '{}')
+
+    // Sort videos based on their `lastViewed` timestamp in `recentViews`
+    const sortedVideos = videos.slice().sort((a, b) => {
+      const youTubeIdA = a.props.children.props.youTubeId
+      const youTubeIdB = b.props.children.props.youTubeId
+
+      const lastViewedA = recentViews[youTubeIdA] || 0
+      const lastViewedB = recentViews[youTubeIdB] || 0
+
+      return lastViewedB - lastViewedA // Sort by most recent timestamp first
+    })
+
+    return sortedVideos
+  }
+
+  const onVideoClick = (videoId: string) => {
+    handleView(videoId) // Update the timestamp in localStorage for this video
+    const sortedVideos = sortByLastViewed(videos) // Sort videos based on updated timestamps
+    setVideos(sortedVideos) // Update the state with the sorted videos
+  }
+
   const getUserInfo = async () => {
     const url = `${apiUrl}/users/${userId}`
     ourFetch(url).then((response) => {
@@ -148,12 +182,16 @@ const UserDescribedVideos = () => {
             views={views}
             time={time}
             buttons="edit"
+            onClick={() => onVideoClick(youTubeId)}
           />
         </div>,
       )
     }
 
-    const updatedVideos = [...existingVideos, ...videoComponents]
+    const updatedVideos = sortByLastViewed([
+      ...existingVideos,
+      ...videoComponents,
+    ])
 
     const loadMoreFlag =
       setStateFunction === setVideos

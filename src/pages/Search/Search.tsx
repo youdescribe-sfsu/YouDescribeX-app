@@ -120,7 +120,6 @@ const Search = () => {
     const urlfForYT = `${youTubeApiUrl}/videos?id=${videoIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
     ourFetch(urlfForYT).then((videoDataFromYDdatabase: any) => {
       const videoFromYDdatabase = videoDataFromYDdatabase.items
-      console.log({ videoFromYDdatabase })
       const videosAlreadyOnYD = page === 1 ? [] : [...videoAlreadyOnYD]
       for (let i = 0; i < videoFromYDdatabase.length; i += 1) {
         const item = videoFromYDdatabase[i]

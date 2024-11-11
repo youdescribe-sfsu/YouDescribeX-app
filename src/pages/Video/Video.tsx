@@ -332,8 +332,6 @@ const Video = () => {
   }
 
   const parseVideoData = (videoData: VideoDescriberRoot) => {
-    console.log('Starting parseVideoData with:', videoData)
-
     const adIds: string[] = []
     const adIdsUsers: IADUserId = {}
     const adIdsAudioClips: { [key: string]: any[] } = {}
@@ -1534,7 +1532,6 @@ const Video = () => {
             color="w3-yellow w3-block w3-margin-top"
             onClick={handleAddDescription}
           />
-
           {/*<Button
             title={translate('Go to descriptions')}
             ariaLabel="Go to descriptions"
