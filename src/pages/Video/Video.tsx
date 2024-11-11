@@ -332,8 +332,6 @@ const Video = () => {
   }
 
   const parseVideoData = (videoData: VideoDescriberRoot) => {
-    console.log('Starting parseVideoData with:', videoData)
-
     const adIds: string[] = []
     const adIdsUsers: IADUserId = {}
     const adIdsAudioClips: { [key: string]: any[] } = {}

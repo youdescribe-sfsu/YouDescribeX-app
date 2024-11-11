@@ -889,7 +889,6 @@ const Video = () => {
     for (const describerId of Object.keys(ads)) {
       const adUserId = ads[describerId].user._id
       const prevAdId = ads[describerId].prev_audio_description
-      console.log(ads[describerId].user._id)
 
       if (adUserId === userId && prevAdId === selectedId) {
         return false
@@ -1094,7 +1093,6 @@ const Video = () => {
 
   const handleFeedbackSubmit = (feedback: any) => {
     const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
-    console.log('selectedADId ', selectedADId)
     ourFetch(url, true, {
       method: 'POST',
       headers: {
