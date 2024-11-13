@@ -467,6 +467,9 @@ const Wishlist = () => {
         },
         {
           withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
       )
       .then((response) => {
