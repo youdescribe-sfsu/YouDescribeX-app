@@ -47,36 +47,6 @@ const VideoCard = ({
 }: Props) => {
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
-  const handleVideoClick = async () => {
-    // Trigger the provided onClick prop, if any
-    if (onClick) onClick()
-
-    // Save the visit to backend, as previously defined
-    try {
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/save-Visited-Videos-History`
-      axios
-        .post(
-          url,
-          {
-            youtube_id: youTubeId,
-            userId: userDataStore.getState().userId,
-          },
-          {
-            withCredentials: true,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        )
-        .then((res) => {
-          if (res.status !== 201) {
-            toast.error('Something went wrong, please try again later.')
-          }
-        })
-    } catch (error) {
-      toast.error('Something went wrong, please try again later')
-    }
-  }
 
   const upVote = () => {
     if (!userDataStore.getState().isSignedIn) {
@@ -255,7 +225,6 @@ const VideoCard = ({
             aria-hidden="true"
             to={url ? '/editor/' + url : '/video/' + youTubeId}
             className=""
-            onClick={handleVideoClick}
           >
             <img alt={title} src={thumbnailMediumUrl} width="100%" />
           </Link>
@@ -273,7 +242,6 @@ const VideoCard = ({
                   role="link"
                   to={url ? '/editor/' + url : '/video/' + youTubeId}
                   className="classic-link"
-                  onClick={handleVideoClick}
                 >
                   {title}
                 </Link>

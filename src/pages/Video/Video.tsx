@@ -930,6 +930,34 @@ const Video = () => {
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex])
 
+  const saveVideoToHistory = async (videoId: string) => {
+    if (!userDataStore.getState().isSignedIn || !videoId) return
+
+    try {
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/save-Visited-Videos-History`
+      const response = await axios.post(
+        url,
+        {
+          youtube_id: videoId,
+          userId: userDataStore.getState().userId,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+
+      if (response.status !== 201) {
+        console.error('Failed to save video to history')
+      }
+    } catch (error) {
+      console.error('Error saving video to history:', error)
+      // We don't show error toasts for history saves as it's not critical to user experience
+    }
+  }
+
   //
   //
   // END OF YDX FUNCTIONS
@@ -951,6 +979,10 @@ const Video = () => {
         describerIds = describerIds
           .splice(selectedIdIndex, 1)
           .concat(describerIds)
+      }
+
+      if (videoId && !showSpinner && videoTitle) {
+        saveVideoToHistory(videoId)
       }
 
       describerIds.forEach((describerId, i) => {
@@ -986,7 +1018,13 @@ const Video = () => {
 
       setDescriberCards(describerCards)
     }
-  }, [audioDescriptionsIdsUsers, selectedADId])
+  }, [
+    audioDescriptionsIdsUsers,
+    selectedADId,
+    videoId,
+    showSpinner,
+    videoTitle,
+  ])
 
   const checkUserCanCollaborate = (
     ads: IADUserId | null,
