@@ -59,6 +59,15 @@ interface IADUserId {
   }
 }
 
+interface ApiError {
+  response?: {
+    status: number
+    data: any
+  }
+  request?: any
+  message?: string
+}
+
 const Video = () => {
   const { videoId } = useParams()
   const navigate = useNavigate()
@@ -172,6 +181,29 @@ const Video = () => {
 
   const [buttonLoading, setButtonLoading] = useState(false)
   const toastId = React.useRef<null | Id>(null)
+
+  const [isAiRequestPending, setIsAiRequestPending] = useState(false)
+  const [aiServiceStatus, setAiServiceStatus] = useState<
+    'available' | 'unavailable' | 'unknown'
+  >('unknown')
+
+  useEffect(() => {
+    const checkAiService = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/ai-service-status`,
+          { withCredentials: true },
+        )
+        setAiServiceStatus(
+          response.data.available ? 'available' : 'unavailable',
+        )
+      } catch (error) {
+        setAiServiceStatus('unavailable')
+      }
+    }
+
+    checkAiService()
+  }, [])
 
   useEffect(() => {
     // Pause and unload current inline audio clip
@@ -1434,43 +1466,29 @@ const Video = () => {
       return
     }
 
-    if (requestAiDescription.status === 'pending') {
-      setRequestAiDescription({
-        status: 'pending',
-        requested: true,
-      })
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/increase-Request-Count`
-      try {
-        await axios.post(
-          url,
-          {
-            youtube_id: videoId,
-          },
-          {
-            withCredentials: true,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        )
-      } catch (error) {
-        console.error('Failed to insert user request into MongoDB:', error)
-      }
-
-      toast.error(
-        translate(
-          'AI Descriptions are already requested by another user. Please wait for them to get generated and you will receive an email',
-        ),
-      )
-      return
-    }
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
+    setIsAiRequestPending(true)
 
     try {
-      setRequestAiDescription({
-        status: 'pending',
-        requested: true,
-      })
+      if (requestAiDescription.status === 'pending') {
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/increase-Request-Count`
+        await axios.post(
+          url,
+          { youtube_id: videoId },
+          {
+            withCredentials: true,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
+
+        toast.info(
+          translate(
+            'AI Descriptions are already being generated. You will receive an email when they are ready.',
+          ),
+        )
+        return
+      }
+
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
       const response = await axios.post(
         url,
         {
@@ -1479,25 +1497,62 @@ const Video = () => {
         },
         {
           withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         },
       )
-      const data = response.data
-      toast.success('AI Descriptions have been requested')
-      // // console.log('data for asdasd:: ', data)
-    } catch (error) {
-      // console.log(error)
+
+      if (response.data) {
+        setRequestAiDescription({
+          status: 'pending',
+          requested: true,
+        })
+        toast.success(
+          'AI Descriptions have been requested successfully. You will receive an email when they are ready.',
+        )
+      }
+    } catch (error: unknown) {
+      console.error('AI Description request failed:', error)
+
       setRequestAiDescription({
         status: 'notavailable',
         requested: false,
       })
-      toast.error(
-        'Something went wrong, AI Descriptions are not available at the moment. Please try again later.',
-      )
+
+      const apiError = error as ApiError
+
+      if (apiError.response) {
+        switch (apiError.response.status) {
+          case 400:
+            toast.error(
+              'Invalid request. Please check your input and try again.',
+            )
+            break
+          case 401:
+            toast.error('Please log in to request AI descriptions.')
+            break
+          case 429:
+            toast.error('Too many requests. Please try again later.')
+            break
+          case 500:
+            toast.error(
+              'The AI description service is currently unavailable. Please try again later.',
+            )
+            break
+          default:
+            toast.error('Something went wrong. Please try again later.')
+        }
+      } else if (apiError.request) {
+        toast.error(
+          'Network error. Please check your connection and try again.',
+        )
+      } else {
+        toast.error('An unexpected error occurred. Please try again later.')
+      }
+    } finally {
+      setIsAiRequestPending(false)
     }
   }
+
   const handleRequestAIDescriptions = () => {
     if (videoDurationInSeconds > 600) {
       toast.error(
@@ -1556,112 +1611,78 @@ const Video = () => {
   }
 
   const DescriptionButtons = () => {
+    const getAiButtonText = () => {
+      if (isAiRequestPending) return translate('Processing...')
+      if (requestAiDescription.requested)
+        return translate('AI Description Requested')
+      if (aiServiceStatus === 'unavailable')
+        return translate('AI Service Unavailable')
+      return translate('Request AI Description')
+    }
+
+    const getAiButtonClass = () => {
+      const baseClass = 'w3-block w3-margin-top ai-request-button'
+      if (isAiRequestPending) return `${baseClass} w3-grey processing`
+      if (aiServiceStatus === 'unavailable')
+        return `${baseClass} w3-grey unavailable`
+      if (requestAiDescription.requested)
+        return `${baseClass} w3-brown requested`
+      return `${baseClass} w3-light-blue`
+    }
+
     if (
       requestAiDescription.status === 'completed' &&
       requestAiDescription.url
     ) {
-      // Go to descriptions with URL
       return (
-        <>
+        <div className="description-buttons">
           <Button
             title={translate('Add a new description for this video')}
             ariaLabel="Add a new description for this video"
             text={translate('Add Freestyle Description')}
-            color="w3-yellow w3-block w3-margin-top"
+            color="w3-yellow w3-block"
             onClick={handleAddDescription}
           />
-          {/*<Button
-            title={translate('Go to descriptions')}
-            ariaLabel="Go to descriptions"
-            text={translate('Go To Descriptions')}
-            color="w3-lime w3-block w3-margin-top"
-            onClick={() =>
-              requestAiDescription.aiDescriptionId &&
-              handleNewCollabEdit(requestAiDescription.aiDescriptionId)
-            }
-            // disabled={disableGoToDescription()}
-          />*/}
-        </>
+        </div>
       )
-    } else if (requestAiDescription.status === 'pending') {
-      return (
-        <>
-          <Button
-            title={translate('Add a new description for this video')}
-            ariaLabel="Add a new description for this video"
-            text={translate('Add Freestyle Description')}
-            color="w3-yellow w3-block w3-margin-top"
-            onClick={handleAddDescription}
-          />
-          {requestAiDescription.requested ? (
-            <Button
-              title={translate('AI Descriptions requested')}
-              ariaLabel="AI Descriptions requested"
-              text={translate('AI Descriptions requested')}
-              color="w3-brown w3-block w3-margin-top"
-              disabled={true}
-            />
-          ) : (
-            <Button
-              title={translate('Request AI Descriptions')}
-              ariaLabel="Request AI Descriptions"
-              text={translate('Request AI Descriptions')}
-              color="w3-light-blue w3-block w3-margin-top"
-              disabled={requestAiDescription.requested}
-              onClick={handleRequestAIDescriptions}
-            />
-          )}
-          {/* Language selector modal */}
-          {showLanguageSelector && (
-            <LanguageSelector
-              show={showLanguageSelector}
-              handleClose={handleLanguageCancel}
-              handleGenerateAIDescriptions={handleLanguageConfirm}
-              languages={languages}
-              showLanguageSelector={showLanguageSelector}
-            />
-          )}
-        </>
-      )
-    } else if (
-      (requestAiDescription.status == 'notavailable' ||
-        requestAiDescription.status == 'draft') &&
-      !requestAiDescription.requested
-    ) {
-      return (
-        <>
-          <Button
-            title={translate('Add a new description for this video')}
-            ariaLabel="Add a new description for this video"
-            text={translate('Add Freestyle Description')}
-            color="w3-yellow w3-block w3-margin-top"
-            onClick={() => handleAddDescription()}
-            disabled={requestAiDescription.requested}
-          />
-          <Button
-            title={translate('Request AI Descriptions')}
-            ariaLabel="Request AI Descriptions"
-            text={translate('Request AI Descriptions')}
-            color="w3-light-blue w3-block w3-margin-top"
-            disabled={requestAiDescription.requested}
-            // onClick={() => handleGenerateAIDescriptions()}
-            onClick={() => handleRequestAIDescriptions()}
-          />
-          {/* Language selector modal */}
-          {showLanguageSelector && (
-            <LanguageSelector
-              show={showLanguageSelector}
-              handleClose={handleLanguageCancel}
-              handleGenerateAIDescriptions={handleLanguageConfirm}
-              languages={languages} // assuming languages are available here
-              showLanguageSelector={showLanguageSelector}
-            />
-          )}
-        </>
-      )
-    } else {
-      return <></>
     }
+
+    return (
+      <div className="description-buttons">
+        <Button
+          title={translate('Add a new description for this video')}
+          ariaLabel="Add a new description for this video"
+          text={translate('Add Freestyle Description')}
+          color="w3-yellow w3-block"
+          onClick={handleAddDescription}
+        />
+
+        <Button
+          title={translate('Request AI Descriptions')}
+          ariaLabel="Request AI Descriptions"
+          text={
+            isAiRequestPending ? `⭕ ${getAiButtonText()}` : getAiButtonText()
+          }
+          color={getAiButtonClass()}
+          disabled={
+            isAiRequestPending ||
+            requestAiDescription.requested ||
+            aiServiceStatus === 'unavailable'
+          }
+          onClick={handleRequestAIDescriptions}
+        />
+
+        {showLanguageSelector && (
+          <LanguageSelector
+            show={showLanguageSelector}
+            handleClose={handleLanguageCancel}
+            handleGenerateAIDescriptions={handleLanguageConfirm}
+            languages={languages}
+            showLanguageSelector={showLanguageSelector}
+          />
+        )}
+      </div>
+    )
   }
 
   return (
