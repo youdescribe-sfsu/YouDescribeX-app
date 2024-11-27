@@ -962,16 +962,16 @@ const Video = () => {
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex])
 
-  const saveVideoToHistory = async (videoId: string) => {
-    if (!userDataStore.getState().isSignedIn || !videoId) return
+  const saveVideoToHistory = async (videoId: string): Promise<boolean> => {
+    if (!userDataStore.getState().isSignedIn || !videoId) {
+      return false
+    }
 
     try {
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/save-Visited-Videos-History`
       const response = await axios.post(
-        url,
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/save-Visited-Videos-History`,
         {
           youtube_id: videoId,
-          userId: userDataStore.getState().userId,
         },
         {
           withCredentials: true,
@@ -981,12 +981,10 @@ const Video = () => {
         },
       )
 
-      if (response.status !== 201) {
-        console.error('Failed to save video to history')
-      }
+      return response.status === 201
     } catch (error) {
-      console.error('Error saving video to history:', error)
-      // We don't show error toasts for history saves as it's not critical to user experience
+      console.error('Error saving video history:', error)
+      return false
     }
   }
 
