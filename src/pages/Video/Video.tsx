@@ -42,6 +42,7 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
+import { timeStamp } from 'console'
 
 interface IADUserId {
   [key: string]: {
@@ -1627,6 +1628,185 @@ const Video = () => {
       return <></>
     }
   }
+
+  // Function to fetch description
+  const fetchDescription = async (): Promise<string> => {
+    console.log('Checking youtube video id', videoId)
+    console.log('Checking timestamp', currentEventRef.current?.getCurrentTime())
+    // Api call for getting ai description
+    // try {
+    //   const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/get-ai-description`
+    //   const response = await axios.post(
+    //     url,
+    //     {
+    //       youtubeVideoId: videoId,
+    //       timeStamp: currentEventRef.current?.getCurrentTime(),
+    //     },
+    //     {
+    //       withCredentials: true,
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //     },
+    //   )
+    //   const data = response.data
+    //   return data
+    // } catch (error) {
+    //   // console.log(error)
+    //   toast.error('Something went wrong, please try again later')
+    // }
+    try {
+      // mock API response
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve('This is a dummy description response.')
+        }, 1000) // 1 second delay (optional)
+      })
+    } catch (error) {
+      console.error('Error fetching description:', error)
+      return 'Error fetching description.'
+    }
+  }
+
+  const captureSpeech = (): Promise<string> => {
+    dingSound.play() // Play beep sound
+    return new Promise((resolve, reject) => {
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition
+      if (!SpeechRecognition) {
+        reject('Speech recognition not supported in this browser.')
+        return
+      }
+      console.log('inside speech recognition')
+
+      const recognition = new SpeechRecognition()
+      recognition.lang = 'en-US'
+      recognition.interimResults = false
+      recognition.maxAlternatives = 1
+
+      recognition.onresult = (event) => {
+        const spokenText = event.results[0][0].transcript
+        resolve(spokenText)
+      }
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error)
+        reject('Could not recognize speech.')
+      }
+
+      recognition.start()
+    })
+  }
+
+  const fetchAnswer = async (question: string): Promise<string> => {
+    // Dummy questions and responses
+    const dummyResponses: Record<string, string> = {
+      'what is this video about':
+        'This video provides an in-depth explanation of the topic it covers.',
+      'who is the creator of this video':
+        'The creator of this video is John Doe, a renowned expert in the field.',
+      'what is the main takeaway from this video':
+        'The main takeaway is the importance of understanding the basics before advancing further.',
+      'can you summarize this video':
+        'Sure! This video is about the fundamentals of programming and why it matters in the modern world.',
+      'how long is this video': 'The video is approximately 10 minutes long.',
+      'is this video suitable for beginners':
+        'Yes, this video is perfect for beginners who are just starting out.',
+      'does this video have subtitles':
+        'Yes, subtitles are available in multiple languages.',
+      'is this video part of a series':
+        'Yes, this is the first episode in a three-part series.',
+      'can you recommend similar videos':
+        'I recommend exploring other videos in this series or related topics like advanced programming.',
+      'what is the background music in this video':
+        'The background music is a royalty-free track called "Ambient Flow" by Kevin MacLeod.',
+    }
+
+    // Normalize the question: convert to lowercase, remove special characters
+    const normalizeQuestion = (input: string): string => {
+      return input.toLowerCase().replace(/[^a-z0-9\s]/g, '')
+    }
+
+    const normalizedQuestion = normalizeQuestion(question)
+    console.log('Checking youtube video id', videoId)
+    console.log('Checking timestamp', currentEventRef.current?.getCurrentTime())
+
+    // Fetch AI answer api call
+    // try {
+    //   const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/fetch-ai-answer`
+    //   const response = await axios.post(
+    //     url,
+    //     {
+    //       youtubeVideoId: videoId,
+    //       question: normalizedQuestion,
+    //       timeStamp: currentEventRef.current?.getCurrentTime(),
+    //     },
+    //     {
+    //       withCredentials: true,
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //     },
+    //   )
+    //   const data = response.data
+    //  return data
+    // } catch (error) {
+    //   // console.log(error)
+    //   toast.error('Something went wrong, please try again later')
+    // }
+
+    // Simulate fetching response
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(
+          dummyResponses[normalizedQuestion] ||
+            'I am not sure about that. Could you ask something else?',
+        )
+      }, 1000) // Simulate network delay
+    })
+  }
+
+  // Read text aloud
+  const readTextAloud = (text: string) => {
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'en-US'
+    window.speechSynthesis.speak(utterance)
+    currentEventRef.current?.pauseVideo()
+  }
+  const dingSound = new Howl({ src: ['/ding.mp3'] })
+
+  const handleKeyDown = async (e: KeyboardEvent) => {
+    console.log('Key pressed:', e.key)
+
+    if (e.altKey && (e.key === 'D' || e.key === 'd')) {
+      currentEventRef.current?.pauseVideo() // Pause video
+      readTextAloud('Getting the description please wait for 5 seconds')
+      dingSound.play() // Play ding sound
+      const description = await fetchDescription()
+      readTextAloud(description)
+    } else if (e.altKey && (e.key === 'Q' || e.key === 'q')) {
+      currentEventRef.current?.pauseVideo()
+
+      try {
+        const question = await captureSpeech() // Capture the user's question
+        console.log(question)
+        readTextAloud(`You asked: ${question}`) // Confirm the question to the user
+        const answer = await fetchAnswer(question) // Fetch the answer
+        readTextAloud(answer) // Read the answer aloud
+      } catch (error) {
+        console.error('Error during speech recognition or fetching:', error)
+        readTextAloud('Sorry, something went wrong.')
+      }
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
 
   return (
     <div id="video-page" className="video-page">
