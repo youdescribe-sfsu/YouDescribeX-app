@@ -73,6 +73,7 @@ const VideoCard = ({
                 res.data.message || 'Removed from wishlist successfully',
               ),
             )
+            onClick?.()
           })
           .catch((err) => {
             switch (err.response?.status) {
@@ -109,6 +110,7 @@ const VideoCard = ({
             toast.success(
               translate(res.data.message || 'Added to wishlist successfully'),
             )
+            onClick?.()
           } else {
             toast.error(translate(res.data?.message || 'Something went wrong!'))
           }

@@ -323,6 +323,20 @@ const Wishlist = () => {
               buttons="upvote-describe"
               userVote={true}
               aiRequested={aiRequested}
+              onClick={async () => {
+                setShowSpinner(true)
+                await loadTopVideos()
+                await loadTableVideos(currentPageNumber, perPage)
+                if (userDataStore.getState().isSignedIn) {
+                  await fetchAndSetVideosData(
+                    wishlistData,
+                    setShowWishlistSpinner,
+                    wishlistUrl,
+                    setWishlistData,
+                  )
+                }
+                setShowSpinner(false)
+              }}
             />
           </div>,
         )
