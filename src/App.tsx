@@ -184,6 +184,7 @@ const App = () => {
     } else {
       url = `${apiUrl}/auth/google?returnTo=${currentPath}`
     }
+    console.log('Auth URL:', url)
     window.open(url, '_self')
   }
 
