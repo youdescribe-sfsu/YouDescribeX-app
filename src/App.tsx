@@ -177,14 +177,15 @@ const App = () => {
   }, [])
 
   const newGoogleAuth = () => {
-    const currentPath = encodeURIComponent(window.location.pathname)
+    const currentPath = window.location.href
     let url
     if (process.env.REACT_APP_USE_YDX) {
-      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google?returnTo=${currentPath}`
+      url = `${
+        process.env.REACT_APP_YDX_BACKEND_URL
+      }/api/auth/google?returnTo=${encodeURIComponent(currentPath)}`
     } else {
-      url = `${apiUrl}/auth/google?returnTo=${currentPath}`
+      url = `${apiUrl}/auth/google?returnTo=${encodeURIComponent(currentPath)}`
     }
-    console.log('Auth URL:', url)
     window.open(url, '_self')
   }
 
