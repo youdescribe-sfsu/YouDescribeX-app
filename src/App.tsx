@@ -178,6 +178,7 @@ const App = () => {
 
   const newGoogleAuth = () => {
     const currentPath = window.location.pathname
+    console.log('currentPath ', currentPath)
     let url
     if (process.env.REACT_APP_USE_YDX) {
       url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google?returnTo=${currentPath}`
@@ -195,6 +196,7 @@ const App = () => {
       } else {
         url = `${apiUrl}/auth/login/success`
       }
+
       if (process.env.REACT_APP_ENVIRONMENT === 'development') {
         const authUser = process.env.REACT_APP_USER_ID || ''
         url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google/localhost`
@@ -223,26 +225,38 @@ const App = () => {
           )
         }
       } else {
-        // console.log('url: ', url)
         const response = await fetch(url, {
           credentials: 'include',
         })
         const data = await response.json()
+
+        // Set user data
         setUserName(data.result.name)
         setUserId(data.result._id)
         setUserToken(data.result.token)
         setUserPicture(data.result.picture)
         setUserAdmin(data.result.admin)
         setSignedIn(true)
+
+        // Set cookies
         setCookie(
           data.result._id,
           data.result.token,
           data.result.name,
           data.result.picture,
         )
+
+        // Get the return URL from the URL parameters
+        const urlParams = new URLSearchParams(window.location.search)
+        const returnTo = urlParams.get('returnTo')
+
+        // Navigate to the return URL if it exists, otherwise stay on current page
+        if (returnTo && returnTo !== '/home') {
+          navigate(returnTo)
+        }
       }
     } catch (error) {
-      // console.log(error)
+      console.error('Authentication error:', error)
     }
   }
 
