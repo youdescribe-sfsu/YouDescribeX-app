@@ -47,9 +47,7 @@ import ReactGA from 'react-ga'
 import ReactGA4 from 'react-ga4'
 import { createBrowserHistory } from 'history'
 import PublishedAudioDescriptions from './pages/PublishedAudioDescriptions/PublishedAudioDescriptions'
-import Video_v2 from './pages/Video/Video_v2'
 import Contact from './pages/Contact/Contact'
-import ourFetch from './shared/utils/ourFetch'
 
 const history = createBrowserHistory()
 //const trackingId = "UA-171142756-3"; //live site key
@@ -177,13 +175,15 @@ const App = () => {
   }, [])
 
   const newGoogleAuth = () => {
-    const currentPath = window.location.pathname
-    console.log('currentPath ', currentPath)
+    // Store the current URL (excluding base URL) in localStorage before auth
+    const currentPath = window.location.pathname + window.location.search
+    localStorage.setItem('authReturnPath', currentPath)
+
     let url
     if (process.env.REACT_APP_USE_YDX) {
-      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google?returnTo=${currentPath}`
+      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google`
     } else {
-      url = `${apiUrl}/auth/google?returnTo=${currentPath}`
+      url = `${apiUrl}/auth/google`
     }
     window.open(url, '_self')
   }
@@ -200,29 +200,18 @@ const App = () => {
       if (process.env.REACT_APP_ENVIRONMENT === 'development') {
         const authUser = process.env.REACT_APP_USER_ID || ''
         url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google/localhost`
-        // console.log('url: ', url)
         if (authUser) {
           const response = await fetch(url, {
             method: 'GET',
             headers: {
-              Authorization: authUser, // Custom header with the user ID
+              Authorization: authUser,
             },
             credentials: 'include',
           })
           const data = await response.json()
-          console.log('data: ', data)
-          setUserName(data.result.name)
-          setUserId(data.result._id)
-          setUserToken(data.result.token)
-          setUserPicture(data.result.picture)
-          setUserAdmin(data.result.admin)
-          setSignedIn(true)
-          setCookie(
-            data.result._id,
-            data.result.token,
-            data.result.name,
-            data.result.picture,
-          )
+
+          setUserData(data.result)
+          handleRedirect()
         }
       } else {
         const response = await fetch(url, {
@@ -230,33 +219,32 @@ const App = () => {
         })
         const data = await response.json()
 
-        // Set user data
-        setUserName(data.result.name)
-        setUserId(data.result._id)
-        setUserToken(data.result.token)
-        setUserPicture(data.result.picture)
-        setUserAdmin(data.result.admin)
-        setSignedIn(true)
-
-        // Set cookies
-        setCookie(
-          data.result._id,
-          data.result.token,
-          data.result.name,
-          data.result.picture,
-        )
-
-        // Get the return URL from the URL parameters
-        const urlParams = new URLSearchParams(window.location.search)
-        const returnTo = urlParams.get('returnTo')
-
-        // Navigate to the return URL if it exists, otherwise stay on current page
-        if (returnTo && returnTo !== '/home') {
-          navigate(returnTo)
-        }
+        setUserData(data.result)
+        handleRedirect()
       }
     } catch (error) {
-      console.error('Authentication error:', error)
+      console.error('Login error:', error)
+    }
+  }
+
+  // New helper function to set user data
+  const setUserData = (result: any) => {
+    setUserName(result.name)
+    setUserId(result._id)
+    setUserToken(result.token)
+    setUserPicture(result.picture)
+    setUserAdmin(result.admin)
+    setSignedIn(true)
+    setCookie(result._id, result.token, result.name, result.picture)
+  }
+
+  // New helper function to handle redirect
+  const handleRedirect = () => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const returnTo = urlParams.get('returnTo')
+
+    if (returnTo) {
+      window.location.href = decodeURIComponent(returnTo)
     }
   }
 
