@@ -175,15 +175,20 @@ const App = () => {
   }, [])
 
   const newGoogleAuth = () => {
-    // Store the current URL (excluding base URL) in localStorage before auth
+    // Get the full current URL to preserve query parameters
     const currentPath = window.location.pathname + window.location.search
-    localStorage.setItem('authReturnPath', currentPath)
+
+    // Create the full return URL
+    const returnUrl = `${window.location.origin}${currentPath}`
 
     let url
     if (process.env.REACT_APP_USE_YDX) {
-      url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google`
+      // Pass the encoded return URL as a query parameter
+      url = `${
+        process.env.REACT_APP_YDX_BACKEND_URL
+      }/api/auth/google?returnTo=${encodeURIComponent(returnUrl)}`
     } else {
-      url = `${apiUrl}/auth/google`
+      url = `${apiUrl}/auth/google?returnTo=${encodeURIComponent(returnUrl)}`
     }
     window.open(url, '_self')
   }
@@ -238,13 +243,20 @@ const App = () => {
     setCookie(result._id, result.token, result.name, result.picture)
   }
 
-  // New helper function to handle redirect
   const handleRedirect = () => {
+    // First try to get return path from URL
     const urlParams = new URLSearchParams(window.location.search)
     const returnTo = urlParams.get('returnTo')
 
     if (returnTo) {
       window.location.href = decodeURIComponent(returnTo)
+    } else {
+      // If no returnTo in URL, use the path we stored (you can remove this if you prefer)
+      const storedPath = localStorage.getItem('authReturnPath')
+      if (storedPath) {
+        localStorage.removeItem('authReturnPath') // Clean up
+        window.location.href = `${window.location.origin}${storedPath}`
+      }
     }
   }
 
