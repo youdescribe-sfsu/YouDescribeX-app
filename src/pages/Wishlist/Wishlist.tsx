@@ -289,9 +289,8 @@ const Wishlist = () => {
 
       for (let i = 0; i < youTubeResponse.items.length; i += 1) {
         const item = youTubeResponse.items[i]
-        if (!item.statistics || !item.snippet) {
-          continue
-        }
+        const statistics = item.statistics || {}
+        const snippet = item.snippet || {}
 
         const _id = topYouDescribeIds[i]
         const youTubeId = item.id
