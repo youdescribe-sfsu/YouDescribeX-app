@@ -68,22 +68,30 @@ const VideoCard = ({
         toast.success(translate('Removed from wishlist successfully'))
       } else {
         const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
-        const response = await axios.post(url, {
-          headers: { 'Content-Type': 'application/json' },
-          youTubeId: youTubeId,
-          userId: userDataStore.getState().userId,
-        })
+        const response = await axios.post(
+          url,
+          {
+            youTubeId: youTubeId,
+            userId: userDataStore.getState().userId,
+          },
+          {
+            withCredentials: true,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
 
+        // Always show a success toast when we get a 200 response
         if (response.status === 200) {
           setVoted(true)
+          // Ensure we always show a success message
           toast.success(
             translate(
-              response.data.message || 'Added to wishlist successfully',
+              response.data?.message || 'Video successfully added to wishlist',
             ),
           )
+          onClick?.()
         }
       }
-      onClick?.()
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         toast.error(
