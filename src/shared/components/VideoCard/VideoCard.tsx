@@ -47,90 +47,57 @@ const VideoCard = ({
 }: Props) => {
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
+  const [isLoading, setIsLoading] = React.useState(false)
 
-  const upVote = () => {
+  const upVote = async () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
-    } else {
+      return
+    }
+
+    setIsLoading(true)
+    try {
       if (voted) {
         const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/removeone`
-        axios
-          .delete(url, {
-            withCredentials: true,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            data: {
-              youTubeId: youTubeId,
-            },
-          })
-          .then((res) => {
-            setVoted(false)
-
-            // Show success toast
-            toast.success(
-              translate(
-                res.data.message || 'Removed from wishlist successfully',
-              ),
-            )
-            onClick?.()
-          })
-          .catch((err) => {
-            switch (err.response?.status) {
-              case 400:
-                toast.error(
-                  translate('It is not possible to vote again for this video.'),
-                )
-                break
-              default:
-                toast.error(
-                  translate(
-                    'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
-                  ),
-                )
-            }
-          })
-        return
-      }
-      // e.currentTarget.className =
-      //   'w3-btn w3-white w3-text-indigo w3-left w3-text-red'
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
-
-      axios
-        .post(url, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+        await axios.delete(url, {
+          withCredentials: true,
+          headers: { 'Content-Type': 'application/json' },
+          data: { youTubeId: youTubeId },
+        })
+        setVoted(false)
+        toast.success(translate('Removed from wishlist successfully'))
+      } else {
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
+        const response = await axios.post(url, {
+          headers: { 'Content-Type': 'application/json' },
           youTubeId: youTubeId,
           userId: userDataStore.getState().userId,
         })
-        .then((res) => {
-          if (res.status === 200) {
-            setVoted(true)
-            toast.success(
-              translate(res.data.message || 'Added to wishlist successfully'),
-            )
-            onClick?.()
-          } else {
-            toast.error(translate(res.data?.message || 'Something went wrong!'))
-          }
-        })
-        .catch((err) => {
-          // console.log({ err })
-          switch (err.response?.status) {
-            case 400:
-              toast.error(
-                translate('It is not possible to vote again for this video.'),
-              )
-              break
-            default:
-              toast.error(
-                translate(
-                  'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
-                ),
-              )
-          }
-        })
+
+        if (response.status === 200) {
+          setVoted(true)
+          toast.success(
+            translate(
+              response.data.message || 'Added to wishlist successfully',
+            ),
+          )
+        }
+      }
+      onClick?.()
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(
+          translate(
+            error.response?.status === 400
+              ? 'It is not possible to vote again for this video.'
+              : 'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
+          ),
+        )
+      } else {
+        toast.error(translate('An unexpected error occurred'))
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -187,13 +154,13 @@ const VideoCard = ({
       <div>
         <Button
           ariaLabel={translate('Request an audio description for this video')}
-          // text={<i className="fa fa-heart" />}
-          classNames="card-button"
+          classNames={`card-button ${isLoading ? 'opacity-50' : ''}`}
           color={'w3-white w3-text-indigo w3-left'}
           onClick={upVote}
+          disabled={isLoading}
           text={
             <i className={`fa fa-heart ${voted ? 'heart-selected' : ''}`} />
-          } // Conditional class name based on isSelected
+          }
         />
         {/* <span id="vote-count">
           <div>{votes}</div>
