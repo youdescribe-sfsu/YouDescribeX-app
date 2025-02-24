@@ -54,6 +54,7 @@ interface IADUserId {
     name: string
     collaborative_edit: boolean
     contributions: Map<string, number>
+    displayContributions?: { [key: string]: number }
     prev_audio_description: string
     depth: number
   }
@@ -391,6 +392,7 @@ const Video = () => {
                 : ad.user?.name || 'Unknown',
             collaborative_edit: ad.collaborative_editing,
             contributions: ad.contributions,
+            displayContributions: ad.displayContributions,
             prev_audio_description: ad.prev_audio_description,
             depth: ad.depth,
           }
@@ -1042,6 +1044,7 @@ const Video = () => {
               checkUserCanCollaborate(describers, describerId)
             }
             contributions={describers[describerId].contributions}
+            displayContributions={describers[describerId].displayContributions}
           />,
         )
       })

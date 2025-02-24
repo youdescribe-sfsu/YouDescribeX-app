@@ -19,6 +19,7 @@ interface Props {
   videoId?: string
   collaborativeEdit?: boolean
   contributions: Map<string, number>
+  displayContributions?: { [key: string]: number }
 }
 
 const DescriberCard = ({
@@ -35,6 +36,7 @@ const DescriberCard = ({
   videoId,
   collaborativeEdit,
   contributions,
+  displayContributions, // Add this new prop
 }: Props) => {
   const navigate = useNavigate()
   const getButton = (): ReactNode => {
@@ -116,6 +118,13 @@ const DescriberCard = ({
   }
 
   const getDisplayedName = (): string => {
+    // First check if displayContributions exists and has entries
+    if (displayContributions && Object.keys(displayContributions).length > 1) {
+      const keysArray = Array.from(Object.keys(displayContributions))
+      return keysArray.join('/')
+    }
+
+    // Fall back to the original implementation for backward compatibility
     if (!contributions || contributions.size <= 1) {
       return name
     }
@@ -124,17 +133,36 @@ const DescriberCard = ({
   }
 
   const renderContributionBars = () => {
-    if (!contributions || contributions.size <= 1) {
+    // Use displayContributions if available, otherwise fall back to contributions
+    const contribSource =
+      displayContributions && Object.keys(displayContributions).length > 0
+        ? displayContributions
+        : contributions
+
+    // Skip rendering if there's only one or no contributors
+    if (
+      !contribSource ||
+      (typeof contribSource.size === 'number'
+        ? contribSource.size <= 1
+        : Object.keys(contribSource).length <= 1)
+    ) {
       return null
     }
 
-    const maxContribution = Math.max(
-      ...Array.from(Object.values(contributions)),
-    )
+    // Get values to calculate max contribution
+    const contribValues =
+      typeof contribSource.size === 'number'
+        ? Array.from(Object.values(contribSource))
+        : Object.values(contribSource)
+
+    const maxContribution = Math.max(...contribValues)
 
     return (
       <div className="contribution-bars">
-        {Array.from(Object.entries(contributions)).map(([id, contribution]) => (
+        {(typeof contribSource.size === 'number'
+          ? Array.from(Object.entries(contribSource))
+          : Object.entries(contribSource)
+        ).map(([id, contribution]) => (
           <div key={id} className="contribution-bar">
             <div>{id}</div>
             <div>
