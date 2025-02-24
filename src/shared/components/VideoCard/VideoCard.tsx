@@ -80,10 +80,8 @@ const VideoCard = ({
           },
         )
 
-        // Always show a success toast when we get a 200 response
-        if (response.status === 200) {
+        if (response.status === 200 || response.status === 201) {
           setVoted(true)
-          // Ensure we always show a success message
           toast.success(
             translate(
               response.data?.message || 'Video successfully added to wishlist',
