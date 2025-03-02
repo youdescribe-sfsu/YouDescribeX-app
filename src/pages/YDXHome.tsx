@@ -385,7 +385,7 @@ const YDXHome = (): React.ReactElement => {
           // update the audio path for every clip row - the path might change later- TODO: change the server IP
           const tempArray: { clipId: string; showEditComponent: boolean }[] = []
           const date = new Date()
-          const ONE_MIN = 1 * 60 * 1000
+          const ONE_MIN = 60 * 1000
           if (audioClipsData.length > 100) {
             setClipStackSize(10)
           }
@@ -393,10 +393,19 @@ const YDXHome = (): React.ReactElement => {
             // add a sequence number for every audio clip
             // console.log(clip)
             clip.clip_sequence_number = i + 1
-            clip.clip_audio_path = clip.clip_audio_path.replace(
-              '.',
-              `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
-            )
+            if (clip.clip_audio_path.startsWith('.')) {
+              // Handle paths that start with a dot (old format)
+              clip.clip_audio_path = clip.clip_audio_path.replace(
+                '.',
+                `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
+              )
+            } else if (clip.clip_audio_path.startsWith('/')) {
+              // Handle paths that start with a forward slash (new AI format)
+              clip.clip_audio_path = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static${clip.clip_audio_path}`
+            } else {
+              // Add default case for any other formats
+              clip.clip_audio_path = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static/${clip.clip_audio_path}`
+            }
 
             // set the showEditComponent of the new clip to true.. compare time
             if (
