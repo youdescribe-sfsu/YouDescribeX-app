@@ -99,18 +99,16 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
 
           {/* Right-sided navbar links */}
           <div className="w3-right w3-hide-small w3-hide-medium">
-            {userDataStore.getState().userId && (
-              <Link
-                to={myHistoryUrl}
-                className="classic-link w3-bar-item w3-small"
-                style={{ position: 'relative', top: '11px', padding: '8px' }}
-              >
-                <i className="fa fa-home" aria-hidden="true">
-                  &nbsp;&nbsp;
-                </i>
-                {translate('HISTORY')}
-              </Link>
-            )}
+            <Link
+              to={myHistoryUrl}
+              className="classic-link w3-bar-item w3-small"
+              style={{ position: 'relative', top: '11px', padding: '8px' }}
+            >
+              <i className="fa fa-home" aria-hidden="true">
+                &nbsp;&nbsp;
+              </i>
+              {translate('HISTORY')}
+            </Link>
             <Link
               to="/wishlist"
               className="classic-link w3-bar-item w3-small"

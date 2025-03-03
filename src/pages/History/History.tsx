@@ -1,4 +1,4 @@
-import { translate } from '@/App'
+import { translate, userDataStore } from '@/App'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import { apiUrl, youTubeApiKey, youTubeApiUrl } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
@@ -325,11 +325,22 @@ const History = () => {
               </div>
             )}
 
-            {recentDescriptions?.data.length === 0 && (
-              <div className="no-videos-message">
-                <i className="fas fa-video-slash no-videos-icon"></i>
-                <p className="no-videos-text">No Recent descriptions to view</p>
+            {!userDataStore.getState().isSignedIn ? (
+              <div className="auth-required-message">
+                <i className="fas fa-lock auth-required-icon"></i>
+                <p className="auth-required-text">
+                  Log in to view your recent descriptions
+                </p>
               </div>
+            ) : (
+              recentDescriptions?.data.length === 0 && (
+                <div className="no-videos-message">
+                  <i className="fas fa-video-slash no-videos-icon"></i>
+                  <p className="no-videos-text">
+                    No Recent descriptions to view
+                  </p>
+                </div>
+              )
             )}
           </div>
         </section>
@@ -396,13 +407,22 @@ const History = () => {
               </div>
             )}
 
-            {aiRequestedVideos?.data.length === 0 && (
-              <div className="no-videos-message">
-                <i className="fas fa-video-slash no-videos-icon"></i>
-                <p className="no-videos-text">
-                  Please request AI descriptions to view AI Requested videos.
+            {!userDataStore.getState().isSignedIn ? (
+              <div className="auth-required-message">
+                <i className="fas fa-lock auth-required-icon"></i>
+                <p className="auth-required-text">
+                  Log in to view your AI-generated descriptions
                 </p>
               </div>
+            ) : (
+              aiRequestedVideos?.data.length === 0 && (
+                <div className="no-videos-message">
+                  <i className="fas fa-video-slash no-videos-icon"></i>
+                  <p className="no-videos-text">
+                    Please request AI descriptions to view AI Requested videos.
+                  </p>
+                </div>
+              )
             )}
           </div>
         </section>
@@ -468,11 +488,20 @@ const History = () => {
               </>
             )}
 
-            {historyVideos?.data.length === 0 && (
-              <div className="no-videos-message">
-                <i className="fas fa-video-slash no-videos-icon"></i>
-                <p className="no-videos-text">No history to view.</p>
+            {!userDataStore.getState().isSignedIn ? (
+              <div className="auth-required-message">
+                <i className="fas fa-lock auth-required-icon"></i>
+                <p className="auth-required-text">
+                  Log in to view your browsing history
+                </p>
               </div>
+            ) : (
+              historyVideos?.data.length === 0 && (
+                <div className="no-videos-message">
+                  <i className="fas fa-video-slash no-videos-icon"></i>
+                  <p className="no-videos-text">No history to view.</p>
+                </div>
+              )
             )}
           </div>
         </section>

@@ -199,3 +199,24 @@
   font-size: 18px;
   font-weight: bold; /* Make the text bold */
 }
+
+.auth-required-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  width: 100%;
+  text-align: center;
+  color: #666;
+}
+
+.auth-required-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #4b5fc9;
+}
+
+.auth-required-text {
+  font-size: 1.2rem;
+}
