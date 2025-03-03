@@ -200,7 +200,7 @@ const UserDescribedVideos = () => {
         ? setShowLoadMoreAIButton
         : setShowLoadMoreDraftButton
 
-    loadMoreFlag(totalVideos > page * 20)
+    loadMoreFlag(videos.length > 0 && totalVideos > page * 20)
 
     const loadMoreSpinnerFlag =
       setStateFunction === setVideos
