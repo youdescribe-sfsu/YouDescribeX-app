@@ -259,7 +259,7 @@ const History = () => {
       getAiRequestedVideosUrl(),
       setShowAiRequestedVideosSpinner,
     )
-  }, [])
+  }, [aiRequestedVideos, historyVideos, recentDescriptions])
 
   return (
     <div id="user-videos-page" title="User described videos page">
@@ -270,61 +270,6 @@ const History = () => {
           </header>
 
           <div className="custom-carousel flex min-h-[290px]">
-            {!recentDescriptions && <CustomSpinner />}
-            {recentDescriptions && recentDescriptions?.data.length > 0 && (
-              <div className="d-flex justify-content-between align-items-center h-100 m-auto">
-                <CustomButton
-                  className="prev-icon"
-                  onClick={() =>
-                    handlePreviousPage(
-                      recentDescriptions,
-                      setRecentDescriptions,
-                      getRecentDescriptionsUrl(),
-                      setShowRecentDescriptionsSpinner,
-                    )
-                  }
-                  disabled={recentDescriptions.currentPage === 1}
-                >
-                  &lt;
-                </CustomButton>
-
-                {/* Content for displaying videos */}
-                <div className="w3-row classic-container row">
-                  {showRecentDescriptionsSpinner ? (
-                    <CustomSpinner />
-                  ) : (
-                    recentDescriptions.videoComponentData.map((video: any) => (
-                      <div
-                        className="col-sm-6 col-md-4 col-lg-3"
-                        key={video.youTubeId}
-                      >
-                        <VideoCard {...video} />
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {/* Custom next button */}
-                <CustomButton
-                  className="next-icon"
-                  onClick={() =>
-                    handleNextPage(
-                      recentDescriptions,
-                      setRecentDescriptions,
-                      getRecentDescriptionsUrl(),
-                      setShowRecentDescriptionsSpinner,
-                    )
-                  }
-                  disabled={
-                    recentDescriptions.currentPage ===
-                    recentDescriptions.totalPages
-                  }
-                >
-                  &gt;
-                </CustomButton>
-              </div>
-            )}
-
             {!userDataStore.getState().isSignedIn ? (
               <div className="auth-required-message">
                 <i className="fas fa-lock auth-required-icon"></i>
@@ -333,14 +278,72 @@ const History = () => {
                 </p>
               </div>
             ) : (
-              recentDescriptions?.data.length === 0 && (
-                <div className="no-videos-message">
-                  <i className="fas fa-video-slash no-videos-icon"></i>
-                  <p className="no-videos-text">
-                    No Recent descriptions to view
-                  </p>
-                </div>
-              )
+              <>
+                {!recentDescriptions && <CustomSpinner />}
+                {recentDescriptions && recentDescriptions?.data.length > 0 && (
+                  <div className="d-flex justify-content-between align-items-center h-100 m-auto">
+                    <CustomButton
+                      className="prev-icon"
+                      onClick={() =>
+                        handlePreviousPage(
+                          recentDescriptions,
+                          setRecentDescriptions,
+                          getRecentDescriptionsUrl(),
+                          setShowRecentDescriptionsSpinner,
+                        )
+                      }
+                      disabled={recentDescriptions.currentPage === 1}
+                    >
+                      &lt;
+                    </CustomButton>
+
+                    {/* Content for displaying videos */}
+                    <div className="w3-row classic-container row">
+                      {showRecentDescriptionsSpinner ? (
+                        <CustomSpinner />
+                      ) : (
+                        recentDescriptions.videoComponentData.map(
+                          (video: any) => (
+                            <div
+                              className="col-sm-6 col-md-4 col-lg-3"
+                              key={video.youTubeId}
+                            >
+                              <VideoCard {...video} />
+                            </div>
+                          ),
+                        )
+                      )}
+                    </div>
+
+                    {/* Custom next button */}
+                    <CustomButton
+                      className="next-icon"
+                      onClick={() =>
+                        handleNextPage(
+                          recentDescriptions,
+                          setRecentDescriptions,
+                          getRecentDescriptionsUrl(),
+                          setShowRecentDescriptionsSpinner,
+                        )
+                      }
+                      disabled={
+                        recentDescriptions.currentPage ===
+                        recentDescriptions.totalPages
+                      }
+                    >
+                      &gt;
+                    </CustomButton>
+                  </div>
+                )}
+                {recentDescriptions?.data.length === 0 && (
+                  <div className="no-videos-message">
+                    <i className="fas fa-video-slash no-videos-icon"></i>
+                    <p className="no-videos-text">
+                      No Recent descriptions to view
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
@@ -351,62 +354,6 @@ const History = () => {
           </header>
 
           <div className="custom-carousel flex min-h-[290px]">
-            {!aiRequestedVideos && <CustomSpinner />}
-            {aiRequestedVideos && aiRequestedVideos?.data.length > 0 && (
-              <div className="d-flex justify-content-between align-items-center h-100 m-auto">
-                {/* Custom previous button */}
-                <CustomButton
-                  className="prev-icon"
-                  onClick={() =>
-                    handlePreviousPage(
-                      aiRequestedVideos,
-                      setAiRequestedVideos,
-                      getAiRequestedVideosUrl(),
-                      setShowAiRequestedVideosSpinner,
-                    )
-                  }
-                  disabled={aiRequestedVideos.currentPage === 1}
-                >
-                  &lt;
-                </CustomButton>
-
-                {/* Content for displaying videos */}
-                <div className="w3-row classic-container row">
-                  {showAiRequestedVideosSpinner ? (
-                    <CustomSpinner />
-                  ) : (
-                    aiRequestedVideos.videoComponentData.map((video: any) => (
-                      <div
-                        className="col-sm-6 col-md-4 col-lg-3"
-                        key={video.youTubeId}
-                      >
-                        <VideoCard {...video} />
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {/* Custom next button */}
-                <CustomButton
-                  className="next-icon"
-                  onClick={() =>
-                    handleNextPage(
-                      aiRequestedVideos,
-                      setAiRequestedVideos,
-                      getAiRequestedVideosUrl(),
-                      setShowAiRequestedVideosSpinner,
-                    )
-                  }
-                  disabled={
-                    aiRequestedVideos.currentPage ===
-                    aiRequestedVideos.totalPages
-                  }
-                >
-                  &gt;
-                </CustomButton>
-              </div>
-            )}
-
             {!userDataStore.getState().isSignedIn ? (
               <div className="auth-required-message">
                 <i className="fas fa-lock auth-required-icon"></i>
@@ -415,14 +362,74 @@ const History = () => {
                 </p>
               </div>
             ) : (
-              aiRequestedVideos?.data.length === 0 && (
-                <div className="no-videos-message">
-                  <i className="fas fa-video-slash no-videos-icon"></i>
-                  <p className="no-videos-text">
-                    Please request AI descriptions to view AI Requested videos.
-                  </p>
-                </div>
-              )
+              <>
+                {!aiRequestedVideos && <CustomSpinner />}
+                {aiRequestedVideos && aiRequestedVideos?.data.length > 0 && (
+                  <div className="d-flex justify-content-between align-items-center h-100 m-auto">
+                    {/* Custom previous button */}
+                    <CustomButton
+                      className="prev-icon"
+                      onClick={() =>
+                        handlePreviousPage(
+                          aiRequestedVideos,
+                          setAiRequestedVideos,
+                          getAiRequestedVideosUrl(),
+                          setShowAiRequestedVideosSpinner,
+                        )
+                      }
+                      disabled={aiRequestedVideos.currentPage === 1}
+                    >
+                      &lt;
+                    </CustomButton>
+
+                    {/* Content for displaying videos */}
+                    <div className="w3-row classic-container row">
+                      {showAiRequestedVideosSpinner ? (
+                        <CustomSpinner />
+                      ) : (
+                        aiRequestedVideos.videoComponentData.map(
+                          (video: any) => (
+                            <div
+                              className="col-sm-6 col-md-4 col-lg-3"
+                              key={video.youTubeId}
+                            >
+                              <VideoCard {...video} />
+                            </div>
+                          ),
+                        )
+                      )}
+                    </div>
+
+                    {/* Custom next button */}
+                    <CustomButton
+                      className="next-icon"
+                      onClick={() =>
+                        handleNextPage(
+                          aiRequestedVideos,
+                          setAiRequestedVideos,
+                          getAiRequestedVideosUrl(),
+                          setShowAiRequestedVideosSpinner,
+                        )
+                      }
+                      disabled={
+                        aiRequestedVideos.currentPage ===
+                        aiRequestedVideos.totalPages
+                      }
+                    >
+                      &gt;
+                    </CustomButton>
+                  </div>
+                )}
+                {aiRequestedVideos?.data.length === 0 && (
+                  <div className="no-videos-message">
+                    <i className="fas fa-video-slash no-videos-icon"></i>
+                    <p className="no-videos-text">
+                      Please request AI descriptions to view AI Requested
+                      videos.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
@@ -433,61 +440,6 @@ const History = () => {
           </header>
 
           <div className="d-flex justify-content-center custom-carousel flex min-h-[290px] m-auto">
-            {!historyVideos && <CustomSpinner />}
-            {historyVideos && historyVideos?.data.length > 0 && (
-              <>
-                {/* Custom previous button */}
-                <CustomButton
-                  className="prev-icon"
-                  onClick={() =>
-                    handlePreviousPage(
-                      historyVideos,
-                      setHistoryVideos,
-                      getUserHistoryUrl(),
-                      setShowHistoryVideosSpinner,
-                    )
-                  }
-                  disabled={historyVideos.currentPage === 1}
-                >
-                  &lt;
-                </CustomButton>
-
-                {/* Content for displaying videos */}
-                <div className="w3-row classic-container row">
-                  {showHistoryVideosSpinner ? (
-                    <CustomSpinner />
-                  ) : (
-                    historyVideos.videoComponentData.map((video) => (
-                      <div
-                        className="col-sm-6 col-md-4 col-lg-3"
-                        key={video.youTubeId}
-                      >
-                        <VideoCard {...video} />
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {/* Custom next button */}
-                <CustomButton
-                  className="next-icon"
-                  onClick={() =>
-                    handleNextPage(
-                      historyVideos,
-                      setHistoryVideos,
-                      getUserHistoryUrl(),
-                      setShowHistoryVideosSpinner,
-                    )
-                  }
-                  disabled={
-                    historyVideos.currentPage === historyVideos.totalPages
-                  }
-                >
-                  &gt;
-                </CustomButton>
-              </>
-            )}
-
             {!userDataStore.getState().isSignedIn ? (
               <div className="auth-required-message">
                 <i className="fas fa-lock auth-required-icon"></i>
@@ -496,12 +448,68 @@ const History = () => {
                 </p>
               </div>
             ) : (
-              historyVideos?.data.length === 0 && (
-                <div className="no-videos-message">
-                  <i className="fas fa-video-slash no-videos-icon"></i>
-                  <p className="no-videos-text">No history to view.</p>
-                </div>
-              )
+              <>
+                {!historyVideos && <CustomSpinner />}
+                {historyVideos && historyVideos?.data.length > 0 && (
+                  <>
+                    {/* Custom previous button */}
+                    <CustomButton
+                      className="prev-icon"
+                      onClick={() =>
+                        handlePreviousPage(
+                          historyVideos,
+                          setHistoryVideos,
+                          getUserHistoryUrl(),
+                          setShowHistoryVideosSpinner,
+                        )
+                      }
+                      disabled={historyVideos.currentPage === 1}
+                    >
+                      &lt;
+                    </CustomButton>
+
+                    {/* Content for displaying videos */}
+                    <div className="w3-row classic-container row">
+                      {showHistoryVideosSpinner ? (
+                        <CustomSpinner />
+                      ) : (
+                        historyVideos.videoComponentData.map((video) => (
+                          <div
+                            className="col-sm-6 col-md-4 col-lg-3"
+                            key={video.youTubeId}
+                          >
+                            <VideoCard {...video} />
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Custom next button */}
+                    <CustomButton
+                      className="next-icon"
+                      onClick={() =>
+                        handleNextPage(
+                          historyVideos,
+                          setHistoryVideos,
+                          getUserHistoryUrl(),
+                          setShowHistoryVideosSpinner,
+                        )
+                      }
+                      disabled={
+                        historyVideos.currentPage === historyVideos.totalPages
+                      }
+                    >
+                      &gt;
+                    </CustomButton>
+                  </>
+                )}
+                {historyVideos?.data.length === 0 && (
+                  <div className="no-videos-message">
+                    <i className="fas fa-video-slash no-videos-icon"></i>
+                    <p className="no-videos-text">No history to view.</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
