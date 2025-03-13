@@ -117,8 +117,29 @@ const Home = () => {
 
     setVideoData: (videoComponents: any[]) => {
       try {
-        const cacheData: VideoCache = {
-          videos: videoComponents,
+        // Extract just the necessary data from components
+        const videoDataToCache = videoComponents
+          .map((video) => {
+            if (video?.props?.children?.props) {
+              return {
+                youTubeId: video.props.children.props.youTubeId,
+                description: video.props.children.props.description,
+                thumbnailMediumUrl:
+                  video.props.children.props.thumbnailMediumUrl,
+                duration: video.props.children.props.duration,
+                title: video.props.children.props.title,
+                author: video.props.children.props.author,
+                views: video.props.children.props.views,
+                time: video.props.children.props.time,
+                buttons: video.props.children.props.buttons,
+              }
+            }
+            return null
+          })
+          .filter(Boolean)
+
+        const cacheData = {
+          videos: videoDataToCache,
           timestamp: Date.now(),
           version: CACHE_VERSION,
         }
@@ -166,16 +187,26 @@ const Home = () => {
     // Try to get videos from cache first
     const cachedVideos = videoCache.getVideoData()
     if (cachedVideos && cachedVideos.videos.length > 0) {
-      setVideos(cachedVideos.videos)
+      // Create fresh React components from cached data
+      const freshVideos = cachedVideos.videos.map((videoData) => (
+        <div className="col-sm-6 col-md-4 col-lg-3" key={videoData.youTubeId}>
+          <VideoCard
+            key={videoData.youTubeId}
+            youTubeId={videoData.youTubeId}
+            description={videoData.description}
+            thumbnailMediumUrl={videoData.thumbnailMediumUrl}
+            duration={videoData.duration}
+            title={videoData.title}
+            author={videoData.author}
+            views={videoData.views}
+            time={videoData.time}
+            buttons={videoData.buttons}
+          />
+        </div>
+      ))
+      setVideos(freshVideos)
       setShowSpinner(false)
-      console.log('Loaded videos from cache')
-
-      // Determine the highest page we've loaded
-      const maxPage = parseInt(localStorage.getItem('ydx-home-max-page') || '1')
-      setCurrentPage(maxPage)
-
-      // Still fetch in the background to update cache
-      fetchHomePageVideos(1, true)
+      console.log('Loaded videos from cache with proper rendering')
     } else {
       fetchHomePageVideos()
     }
@@ -430,6 +461,8 @@ const Home = () => {
       ) : null}
     </div>
   )
+
+  console.log('Rendering Home with videos:', videos)
 
   return (
     <main id="home" title="YouDescribe home page">
