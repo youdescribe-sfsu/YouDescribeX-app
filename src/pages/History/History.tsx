@@ -294,15 +294,15 @@ const History = () => {
 
         // Process AI requested videos
         aiResponse.forEach((video: any) => {
-          if (video.youtube_id) {
-            videoIdsToFetch.add(video.youtube_id)
+          if (video.youtube_video_id) {
+            videoIdsToFetch.add(video.youtube_video_id)
           }
         })
 
         // Process history videos
         historyResponse.forEach((video: any) => {
-          if (video.youtube_id) {
-            videoIdsToFetch.add(video.youtube_id)
+          if (video.youtube_video_id) {
+            videoIdsToFetch.add(video.youtube_video_id)
           }
         })
 
