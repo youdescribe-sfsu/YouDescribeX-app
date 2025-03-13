@@ -14,14 +14,14 @@ const audioClipsUploadsPath = (clip_path: string) =>
 //   "https://api.youdescribe.org/audio-descriptions-files";
 //let apiUrl = `http://localhost:8080/${apiVersion}`;
 //let audioClipsUploadsPath = "https://api.youdescribe.org/audio-descriptions-files";
-const youTubeApiUrl =
-  process.env.REACT_APP_YOUTUBE_API_URL ||
-  'https://www.googleapis.com/youtube/v3'
+// const youTubeApiUrl =
+//   process.env.REACT_APP_YOUTUBE_API_URL ||
+//   'https://www.googleapis.com/youtube/v3'
 
 // YouDescribe APIKey
-const youTubeApiKey =
-  process.env.REACT_APP_YOUTUBE_API_KEY ||
-  'AIzaSyBQFD0fJoEO2l8g0OIrqbtjj2qXXVNO__U'
+// const youTubeApiKey =
+//   process.env.REACT_APP_YOUTUBE_API_KEY ||
+//   'AIzaSyBQFD0fJoEO2l8g0OIrqbtjj2qXXVNO__U'
 
 // YouDescribe Google Client Id
 const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID
@@ -58,6 +58,4 @@ export {
   nudgeIncrementDecrementValue,
   seekToPositionDelayFix,
   startDateTimeStamp,
-  youTubeApiKey,
-  youTubeApiUrl,
 }

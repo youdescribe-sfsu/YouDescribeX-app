@@ -1,15 +1,15 @@
 import { translate, userDataStore } from '@/App'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
-import { apiUrl, youTubeApiKey, youTubeApiUrl } from '@/shared/config'
+import { apiUrl } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardFormat'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
-import ourFetch from '@/shared/utils/ourFetch'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import './history.scss'
 import Spinner from 'react-bootstrap/Spinner'
+import YouTubeService from '@/shared/utils/YouTubeService'
 
 interface VideosState {
   data: any[]
@@ -85,13 +85,12 @@ const CustomSpinner = () => (
 )
 
 const fetchVideoDetails = async (videoIds: string[]) => {
+  if (!videoIds || !videoIds.length) {
+    return []
+  }
+
   try {
-    const url = `${youTubeApiUrl}/videos?id=${videoIds.join(
-      ',',
-    )}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-    const data: any = await ourFetch(url)
-    window.localStorage.setItem('userVideosYoutubeData', JSON.stringify(data))
-    return data.items
+    return await YouTubeService.getVideoDetails(videoIds)
   } catch (error) {
     console.error('Error fetching video details:', error)
     return []
@@ -133,6 +132,42 @@ const History = () => {
     return process.env.REACT_APP_USE_YDX
       ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/get-user-Ai-DescriptionRequests`
       : `${apiUrl}/users/get-user-Ai-DescriptionRequests`
+  }
+
+  const fetchRecentDescriptions = async () => {
+    try {
+      const response = await axios.get(getRecentDescriptionsUrl(), {
+        withCredentials: true,
+      })
+      return response.data.videos || []
+    } catch (error) {
+      console.error('Error fetching recent descriptions:', error)
+      return []
+    }
+  }
+
+  const fetchAiRequestedVideos = async () => {
+    try {
+      const response = await axios.get(getAiRequestedVideosUrl(), {
+        withCredentials: true,
+      })
+      return response.data.videos || []
+    } catch (error) {
+      console.error('Error fetching AI requested videos:', error)
+      return []
+    }
+  }
+
+  const fetchHistoryVideos = async () => {
+    try {
+      const response = await axios.get(getUserHistoryUrl(), {
+        withCredentials: true,
+      })
+      return response.data.videos || []
+    } catch (error) {
+      console.error('Error fetching history videos:', error)
+      return []
+    }
   }
 
   const fetchVideosData: FetchVideosDataFunction = async (
@@ -240,26 +275,125 @@ const History = () => {
   }
 
   useEffect(() => {
-    fetchVideosData(
-      recentDescriptions,
-      setRecentDescriptions,
-      getRecentDescriptionsUrl(),
-      setShowRecentDescriptionsSpinner,
-    )
+    const fetchAllData = async () => {
+      try {
+        // Fetch descriptions from the different sections
+        const recentResponse = await fetchRecentDescriptions()
+        const aiResponse = await fetchAiRequestedVideos()
+        const historyResponse = await fetchHistoryVideos()
 
-    fetchVideosData(
-      historyVideos,
-      setHistoryVideos,
-      getUserHistoryUrl(),
-      setShowHistoryVideosSpinner,
-    )
-    fetchVideosData(
-      aiRequestedVideos,
-      setAiRequestedVideos,
-      getAiRequestedVideosUrl(),
-      setShowAiRequestedVideosSpinner,
-    )
-  }, [aiRequestedVideos, historyVideos, recentDescriptions])
+        // Extract all YouTube IDs from the responses
+        const videoIdsToFetch = new Set<string>()
+
+        // Process recent descriptions
+        recentResponse.forEach((desc: any) => {
+          if (desc.youtube_video_id) {
+            videoIdsToFetch.add(desc.youtube_video_id)
+          }
+        })
+
+        // Process AI requested videos
+        aiResponse.forEach((video: any) => {
+          if (video.youtube_id) {
+            videoIdsToFetch.add(video.youtube_id)
+          }
+        })
+
+        // Process history videos
+        historyResponse.forEach((video: any) => {
+          if (video.youtube_id) {
+            videoIdsToFetch.add(video.youtube_id)
+          }
+        })
+
+        // Fetch all video details in one batch
+        const videoDetails = await fetchVideoDetails(
+          Array.from(videoIdsToFetch),
+        )
+
+        // Create a map for easy access by ID
+        const videoMap = new Map()
+        videoDetails.forEach((video) => {
+          videoMap.set(video.id, video)
+        })
+
+        // Process each dataset with the fetched video details
+        const processedRecentData = processVideoData(
+          recentResponse,
+          'youtube_video_id',
+          videoMap,
+        )
+        const processedAiData = processVideoData(
+          aiResponse,
+          'youtube_id',
+          videoMap,
+        )
+        const processedHistoryData = processVideoData(
+          historyResponse,
+          'youtube_id',
+          videoMap,
+        )
+
+        // Now set the state for each section
+        setRecentDescriptions(processedRecentData)
+        setAiRequestedVideos(processedAiData)
+        setHistoryVideos(processedHistoryData)
+
+        // Update loading states
+        setShowRecentDescriptionsSpinner(false)
+        setShowAiRequestedVideosSpinner(false)
+        setShowHistoryVideosSpinner(false)
+      } catch (error) {
+        console.error('Error fetching history data:', error)
+        setShowRecentDescriptionsSpinner(false)
+        setShowAiRequestedVideosSpinner(false)
+        setShowHistoryVideosSpinner(false)
+      }
+    }
+
+    fetchAllData()
+  }, [])
+
+  const processVideoData = (
+    data: any[],
+    idField: string,
+    videoMap: Map<string, any>,
+  ) => {
+    const videoComponentData = []
+
+    for (const item of data) {
+      const videoId = item[idField]
+      const videoDetails = videoMap.get(videoId)
+
+      if (videoDetails) {
+        videoComponentData.push({
+          youTubeId: videoDetails.id,
+          thumbnailMediumUrl: videoDetails.snippet.thumbnails.medium.url,
+          duration: convertSecondsToCardFormat(
+            convertISO8601ToSeconds(videoDetails.contentDetails.duration),
+          ),
+          title: videoDetails.snippet.title,
+          author: videoDetails.snippet.channelTitle,
+          views: convertViewsToCardFormat(
+            Number(videoDetails.statistics.viewCount),
+          ),
+          time: convertTimeToCardFormat(
+            Date.now() -
+              new Date(videoDetails.snippet.publishedAt).getMilliseconds(),
+          ),
+          status: item.status === 'completed' ? item.url : null,
+        })
+      }
+    }
+
+    return {
+      data: videoComponentData.slice(0, itemsPerPage),
+      totalVideos: data.length,
+      totalPages: Math.ceil(data.length / itemsPerPage),
+      currentPage: 1,
+      videoComponentData,
+    }
+  }
 
   return (
     <div id="user-videos-page" title="User described videos page">

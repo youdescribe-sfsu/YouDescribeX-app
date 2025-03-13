@@ -6,8 +6,6 @@ import {
   apiUrl,
   audioClipsUploadsPath,
   audioDescriptionFeedbacks,
-  youTubeApiKey,
-  youTubeApiUrl,
 } from '@/shared/config'
 import ourFetch from '@/shared/utils/ourFetch'
 import React, {
@@ -42,6 +40,7 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
+import YouTubeService from '@/shared/utils/YouTubeService'
 
 interface IADUserId {
   [key: string]: {
@@ -539,48 +538,71 @@ const Video = () => {
   }
 
   const getYTVideoInfo = () => {
-    // // console.log('6 -> getYTVideoInfo');
-    const url = `${youTubeApiUrl}/videos?id=${videoId}&part=contentDetails,snippet,statistics&forUsername=iamOTHER&key=${youTubeApiKey}`
+    // Early check for videoId
+    if (!videoId) {
+      console.error('Video ID is undefined')
+      setShowSpinner(false)
+      return
+    }
 
-    // Use custom fetch for cross-browser compatability
-    ourFetch(url)
-      .then((data: any) => {
-        if (data.items.length === 0) {
+    YouTubeService.getVideoDetails(videoId)
+      .then((videoDetails) => {
+        if (!videoDetails || videoDetails.length === 0) {
           console.log('Video Unavailable!')
           alert('Video Unavailable!')
+          setShowSpinner(false)
           return
         }
 
-        const videoDurationInSeconds = convertISO8601ToSeconds(
-          data.items[0].contentDetails.duration,
-        )
-        setVideoTitle(data.items[0].snippet.title)
-        setVideoAuthor(data.items[0].snippet.channelTitle)
-        // TODO: Add Helper Function
-        setVideoPublishedAt(
-          convertISO8601ToDate(data.items[0].snippet.publishedAt),
-        )
-        setVideoLikes(
-          convertLikesToCardFormat(data.items[0].statistics.likeCount),
-        )
-        setVideoDescription(data.items[0].snippet.description)
-        setVideoViews(
-          convertViewsToCardFormat(data.items[0].statistics.viewCount),
-        )
+        const videoData = videoDetails[0]
+
+        // Use optional chaining with defaults to avoid TypeScript errors
+        const videoDurationInSeconds = videoData?.contentDetails?.duration
+          ? convertISO8601ToSeconds(videoData.contentDetails.duration)
+          : 0
+
         setVideoDurationInSeconds(videoDurationInSeconds)
-        // TODO: Add Helper Function
-        // setVideoDurationToDisplay(
-        //   convertSecondsToEditorFormat(videoDurationInSeconds),
-        // )
-        document.title = `YouDescribe - ${data.items[0].snippet.title}`
+
+        // Handle all other properties safely with optional chaining
+        if (videoData?.snippet?.title) {
+          setVideoTitle(videoData.snippet.title)
+          document.title = `YouDescribe - ${videoData.snippet.title}`
+        }
+
+        if (videoData?.snippet?.channelTitle) {
+          setVideoAuthor(videoData.snippet.channelTitle)
+        }
+
+        if (videoData?.snippet?.publishedAt) {
+          setVideoPublishedAt(
+            convertISO8601ToDate(videoData.snippet.publishedAt),
+          )
+        }
+
+        if (videoData?.statistics?.likeCount) {
+          setVideoLikes(
+            convertLikesToCardFormat(Number(videoData.statistics.likeCount)),
+          )
+        }
+
+        if (videoData?.snippet?.description) {
+          setVideoDescription(videoData.snippet.description)
+        }
+
+        if (videoData?.statistics?.viewCount) {
+          setVideoViews(
+            convertViewsToCardFormat(Number(videoData.statistics.viewCount)),
+          )
+        }
 
         setShowSpinner(false)
       })
       .catch((err) => {
-        // console.log('Unable to load the video you are trying to edit.', err)
+        console.error('Unable to load the video:', err)
         toast.error(
-          'Thank you for visiting YouDescribe. This video is not viewable at this time due to YouTube API key limits. Our key is reset by Google at midnight Pacific time.',
+          'Thank you for visiting YouDescribe. This video is not viewable at this time.',
         )
+        setShowSpinner(false)
       })
   }
 

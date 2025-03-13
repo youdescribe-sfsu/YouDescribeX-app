@@ -12,6 +12,7 @@ import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import Button from '@/shared/components/Button/Button'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import YouTubeService from '@/shared/utils/YouTubeService'
 
 // Cache configuration
 const CACHE_VERSION = 'v1'

@@ -2,7 +2,7 @@ import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import Spinner from '@/shared/components/Spinner/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
-import { apiUrl, youTubeApiKey, youTubeApiUrl } from '@/shared/config'
+import { apiUrl } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardFormat'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
@@ -12,6 +12,7 @@ import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import './UserDescribedVideos.css'
+import YouTubeService from '@/shared/utils/YouTubeService'
 
 const UserDescribedVideos = () => {
   const [showSpinner, setShowSpinner] = useState(true)
@@ -89,52 +90,63 @@ const UserDescribedVideos = () => {
 
   const getUserVideos = async (
     url: string,
-    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
+    setStateFunction: {
+      (value: React.SetStateAction<any[]>): void
+      (value: React.SetStateAction<any[]>): void
+      (value: React.SetStateAction<any[]>): void
+      (value: React.SetStateAction<any[]>): void
+      (value: React.SetStateAction<any[]>): void
+      (value: React.SetStateAction<any[]>): void
+      (arg0: never[]): void
+    },
     page: number,
   ) => {
-    let youTubeIds = ''
-    const youTubeVideoIds: string[] = []
-    const youDescribeVideosIds: string[] = []
-    const audioDescriptionIds: string[] = []
-
-    axios
-      .get(url, {
-        params: {
-          paginate: 'false',
-          page: page,
-        },
+    try {
+      // Step 1: Get video IDs from our backend (keep this part)
+      const response = await axios.get(url, {
+        params: { paginate: 'false', page },
         withCredentials: true,
       })
-      .then((response) => {
-        const videosArray = response.data.videos
-        const totalVideos = response.data.total
-        for (let i = 0; i < videosArray.length; i += 1) {
-          youTubeVideoIds.push(videosArray[i].youtube_video_id)
-          youDescribeVideosIds.push(videosArray[i].video_id)
-          audioDescriptionIds.push(videosArray[i].audio_description_id)
-        }
-        youTubeIds = youTubeVideoIds.join(',')
-        return { youTubeIds, totalVideos }
-      })
-      .then(({ youTubeIds, totalVideos }) => {
-        const url = `${youTubeApiUrl}/videos?id=${youTubeIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-        ourFetch(url).then((data) => {
-          window.localStorage.setItem(
-            'userVideosYoutubeData',
-            JSON.stringify(data),
-          )
-          const youTubeVideosArray = data
 
-          parseResponseData(
-            youTubeVideosArray,
-            youDescribeVideosIds,
-            audioDescriptionIds,
-            setStateFunction,
-            totalVideos,
-            page,
-          )
-        })
-      })
+      const videosArray = response.data.videos
+      const totalVideos = response.data.total
+
+      if (!videosArray || videosArray.length === 0) {
+        setStateFunction([])
+        setShowSpinner(false)
+        return
+      }
+
+      // Extract required IDs
+      const youTubeVideoIds = videosArray.map(
+        (video: { youtube_video_id: any }) => video.youtube_video_id,
+      )
+      const youDescribeVideosIds = videosArray.map(
+        (video: { video_id: any }) => video.video_id,
+      )
+      const audioDescriptionIds = videosArray.map(
+        (video: { audio_description_id: any }) => video.audio_description_id,
+      )
+
+      // Step 2: Replace YouTube API call with YouTubeService
+      const videoDetails = await YouTubeService.getVideoDetails(youTubeVideoIds)
+
+      // Create compatible format for parseResponseData
+      const youTubeVideosArray = { items: videoDetails }
+
+      // Process the response (existing method)
+      parseResponseData(
+        youTubeVideosArray,
+        youDescribeVideosIds,
+        audioDescriptionIds,
+        setStateFunction,
+        totalVideos,
+        page,
+      )
+    } catch (error) {
+      console.error('Error fetching videos:', error)
+      setShowSpinner(false)
+    }
   }
 
   const parseResponseData = (

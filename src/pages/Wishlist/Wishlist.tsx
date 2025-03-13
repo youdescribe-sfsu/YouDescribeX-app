@@ -2,12 +2,9 @@ import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import Spinner from 'react-bootstrap/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
-import { apiUrl } from '@/shared/config'
 import axios, { CancelTokenSource } from 'axios'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
-// import getTimeZoneOffset from '@/shared/utils/getTimeZoneOffset'
-import ourFetch from '@/shared/utils/ourFetch'
 import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react'
 import DataTable, { Media, TableColumn } from 'react-data-table-component'
 import { useNavigate } from 'react-router-dom'
@@ -15,6 +12,7 @@ import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
 import { toast } from 'react-toastify'
 import parseISO8601Duration from '@/shared/utils/convertISO8601ToTime'
+import YouTubeService from '@/shared/utils/YouTubeService'
 
 interface VideosState {
   data: any[]
@@ -120,11 +118,6 @@ const Wishlist = () => {
   const [, setRecentAIRequestedSpinner] = useState(true) // For loading state
 
   const [, setShowWishlistSpinner] = useState(true)
-  // const [youTubeIds, setYouTubeIds] = useState<string[]>([])
-  // const [youDescribeIds, setYouDescribeIds] = useState<string[]>([])
-  // const [votes, setVotes] = useState<number[]>([])
-  // const [updatedAt, setUpdatedAt] = useState<string[]>([])
-  // const [categories, setCategories] = useState<string[]>([])
   const [rows, setRows] = useState<any[]>([])
   const [videoCardsComponents, setVideoCardsComponents] = useState<ReactNode[]>(
     [],
@@ -233,16 +226,10 @@ const Wishlist = () => {
 
   const fetchVideoDetails = async (videoIds: string[]) => {
     try {
-      // Your logic for fetching video details goes here
-      // Make sure to handle errors appropriately
-      const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${videoIds.join(
-        ',',
-      )}&key=wishlist`
-      const response = await ourFetch(url)
-      return response.result
+      return await YouTubeService.getVideoDetails(videoIds)
     } catch (error) {
       console.error('Error fetching video details:', error)
-      throw error // Rethrow the error for handling in the calling function
+      throw error
     }
   }
 
@@ -284,29 +271,30 @@ const Wishlist = () => {
         })
       }
 
-      const youTubeResponse = await fetchVideoDetails(topYouTubeIds)
+      const youTubeVideos = await fetchVideoDetails(topYouTubeIds)
       const videoCardsComponents = []
 
-      for (let i = 0; i < youTubeResponse.items.length; i += 1) {
-        const item = youTubeResponse.items[i]
-        const statistics = item.statistics || {}
-        const snippet = item.snippet || {}
+      for (let i = 0; i < youTubeVideos.length; i += 1) {
+        const item = youTubeVideos[i]
+        if (!item?.snippet || !item?.statistics) {
+          continue
+        }
 
         const _id = topYouDescribeIds[i]
         const youTubeId = item.id
-        const thumbnailMedium = item.snippet.thumbnails.medium
-        const title = item.snippet.title
-        const description = item.snippet.description
-        const author = item.snippet.channelTitle
+        const thumbnailMedium = item.snippet?.thumbnails?.medium || { url: '' }
+        const title = item.snippet?.title || 'Untitled'
+        const description = item.snippet?.description || ''
+        const author = item.snippet?.channelTitle || 'Unknown'
         const views = convertViewsToCardFormat(
-          Number(item.statistics.viewCount),
+          Number(item.statistics?.viewCount || 0),
         )
-        const publishedAt = new Date(item.snippet.publishedAt)
+        const publishedAt = new Date(item.snippet?.publishedAt || new Date())
         const now = Date.now()
         const votes = topVotes[i]
         const aiRequested = aiReq[i]
         const time = convertTimeToCardFormat(
-          Number(now - publishedAt.getMilliseconds()),
+          Number(now - publishedAt.getTime()), // Fixed: getTime() instead of getMilliseconds()
         )
         videoCardsComponents.push(
           <div className="wishlist-video-card" key={_id}>
@@ -349,11 +337,10 @@ const Wishlist = () => {
       }
 
       setVideosData(newVideosData)
-
       setLoadingState(false)
     } catch (error) {
       console.error('Error fetching and setting wish list data:', error)
-      // Handle the error as needed
+      setLoadingState(false)
     }
   }
 
@@ -448,18 +435,8 @@ const Wishlist = () => {
       aiRequestedUrl,
       setrecentAIRequested,
     )
-
-    // fetchAndSetWishlistData(wishlistData, setShowWishlistSpinner)
   }, [userDataStore.getState().userId])
 
-  /*
-    Loads data for the table using the /wishlist/search endpoint
-    The endpoint requires the following query parameters
-      - page: The page number to be fetched
-      - perPage: Number of items to be displayed on each page
-      - search: The search string to be passed (joined with the %20 separator)
-      - category: The list of categories that the search should be filtered by. Each category is comma separated and joined with the %20 separator.
-  */
   const loadTableVideos = (
     pageNumber: number,
     rowsPerPage: number,
@@ -504,22 +481,12 @@ const Wishlist = () => {
           categories.push(wishListItems[i].category)
           aiRequested.push(wishListItems[i].aiRequested)
         }
-        // setYouTubeIds(youTubeIds)
-        // setYouDescribeIds(youDescribeIds)
-        // setVotes(votes)
-        // setUpdatedAt(updatedAt)
-        // setCategories(categories)
         return { youTubeIds, votes, categories, updatedAt, aiRequested }
       })
       .then(({ youTubeIds, votes, categories, updatedAt, aiRequested }) => {
-        const url = `${
-          process.env.REACT_APP_YDX_BACKEND_URL
-        }/api/videos/getyoutubedatafromcache?youtubeids=${youTubeIds.join(
-          ',',
-        )}&key=wishlist`
-        ourFetch(url).then((response) => {
+        YouTubeService.getVideoDetails(youTubeIds).then((videoDetails) => {
           parseTableData(
-            response.result,
+            videoDetails,
             votes,
             categories,
             updatedAt,
@@ -534,23 +501,25 @@ const Wishlist = () => {
   }
 
   const parseTableData = (
-    youTubeResponse: any,
+    youTubeVideos: any[],
     votes: any,
     categories: any,
     updatedAt: any,
     aiRequested: any,
   ) => {
     const rows = []
-    for (let i = 0; i < youTubeResponse.items.length; i += 1) {
-      const item = youTubeResponse.items[i]
-      if (!item.statistics || !item.snippet) {
+    for (let i = 0; i < youTubeVideos.length; i += 1) {
+      const item = youTubeVideos[i]
+      if (!item?.statistics || !item?.snippet) {
         continue
       }
       const youTubeId = item.id
-      const thumbnailMedium = item.snippet.thumbnails.medium
-      const title = item.snippet.title
-      const author = item.snippet.channelTitle
-      const duration = parseISO8601Duration(item.contentDetails.duration)
+      const thumbnailMedium = item.snippet?.thumbnails?.medium || {}
+      const title = item.snippet?.title || 'Untitled'
+      const author = item.snippet?.channelTitle || 'Unknown'
+      const duration = parseISO8601Duration(
+        item.contentDetails?.duration || 'PT0S',
+      )
       const now = Date.now() + new Date().getTimezoneOffset() * 60000
       const lastUpdatedAt = String(updatedAt[i])
 
@@ -618,14 +587,10 @@ const Wishlist = () => {
       })
       .then(
         ({ topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }) => {
-          const url = `${
-            process.env.REACT_APP_YDX_BACKEND_URL
-          }/api/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
-            ',',
-          )}&key=wishlist`
-          ourFetch(url).then((response) => {
+          YouTubeService.getVideoDetails(topYouTubeIds).then((videoDetails) => {
+            // Pass the array directly without wrapping it
             parseFetchedData(
-              response.result,
+              videoDetails,
               topYouDescribeIds,
               topYouTubeIds,
               topVotes,
@@ -638,7 +603,7 @@ const Wishlist = () => {
   }
 
   const parseFetchedData = (
-    youTubeResponse: any,
+    youTubeVideos: any[],
     topYouDescribeIds: any,
     topYouTubeIds: any,
     topVotes: any,
@@ -646,24 +611,26 @@ const Wishlist = () => {
     aiReq: any,
   ) => {
     const videoCardsComponents = []
-    for (let i = 0; i < youTubeResponse.items.length; i += 1) {
-      const item = youTubeResponse.items[i]
-      if (!item.statistics || !item.snippet) {
+    for (let i = 0; i < youTubeVideos.length; i += 1) {
+      const item = youTubeVideos[i]
+      if (!item?.snippet || !item?.statistics) {
         continue
       }
       const _id = topYouDescribeIds[i]
       const youTubeId = item.id
-      const thumbnailMedium = item.snippet.thumbnails.medium
-      const title = item.snippet.title
-      const description = item.snippet.description
-      const author = item.snippet.channelTitle
-      const views = convertViewsToCardFormat(Number(item.statistics.viewCount))
-      const publishedAt = new Date(item.snippet.publishedAt)
+      const thumbnailMedium = item.snippet?.thumbnails?.medium || {}
+      const title = item.snippet?.title || 'Untitled'
+      const description = item.snippet?.description || ''
+      const author = item.snippet?.channelTitle || 'Unknown'
+      const views = convertViewsToCardFormat(
+        Number(item.statistics?.viewCount || 0),
+      )
+      const publishedAt = new Date(item.snippet?.publishedAt || new Date())
       const now = Date.now()
       const votes = topVotes[i]
       const aiRequested = aiReq[i]
       const time = convertTimeToCardFormat(
-        Number(now - publishedAt.getMilliseconds()),
+        Number(now - publishedAt.getTime()), // Fixed: getTime() instead of getMilliseconds()
       )
       const voted = votedArr[i]?.voted
 
@@ -681,8 +648,6 @@ const Wishlist = () => {
             buttons="upvote-describe"
             userVote={voted}
             aiRequested={aiRequested}
-
-            //   getAppState={this.props.getAppState}
           />
         </div>,
       )
