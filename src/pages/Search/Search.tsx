@@ -5,7 +5,7 @@ import { translate } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import ClassicSpinner from '@/shared/components/ClassicSpinner/ClassicSpinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
-import { apiUrl } from '@/shared/config'
+import { apiUrl, youTubeApiUrl, youTubeApiKey } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardFormat'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
@@ -161,24 +161,29 @@ const Search = () => {
       query = url.searchParams.get('v') ?? ''
     }
 
-    // Use backend proxy for YouTube search
-    const backendUrl = process.env.REACT_APP_YDX_BACKEND_URL || apiUrl
-    const searchUrl = `${backendUrl}/api/search/youtube?q=${query}&maxResults=50`
+    // Direct call to YouTube's API for search
+    const searchUrl = `${youTubeApiUrl}/search?part=snippet&q=${query}&maxResults=50&key=${youTubeApiKey}`
 
-    axios
-      .get(searchUrl, { withCredentials: true })
-      .then((response) => {
-        const videos = response.data
-        const videoFoundOnYTIds = videos.items
-          .map((video: any) => video.id.videoId || video.id)
-          .filter(Boolean)
+    ourFetch(searchUrl)
+      .then((videos: any) => {
+        const videoFoundOnYTIds = []
+        for (let i = 0; i < videos.items.length; i++) {
+          const video = videos.items[i]
+          if (video.id.kind === 'youtube#video') {
+            // Make sure we only get videos
+            videoFoundOnYTIds.push(video.id.videoId)
+          }
+        }
+        const idsYTvideo = videoFoundOnYTIds.join(',')
 
-        // Now fetch full details for these videos using our service
-        return YouTubeService.getVideoDetails(videoFoundOnYTIds)
+        // Direct call to YouTube's API for video details
+        const videoDetailsUrl = `${youTubeApiUrl}/videos?id=${idsYTvideo}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
+        return ourFetch(videoDetailsUrl)
       })
-      .then((videoDetails) => {
+      .then((videosFromYouTube: any) => {
+        const videoFromYoutube = videosFromYouTube.items
         setVideosNotOnYD([])
-        renderVideosFromYT(videoDetails)
+        renderVideosFromYT(videoFromYoutube)
       })
       .catch((error) => {
         console.error('Error fetching YouTube results:', error)
