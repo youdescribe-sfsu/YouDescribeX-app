@@ -88,6 +88,24 @@ const UserDescribedVideos = () => {
     ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/get-user-Ai-DescriptionRequests`
     : `${apiUrl}/users/get-user-Ai-DescriptionRequests`
 
+  const normalizeApiResponse = (
+    responseData: any,
+  ): { videos: any[]; total: number } => {
+    // If response is an array (first endpoint case), take the first item
+    if (Array.isArray(responseData)) {
+      return {
+        videos: responseData[0]?.videos || [],
+        total: responseData[0]?.total || 0,
+      }
+    }
+
+    // Otherwise, it's already in the desired object format (second and third endpoints)
+    return {
+      videos: responseData?.videos || [],
+      total: responseData?.total || 0,
+    }
+  }
+
   const getUserVideos = async (
     url: string,
     setStateFunction: {
@@ -108,8 +126,10 @@ const UserDescribedVideos = () => {
         withCredentials: true,
       })
 
-      const videosArray = response.data.videos
-      const totalVideos = response.data.total
+      const normalizedData = normalizeApiResponse(response.data)
+
+      const videosArray = normalizedData.videos
+      const totalVideos = normalizedData.total
 
       if (!videosArray || videosArray.length === 0) {
         setStateFunction([])
