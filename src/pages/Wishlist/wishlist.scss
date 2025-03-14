@@ -196,14 +196,38 @@
   }
 }
 
-.no-videos-message {
+/* Add these new styles for consistent empty state messages */
+.empty-state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+  width: 100%;
   text-align: center;
-  padding: 20px;
-  background-color: #f0f0f0;
-  border-radius: 8px;
-  margin: 20px 0;
-  font-size: 18px;
-  color: #333;
-  font-family: 'Verdana', sans-serif;
+  color: #666;
+  margin: auto;
+}
+
+.auth-required-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #4b5fc9;
+}
+
+.auth-required-text {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.no-videos-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #4b5fc9;
+}
+
+.no-videos-text {
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 

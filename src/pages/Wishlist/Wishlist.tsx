@@ -708,8 +708,9 @@ const Wishlist = () => {
         <div className="d-flex justify-content-center">
           <div className="custom-carousel flex">
             {!userDataStore.getState().isSignedIn ? (
-              <div className="login-prompt">
-                <p>
+              <div className="empty-state-message">
+                <i className="fas fa-lock auth-required-icon"></i>
+                <p className="auth-required-text">
                   {translate(
                     'Log in to create and view your personal wishlist',
                   )}
@@ -762,8 +763,11 @@ const Wishlist = () => {
                   </div>
                 )}
                 {wishlistData?.data.length === 0 && (
-                  <div className="no-videos-message">
-                    {translate('No videos in your wishlist')}
+                  <div className="empty-state-message">
+                    <i className="fas fa-video-slash no-videos-icon"></i>
+                    <p className="no-videos-text">
+                      {translate('No videos in your wishlist')}
+                    </p>
                   </div>
                 )}
               </>
@@ -780,8 +784,9 @@ const Wishlist = () => {
         <div className="d-flex justify-content-center">
           <div className="custom-carousel flex">
             {!userDataStore.getState().isSignedIn ? (
-              <div className="login-prompt">
-                <p>
+              <div className="empty-state-message">
+                <i className="fas fa-lock auth-required-icon"></i>
+                <p className="auth-required-text">
                   {translate('Log in to view recent AI-generated descriptions')}
                 </p>
               </div>
@@ -833,8 +838,11 @@ const Wishlist = () => {
                   </div>
                 )}
                 {recentAIRequested?.data.length === 0 && (
-                  <div className="no-videos-message">
-                    {translate('No AI Requested Videos')}
+                  <div className="empty-state-message">
+                    <i className="fas fa-video-slash no-videos-icon"></i>
+                    <p className="no-videos-text">
+                      {translate('No AI Requested Videos')}
+                    </p>
                   </div>
                 )}
               </>
