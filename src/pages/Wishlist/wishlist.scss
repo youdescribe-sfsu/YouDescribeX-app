@@ -115,22 +115,23 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 4%;
-  height: 25%;
+  width: 40px; /* Fixed width instead of percentage */
+  height: 80px; /* Fixed height instead of percentage */
   background-color: rgb(62, 111, 202);
   border: none;
   color: white;
   cursor: pointer;
-  margin: 15px;
+  margin: 0; /* Remove the margin that pushes buttons outside */
   font-size: 25px;
+  z-index: 1000; /* Ensure buttons appear above other content */
 }
 
 .prev-wishlist-icon {
-  left: -5%;
+  left: 0; /* Fixed position instead of negative percentage */
 }
 
 .next-wishlist-icon {
-  right: -5%;
+  right: 0; /* Fixed position instead of negative percentage */
 }
 
 @media (min-width: 768px) and (max-width: 1150px) {
@@ -194,7 +195,7 @@
 .custom-carousel {
   position: relative;
   overflow: hidden;
-  padding: 0 40px;
+  padding: 0 50px; /* Increased padding to make room for buttons */
 }
 
 .no-videos-message {
