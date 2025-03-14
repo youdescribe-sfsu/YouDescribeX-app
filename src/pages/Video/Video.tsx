@@ -996,6 +996,7 @@ const Video = () => {
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/save-Visited-Videos-History`,
         {
           youtube_id: videoId,
+          invalidate_cache: true,
         },
         {
           withCredentials: true,
