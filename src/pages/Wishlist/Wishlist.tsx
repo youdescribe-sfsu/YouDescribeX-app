@@ -265,10 +265,6 @@ const Wishlist = () => {
       const votedArr = []
       const aiReq = []
 
-      console.log(
-        `Pagination debug for ${url} - totalVideos: ${totalVideosLength}, itemsPerPage: ${itemsPerPage}, calculatedPages: ${calculatedTotalVideoPages}, currentPage: ${pageNumber}`,
-      )
-
       for (let i = 0; i < wishListItems.length; i += 1) {
         topYouTubeIds.push(wishListItems[i].youtube_id)
         topYouDescribeIds.push(wishListItems[i]._id)
@@ -749,10 +745,7 @@ const Wishlist = () => {
                       setRecentAIRequestedSpinner(false)
                     }}
                     disabled={
-                      !recentAIRequested ||
-                      !recentAIRequested.totalVideos ||
-                      recentAIRequested.currentPage >=
-                        recentAIRequested.totalPages
+                      wishlistData.currentPage === wishlistData.totalPages
                     }
                   >
                     &gt;

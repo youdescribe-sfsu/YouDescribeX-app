@@ -144,8 +144,6 @@ const History = () => {
         withCredentials: true,
       })
 
-      console.log('Recent descriptions response:', response.data)
-
       // Handle array wrapped response
       let videos = []
       let total = 0
@@ -174,7 +172,6 @@ const History = () => {
         },
         withCredentials: true,
       })
-      console.log('AI requested videos response:', response.data)
       return {
         videos: response.data.videos || [],
         total: response.data.total || 0,
@@ -194,7 +191,6 @@ const History = () => {
         },
         withCredentials: true,
       })
-      console.log('History videos response:', response.data)
       return {
         videos: response.data.videos || [],
         total: response.data.total || 0,
@@ -214,7 +210,6 @@ const History = () => {
     try {
       const pageNumber = dataState?.currentPage || 1
       setLoadingState(true)
-      console.log(`Fetching page ${pageNumber} from ${apiEndpoint}`)
 
       const response = await axios.get(apiEndpoint, {
         params: {
@@ -223,8 +218,6 @@ const History = () => {
         },
         withCredentials: true,
       })
-
-      console.log(`API response for page ${pageNumber}:`, response.data)
 
       let responseData = response.data.videos
       let totalVideosLength = response.data.total
@@ -241,10 +234,6 @@ const History = () => {
 
       const calculatedTotalVideoPages = Math.ceil(
         totalVideosLength / itemsPerPage,
-      )
-
-      console.log(
-        `Total videos: ${totalVideosLength}, Total pages: ${calculatedTotalVideoPages}`,
       )
 
       // Extract necessary data for video fetching
@@ -335,13 +324,10 @@ const History = () => {
       try {
         // Fetch descriptions from the different sections
         const recentData = await fetchRecentDescriptions()
-        console.log('Processed recent data:', recentData)
 
         const aiData = await fetchAiRequestedVideos()
-        console.log('Processed AI data:', aiData)
 
         const historyData = await fetchHistoryVideos()
-        console.log('Processed history data:', historyData)
 
         // Extract all YouTube IDs from the responses
         const videoIdsToFetch = new Set<string>()
@@ -366,8 +352,6 @@ const History = () => {
             videoIdsToFetch.add(video.youtube_video_id)
           }
         })
-
-        console.log('Collected YouTube IDs:', Array.from(videoIdsToFetch))
 
         // Fetch all video details in one batch
         const videoDetails = await fetchVideoDetails(
@@ -428,9 +412,6 @@ const History = () => {
     idField: string,
     videoMap: Map<string, any>,
   ) => {
-    console.log(
-      `Processing ${data.length} videos with total count of ${totalCount}`,
-    )
     const videoComponentData = []
 
     for (const item of data) {
@@ -468,10 +449,6 @@ const History = () => {
       currentPage: 1,
       videoComponentData,
     }
-
-    console.log(
-      `Calculated ${result.totalPages} total pages from ${totalCount} total videos`,
-    )
     return result
   }
 
