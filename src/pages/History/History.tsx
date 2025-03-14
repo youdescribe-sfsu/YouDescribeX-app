@@ -137,45 +137,71 @@ const History = () => {
   const fetchRecentDescriptions = async () => {
     try {
       const response = await axios.get(getRecentDescriptionsUrl(), {
+        params: {
+          paginate: 'true',
+          page: 1, // Always provide a default page
+        },
         withCredentials: true,
       })
-      console.log('Raw recent descriptions response:', response.data)
+
+      console.log('Recent descriptions response:', response.data)
 
       // Handle array wrapped response
+      let videos = []
+      let total = 0
+
       if (Array.isArray(response.data) && response.data.length > 0) {
-        console.log('Unwrapping array response for descriptions')
-        return response.data[0].videos || []
+        videos = response.data[0].videos || []
+        total = response.data[0].total || 0
+      } else {
+        videos = response.data.videos || []
+        total = response.data.total || 0
       }
-      return response.data.videos || []
+
+      return { videos, total }
     } catch (error) {
       console.error('Error fetching recent descriptions:', error)
-      return []
+      return { videos: [], total: 0 }
     }
   }
 
   const fetchAiRequestedVideos = async () => {
     try {
       const response = await axios.get(getAiRequestedVideosUrl(), {
+        params: {
+          paginate: 'true',
+          page: 1,
+        },
         withCredentials: true,
       })
       console.log('AI requested videos response:', response.data)
-      return response.data.videos || []
+      return {
+        videos: response.data.videos || [],
+        total: response.data.total || 0,
+      }
     } catch (error) {
       console.error('Error fetching AI requested videos:', error)
-      return []
+      return { videos: [], total: 0 }
     }
   }
 
   const fetchHistoryVideos = async () => {
     try {
       const response = await axios.get(getUserHistoryUrl(), {
+        params: {
+          paginate: 'true',
+          page: 1,
+        },
         withCredentials: true,
       })
       console.log('History videos response:', response.data)
-      return response.data.videos || []
+      return {
+        videos: response.data.videos || [],
+        total: response.data.total || 0,
+      }
     } catch (error) {
       console.error('Error fetching history videos:', error)
-      return []
+      return { videos: [], total: 0 }
     }
   }
 
@@ -188,6 +214,8 @@ const History = () => {
     try {
       const pageNumber = dataState?.currentPage || 1
       setLoadingState(true)
+      console.log(`Fetching page ${pageNumber} from ${apiEndpoint}`)
+
       const response = await axios.get(apiEndpoint, {
         params: {
           paginate: 'true',
@@ -195,11 +223,30 @@ const History = () => {
         },
         withCredentials: true,
       })
-      const responseData = response.data.videos
-      const totalVideosLength = response.data.total
+
+      console.log(`API response for page ${pageNumber}:`, response.data)
+
+      let responseData = response.data.videos
+      let totalVideosLength = response.data.total
+
+      // Handle array-wrapped response for my-descriptions
+      if (
+        apiEndpoint.includes('get-my-descriptions') &&
+        Array.isArray(response.data) &&
+        response.data.length > 0
+      ) {
+        responseData = response.data[0].videos || []
+        totalVideosLength = response.data[0].total || 0
+      }
+
       const calculatedTotalVideoPages = Math.ceil(
         totalVideosLength / itemsPerPage,
       )
+
+      console.log(
+        `Total videos: ${totalVideosLength}, Total pages: ${calculatedTotalVideoPages}`,
+      )
+
       // Extract necessary data for video fetching
       const videoIds: string[] = []
       const status: string[] = []
@@ -224,7 +271,7 @@ const History = () => {
           author: item.snippet.channelTitle,
           views: convertViewsToCardFormat(Number(item.statistics.viewCount)),
           time: convertTimeToCardFormat(
-            Date.now() - new Date(item.snippet.publishedAt).getMilliseconds(),
+            Date.now() - new Date(item.snippet.publishedAt).getTime(), // Fix here
           ),
           status: status[index] === 'completed' ? urls[index] : null,
         }
@@ -286,40 +333,35 @@ const History = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        console.log('Starting fetchAllData')
-
         // Fetch descriptions from the different sections
-        const recentResponse = await fetchRecentDescriptions()
-        console.log('Processed recent descriptions:', recentResponse)
+        const recentData = await fetchRecentDescriptions()
+        console.log('Processed recent data:', recentData)
 
-        const aiResponse = await fetchAiRequestedVideos()
-        console.log('Processed AI requested videos:', aiResponse)
+        const aiData = await fetchAiRequestedVideos()
+        console.log('Processed AI data:', aiData)
 
-        const historyResponse = await fetchHistoryVideos()
-        console.log('Processed history videos:', historyResponse)
+        const historyData = await fetchHistoryVideos()
+        console.log('Processed history data:', historyData)
 
         // Extract all YouTube IDs from the responses
         const videoIdsToFetch = new Set<string>()
 
         // Process recent descriptions
-        recentResponse.forEach((desc: any) => {
-          console.log('Processing recent desc:', desc)
+        recentData.videos.forEach((desc: any) => {
           if (desc.youtube_video_id) {
             videoIdsToFetch.add(desc.youtube_video_id)
           }
         })
 
         // Process AI requested videos
-        aiResponse.forEach((video: any) => {
-          console.log('Processing AI video:', video)
+        aiData.videos.forEach((video: any) => {
           if (video.youtube_video_id) {
             videoIdsToFetch.add(video.youtube_video_id)
           }
         })
 
         // Process history videos
-        historyResponse.forEach((video: any) => {
-          console.log('Processing history video:', video)
+        historyData.videos.forEach((video: any) => {
           if (video.youtube_video_id) {
             videoIdsToFetch.add(video.youtube_video_id)
           }
@@ -332,37 +374,33 @@ const History = () => {
           Array.from(videoIdsToFetch),
         )
 
-        console.log('Fetched video details:', videoDetails)
-
         // Create a map for easy access by ID
         const videoMap = new Map()
         videoDetails.forEach((video) => {
           videoMap.set(video.id, video)
         })
 
-        console.log('Created video map with keys:', Array.from(videoMap.keys()))
-
         // Process each dataset with the fetched video details
         const processedRecentData = processVideoData(
-          recentResponse,
+          recentData.videos,
+          recentData.total,
           'youtube_video_id',
           videoMap,
         )
-        console.log('Processed recent data:', processedRecentData)
 
         const processedAiData = processVideoData(
-          aiResponse,
-          'youtube_video_id', // Fix: Changed from youtube_id
+          aiData.videos,
+          aiData.total,
+          'youtube_video_id',
           videoMap,
         )
-        console.log('Processed AI data:', processedAiData)
 
         const processedHistoryData = processVideoData(
-          historyResponse,
-          'youtube_video_id', // Fix: Changed from youtube_id
+          historyData.videos,
+          historyData.total,
+          'youtube_video_id',
           videoMap,
         )
-        console.log('Processed history data:', processedHistoryData)
 
         // Now set the state for each section
         setRecentDescriptions(processedRecentData)
@@ -386,21 +424,20 @@ const History = () => {
 
   const processVideoData = (
     data: any[],
+    totalCount: number,
     idField: string,
     videoMap: Map<string, any>,
   ) => {
-    console.log(`Processing video data with idField: ${idField}`, data)
+    console.log(
+      `Processing ${data.length} videos with total count of ${totalCount}`,
+    )
     const videoComponentData = []
 
     for (const item of data) {
       const videoId = item[idField]
-      console.log(`Looking up video ID: ${videoId} for item:`, item)
-
       const videoDetails = videoMap.get(videoId)
 
       if (videoDetails) {
-        console.log(`Found video details for ${videoId}:`, videoDetails)
-
         try {
           videoComponentData.push({
             youTubeId: videoDetails.id,
@@ -421,20 +458,20 @@ const History = () => {
         } catch (error) {
           console.error(`Error processing video ${videoId}:`, error)
         }
-      } else {
-        console.warn(`No video details found for ID: ${videoId}`)
       }
     }
 
     const result = {
       data: videoComponentData.slice(0, itemsPerPage),
-      totalVideos: data.length,
-      totalPages: Math.ceil(data.length / itemsPerPage),
+      totalVideos: totalCount, // Use total from API response
+      totalPages: Math.ceil(totalCount / itemsPerPage),
       currentPage: 1,
       videoComponentData,
     }
 
-    console.log('Final processed result:', result)
+    console.log(
+      `Calculated ${result.totalPages} total pages from ${totalCount} total videos`,
+    )
     return result
   }
 
