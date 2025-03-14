@@ -139,6 +139,13 @@ const History = () => {
       const response = await axios.get(getRecentDescriptionsUrl(), {
         withCredentials: true,
       })
+      console.log('Raw recent descriptions response:', response.data)
+
+      // Handle array wrapped response
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        console.log('Unwrapping array response for descriptions')
+        return response.data[0].videos || []
+      }
       return response.data.videos || []
     } catch (error) {
       console.error('Error fetching recent descriptions:', error)
@@ -151,6 +158,7 @@ const History = () => {
       const response = await axios.get(getAiRequestedVideosUrl(), {
         withCredentials: true,
       })
+      console.log('AI requested videos response:', response.data)
       return response.data.videos || []
     } catch (error) {
       console.error('Error fetching AI requested videos:', error)
@@ -163,6 +171,7 @@ const History = () => {
       const response = await axios.get(getUserHistoryUrl(), {
         withCredentials: true,
       })
+      console.log('History videos response:', response.data)
       return response.data.videos || []
     } catch (error) {
       console.error('Error fetching history videos:', error)
@@ -277,16 +286,24 @@ const History = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
+        console.log('Starting fetchAllData')
+
         // Fetch descriptions from the different sections
         const recentResponse = await fetchRecentDescriptions()
+        console.log('Processed recent descriptions:', recentResponse)
+
         const aiResponse = await fetchAiRequestedVideos()
+        console.log('Processed AI requested videos:', aiResponse)
+
         const historyResponse = await fetchHistoryVideos()
+        console.log('Processed history videos:', historyResponse)
 
         // Extract all YouTube IDs from the responses
         const videoIdsToFetch = new Set<string>()
 
         // Process recent descriptions
         recentResponse.forEach((desc: any) => {
+          console.log('Processing recent desc:', desc)
           if (desc.youtube_video_id) {
             videoIdsToFetch.add(desc.youtube_video_id)
           }
@@ -294,6 +311,7 @@ const History = () => {
 
         // Process AI requested videos
         aiResponse.forEach((video: any) => {
+          console.log('Processing AI video:', video)
           if (video.youtube_video_id) {
             videoIdsToFetch.add(video.youtube_video_id)
           }
@@ -301,15 +319,20 @@ const History = () => {
 
         // Process history videos
         historyResponse.forEach((video: any) => {
+          console.log('Processing history video:', video)
           if (video.youtube_video_id) {
             videoIdsToFetch.add(video.youtube_video_id)
           }
         })
 
+        console.log('Collected YouTube IDs:', Array.from(videoIdsToFetch))
+
         // Fetch all video details in one batch
         const videoDetails = await fetchVideoDetails(
           Array.from(videoIdsToFetch),
         )
+
+        console.log('Fetched video details:', videoDetails)
 
         // Create a map for easy access by ID
         const videoMap = new Map()
@@ -317,22 +340,29 @@ const History = () => {
           videoMap.set(video.id, video)
         })
 
+        console.log('Created video map with keys:', Array.from(videoMap.keys()))
+
         // Process each dataset with the fetched video details
         const processedRecentData = processVideoData(
           recentResponse,
           'youtube_video_id',
           videoMap,
         )
+        console.log('Processed recent data:', processedRecentData)
+
         const processedAiData = processVideoData(
           aiResponse,
-          'youtube_id',
+          'youtube_video_id', // Fix: Changed from youtube_id
           videoMap,
         )
+        console.log('Processed AI data:', processedAiData)
+
         const processedHistoryData = processVideoData(
           historyResponse,
-          'youtube_id',
+          'youtube_video_id', // Fix: Changed from youtube_id
           videoMap,
         )
+        console.log('Processed history data:', processedHistoryData)
 
         // Now set the state for each section
         setRecentDescriptions(processedRecentData)
@@ -359,40 +389,53 @@ const History = () => {
     idField: string,
     videoMap: Map<string, any>,
   ) => {
+    console.log(`Processing video data with idField: ${idField}`, data)
     const videoComponentData = []
 
     for (const item of data) {
       const videoId = item[idField]
+      console.log(`Looking up video ID: ${videoId} for item:`, item)
+
       const videoDetails = videoMap.get(videoId)
 
       if (videoDetails) {
-        videoComponentData.push({
-          youTubeId: videoDetails.id,
-          thumbnailMediumUrl: videoDetails.snippet.thumbnails.medium.url,
-          duration: convertSecondsToCardFormat(
-            convertISO8601ToSeconds(videoDetails.contentDetails.duration),
-          ),
-          title: videoDetails.snippet.title,
-          author: videoDetails.snippet.channelTitle,
-          views: convertViewsToCardFormat(
-            Number(videoDetails.statistics.viewCount),
-          ),
-          time: convertTimeToCardFormat(
-            Date.now() -
-              new Date(videoDetails.snippet.publishedAt).getMilliseconds(),
-          ),
-          status: item.status === 'completed' ? item.url : null,
-        })
+        console.log(`Found video details for ${videoId}:`, videoDetails)
+
+        try {
+          videoComponentData.push({
+            youTubeId: videoDetails.id,
+            thumbnailMediumUrl: videoDetails.snippet.thumbnails.medium.url,
+            duration: convertSecondsToCardFormat(
+              convertISO8601ToSeconds(videoDetails.contentDetails.duration),
+            ),
+            title: videoDetails.snippet.title,
+            author: videoDetails.snippet.channelTitle,
+            views: convertViewsToCardFormat(
+              Number(videoDetails.statistics.viewCount),
+            ),
+            time: convertTimeToCardFormat(
+              Date.now() - new Date(videoDetails.snippet.publishedAt).getTime(), // Fix: changed getMilliseconds() to getTime()
+            ),
+            status: item.status === 'completed' ? item.url : null,
+          })
+        } catch (error) {
+          console.error(`Error processing video ${videoId}:`, error)
+        }
+      } else {
+        console.warn(`No video details found for ID: ${videoId}`)
       }
     }
 
-    return {
+    const result = {
       data: videoComponentData.slice(0, itemsPerPage),
       totalVideos: data.length,
       totalPages: Math.ceil(data.length / itemsPerPage),
       currentPage: 1,
       videoComponentData,
     }
+
+    console.log('Final processed result:', result)
+    return result
   }
 
   return (
