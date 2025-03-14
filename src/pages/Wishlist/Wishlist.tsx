@@ -241,6 +241,8 @@ const Wishlist = () => {
   ) => {
     const pageNumber = dataState?.currentPage || 1
 
+    const isAIDescriptions = url.includes('get-All-AI-descriptions')
+
     try {
       const response = await axios.get(url, {
         params: {
@@ -250,15 +252,22 @@ const Wishlist = () => {
       })
 
       const totalVideosLength = response.data.totalVideos
-      const calculatedTotalVideoPages = Math.ceil(
-        totalVideosLength / itemsPerPage,
+
+      const calculatedTotalVideoPages = Math.max(
+        1,
+        Math.ceil(totalVideosLength / itemsPerPage),
       )
+
       const wishListItems = response.data.result
       const topYouTubeIds = []
       const topYouDescribeIds = []
       const topVotes = []
       const votedArr = []
       const aiReq = []
+
+      console.log(
+        `Pagination debug for ${url} - totalVideos: ${totalVideosLength}, itemsPerPage: ${itemsPerPage}, calculatedPages: ${calculatedTotalVideoPages}, currentPage: ${pageNumber}`,
+      )
 
       for (let i = 0; i < wishListItems.length; i += 1) {
         topYouTubeIds.push(wishListItems[i].youtube_id)
@@ -307,8 +316,8 @@ const Wishlist = () => {
               views={views}
               time={time}
               votes={votes}
-              buttons="upvote-describe"
-              userVote={true}
+              buttons={isAIDescriptions ? 'view-only' : 'upvote-describe'}
+              userVote={!isAIDescriptions}
               aiRequested={aiRequested}
               onClick={async () => {
                 setShowSpinner(true)
@@ -740,7 +749,10 @@ const Wishlist = () => {
                       setRecentAIRequestedSpinner(false)
                     }}
                     disabled={
-                      wishlistData.currentPage === wishlistData.totalPages
+                      !recentAIRequested ||
+                      !recentAIRequested.totalVideos ||
+                      recentAIRequested.currentPage >=
+                        recentAIRequested.totalPages
                     }
                   >
                     &gt;

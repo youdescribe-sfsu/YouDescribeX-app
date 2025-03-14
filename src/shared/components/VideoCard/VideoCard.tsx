@@ -168,9 +168,6 @@ const VideoCard = ({
             <i className={`fa fa-heart ${voted ? 'heart-selected' : ''}`} />
           }
         />
-        {/* <span id="vote-count">
-          <div>{votes}</div>
-        </span> */}
         <Button
           ariaLabel={translate('Create an audio description for this video')}
           text={translate('Describe')}
@@ -186,6 +183,16 @@ const VideoCard = ({
           text={translate('Edit')}
           color="w3-indigo w3-block"
           onClick={editThisVideo}
+          classNames="card-button"
+        />
+      </div>
+    ) : buttons === 'view-only' ? (
+      <div>
+        <Button
+          ariaLabel={translate('View this video')}
+          text={translate('View')}
+          color="w3-indigo w3-block"
+          onClick={() => navigate(`/video/${youTubeId}`)}
           classNames="card-button"
         />
       </div>
