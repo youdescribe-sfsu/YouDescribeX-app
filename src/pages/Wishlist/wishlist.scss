@@ -110,57 +110,61 @@
   }
 }
 
-.prev-wishlist-icon,
-.next-wishlist-icon {
+.custom-carousel {
+  position: relative;
+  min-height: 290px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-carousel .prev-wishlist-icon,
+.custom-carousel .next-wishlist-icon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px; /* Fixed width instead of percentage */
-  height: 80px; /* Fixed height instead of percentage */
+  width: 40px;
+  height: 80px;
   background-color: rgb(62, 111, 202);
   border: none;
   color: white;
   cursor: pointer;
-  margin: 0; /* Remove the margin that pushes buttons outside */
   font-size: 25px;
-  z-index: 1000; /* Ensure buttons appear above other content */
+  z-index: 1000;
 }
 
-.prev-wishlist-icon {
-  left: 0; /* Fixed position instead of negative percentage */
+.custom-carousel .prev-wishlist-icon {
+  left: 5%; /* Changed from 0 or negative values */
 }
 
-.next-wishlist-icon {
-  right: 0; /* Fixed position instead of negative percentage */
+.custom-carousel .next-wishlist-icon {
+  right: 5%; /* Changed from 0 or negative values */
 }
 
 @media (min-width: 768px) and (max-width: 1150px) {
-  .prev-wishlist-icon {
+  .custom-carousel .prev-wishlist-icon {
     left: 2%;
   }
-
-  .next-wishlist-icon {
+  .custom-carousel .next-wishlist-icon {
     right: 2%;
   }
 }
 
 @media (min-width: 1150px) and (max-width: 1250px) {
-  .prev-wishlist-icon {
+  .custom-carousel .prev-wishlist-icon {
     left: 4%;
   }
-
-  .next-wishlist-icon {
+  .custom-carousel .next-wishlist-icon {
     right: 4%;
   }
 }
 
 @media (min-width: 1300px) {
-  .prev-wishlist-icon {
-    left: -10%;
+  .custom-carousel .prev-wishlist-icon {
+    left: 8%; /* Changed from -10% to 8% */
   }
-
-  .next-wishlist-icon {
-    right: -10%;
+  .custom-carousel .next-wishlist-icon {
+    right: 8%; /* Changed from -10% to 8% */
   }
 }
 
@@ -190,12 +194,6 @@
   :root {
     --items-per-page: 1;
   }
-}
-
-.custom-carousel {
-  position: relative;
-  overflow: hidden;
-  padding: 0 50px; /* Increased padding to make room for buttons */
 }
 
 .no-videos-message {
