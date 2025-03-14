@@ -46,15 +46,21 @@
 }
 
 .wishlist-video-card {
-  width: 180px;
+  width: calc(20% - 8px); /* Properly sized for 5 items per row */
+  min-width: 160px;
+
   @media screen and (min-width: 601px) {
-    width: 194px;
+    width: calc(20% - 10px);
   }
 }
 
 .wishlist-video-row {
   display: flex;
   flex-direction: row;
+  justify-content: space-between; /* Distribute 5 items evenly */
+  align-items: center;
+  width: 100%;
+  gap: 10px; /* Add spacing between items */
 }
 
 .table-container {
@@ -110,93 +116,126 @@
   }
 }
 
+/* Updated carousel and navigation styling to match History page */
 .custom-carousel {
   position: relative;
   min-height: 290px;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  padding: 0 40px; /* Space for the buttons */
+  overflow: visible;
 }
 
+/* Improved button styling to match History page */
 .custom-carousel .prev-wishlist-icon,
 .custom-carousel .next-wishlist-icon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   width: 40px;
-  height: 80px;
+  height: 150px; /* Taller, rectangular shape like History page */
   background-color: rgb(62, 111, 202);
   border: none;
   color: white;
   cursor: pointer;
   font-size: 25px;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
 }
 
+/* Shape buttons like History page */
 .custom-carousel .prev-wishlist-icon {
-  left: 5%; /* Changed from 0 or negative values */
+  left: 0;
+  border-radius: 0 3px 3px 0; /* Slight rounding on right side only */
 }
 
 .custom-carousel .next-wishlist-icon {
-  right: 5%; /* Changed from 0 or negative values */
+  right: 0;
+  border-radius: 3px 0 0 3px; /* Slight rounding on left side only */
 }
 
+/* Updated media queries for responsive button positioning */
 @media (min-width: 768px) and (max-width: 1150px) {
   .custom-carousel .prev-wishlist-icon {
-    left: 2%;
+    left: 0;
   }
   .custom-carousel .next-wishlist-icon {
-    right: 2%;
+    right: 0;
   }
 }
 
 @media (min-width: 1150px) and (max-width: 1250px) {
   .custom-carousel .prev-wishlist-icon {
-    left: 4%;
+    left: 0;
   }
   .custom-carousel .next-wishlist-icon {
-    right: 4%;
+    right: 0;
   }
 }
 
 @media (min-width: 1300px) {
   .custom-carousel .prev-wishlist-icon {
-    left: 8%; /* Changed from -10% to 8% */
+    left: 0;
   }
   .custom-carousel .next-wishlist-icon {
-    right: 8%; /* Changed from -10% to 8% */
+    right: 0;
   }
 }
 
+/* Responsive item count variables */
 :root {
-  --items-per-page: 4;
+  --items-per-page: 5; /* Default to 5 for Wishlist page */
 }
 
 @media (min-width: 1024px) {
   :root {
-    --items-per-page: 4;
+    --items-per-page: 5;
   }
 }
 
 @media (max-width: 1023px) and (min-width: 768px) {
   :root {
-    --items-per-page: 3;
+    --items-per-page: 4;
+  }
+  .wishlist-video-card {
+    width: calc(25% - 8px);
   }
 }
 
 @media (max-width: 767px) {
   :root {
-    --items-per-page: 2;
+    --items-per-page: 3;
+  }
+  .wishlist-video-card {
+    width: calc(33.33% - 8px);
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 600px) {
+  :root {
+    --items-per-page: 2;
+  }
+  .wishlist-video-card {
+    width: calc(50% - 8px);
+  }
+}
+
+@media (max-width: 480px) {
   :root {
     --items-per-page: 1;
   }
+  .wishlist-video-card {
+    width: 100%;
+  }
 }
 
-/* Add these new styles for consistent empty state messages */
+/* Standardized message UI components */
 .empty-state-message {
   display: flex;
   flex-direction: column;
@@ -231,3 +270,14 @@
   font-weight: 500;
 }
 
+/* Maintain the existing no-videos-message for backward compatibility */
+.no-videos-message {
+  text-align: center;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  margin: 20px 0;
+  font-size: 18px;
+  color: #333;
+  font-family: 'Verdana', sans-serif;
+}
