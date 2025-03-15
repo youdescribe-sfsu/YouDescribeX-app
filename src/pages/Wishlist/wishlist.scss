@@ -111,58 +111,80 @@
   }
 }
 
-/* EXACT MATCH FOR HISTORY PAGE BUTTON STYLING */
+/* Fixed carousel styling to match History page */
 .custom-carousel {
   position: relative;
+  min-height: 290px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   overflow: visible;
 }
 
-/* Replicating the exact styling of the History page buttons */
+/* Fixed navigation buttons to match History page */
 .prev-wishlist-icon,
 .next-wishlist-icon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 100%;
-  max-height: 150px;
-  background-color: #5b73e0;
+  width: 4%;
+  height: 25%;
+  background-color: rgb(62, 111, 202);
   border: none;
   color: white;
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
+  font-size: 25px;
+  margin: 15px;
   z-index: 10;
 }
 
 .prev-wishlist-icon {
-  left: 0;
-  border-radius: 0;
+  left: 5%;
 }
 
 .next-wishlist-icon {
-  right: 0;
-  border-radius: 0;
+  right: 5%;
 }
 
-/* Remove any responsive position adjustments - keep them fixed */
-@media (min-width: 768px) {
-  .prev-wishlist-icon,
+/* Match the responsive positioning of History page */
+@media (min-width: 768px) and (max-width: 1150px) {
+  .prev-wishlist-icon {
+    left: 2%;
+  }
+
   .next-wishlist-icon {
-    left: 0;
-    right: 0;
+    right: 2%;
   }
 }
 
+@media (min-width: 1150px) and (max-width: 1250px) {
+  .prev-wishlist-icon {
+    left: 4%;
+  }
+
+  .next-wishlist-icon {
+    right: 4%;
+  }
+}
+
+@media (min-width: 1300px) {
+  .prev-wishlist-icon {
+    left: 8%;
+  }
+
+  .next-wishlist-icon {
+    right: 8%;
+  }
+}
+
+/* Fix items per page values */
 :root {
-  --items-per-page: 4;
+  --items-per-page: 5;
 }
 
 @media (min-width: 1024px) {
   :root {
-    --items-per-page: 4;
+    --items-per-page: 5; /* Keep as 5 for wishlist page */
   }
 }
 
