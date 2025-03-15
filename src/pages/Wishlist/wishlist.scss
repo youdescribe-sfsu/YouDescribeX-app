@@ -1,12 +1,10 @@
-/* Main styling to keep */
+/* Main container styling */
 .wish-list {
-  /* Firefox */
+  /* Ensure consistent height calculations across browsers */
   min-height: -moz-calc(100vh - 54px);
-  /* WebKit */
   min-height: -webkit-calc(100vh - 54px);
-  /* Opera */
   min-height: calc(100vh - 54px);
-  /* Standard */
+
   section {
     margin-bottom: 40px;
   }
@@ -40,12 +38,14 @@
   }
 }
 
+/* Section titles and headers */
 .most-requested-title {
   font-size: 22px;
   font-weight: 400;
   font-family: 'Verdana', sans-serif;
 }
 
+/* Video card styling */
 .wishlist-video-card {
   width: 180px;
   @media screen and (min-width: 601px) {
@@ -53,46 +53,55 @@
   }
 }
 
+/* Video row container */
 .wishlist-video-row {
   display: flex;
   flex-direction: row;
   justify-content: center;
   margin: 0 auto;
   position: relative;
-  width: 90%; /* Constrain width to ensure buttons don't overlap */
-  max-width: 1100px; /* Prevent extreme stretching on wide screens */
+  width: 90%;
+  max-width: 1100px;
 }
 
+/* Table container styling */
 .table-container {
   width: 376px;
   padding: 0 8px 16px 8px;
   margin: 0 auto;
+
   @media screen and (max-width: 601px) {
     width: 97%;
     padding: 0 0 8px 0;
   }
+
   @media screen and (min-width: 601px) {
     width: 90%;
     padding: 0 0 16px 0;
   }
+
   @media screen and (min-width: 1020px) {
     width: 1020px;
   }
 }
 
+/* Search functionality styling */
 .search-container {
   margin-top: 40px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
+
   .search-input {
     width: 100%;
     padding: 6px;
   }
+
   .category-label {
     margin-top: 10px;
   }
+
   .category-select {
     width: 100%;
   }
@@ -102,21 +111,25 @@
   display: flex;
   justify-content: center;
   margin-bottom: 15px;
+
   .search-button {
     font-size: 16px;
+
     @media (min-width: 900px) {
       width: 140px;
     }
+
     @media (min-width: 1050px) {
       width: 200px;
     }
+
     @media screen and (min-width: 1200px) {
       width: 260px;
     }
   }
 }
 
-/* Fixed carousel styling to match History page */
+/* Enhanced carousel styling */
 .custom-carousel {
   position: relative;
   min-height: 290px;
@@ -125,16 +138,17 @@
   align-items: center;
   overflow: visible;
   width: 100%;
+  padding: 0 60px;  /* Create space for navigation buttons */
 }
 
-/* Fixed navigation buttons - positioned OUTSIDE content area */
+/* Navigation buttons styling */
 .prev-wishlist-icon,
 .next-wishlist-icon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px; /* Fixed width instead of percentage */
-  height: 100px; /* Fixed height */
+  width: 40px;
+  height: 100px;
   max-height: 100px;
   background-color: rgb(62, 111, 202);
   border: none;
@@ -145,69 +159,75 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgb(41, 82, 156);
+  }
 }
 
 .prev-wishlist-icon {
-  left: -50px; /* Position outside the content area */
+  left: 10px;
 }
 
 .next-wishlist-icon {
-  right: -50px; /* Position outside the content area */
+  right: 10px;
 }
 
-/* Responsive positioning adjustments */
+/* Responsive navigation adjustments */
 @media (max-width: 1400px) {
   .prev-wishlist-icon {
-    left: -45px;
+    left: 5px;
   }
   .next-wishlist-icon {
-    right: -45px;
+    right: 5px;
   }
 }
 
 @media (max-width: 1200px) {
   .wishlist-video-row {
-    width: 80%; /* Reduce content width to make room for buttons */
-  }
-  .prev-wishlist-icon {
-    left: -40px;
-  }
-  .next-wishlist-icon {
-    right: -40px;
+    width: 85%;
   }
 }
 
 @media (max-width: 992px) {
   .wishlist-video-row {
-    width: 75%;
-  }
-  .prev-wishlist-icon {
-    left: -35px;
-  }
-  .next-wishlist-icon {
-    right: -35px;
+    width: 80%;
   }
 }
 
 @media (max-width: 768px) {
-  .prev-wishlist-icon {
-    left: -30px;
-    width: 30px;
+  .custom-carousel {
+    padding: 0 45px;
   }
+
+  .prev-wishlist-icon,
   .next-wishlist-icon {
-    right: -30px;
-    width: 30px;
+    width: 35px;
+    height: 80px;
   }
 }
 
-/* Fix items per page values */
+@media (max-width: 480px) {
+  .custom-carousel {
+    padding: 0 35px;
+  }
+
+  .prev-wishlist-icon,
+  .next-wishlist-icon {
+    width: 30px;
+    height: 60px;
+  }
+}
+
+/* Items per page configuration */
 :root {
   --items-per-page: 5;
 }
 
 @media (min-width: 1024px) {
   :root {
-    --items-per-page: 5; /* Keep as 5 for wishlist page */
+    --items-per-page: 5;
   }
 }
 
@@ -229,7 +249,7 @@
   }
 }
 
-/* Standardized message components */
+/* Message components styling */
 .empty-state-message {
   display: flex;
   flex-direction: column;
