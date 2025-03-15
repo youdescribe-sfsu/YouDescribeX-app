@@ -1,10 +1,12 @@
-/* Main container styling */
+/* Main styling to keep */
 .wish-list {
-  /* Ensure consistent height calculations across browsers */
+  /* Firefox */
   min-height: -moz-calc(100vh - 54px);
+  /* WebKit */
   min-height: -webkit-calc(100vh - 54px);
+  /* Opera */
   min-height: calc(100vh - 54px);
-
+  /* Standard */
   section {
     margin-bottom: 40px;
   }
@@ -38,14 +40,12 @@
   }
 }
 
-/* Section titles and headers */
 .most-requested-title {
   font-size: 22px;
   font-weight: 400;
   font-family: 'Verdana', sans-serif;
 }
 
-/* Video card styling */
 .wishlist-video-card {
   width: 180px;
   @media screen and (min-width: 601px) {
@@ -53,7 +53,6 @@
   }
 }
 
-/* Video row container */
 .wishlist-video-row {
   display: flex;
   flex-direction: row;
@@ -62,46 +61,39 @@
   position: relative;
   width: 90%;
   max-width: 1100px;
+  padding: 0 50px; /* Add padding for navigation buttons */
 }
 
-/* Table container styling */
 .table-container {
   width: 376px;
   padding: 0 8px 16px 8px;
   margin: 0 auto;
-
   @media screen and (max-width: 601px) {
     width: 97%;
     padding: 0 0 8px 0;
   }
-
   @media screen and (min-width: 601px) {
     width: 90%;
     padding: 0 0 16px 0;
   }
-
   @media screen and (min-width: 1020px) {
     width: 1020px;
   }
 }
 
-/* Search functionality styling */
 .search-container {
   margin-top: 40px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-
   .search-input {
     width: 100%;
     padding: 6px;
   }
-
   .category-label {
     margin-top: 10px;
   }
-
   .category-select {
     width: 100%;
   }
@@ -111,25 +103,21 @@
   display: flex;
   justify-content: center;
   margin-bottom: 15px;
-
   .search-button {
     font-size: 16px;
-
     @media (min-width: 900px) {
       width: 140px;
     }
-
     @media (min-width: 1050px) {
       width: 200px;
     }
-
     @media screen and (min-width: 1200px) {
       width: 260px;
     }
   }
 }
 
-/* Enhanced carousel styling */
+/* Improved carousel styling */
 .custom-carousel {
   position: relative;
   min-height: 290px;
@@ -138,10 +126,10 @@
   align-items: center;
   overflow: visible;
   width: 100%;
-  padding: 0 60px;  /* Create space for navigation buttons */
+  padding: 0 20px; /* Reduced padding to bring navigation closer */
 }
 
-/* Navigation buttons styling */
+/* Navigation buttons with improved positioning */
 .prev-wishlist-icon,
 .next-wishlist-icon {
   position: absolute;
@@ -164,63 +152,92 @@
   &:hover {
     background-color: rgb(41, 82, 156);
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
+/* Position buttons closer to content */
 .prev-wishlist-icon {
-  left: 10px;
+  left: -45px;
 }
 
 .next-wishlist-icon {
-  right: 10px;
+  right: -45px;
 }
 
-/* Responsive navigation adjustments */
+/* Responsive adjustments */
 @media (max-width: 1400px) {
-  .prev-wishlist-icon {
-    left: 5px;
+  .wishlist-video-row {
+    width: 88%;
   }
+
+  .prev-wishlist-icon {
+    left: -40px;
+  }
+
   .next-wishlist-icon {
-    right: 5px;
+    right: -40px;
   }
 }
 
 @media (max-width: 1200px) {
   .wishlist-video-row {
     width: 85%;
+    padding: 0 45px;
+  }
+
+  .prev-wishlist-icon {
+    left: -38px;
+  }
+
+  .next-wishlist-icon {
+    right: -38px;
   }
 }
 
 @media (max-width: 992px) {
   .wishlist-video-row {
     width: 80%;
+    padding: 0 40px;
+  }
+
+  .prev-wishlist-icon {
+    left: -35px;
+  }
+
+  .next-wishlist-icon {
+    right: -35px;
   }
 }
 
 @media (max-width: 768px) {
   .custom-carousel {
-    padding: 0 45px;
+    padding: 0 15px;
   }
 
-  .prev-wishlist-icon,
-  .next-wishlist-icon {
-    width: 35px;
-    height: 80px;
-  }
-}
-
-@media (max-width: 480px) {
-  .custom-carousel {
+  .wishlist-video-row {
     padding: 0 35px;
   }
 
   .prev-wishlist-icon,
   .next-wishlist-icon {
-    width: 30px;
-    height: 60px;
+    width: 32px;
+    height: 80px;
+  }
+
+  .prev-wishlist-icon {
+    left: -32px;
+  }
+
+  .next-wishlist-icon {
+    right: -32px;
   }
 }
 
-/* Items per page configuration */
+/* Fix items per page values */
 :root {
   --items-per-page: 5;
 }
@@ -249,7 +266,7 @@
   }
 }
 
-/* Message components styling */
+/* Message components */
 .empty-state-message {
   display: flex;
   flex-direction: column;
