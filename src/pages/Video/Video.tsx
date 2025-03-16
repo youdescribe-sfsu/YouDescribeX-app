@@ -528,7 +528,11 @@ const Video = () => {
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
           html5: true,
+          preload: true, // Ensure preloading
+          autoplay: false,
         })
+        clip.clip_audio.load()
+
         clipStackData.push(clip)
       }
     }
@@ -696,8 +700,26 @@ const Video = () => {
           }
 
           console.debug(`Seeking to ${seekTime} seconds`)
-          currentAudio?.seek(seekTime)
-          currentAudio?.play()
+
+          // Check if audio is loaded and play with a small buffer delay
+          if (currentAudio?.state() === 'loaded') {
+            currentAudio.seek(seekTime)
+            // Add small delay before playing to prevent start cutoff
+            setTimeout(() => {
+              currentAudio.play()
+              currentAudio.volume(descriptionVolumeRef.current / 100)
+            }, 50)
+          } else {
+            // Wait for audio to load first
+            currentAudio?.once('load', function () {
+              currentAudio.seek(seekTime)
+              setTimeout(() => {
+                currentAudio.play()
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+              }, 50)
+            })
+          }
+
           setCurrInlineAC(currentAudio)
 
           setPlayedAudioClip(currentFilteredClip.clip_id)
@@ -783,9 +805,26 @@ const Video = () => {
               // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
               const currentAudio = currentFilteredClip.clip_audio
               currentEvent?.pauseVideo()
-              if (!currentAudio?.playing()) {
-                currentAudio?.play()
+              if (currentAudio?.state() === 'loaded') {
+                // Add small delay before playing to prevent start cutoff
+                setTimeout(() => {
+                  if (!currentAudio.playing()) {
+                    currentAudio.play()
+                    currentAudio.volume(descriptionVolumeRef.current / 100)
+                  }
+                }, 50)
+              } else {
+                // Wait for audio to load first
+                currentAudio?.once('load', function () {
+                  setTimeout(() => {
+                    if (!currentAudio.playing()) {
+                      currentAudio.play()
+                      currentAudio.volume(descriptionVolumeRef.current / 100)
+                    }
+                  }, 50)
+                })
               }
+
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
               currentEvent?.pauseVideo()
@@ -978,7 +1017,11 @@ const Video = () => {
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
           html5: true,
+          preload: true, // Ensure preloading
+          autoplay: false,
         })
+        clip.clip_audio.load()
+
         clipStackData.push(clip)
       }
     }
