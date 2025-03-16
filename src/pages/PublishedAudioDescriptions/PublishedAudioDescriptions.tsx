@@ -460,7 +460,13 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             clip.clip_audio = new Howl({
               src: clip.clip_audio_path,
               html5: true,
+              preload: true, // Ensure preloading
+              autoplay: false,
             })
+
+            // Force the clip to start loading immediately
+            clip.clip_audio.load()
+
             clipStackData.push(clip)
           }
           setClipStack(clipStackData)
@@ -553,25 +559,50 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             setPlayedClipPath(clipAudioPath)
             // when an audio clip is playing, that particular Audio Clip component will be opened up - UX Improvement
             const currentAudio = currentFilteredClip.clip_audio
-            // console.log('Playing inline clip')
-            if (
-              currentAudio?.playing() ||
-              currentInlineACRef.current?.playing()
-              // currentFilteredClip.clip_id === clipIDRef.current
-            ) {
-              // console.log('Clip is already playing')
-              return
-            }
-            // console.log(
-            //   'Seeking to',
-            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
-            //   'seconds',
-            // )
 
-            currentAudio?.seek(
-              currentTimeRef.current - currentFilteredClip.clip_start_time,
-            )
-            currentAudio?.play()
+            const seekPosition =
+              currentTimeRef.current - currentFilteredClip.clip_start_time
+
+            // console.log('Playing inline clip')
+            // if (
+            //   currentAudio?.playing() ||
+            //   currentInlineACRef.current?.playing()
+            //   // currentFilteredClip.clip_id === clipIDRef.current
+            // ) {
+            //   // console.log('Clip is already playing')
+            //   return
+            // }
+            // // console.log(
+            // //   'Seeking to',
+            // //   currentTimeRef.current - currentFilteredClip.clip_start_time,
+            // //   'seconds',
+            // // )
+            //
+            // currentAudio?.seek(
+            //   currentTimeRef.current - currentFilteredClip.clip_start_time,
+            // )
+            // currentAudio?.play()
+            // // see onStateChange() - storing current inline clip.
+            // setCurrInlineAC(currentAudio)
+
+            if (currentAudio?.state() === 'loaded') {
+              currentAudio.seek(seekPosition)
+              // Add small delay before playing to prevent start cutoff
+              setTimeout(() => {
+                currentAudio.play()
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+              }, 50)
+            } else {
+              // Wait for audio to load first
+              currentAudio?.once('load', function () {
+                currentAudio.seek(seekPosition)
+                setTimeout(() => {
+                  currentAudio.play()
+                  currentAudio.volume(descriptionVolumeRef.current / 100)
+                }, 50)
+              })
+            }
+
             // see onStateChange() - storing current inline clip.
             setCurrInlineAC(currentAudio)
 
@@ -636,9 +667,28 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               setEditComponentToggleFunc(currentFilteredClip.clip_id, true)
               const currentAudio = currentFilteredClip.clip_audio
               currentEvent?.pauseVideo()
-              if (!currentAudio?.playing()) {
-                currentAudio?.play()
+
+              // Check if audio is loaded and play with a small buffer delay
+              if (currentAudio?.state() === 'loaded') {
+                // Add small delay before playing to prevent start cutoff
+                setTimeout(() => {
+                  if (!currentAudio.playing()) {
+                    currentAudio.play()
+                    currentAudio.volume(descriptionVolumeRef.current / 100)
+                  }
+                }, 50)
+              } else {
+                // Wait for audio to load first
+                currentAudio?.once('load', function () {
+                  setTimeout(() => {
+                    if (!currentAudio.playing()) {
+                      currentAudio.play()
+                      currentAudio.volume(descriptionVolumeRef.current / 100)
+                    }
+                  }, 50)
+                })
               }
+
               // see onStateChange() - storing current Extended Clip
               setCurrExtendedAC(currentAudio)
               // Add a new clip to the stack
@@ -872,7 +922,13 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
           html5: true,
+          preload: true, // Ensure preloading
+          autoplay: false,
         })
+
+        // Force the clip to start loading immediately
+        clip.clip_audio.load()
+
         clipStackData.push(clip)
       }
     }
