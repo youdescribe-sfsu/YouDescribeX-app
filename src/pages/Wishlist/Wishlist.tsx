@@ -496,6 +496,7 @@ const Wishlist = () => {
   const wishlistUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-user-wishlist`
   const aiRequestedUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-All-AI-descriptions`
 
+  // In the useEffect where we read URL parameters
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
 
@@ -513,8 +514,9 @@ const Wishlist = () => {
     // Initialize states from URL parameters
     setSearch(searchParam)
 
+    let categoryValues: string[] = []
     if (categoriesParam) {
-      const categoryValues = categoriesParam.split(',')
+      categoryValues = categoriesParam.split(',')
       setSelectedCategories(categoryValues)
     } else {
       setSelectedCategories([])
@@ -526,12 +528,15 @@ const Wishlist = () => {
     const parsedPerPage = perPageParam ? parseInt(perPageParam, 10) : 10
     setPerPage(parsedPerPage)
 
-    // Load data with these parameters
+    // IMPORTANT: Pass the extracted values directly to loadTableVideos
+    // instead of relying on the state variables which update asynchronously
     loadTableVideos(
       parsedPage,
       parsedPerPage,
       sortFieldParam || '',
       sortDirectionParam || '',
+      searchParam, // Pass search directly
+      categoryValues, // Pass categories directly
     )
 
     loadTopVideos()
@@ -548,16 +553,23 @@ const Wishlist = () => {
       aiRequestedUrl,
       setrecentAIRequested,
     )
-  }, [searchParams, userDataStore.getState().userId]) // Added searchParams to dependencies
+  }, [searchParams, userDataStore.getState().userId])
 
   const loadTableVideos = (
     pageNumber: number,
     rowsPerPage: number,
     column = '',
     sortDirection = '',
+    searchParam?: string,
+    categoryValues?: string[],
   ) => {
+    // Use provided parameters or fall back to state values
+    const searchValue = searchParam !== undefined ? searchParam : search
+    const categoryValue =
+      categoryValues !== undefined ? categoryValues : selectedCategories
+
     // Create a cache key from search parameters
-    const cacheKey = `${search}_${selectedCategories.join(
+    const cacheKey = `${searchValue}_${categoryValue.join(
       ',',
     )}_${pageNumber}_${rowsPerPage}_${column}_${sortDirection}`
 
@@ -582,8 +594,8 @@ const Wishlist = () => {
         {
           page: pageNumber,
           limit: rowsPerPage,
-          search: search,
-          category: selectedCategories,
+          search: searchValue,
+          category: categoryValue,
           sortField: column,
           sort: sortDirection,
         },
