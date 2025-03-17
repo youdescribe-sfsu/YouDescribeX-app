@@ -7,17 +7,14 @@ import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardFormat'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
-import ourFetch from '@/shared/utils/ourFetch'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import './UserDescribedVideos.css'
 import YouTubeService from '@/shared/utils/YouTubeService'
 
 const UserDescribedVideos = () => {
   const [showSpinner, setShowSpinner] = useState(true)
-  const [userName, setUserName] = useState('')
-  const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
   const [videosDraft, setVideosDraft] = useState<any[]>([])
@@ -64,16 +61,6 @@ const UserDescribedVideos = () => {
     handleView(videoId) // Update the timestamp in localStorage for this video
     const sortedVideos = sortByLastViewed(videos) // Sort videos based on updated timestamps
     setVideos(sortedVideos) // Update the state with the sorted videos
-  }
-
-  const getUserInfo = async () => {
-    const url = `${apiUrl}/users/${userId}`
-    ourFetch(url).then((response) => {
-      if (response.result) {
-        const user = response.result
-        setUserName(user.name)
-      }
-    })
   }
 
   const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
@@ -178,6 +165,7 @@ const UserDescribedVideos = () => {
     page: number,
   ) => {
     const videoComponents = []
+    // Determine which collection of videos we're working with
     const existingVideos =
       setStateFunction === setVideos
         ? videos
@@ -225,6 +213,7 @@ const UserDescribedVideos = () => {
       ...videoComponents,
     ])
 
+    // Determine which state setter to use based on which category we're processing
     const loadMoreFlag =
       setStateFunction === setVideos
         ? setShowLoadMoreButton
@@ -232,7 +221,9 @@ const UserDescribedVideos = () => {
         ? setShowLoadMoreAIButton
         : setShowLoadMoreDraftButton
 
-    loadMoreFlag(videos.length > 0 && totalVideos > page * 20)
+    // FIX: Use the correct total count based on the current category and compare with updatedVideos.length
+    const currentTotal = updatedVideos.length
+    loadMoreFlag(currentTotal > 0 && totalVideos > currentTotal)
 
     const loadMoreSpinnerFlag =
       setStateFunction === setVideos
@@ -303,7 +294,6 @@ const UserDescribedVideos = () => {
 
   useEffect(() => {
     if (userId) {
-      getUserInfo()
       getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
     }
   }, [userId, currentPage])
