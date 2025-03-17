@@ -125,6 +125,8 @@ const Wishlist = () => {
     [],
   )
   const [showSpinner, setShowSpinner] = useState(true)
+  // Add search cache state
+  const [searchCache, setSearchCache] = useState<{ [key: string]: any }>({})
 
   const cancelRequest = useRef<CancelTokenSource | null>(null)
 
@@ -232,6 +234,61 @@ const Wishlist = () => {
     } catch (error) {
       console.error('Error fetching video details:', error)
       throw error
+    }
+  }
+
+  // Function to restore the last state from session storage
+  const restoreLastState = () => {
+    const lastStateString = sessionStorage.getItem('wishlistLastState')
+    if (lastStateString) {
+      try {
+        const lastState = JSON.parse(lastStateString)
+
+        // Update URL parameters if they're not already set
+        setSearchParams((params) => {
+          let paramsChanged = false
+
+          if (lastState.search && !params.has('search')) {
+            params.set('search', lastState.search)
+            paramsChanged = true
+          }
+
+          if (
+            lastState.selectedCategories?.length &&
+            !params.has('categories')
+          ) {
+            params.set('categories', lastState.selectedCategories.join(','))
+            paramsChanged = true
+          }
+
+          if (lastState.currentPageNumber && !params.has('page')) {
+            params.set('page', lastState.currentPageNumber.toString())
+            paramsChanged = true
+          }
+
+          if (lastState.perPage && !params.has('perPage')) {
+            params.set('perPage', lastState.perPage.toString())
+            paramsChanged = true
+          }
+
+          if (lastState.sortField && !params.has('sortField')) {
+            params.set('sortField', lastState.sortField)
+            paramsChanged = true
+          }
+
+          if (lastState.sortDirection && !params.has('sortDirection')) {
+            params.set('sortDirection', lastState.sortDirection)
+            paramsChanged = true
+          }
+
+          return paramsChanged ? params : params
+        })
+
+        // Clear the stored state
+        sessionStorage.removeItem('wishlistLastState')
+      } catch (error) {
+        console.error('Error restoring last state:', error)
+      }
     }
   }
 
@@ -393,6 +450,19 @@ const Wishlist = () => {
 
   const describeThisVideo = (youTubeId: string) => {
     if (userDataStore.getState().isSignedIn) {
+      // Store the current state before navigating
+      sessionStorage.setItem(
+        'wishlistLastState',
+        JSON.stringify({
+          search,
+          selectedCategories,
+          currentPageNumber,
+          perPage,
+          sortField: searchParams.get('sortField') || '',
+          sortDirection: searchParams.get('sortDirection') || '',
+        }),
+      )
+
       axios
         .post(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-new-user-ad`,
@@ -429,18 +499,25 @@ const Wishlist = () => {
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
 
+    // Try to restore the last state if available
+    restoreLastState()
+
     // Get parameters from URL
     const searchParam = searchParams.get('search') || ''
     const categoriesParam = searchParams.get('categories')
     const pageParam = searchParams.get('page')
     const perPageParam = searchParams.get('perPage')
+    const sortFieldParam = searchParams.get('sortField')
+    const sortDirectionParam = searchParams.get('sortDirection')
 
     // Initialize states from URL parameters
-    if (searchParam) setSearch(searchParam)
+    setSearch(searchParam)
 
     if (categoriesParam) {
       const categoryValues = categoriesParam.split(',')
       setSelectedCategories(categoryValues)
+    } else {
+      setSelectedCategories([])
     }
 
     const parsedPage = pageParam ? parseInt(pageParam, 10) : 1
@@ -450,7 +527,13 @@ const Wishlist = () => {
     setPerPage(parsedPerPage)
 
     // Load data with these parameters
-    loadTableVideos(parsedPage, parsedPerPage)
+    loadTableVideos(
+      parsedPage,
+      parsedPerPage,
+      sortFieldParam || '',
+      sortDirectionParam || '',
+    )
+
     loadTopVideos()
 
     fetchAndSetVideosData(
@@ -465,7 +548,7 @@ const Wishlist = () => {
       aiRequestedUrl,
       setrecentAIRequested,
     )
-  }, [userDataStore.getState().userId])
+  }, [searchParams, userDataStore.getState().userId]) // Added searchParams to dependencies
 
   const loadTableVideos = (
     pageNumber: number,
@@ -473,6 +556,25 @@ const Wishlist = () => {
     column = '',
     sortDirection = '',
   ) => {
+    // Create a cache key from search parameters
+    const cacheKey = `${search}_${selectedCategories.join(
+      ',',
+    )}_${pageNumber}_${rowsPerPage}_${column}_${sortDirection}`
+
+    // Check if we have cached results
+    if (searchCache[cacheKey]) {
+      console.log('Using cached search results')
+      const { wishListItems, totalItems } = searchCache[cacheKey]
+      setTotalRows(totalItems)
+
+      const { youTubeIds, votes, categories, updatedAt, aiRequested } =
+        wishListItems
+      YouTubeService.getVideoDetails(youTubeIds).then((videoDetails) => {
+        parseTableData(videoDetails, votes, categories, updatedAt, aiRequested)
+      })
+      return
+    }
+
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-all-wishlist`
     axios
       .post(
@@ -494,15 +596,17 @@ const Wishlist = () => {
       )
       .then((response) => {
         const wishListItems = response.data.data
-        setTotalRows(response.data.totalItems)
-        // const wishListItems = responseData.data
-        // setTotalRows(responseData.totalItems)
-        const youTubeIds = []
+        const totalItems = response.data.totalItems
+        setTotalRows(totalItems)
+
+        // Cache the search results
+        const youTubeIds: any[] = []
         const youDescribeIds = []
-        const votes = []
-        const updatedAt = []
-        const categories = []
-        const aiRequested = []
+        const votes: any[] = []
+        const updatedAt: any[] = []
+        const categories: any[] = []
+        const aiRequested: any[] = []
+
         for (let i = 0; i < wishListItems.length; i += 1) {
           youTubeIds.push(wishListItems[i].youtube_id)
           youDescribeIds.push(wishListItems[i]._id)
@@ -511,6 +615,21 @@ const Wishlist = () => {
           categories.push(wishListItems[i].category)
           aiRequested.push(wishListItems[i].aiRequested)
         }
+
+        setSearchCache((prevCache) => ({
+          ...prevCache,
+          [cacheKey]: {
+            wishListItems: {
+              youTubeIds,
+              votes,
+              updatedAt,
+              categories,
+              aiRequested,
+            },
+            totalItems,
+          },
+        }))
+
         return { youTubeIds, votes, categories, updatedAt, aiRequested }
       })
       .then(({ youTubeIds, votes, categories, updatedAt, aiRequested }) => {
@@ -524,7 +643,8 @@ const Wishlist = () => {
           )
         })
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('Error fetching wishlist data:', error)
         setTotalRows(0)
         setRows([])
       })
