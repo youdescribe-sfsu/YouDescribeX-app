@@ -16,7 +16,7 @@ import React, {
   useState,
 } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Id } from 'react-toastify'
+import { Id, toast } from 'react-toastify'
 import YouTube from 'react-youtube'
 import { Options, YouTubePlayer } from 'youtube-player/dist/types'
 import './video.scss'
@@ -36,7 +36,6 @@ import RatingPopup from '@/features/Video/RatingPopup/RatingPopup'
 import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
 import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
-import { toast } from 'react-toastify'
 import axios from 'axios'
 import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
@@ -113,7 +112,6 @@ const Video = () => {
   const [videoViews, setVideoViews] = useState('')
   const [videoLikes, setVideoLikes] = useState('')
   const [videoDurationInSeconds, setVideoDurationInSeconds] = useState(0)
-  const [, setVideoDurationToDisplay] = useState('')
 
   // Balancer value for volume controls
   const [descriptionVolume, setDescriptionVolume] = useState(
@@ -124,6 +122,7 @@ const Video = () => {
   )
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
+  const historyTracked = useRef(false)
 
   //
   // YDX STATE VARIABLES
@@ -179,7 +178,7 @@ const Video = () => {
     requested: false,
   })
 
-  const [buttonLoading, setButtonLoading] = useState(false)
+  const [, setButtonLoading] = useState(false)
   const toastId = React.useRef<null | Id>(null)
 
   const [isAiRequestPending, setIsAiRequestPending] = useState(false)
@@ -315,6 +314,19 @@ const Video = () => {
       fetchVideoData()
     }
   }, [])
+
+  useEffect(() => {
+    if (
+      videoId &&
+      videoTitle &&
+      !historyTracked.current &&
+      userDataStore.getState().isSignedIn
+    ) {
+      console.log('Attempting to save video to history:', videoId)
+      saveVideoToHistory(videoId)
+      historyTracked.current = true
+    }
+  }, [videoId, videoTitle])
 
   useEffect(() => {
     if (userDataStore.getState().isSignedIn) {
@@ -618,6 +630,20 @@ const Video = () => {
       setShowSpinner(false)
     }
   }, [audioDescriptionsIdsAudioClips, clipStack, clipStackSize, selectedADId])
+
+  useEffect(() => {
+    return () => {
+      // If component unmounts before history is saved, try to save it
+      if (
+        !historyTracked.current &&
+        videoId &&
+        userDataStore.getState().isSignedIn
+      ) {
+        console.log('Saving history on unmount')
+        saveVideoToHistory(videoId)
+      }
+    }
+  }, [videoId])
 
   //
   //
@@ -991,6 +1017,10 @@ const Video = () => {
         ),
       )
     }
+    if (!historyTracked.current && videoId) {
+      saveVideoToHistory(videoId)
+      historyTracked.current = true
+    }
   }
   const onPause = (event: any) => {
     event.target.pauseVideo()
@@ -1029,7 +1059,10 @@ const Video = () => {
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex])
 
-  const saveVideoToHistory = async (videoId: string): Promise<boolean> => {
+  const saveVideoToHistory = async (
+    videoId: string,
+    retryCount = 0,
+  ): Promise<boolean> => {
     if (!userDataStore.getState().isSignedIn || !videoId) {
       return false
     }
@@ -1049,9 +1082,20 @@ const Video = () => {
         },
       )
 
+      console.log('History updated successfully for video:', videoId)
       return response.status === 201
     } catch (error) {
       console.error('Error saving video history:', error)
+
+      // Retry logic - attempt up to 3 retries with exponential backoff
+      if (retryCount < 3) {
+        const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s, 4s
+        console.log(`Retrying history update in ${delay}ms...`)
+
+        setTimeout(() => {
+          saveVideoToHistory(videoId, retryCount + 1)
+        }, delay)
+      }
       return false
     }
   }
@@ -1205,27 +1249,6 @@ const Video = () => {
       audioDescriptionsIdsAudioClips,
     )
   }
-  const handleTest = (describerId: string) => {
-    if (currentInlineACRef.current?.playing()) {
-      currentInlineACRef.current?.pause()
-    }
-    if (currentExtendedACRef.current?.playing()) {
-      currentExtendedACRef.current?.pause()
-    }
-    setCurrExtendedAC(undefined)
-    setCurrInlineAC(undefined)
-    currentEventRef.current?.pauseVideo()
-    setSelectedADId(describerId)
-    setSearchParams((params) => {
-      if (describerId) params.set('ad', describerId)
-      return params
-    })
-    setAudioDescriptionActive(
-      audioDescriptionsIdsUsers,
-      audioDescriptionsIdsAudioClips,
-    )
-  }
-
   const handleTurnOffDescriptions = () => {
     if (currentInlineACRef.current?.playing()) {
       currentInlineACRef.current?.pause()
@@ -1646,37 +1669,6 @@ const Video = () => {
     // Close the language selector modal
     setShowLanguageSelector(false)
   }
-
-  const handlePreviewAudioDescription = async () => {
-    try {
-      setButtonLoading(true)
-      if (requestAiDescription && requestAiDescription.aiDescriptionId)
-        navigate(
-          `/audio-description/preview/${videoId}/${requestAiDescription.aiDescriptionId}`,
-        )
-    } catch (error) {
-      if (toastId.current) toast.dismiss(toastId.current)
-      toast.error('Something went wrong, please try again later')
-      // console.log(error)
-    } finally {
-      setButtonLoading(false)
-    }
-  }
-
-  const disableGoToDescription = () => {
-    for (const describerId in audioDescriptionsIdsUsers) {
-      const ad = audioDescriptionsIdsUsers[describerId]
-      if (
-        ad.contributions &&
-        ad.prev_audio_description == requestAiDescription.aiDescriptionId &&
-        ad.user._id.toString() == userDataStore.getState().userId.toString()
-      ) {
-        return true
-      }
-    }
-    return false
-  }
-
   const DescriptionButtons = () => {
     const getAiButtonText = () => {
       if (isAiRequestPending) return translate('Processing...')
@@ -1910,13 +1902,6 @@ const Video = () => {
                 color="w3-indigo w3-block w3-margin-top"
                 onClick={() => upVote()}
               />
-              {/* <Button
-                title={translate('Add a new description for this video')}
-                text={translate('Add Freestyle Description')}
-                ariaLabel="Add a new description for this video"
-                color="w3-yellow w3-block w3-margin-top"
-                onClick={() => handleAddDescription()}
-              /> */}
               <DescriptionButtons />
             </div>
           </div>
