@@ -13,6 +13,7 @@ import './wishlist.scss'
 import { toast } from 'react-toastify'
 import parseISO8601Duration from '@/shared/utils/convertISO8601ToTime'
 import YouTubeService from '@/shared/utils/YouTubeService'
+import { useSearchParams } from 'react-router-dom'
 
 interface VideosState {
   data: any[]
@@ -118,6 +119,7 @@ const Wishlist = () => {
   const [, setRecentAIRequestedSpinner] = useState(true) // For loading state
 
   const [, setShowWishlistSpinner] = useState(true)
+  const [searchParams, setSearchParams] = useSearchParams()
   const [rows, setRows] = useState<any[]>([])
   const [videoCardsComponents, setVideoCardsComponents] = useState<ReactNode[]>(
     [],
@@ -423,9 +425,32 @@ const Wishlist = () => {
 
   const wishlistUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-user-wishlist`
   const aiRequestedUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-All-AI-descriptions`
+
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
-    loadTableVideos(currentPageNumber, perPage)
+
+    // Get parameters from URL
+    const searchParam = searchParams.get('search') || ''
+    const categoriesParam = searchParams.get('categories')
+    const pageParam = searchParams.get('page')
+    const perPageParam = searchParams.get('perPage')
+
+    // Initialize states from URL parameters
+    if (searchParam) setSearch(searchParam)
+
+    if (categoriesParam) {
+      const categoryValues = categoriesParam.split(',')
+      setSelectedCategories(categoryValues)
+    }
+
+    const parsedPage = pageParam ? parseInt(pageParam, 10) : 1
+    setCurrentPageNumber(parsedPage)
+
+    const parsedPerPage = perPageParam ? parseInt(perPageParam, 10) : 10
+    setPerPage(parsedPerPage)
+
+    // Load data with these parameters
+    loadTableVideos(parsedPage, parsedPerPage)
     loadTopVideos()
 
     fetchAndSetVideosData(
@@ -663,6 +688,11 @@ const Wishlist = () => {
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value)
+    // Update URL with search parameter
+    setSearchParams((params) => {
+      params.set('search', event.target.value)
+      return params
+    })
   }
 
   const handleCategoryChange = (
@@ -670,15 +700,34 @@ const Wishlist = () => {
   ) => {
     const values = Array.from(selectedCategories, (option) => option.value)
     setSelectedCategories(values)
+    // Update URL with categories parameter
+    setSearchParams((params) => {
+      if (values.length > 0) {
+        params.set('categories', values.join(','))
+      } else {
+        params.delete('categories')
+      }
+      return params
+    })
   }
 
   const handlePageChange = (page: number) => {
     setCurrentPageNumber(page)
+    // Update URL with page parameter
+    setSearchParams((params) => {
+      params.set('page', page.toString())
+      return params
+    })
     loadTableVideos(page, perPage)
   }
 
   const handlePerRowsChange = (newPerPage: number) => {
     setPerPage(newPerPage)
+    // Update URL with perPage parameter
+    setSearchParams((params) => {
+      params.set('perPage', newPerPage.toString())
+      return params
+    })
     loadTableVideos(currentPageNumber, newPerPage)
   }
 
@@ -855,6 +904,10 @@ const Wishlist = () => {
               placeholder="All"
               isMulti
               onChange={handleCategoryChange}
+              value={selectedCategories.map((cat) => ({
+                value: cat,
+                label: cat,
+              }))}
             />
           </div>
           <span className="search-label">Wishlist Search</span>
@@ -887,10 +940,23 @@ const Wishlist = () => {
           paginationTotalRows={totalRows}
           onChangePage={(page) => handlePageChange(page)}
           onSort={(column, direction) => {
+            // Update URL with sort parameters
+            setSearchParams((params) => {
+              if (column.sortField) {
+                params.set('sortField', column.sortField.toString())
+                params.set('sortDirection', direction)
+              } else {
+                params.delete('sortField')
+                params.delete('sortDirection')
+              }
+              return params
+            })
             loadTableVideos(0, perPage, column.sortField, direction)
           }}
           sortServer
           onChangeRowsPerPage={(newPerPage) => handlePerRowsChange(newPerPage)}
+          defaultSortFieldId={searchParams.get('sortField') || undefined}
+          defaultSortAsc={searchParams.get('sortDirection') === 'asc'}
           customStyles={{
             cells: {
               style: {
