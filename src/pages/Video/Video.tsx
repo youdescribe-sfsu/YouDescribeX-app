@@ -322,7 +322,6 @@ const Video = () => {
       !historyTracked.current &&
       userDataStore.getState().isSignedIn
     ) {
-      console.log('Attempting to save video to history:', videoId)
       saveVideoToHistory(videoId)
       historyTracked.current = true
     }
@@ -407,38 +406,23 @@ const Video = () => {
             prev_audio_description: ad.prev_audio_description,
             depth: ad.depth,
           }
-          console.log(`User data for ${ad._id}:`, adIdsUsers[ad._id])
         } else {
-          console.log(`Updating existing entry for adId: ${ad._id}`)
-          // Update existing entry's name
           adIdsUsers[ad._id].name =
             ad.user?.user_type === 'AI'
               ? 'AI Description Draft'
               : ad.user?.name || 'Unknown'
-          console.log(`Updated name for ${ad._id}:`, adIdsUsers[ad._id].name)
         }
 
         // Initialize adIdsAudioClips[adId]
         adIdsAudioClips[ad._id] = []
 
         if (Array.isArray(ad.audio_clips) && ad.audio_clips.length > 0) {
-          console.log(
-            `Processing ${ad.audio_clips.length} audio clips for adId: ${ad._id}`,
-          )
-
           ad.audio_clips.forEach((audioClip, clipIndex) => {
-            console.log(`Processing audio clip ${clipIndex + 1}:`, audioClip)
-
             if (!audioClip || typeof audioClip !== 'object') {
-              console.warn('Invalid audio clip object:', audioClip)
               return // Skip this audio clip
             }
 
             if (!audioClip.file_path || !audioClip.file_name) {
-              console.warn(
-                'Missing file_path or file_name for audioClip:',
-                audioClip,
-              )
               return // Skip this audio clip
             }
 
@@ -451,17 +435,11 @@ const Video = () => {
               ...audioClip,
               url: clipUrl,
             })
-
-            console.log(`Added audio clip with URL: ${clipUrl}`)
           })
         } else {
           console.log(`No audio clips found for adId: ${ad._id}`)
         }
       })
-
-      console.log('Final adIds:', adIds)
-      console.log('Final adIdsUsers:', adIdsUsers)
-      console.log('Final adIdsAudioClips:', adIdsAudioClips)
 
       setAudioDescriptionsIds(adIds)
       setAudioDescriptionsIdsUsers(adIdsUsers)
@@ -564,7 +542,6 @@ const Video = () => {
     YouTubeService.getVideoDetails(videoId)
       .then((videoDetails) => {
         if (!videoDetails || videoDetails.length === 0) {
-          console.log('Video Unavailable!')
           alert('Video Unavailable!')
           setShowSpinner(false)
           return
@@ -639,7 +616,6 @@ const Video = () => {
         videoId &&
         userDataStore.getState().isSignedIn
       ) {
-        console.log('Saving history on unmount')
         saveVideoToHistory(videoId)
       }
     }
@@ -1082,7 +1058,6 @@ const Video = () => {
         },
       )
 
-      console.log('History updated successfully for video:', videoId)
       return response.status === 201
     } catch (error) {
       console.error('Error saving video history:', error)
@@ -1090,7 +1065,6 @@ const Video = () => {
       // Retry logic - attempt up to 3 retries with exponential backoff
       if (retryCount < 3) {
         const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s, 4s
-        console.log(`Retrying history update in ${delay}ms...`)
 
         setTimeout(() => {
           saveVideoToHistory(videoId, retryCount + 1)
@@ -1181,7 +1155,6 @@ const Video = () => {
     for (const describerId of Object.keys(ads)) {
       const adUserId = ads[describerId].user._id
       const prevAdId = ads[describerId].prev_audio_description
-      console.log(ads[describerId].user._id)
 
       if (adUserId === userId && prevAdId === selectedId) {
         return false
