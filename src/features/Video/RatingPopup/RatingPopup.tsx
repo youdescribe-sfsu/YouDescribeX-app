@@ -26,6 +26,9 @@ const RatingPopup = ({
     const fetchUserRating = async () => {
       try {
         const userId = userDataStore.getState().userId
+        if (!audioDescriptionId || !userId) {
+          return
+        }
         const url = `${apiUrl}/audio-descriptions/ratings/user/${audioDescriptionId}?userId=${userId}`
         const response = await ourFetch(url)
         setUserRating(response.result)
