@@ -40,27 +40,8 @@ const UserDescribedVideos = () => {
     localStorage.setItem('recentViews', JSON.stringify(recentViews))
   }
 
-  const sortByLastViewed = (videos: JSX.Element[]): JSX.Element[] => {
-    const recentViews = JSON.parse(localStorage.getItem('recentViews') || '{}')
-
-    // Sort videos based on their `lastViewed` timestamp in `recentViews`
-    const sortedVideos = videos.slice().sort((a, b) => {
-      const youTubeIdA = a.props.children.props.youTubeId
-      const youTubeIdB = b.props.children.props.youTubeId
-
-      const lastViewedA = recentViews[youTubeIdA] || 0
-      const lastViewedB = recentViews[youTubeIdB] || 0
-
-      return lastViewedB - lastViewedA // Sort by most recent timestamp first
-    })
-
-    return sortedVideos
-  }
-
   const onVideoClick = (videoId: string) => {
-    handleView(videoId) // Update the timestamp in localStorage for this video
-    const sortedVideos = sortByLastViewed(videos) // Sort videos based on updated timestamps
-    setVideos(sortedVideos) // Update the state with the sorted videos
+    handleView(videoId)
   }
 
   const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
@@ -208,10 +189,7 @@ const UserDescribedVideos = () => {
       )
     }
 
-    const updatedVideos = sortByLastViewed([
-      ...existingVideos,
-      ...videoComponents,
-    ])
+    const updatedVideos = [...existingVideos, ...videoComponents]
 
     // Determine which state setter to use based on which category we're processing
     const loadMoreFlag =
