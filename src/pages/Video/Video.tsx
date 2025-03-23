@@ -59,6 +59,13 @@ interface IADUserId {
     depth: number
   }
 }
+interface SpeechRecognitionEvent extends Event {
+  readonly results: SpeechRecognitionResultList
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  readonly error: string
+}
 
 const Video = () => {
   const { videoId } = useParams()
@@ -1634,27 +1641,27 @@ const Video = () => {
     console.log('Checking youtube video id', videoId)
     console.log('Checking timestamp', currentEventRef.current?.getCurrentTime())
     // Api call for getting ai description
-    // try {
-    //   const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/get-ai-description`
-    //   const response = await axios.post(
-    //     url,
-    //     {
-    //       youtubeVideoId: videoId,
-    //       timeStamp: currentEventRef.current?.getCurrentTime(),
-    //     },
-    //     {
-    //       withCredentials: true,
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //     },
-    //   )
-    //   const data = response.data
-    //   return data
-    // } catch (error) {
-    //   // console.log(error)
-    //   toast.error('Something went wrong, please try again later')
-    // }
+    try {
+      const url = `http://localhost:4001/api/users/info-bot`
+      const response = await axios.post(
+        url,
+        {
+          youtubeVideoId: videoId,
+          timeStamp: currentEventRef.current?.getCurrentTime(),
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = response.data
+      return data
+    } catch (error) {
+      // console.log(error)
+      toast.error('Something went wrong, please try again later')
+    }
     try {
       // mock API response
       return new Promise((resolve) => {
@@ -1684,12 +1691,12 @@ const Video = () => {
       recognition.interimResults = false
       recognition.maxAlternatives = 1
 
-      recognition.onresult = (event) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         const spokenText = event.results[0][0].transcript
         resolve(spokenText)
       }
 
-      recognition.onerror = (event) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', event.error)
         reject('Could not recognize speech.')
       }
@@ -1732,28 +1739,28 @@ const Video = () => {
     console.log('Checking timestamp', currentEventRef.current?.getCurrentTime())
 
     // Fetch AI answer api call
-    // try {
-    //   const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/fetch-ai-answer`
-    //   const response = await axios.post(
-    //     url,
-    //     {
-    //       youtubeVideoId: videoId,
-    //       question: normalizedQuestion,
-    //       timeStamp: currentEventRef.current?.getCurrentTime(),
-    //     },
-    //     {
-    //       withCredentials: true,
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //     },
-    //   )
-    //   const data = response.data
-    //  return data
-    // } catch (error) {
-    //   // console.log(error)
-    //   toast.error('Something went wrong, please try again later')
-    // }
+    try {
+      const url = `http://localhost:4001/api/users/info-bot`
+      const response = await axios.post(
+        url,
+        {
+          youtubeVideoId: videoId,
+          question: normalizedQuestion,
+          timeStamp: currentEventRef.current?.getCurrentTime(),
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = response.data
+      return data
+    } catch (error) {
+      // console.log(error)
+      toast.error('Something went wrong, please try again later')
+    }
 
     // Simulate fetching response
     return new Promise((resolve) => {
@@ -1778,13 +1785,14 @@ const Video = () => {
   const handleKeyDown = async (e: KeyboardEvent) => {
     console.log('Key pressed:', e.key)
 
-    if (e.altKey && (e.key === 'D' || e.key === 'd')) {
+    if (e.altKey && e.code === 'KeyD') {
       currentEventRef.current?.pauseVideo() // Pause video
       readTextAloud('Getting the description please wait for 5 seconds')
       dingSound.play() // Play ding sound
       const description = await fetchDescription()
+      console.log('descriptiondescription', description)
       readTextAloud(description)
-    } else if (e.altKey && (e.key === 'Q' || e.key === 'q')) {
+    } else if (e.altKey && e.code === 'KeyQ') {
       currentEventRef.current?.pauseVideo()
 
       try {
@@ -1801,6 +1809,7 @@ const Video = () => {
   }
 
   useEffect(() => {
+    console.log('Adding event listener for keyboard shortcuts')
     document.addEventListener('keydown', handleKeyDown)
 
     return () => {
