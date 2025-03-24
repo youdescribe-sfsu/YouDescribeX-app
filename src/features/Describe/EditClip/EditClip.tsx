@@ -9,6 +9,7 @@ import Button from 'react-bootstrap/Button'
 import { YouTubePlayer } from 'youtube-player/dist/types'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
 import padNumber from '@/shared/utils/padNumber'
+import TeleprompterView from '@/features/Describe/AudioClip/TeleprompterView'
 
 interface Props {
   userId: string
@@ -895,6 +896,11 @@ const EditClip = ({
                 </button>
               ) : (
                 <></>
+              )}
+              {status === 'recording' && (
+                <div className="mt-3">
+                  <TeleprompterView text={clipDescriptionText} />
+                </div>
               )}
             </div>
             {/* No recording to Play */}

@@ -1,0 +1,23 @@
+.teleprompter-container {
+    background-color: #222;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.teleprompter-text-area {
+    background-color: #333;
+    border-radius: 4px;
+    padding: 16px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.teleprompter-text {
+    color: #fff;
+    font-size: 18px;
+    line-height: 1.5;
+    margin: 0;
+    font-family: 'EB Garamond', serif;
+}

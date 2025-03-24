@@ -5,6 +5,7 @@ import '@/assets/css/audioDesc.css'
 import '@/assets/css/editAudioDesc.css'
 import { toast } from 'react-toastify'
 import axios from 'axios'
+import TeleprompterView from '@/features/Describe/AudioClip/TeleprompterView'
 
 interface Props {
   setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
@@ -341,6 +342,11 @@ const NewAudioClipComponent = ({
             <div className="text-light">
               Recording Duration: {recordingDuration.toFixed(1)} sec
             </div>
+            {isRecording && (
+              <div className="mt-3 w-100">
+                <TeleprompterView text={newACDescriptionText} />
+              </div>
+            )}
           </div>
         )}
         <div className="text-center mt-3">

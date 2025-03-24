@@ -5,7 +5,7 @@ import EditClip from '../EditClip/EditClip'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import { Clip } from '../../../shared/utils/convertClipObject'
+import { Clip } from '@/shared/utils/convertClipObject'
 import { YouTubePlayer } from 'youtube-player/dist/types'
 
 interface Props {
@@ -464,7 +464,7 @@ const AudioClip = ({
                     name={`${clipSequenceNumber}`}
                     id="radio1"
                     value="inline"
-                    checked={clipPlaybackType === 'inline' ? true : false}
+                    checked={clipPlaybackType === 'inline'}
                     onChange={handlePlaybackTypeUpdate}
                   />
                   <div className="inline-bg text-dark inline-extended-radio px-2">
@@ -478,7 +478,7 @@ const AudioClip = ({
                     name={`${clipSequenceNumber}`}
                     id="radio2"
                     value="extended"
-                    checked={clipPlaybackType === 'extended' ? true : false}
+                    checked={clipPlaybackType === 'extended'}
                     onChange={handlePlaybackTypeUpdate}
                   />
                   <div className="extended-bg text-white inline-extended-radio px-2">
