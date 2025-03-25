@@ -6,6 +6,7 @@ import '@/assets/css/editAudioDesc.css'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 import TeleprompterView from '@/features/Describe/AudioClip/TeleprompterView'
+import { Tooltip } from 'bootstrap'
 
 interface Props {
   setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
@@ -51,6 +52,12 @@ const NewAudioClipComponent = ({
     })
 
   useEffect(() => {
+    const tooltipTriggerList = document.querySelectorAll(
+      '[data-bs-toggle="tooltip"]',
+    )
+    Array.from(tooltipTriggerList).map(
+      (tooltipTriggerEl) => new Tooltip(tooltipTriggerEl),
+    )
     handleClipStartTimeInputsRender()
   }, [currentTime])
 
@@ -304,7 +311,31 @@ const NewAudioClipComponent = ({
           <div className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3">
             <h6 className="text-white text-size text-center mb-2">
               Record New Audio Clip
+              <span
+                className="ms-2 text-info"
+                data-bs-toggle="tooltip"
+                data-bs-placement="right"
+                title="First write your script in the text area below. During recording, this text will appear as a teleprompter to help you remember what to say. Only your audio will be saved."
+              >
+                <i className="fa fa-question-circle"></i>
+              </span>
             </h6>
+            {/* Add this new instructional text block */}
+            <div className="alert alert-info mb-3 text-center">
+              <i className="fa fa-info-circle me-2"></i>
+              <strong>Script for recording:</strong> You can write a script
+              below to read while recording. This text will appear as a
+              teleprompter during recording but only your audio will be saved.
+            </div>
+
+            {/* Add text area for script */}
+            <textarea
+              className="form-control text-size form-control-sm border rounded description-textarea mb-3"
+              rows={4}
+              placeholder="Write your script here (optional). You'll see this text while recording to help you remember what to say."
+              value={newACDescriptionText}
+              onChange={(e) => setNewACDescriptionText(e.target.value)}
+            ></textarea>
             <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 mx-3 my-2">
               {!isRecording ? (
                 <button
@@ -344,7 +375,16 @@ const NewAudioClipComponent = ({
             </div>
             {isRecording && (
               <div className="mt-3 w-100">
-                <TeleprompterView text={newACDescriptionText} />
+                {/* Add enhanced teleprompter */}
+                <div className="teleprompter-container recording-active">
+                  <div className="teleprompter-header">
+                    <i className="fa fa-microphone text-danger me-2"></i>
+                    <span>Read from this script while recording</span>
+                  </div>
+                  <div className="teleprompter-text-area">
+                    <p className="teleprompter-text">{newACDescriptionText}</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>

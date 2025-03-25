@@ -10,6 +10,7 @@ import { YouTubePlayer } from 'youtube-player/dist/types'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
 import padNumber from '@/shared/utils/padNumber'
 import TeleprompterView from '@/features/Describe/AudioClip/TeleprompterView'
+import { Tooltip } from 'bootstrap'
 
 interface Props {
   userId: string
@@ -118,14 +119,18 @@ const EditClip = ({
   }, [clipStartTime, clipEndTime, initialClipDescriptionText])
 
   useEffect(() => {
+    const tooltipTriggerList = document.querySelectorAll(
+      '[data-bs-toggle="tooltip"]',
+    )
+    Array.from(tooltipTriggerList).map(
+      (tooltipTriggerEl) => new Tooltip(tooltipTriggerEl),
+    )
     // setClipDescriptionText(initialClipDescriptionText);
     // set the button text & state based on YouTube Player's currentState
     setIsYoutubeVideoPlaying(
       currentState === -1 || currentState === 0 || currentState === 2
         ? false
-        : currentState === 1
-        ? true
-        : false,
+        : currentState === 1,
     )
     // scrolls to the latest clip when a new clip is added
     const date = new Date()
@@ -858,6 +863,14 @@ const EditClip = ({
         >
           <h6 className="text-white text-center">
             Record & Replace AI&apos;s voice
+            <span
+              className="ms-2 text-info"
+              data-bs-toggle="tooltip"
+              data-bs-placement="right"
+              title="Read your script during recording. The text will appear as a teleprompter to help you remember what to say. Only your audio will be saved."
+            >
+              <i className="fa fa-question-circle"></i>
+            </span>
           </h6>
           <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 w-100 my-2">
             <div className="mx-1">
@@ -899,7 +912,16 @@ const EditClip = ({
               )}
               {status === 'recording' && (
                 <div className="mt-3">
-                  <TeleprompterView text={clipDescriptionText} />
+                  {/* Add this teleprompter with enhanced visual indicator */}
+                  <div className="teleprompter-container recording-active">
+                    <div className="teleprompter-header">
+                      <i className="fa fa-microphone text-danger me-2"></i>
+                      <span>Read from this script while recording</span>
+                    </div>
+                    <div className="teleprompter-text-area">
+                      <p className="teleprompter-text">{clipDescriptionText}</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
