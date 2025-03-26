@@ -25,6 +25,7 @@ interface Props {
   url?: string
   aiRequested?: boolean
   onClick?: () => void
+  audioDescriptionTimestamp?: number
 }
 
 const VideoCard = ({
@@ -44,6 +45,7 @@ const VideoCard = ({
   userVote = false,
   aiRequested,
   onClick,
+  audioDescriptionTimestamp,
 }: Props) => {
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)

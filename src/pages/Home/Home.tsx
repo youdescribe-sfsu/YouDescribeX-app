@@ -15,12 +15,25 @@ import { toast } from 'react-toastify'
 import YouTubeService from '@/shared/utils/YouTubeService'
 
 // Cache configuration
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2' // Incremented to invalidate old caches with incorrect sorting
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes in milliseconds
 const MAX_PAGES_TO_CACHE = 3
 
+interface VideoData {
+  youTubeId: string
+  description: string
+  thumbnailMediumUrl: string
+  duration: string
+  title: string
+  author: string
+  views: string
+  time: string
+  buttons: string
+  audioDescriptionTimestamp?: number // New field to track sorting timestamp
+}
+
 interface VideoCache {
-  videos: any[]
+  videos: VideoData[]
   timestamp: number
   version: string
 }
@@ -115,31 +128,10 @@ const Home = () => {
       }
     },
 
-    setVideoData: (videoComponents: any[]) => {
+    setVideoData: (videoData: VideoData[]) => {
       try {
-        // Extract just the necessary data from components
-        const videoDataToCache = videoComponents
-          .map((video) => {
-            if (video?.props?.children?.props) {
-              return {
-                youTubeId: video.props.children.props.youTubeId,
-                description: video.props.children.props.description,
-                thumbnailMediumUrl:
-                  video.props.children.props.thumbnailMediumUrl,
-                duration: video.props.children.props.duration,
-                title: video.props.children.props.title,
-                author: video.props.children.props.author,
-                views: video.props.children.props.views,
-                time: video.props.children.props.time,
-                buttons: video.props.children.props.buttons,
-              }
-            }
-            return null
-          })
-          .filter(Boolean)
-
         const cacheData = {
-          videos: videoDataToCache,
+          videos: videoData,
           timestamp: Date.now(),
           version: CACHE_VERSION,
         }
@@ -178,6 +170,46 @@ const Home = () => {
     }
   }
 
+  // Helper function to extract video data from a video component
+  const extractVideoData = (videoComponent: any): VideoData | null => {
+    if (videoComponent?.props?.children?.props) {
+      return {
+        youTubeId: videoComponent.props.children.props.youTubeId,
+        description: videoComponent.props.children.props.description,
+        thumbnailMediumUrl:
+          videoComponent.props.children.props.thumbnailMediumUrl,
+        duration: videoComponent.props.children.props.duration,
+        title: videoComponent.props.children.props.title,
+        author: videoComponent.props.children.props.author,
+        views: videoComponent.props.children.props.views,
+        time: videoComponent.props.children.props.time,
+        buttons: videoComponent.props.children.props.buttons,
+        audioDescriptionTimestamp:
+          videoComponent.props.children.props.audioDescriptionTimestamp || 0,
+      }
+    }
+    return null
+  }
+
+  // Helper function to create a video component from data
+  const createVideoComponent = (videoData: VideoData) => (
+    <div className="col-sm-6 col-md-4 col-lg-3" key={videoData.youTubeId}>
+      <VideoCard
+        key={videoData.youTubeId}
+        youTubeId={videoData.youTubeId}
+        description={videoData.description}
+        thumbnailMediumUrl={videoData.thumbnailMediumUrl}
+        duration={videoData.duration}
+        title={videoData.title}
+        author={videoData.author}
+        views={videoData.views}
+        time={videoData.time}
+        buttons={videoData.buttons}
+        audioDescriptionTimestamp={videoData.audioDescriptionTimestamp}
+      />
+    </div>
+  )
+
   // Initialize or restore videos from cache
   useEffect(() => {
     document.title = translate(
@@ -188,25 +220,18 @@ const Home = () => {
     const cachedVideos = videoCache.getVideoData()
     if (cachedVideos && cachedVideos.videos.length > 0) {
       // Create fresh React components from cached data
-      const freshVideos = cachedVideos.videos.map((videoData) => (
-        <div className="col-sm-6 col-md-4 col-lg-3" key={videoData.youTubeId}>
-          <VideoCard
-            key={videoData.youTubeId}
-            youTubeId={videoData.youTubeId}
-            description={videoData.description}
-            thumbnailMediumUrl={videoData.thumbnailMediumUrl}
-            duration={videoData.duration}
-            title={videoData.title}
-            author={videoData.author}
-            views={videoData.views}
-            time={videoData.time}
-            buttons={videoData.buttons}
-          />
-        </div>
-      ))
+      // Sort before rendering to ensure latest audio descriptions are at top
+      const sortedVideos = [...cachedVideos.videos].sort((a, b) => {
+        return (
+          (b.audioDescriptionTimestamp || 0) -
+          (a.audioDescriptionTimestamp || 0)
+        )
+      })
+
+      const freshVideos = sortedVideos.map(createVideoComponent)
       setVideos(freshVideos)
       setShowSpinner(false)
-      console.log('Loaded videos from cache with proper rendering')
+      console.log('Loaded videos from cache with proper sorting')
     } else {
       fetchHomePageVideos()
     }
@@ -233,7 +258,7 @@ const Home = () => {
 
           const combinedData = cachedPage.data
           if (combinedData.videos) {
-            parseHomePageData(combinedData)
+            parseHomePageData(combinedData, page === 1)
           }
         }
 
@@ -267,7 +292,7 @@ const Home = () => {
       if (!isBackgroundFetch) {
         setShowSpinner(false)
         setLoadMoreVideos(false)
-        parseHomePageData(response.result)
+        parseHomePageData(response.result, page === 1)
       }
 
       console.log(
@@ -319,7 +344,7 @@ const Home = () => {
       // Cache the combined results
       videoCache.setPageCache(page, combinedData)
 
-      parseHomePageData(combinedData)
+      parseHomePageData(combinedData, page === 1)
     } catch (error) {
       toast.error('Error fetching videos. Please try again later.')
       console.error(error)
@@ -330,8 +355,13 @@ const Home = () => {
   }
 
   const parseHomePageData = useCallback(
-    (combinedData: any) => {
-      const videosData = [...videos]
+    (combinedData: any, isFirstPage = false) => {
+      // Extract existing videos data
+      const existingVideoData: VideoData[] = isFirstPage
+        ? [] // On first page, start fresh
+        : (videos.map(extractVideoData).filter(Boolean) as VideoData[])
+
+      // Process new videos from API response
       const youtubeData = combinedData.youtubeData
       const ydxVideos = combinedData.videos
 
@@ -340,83 +370,98 @@ const Home = () => {
         !youtubeData.items ||
         youtubeData.items.length === 0
       ) {
-        if (videosData.length === 0) {
-          videosData.push(
+        if (videos.length === 0) {
+          setVideos([
             <h1 key="api-limit-error">
               Thank you for visiting YouDescribe. This video is not viewable at
               this time due to YouTube API key limits. Our key is reset by
               Google at midnight Pacific time
             </h1>,
-          )
+          ])
         }
-      } else {
-        // Only add new videos that aren't already in our list
-        const existingIds = new Set(
-          videosData
-            .map((video) => video.key)
-            .filter((key) => typeof key === 'string'),
-        )
-
-        for (let i = 0; i < youtubeData.items.length; i += 1) {
-          const item = youtubeData.items[i]
-          if (!item.statistics || !item.snippet) {
-            continue
-          }
-
-          const ydxVideo = ydxVideos[i]
-          if (!ydxVideo) continue
-
-          const _id = ydxVideo._id
-
-          // Skip if we already have this video
-          if (existingIds.has(_id)) {
-            continue
-          }
-
-          const youTubeId = item.id
-          const thumbnailMedium =
-            item.snippet.thumbnails.medium || item.snippet.thumbnails.default
-          const duration = convertSecondsToCardFormat(
-            convertISO8601ToSeconds(item.contentDetails.duration),
-            true,
-          )
-          const title = item.snippet.title
-          const description = item.snippet.description
-          const author = item.snippet.channelTitle
-          const views = convertViewsToCardFormat(
-            Number(item.statistics.viewCount),
-          )
-          const publishedAt = new Date(
-            item.snippet.publishedAt,
-          ).getMilliseconds()
-
-          const now = Date.now()
-          const time = convertTimeToCardFormat(Number(now - publishedAt))
-
-          videosData.push(
-            <div className="col-sm-6 col-md-4 col-lg-3" key={_id}>
-              <VideoCard
-                key={_id}
-                youTubeId={youTubeId}
-                description={description}
-                thumbnailMediumUrl={thumbnailMedium.url}
-                duration={duration}
-                title={title}
-                author={author}
-                views={views}
-                time={time}
-                buttons="none"
-              />
-            </div>,
-          )
-        }
+        return
       }
 
-      setVideos(videosData)
+      // Create map for faster video lookup
+      const existingIds = new Set(
+        existingVideoData.map((video) => video.youTubeId),
+      )
+
+      // Process new videos
+      const newVideosData: VideoData[] = []
+
+      for (let i = 0; i < youtubeData.items.length; i += 1) {
+        const item = youtubeData.items[i]
+        if (!item.statistics || !item.snippet) {
+          continue
+        }
+
+        const ydxVideo = ydxVideos[i]
+        if (!ydxVideo) continue
+
+        // Extract timestamp for sorting
+        const audioDescriptionTimestamp =
+          ydxVideo.latest_audio_description_updated_at
+            ? new Date(ydxVideo.latest_audio_description_updated_at).getTime()
+            : 0
+
+        const youTubeId = item.id
+
+        // Skip if we already have this video
+        if (existingIds.has(youTubeId)) {
+          continue
+        }
+
+        const thumbnailMedium =
+          item.snippet.thumbnails.medium || item.snippet.thumbnails.default
+        const duration = convertSecondsToCardFormat(
+          convertISO8601ToSeconds(item.contentDetails.duration),
+          true,
+        )
+        const title = item.snippet.title
+        const description = item.snippet.description
+        const author = item.snippet.channelTitle
+        const views = convertViewsToCardFormat(
+          Number(item.statistics.viewCount),
+        )
+        const publishedAt = new Date(item.snippet.publishedAt).getMilliseconds()
+
+        const now = Date.now()
+        const time = convertTimeToCardFormat(Number(now - publishedAt))
+
+        newVideosData.push({
+          youTubeId,
+          description,
+          thumbnailMediumUrl: thumbnailMedium.url,
+          duration,
+          title,
+          author,
+          views,
+          time,
+          buttons: 'none',
+          audioDescriptionTimestamp, // Store the timestamp for sorting
+        })
+      }
+
+      // Merge and sort videos by audio description timestamp
+      const allVideosData = [...existingVideoData, ...newVideosData]
+
+      // Sort videos by audio description timestamp, newest first
+      allVideosData.sort((a, b) => {
+        return (
+          (b.audioDescriptionTimestamp || 0) -
+          (a.audioDescriptionTimestamp || 0)
+        )
+      })
+
+      // Convert data to React components
+      const videoComponents = allVideosData.map(createVideoComponent)
+
+      setVideos(videoComponents)
 
       // Update our cache with the latest video data
-      if (videosData.length > 0) {
-        videoCache.setVideoData(videosData)
+      if (allVideosData.length > 0) {
+        videoCache.setVideoData(allVideosData)
       }
     },
     [videos],
@@ -427,6 +472,15 @@ const Home = () => {
     const nextPage = currentPage + 1
     setCurrentPage(nextPage)
     fetchHomePageVideos(nextPage)
+  }
+
+  // New function to refresh videos
+  const refreshVideos = () => {
+    setShowSpinner(true)
+    setVideos([])
+    setCurrentPage(1)
+    videoCache.invalidateCache()
+    fetchHomePageVideos(1)
   }
 
   const checkUserPolicyReview = () => {
@@ -451,18 +505,26 @@ const Home = () => {
       {loadMoreVideos ? (
         <Spinner />
       ) : videos.length >= 20 && hasMoreVideos ? (
-        <Button
-          title={translate('Load more videos')}
-          ariaLabel="Load More"
-          color="w3-indigo"
-          text="Load more"
-          onClick={loadMoreResults}
-        />
+        <>
+          <Button
+            title={translate('Refresh')}
+            ariaLabel="Refresh videos"
+            color="w3-blue"
+            text="Refresh"
+            onClick={refreshVideos}
+            classNames="refresh-button"
+          />
+          <Button
+            title={translate('Load more videos')}
+            ariaLabel="Load More"
+            color="w3-indigo"
+            text="Load more"
+            onClick={loadMoreResults}
+          />
+        </>
       ) : null}
     </div>
   )
-
-  console.log('Rendering Home with videos:', videos)
 
   return (
     <main id="home" title="YouDescribe home page">

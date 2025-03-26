@@ -8,3 +8,26 @@
   /* Standard */
   min-height: calc(100vh - 54px);
 }
+
+/* New CSS for the load more and refresh button container */
+.load-more {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.refresh-button {
+  margin-right: 8px;
+}
+
+/* Optional: Add a subtle animation for newly loaded videos */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.col-sm-6.col-md-4.col-lg-3 {
+  animation: fadeIn 0.3s ease-out;
+}
