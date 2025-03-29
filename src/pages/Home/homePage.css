@@ -24,8 +24,14 @@
 
 /* Optional: Add a subtle animation for newly loaded videos */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .col-sm-6.col-md-4.col-lg-3 {

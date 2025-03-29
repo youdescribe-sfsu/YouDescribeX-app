@@ -402,7 +402,7 @@ const Home = () => {
         // Extract timestamp for sorting
         const audioDescriptionTimestamp =
           ydxVideo.latest_audio_description_updated_at
-            ? new Date(ydxVideo.latest_audio_description_updated_at).getTime()
+            ? parseInt(String(ydxVideo.latest_audio_description_updated_at))
             : 0
 
         const youTubeId = item.id
@@ -428,6 +428,20 @@ const Home = () => {
 
         const now = Date.now()
         const time = convertTimeToCardFormat(Number(now - publishedAt))
+
+        console.log('Video ID:', ydxVideo.youtube_id)
+        console.log(
+          'Timestamp raw:',
+          ydxVideo.latest_audio_description_updated_at,
+        )
+        console.log(
+          'Timestamp type:',
+          typeof ydxVideo.latest_audio_description_updated_at,
+        )
+        console.log(
+          'Parsed timestamp:',
+          parseInt(String(ydxVideo.latest_audio_description_updated_at)),
+        )
 
         newVideosData.push({
           youTubeId,
