@@ -469,8 +469,28 @@ const Home = () => {
       })
 
       // Convert data to React components
-      const videoComponents = allVideosData.map(createVideoComponent)
-
+      const videoComponents = allVideosData.map((videoData, index) => {
+        // Add position index to force proper ordering
+        return (
+          <div
+            className="col-sm-6 col-md-4 col-lg-3"
+            key={`${videoData.youTubeId}-pos-${index}`}
+          >
+            <VideoCard
+              youTubeId={videoData.youTubeId}
+              description={videoData.description}
+              thumbnailMediumUrl={videoData.thumbnailMediumUrl}
+              duration={videoData.duration}
+              title={videoData.title}
+              author={videoData.author}
+              views={videoData.views}
+              time={videoData.time}
+              buttons={videoData.buttons}
+              audioDescriptionTimestamp={videoData.audioDescriptionTimestamp}
+            />
+          </div>
+        )
+      })
       setVideos(videoComponents)
 
       // Update our cache with the latest video data
