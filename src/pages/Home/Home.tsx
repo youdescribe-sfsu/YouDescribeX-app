@@ -45,7 +45,6 @@ interface CachedPage {
 const Home = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [rawVideoData, setRawVideoData] = useState<VideoData[]>([])
-  const [videos, setVideos] = useState<any[]>([])
   const [showSpinner, setShowSpinner] = useState(true)
   const [loadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
   const [hasMoreVideos, setHasMoreVideos] = useState<boolean>(true)
@@ -329,14 +328,22 @@ const Home = () => {
         !youtubeData.items ||
         youtubeData.items.length === 0
       ) {
-        if (videos.length === 0) {
-          setVideos([
-            <h1 key="api-limit-error">
-              Thank you for visiting YouDescribe. This video is not viewable at
-              this time due to YouTube API key limits. Our key is reset by
-              Google at midnight Pacific time
-            </h1>,
+        if (rawVideoData.length === 0) {
+          setRawVideoData([
+            {
+              youTubeId: 'error',
+              description: 'API limit error',
+              thumbnailMediumUrl: '',
+              duration: '',
+              title: 'API limit error',
+              author: '',
+              views: '',
+              time: '',
+              buttons: 'none',
+              audioDescriptionTimestamp: 0,
+            },
           ])
+          setRenderKey((prev) => prev + 1)
         }
         return
       }
@@ -436,7 +443,7 @@ const Home = () => {
         videoCache.setVideoData(allVideosData)
       }
     },
-    [rawVideoData, videos.length],
+    [rawVideoData],
   )
 
   const loadMoreResults = () => {
@@ -467,7 +474,7 @@ const Home = () => {
     <div className="w3-margin-top w3-center load-more">
       {loadMoreVideos ? (
         <Spinner />
-      ) : videos.length >= 20 && hasMoreVideos ? (
+      ) : rawVideoData.length >= 20 && hasMoreVideos ? (
         <Button
           title={translate('Load more videos')}
           ariaLabel="Load More"
@@ -478,6 +485,24 @@ const Home = () => {
       ) : null}
     </div>
   )
+
+  // Special case for API limit error
+  if (rawVideoData.length === 1 && rawVideoData[0].youTubeId === 'error') {
+    return (
+      <main id="home" title="YouDescribe home page">
+        <header role="banner" className="classic-header w3-container w3-indigo">
+          <h2 id="home-heading" className="classic-h2" tabIndex={0}>
+            {translate('RECENT DESCRIPTIONS')}
+          </h2>
+        </header>
+        <h1>
+          Thank you for visiting YouDescribe. This video is not viewable at this
+          time due to YouTube API key limits. Our key is reset by Google at
+          midnight Pacific time
+        </h1>
+      </main>
+    )
+  }
 
   return (
     <main id="home" title="YouDescribe home page">
