@@ -1780,7 +1780,7 @@ const Video = () => {
     window.speechSynthesis.speak(utterance)
     currentEventRef.current?.pauseVideo()
   }
-  const dingSound = new Howl({ src: ['/ding.mp3'] })
+  const dingSound = new Howl({ src: ['/ding-new.mp3'] })
 
   const handleKeyDown = async (e: KeyboardEvent) => {
     console.log('Key pressed:', e.key)
