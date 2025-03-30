@@ -12,7 +12,6 @@ import VideoCard from '@/shared/components/VideoCard/VideoCard'
 import Button from '@/shared/components/Button/Button'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import YouTubeService from '@/shared/utils/YouTubeService'
 
 // Cache configuration
 const CACHE_VERSION = 'v2' // Incremented to invalidate old caches with incorrect sorting
@@ -45,10 +44,12 @@ interface CachedPage {
 
 const Home = () => {
   const [currentPage, setCurrentPage] = useState(1)
+  const [rawVideoData, setRawVideoData] = useState<VideoData[]>([])
   const [videos, setVideos] = useState<any[]>([])
   const [showSpinner, setShowSpinner] = useState(true)
   const [loadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
   const [hasMoreVideos, setHasMoreVideos] = useState<boolean>(true)
+  const [renderKey, setRenderKey] = useState(0)
 
   const navigate = useNavigate()
 
@@ -170,46 +171,6 @@ const Home = () => {
     }
   }
 
-  // Helper function to extract video data from a video component
-  const extractVideoData = (videoComponent: any): VideoData | null => {
-    if (videoComponent?.props?.children?.props) {
-      return {
-        youTubeId: videoComponent.props.children.props.youTubeId,
-        description: videoComponent.props.children.props.description,
-        thumbnailMediumUrl:
-          videoComponent.props.children.props.thumbnailMediumUrl,
-        duration: videoComponent.props.children.props.duration,
-        title: videoComponent.props.children.props.title,
-        author: videoComponent.props.children.props.author,
-        views: videoComponent.props.children.props.views,
-        time: videoComponent.props.children.props.time,
-        buttons: videoComponent.props.children.props.buttons,
-        audioDescriptionTimestamp:
-          videoComponent.props.children.props.audioDescriptionTimestamp || 0,
-      }
-    }
-    return null
-  }
-
-  // Helper function to create a video component from data
-  const createVideoComponent = (videoData: VideoData) => (
-    <div className="col-sm-6 col-md-4 col-lg-3" key={videoData.youTubeId}>
-      <VideoCard
-        key={videoData.youTubeId}
-        youTubeId={videoData.youTubeId}
-        description={videoData.description}
-        thumbnailMediumUrl={videoData.thumbnailMediumUrl}
-        duration={videoData.duration}
-        title={videoData.title}
-        author={videoData.author}
-        views={videoData.views}
-        time={videoData.time}
-        buttons={videoData.buttons}
-        audioDescriptionTimestamp={videoData.audioDescriptionTimestamp}
-      />
-    </div>
-  )
-
   // Initialize or restore videos from cache
   useEffect(() => {
     document.title = translate(
@@ -219,8 +180,7 @@ const Home = () => {
     // Try to get videos from cache first
     const cachedVideos = videoCache.getVideoData()
     if (cachedVideos && cachedVideos.videos.length > 0) {
-      // Create fresh React components from cached data
-      // Sort before rendering to ensure latest audio descriptions are at top
+      // Sort before storing to ensure latest audio descriptions are at top
       const sortedVideos = [...cachedVideos.videos].sort((a, b) => {
         return (
           (b.audioDescriptionTimestamp || 0) -
@@ -228,8 +188,7 @@ const Home = () => {
         )
       })
 
-      const freshVideos = sortedVideos.map(createVideoComponent)
-      setVideos(freshVideos)
+      setRawVideoData(sortedVideos)
       setShowSpinner(false)
       console.log('Loaded videos from cache with proper sorting')
     } else {
@@ -359,7 +318,7 @@ const Home = () => {
       // Extract existing videos data
       const existingVideoData: VideoData[] = isFirstPage
         ? [] // On first page, start fresh
-        : (videos.map(extractVideoData).filter(Boolean) as VideoData[])
+        : [...rawVideoData]
 
       // Process new videos from API response
       const youtubeData = combinedData.youtubeData
@@ -468,37 +427,16 @@ const Home = () => {
         )
       })
 
-      // Convert data to React components
-      const videoComponents = allVideosData.map((videoData, index) => {
-        // Add position index to force proper ordering
-        return (
-          <div
-            className="col-sm-6 col-md-4 col-lg-3"
-            key={`${videoData.youTubeId}-pos-${index}`}
-          >
-            <VideoCard
-              youTubeId={videoData.youTubeId}
-              description={videoData.description}
-              thumbnailMediumUrl={videoData.thumbnailMediumUrl}
-              duration={videoData.duration}
-              title={videoData.title}
-              author={videoData.author}
-              views={videoData.views}
-              time={videoData.time}
-              buttons={videoData.buttons}
-              audioDescriptionTimestamp={videoData.audioDescriptionTimestamp}
-            />
-          </div>
-        )
-      })
-      setVideos(videoComponents)
+      // Store sorted raw data
+      setRawVideoData(allVideosData)
+      setRenderKey((prev) => prev + 1)
 
       // Update our cache with the latest video data
       if (allVideosData.length > 0) {
         videoCache.setVideoData(allVideosData)
       }
     },
-    [videos],
+    [rawVideoData, videos.length],
   )
 
   const loadMoreResults = () => {
@@ -506,15 +444,6 @@ const Home = () => {
     const nextPage = currentPage + 1
     setCurrentPage(nextPage)
     fetchHomePageVideos(nextPage)
-  }
-
-  // New function to refresh videos
-  const refreshVideos = () => {
-    setShowSpinner(true)
-    setVideos([])
-    setCurrentPage(1)
-    videoCache.invalidateCache()
-    fetchHomePageVideos(1)
   }
 
   const checkUserPolicyReview = () => {
@@ -539,23 +468,13 @@ const Home = () => {
       {loadMoreVideos ? (
         <Spinner />
       ) : videos.length >= 20 && hasMoreVideos ? (
-        <>
-          <Button
-            title={translate('Refresh')}
-            ariaLabel="Refresh videos"
-            color="w3-blue"
-            text="Refresh"
-            onClick={refreshVideos}
-            classNames="refresh-button"
-          />
-          <Button
-            title={translate('Load more videos')}
-            ariaLabel="Load More"
-            color="w3-indigo"
-            text="Load more"
-            onClick={loadMoreResults}
-          />
-        </>
+        <Button
+          title={translate('Load more videos')}
+          ariaLabel="Load More"
+          color="w3-indigo"
+          text="Load more"
+          onClick={loadMoreResults}
+        />
       ) : null}
     </div>
   )
@@ -570,7 +489,27 @@ const Home = () => {
 
       {showSpinner ? <Spinner /> : null}
 
-      <div className="w3-row classic-container row">{videos}</div>
+      <div className="w3-row classic-container row" key={renderKey}>
+        {rawVideoData.map((videoData, index) => (
+          <div
+            className="col-sm-6 col-md-4 col-lg-3"
+            key={`${videoData.youTubeId}-pos-${index}`}
+          >
+            <VideoCard
+              youTubeId={videoData.youTubeId}
+              description={videoData.description}
+              thumbnailMediumUrl={videoData.thumbnailMediumUrl}
+              duration={videoData.duration}
+              title={videoData.title}
+              author={videoData.author}
+              views={videoData.views}
+              time={videoData.time}
+              buttons="none"
+              audioDescriptionTimestamp={videoData.audioDescriptionTimestamp}
+            />
+          </div>
+        ))}
+      </div>
 
       {YDLoadMoreButton}
     </main>
