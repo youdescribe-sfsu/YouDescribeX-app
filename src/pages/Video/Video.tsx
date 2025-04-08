@@ -798,8 +798,8 @@ const Video = () => {
           // Handle EXTENDED playback
           else {
             if (
-              updatedClip.clip_start_time <= currentTimeRef.current + 0.1 &&
-              updatedClip.clip_start_time >= previousTimeRef.current - 0.1
+              updatedClip.clip_start_time <= currentTimeRef.current + 0.3 &&
+              updatedClip.clip_start_time >= previousTimeRef.current - 0.3
             ) {
               setCurrentClipIndex(currentClipIndexRef.current + 1)
 
