@@ -841,8 +841,8 @@ const Video = () => {
           else {
             if (
               updatedClip.playback_type === 'extended' &&
-              updatedClip.clip_start_time <= currentTimeRef.current + 0.3 &&
-              updatedClip.clip_start_time >= previousTimeRef.current - 0.3
+              updatedClip.clip_start_time <= currentTimeRef.current &&
+              currentTimeRef.current - updatedClip.clip_start_time < 1.0
             ) {
               console.log('EXTENDED CLIP DETECTION TRIGGERED', {
                 clipId: updatedClip.clip_id,
