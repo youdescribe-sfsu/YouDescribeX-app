@@ -375,11 +375,19 @@ const Video = () => {
   }
 
   const checkPlaybackTypeBeforePlaying = async (clip: Clip): Promise<Clip> => {
+    console.log(
+      'Checking playback type for clip:',
+      clip.clip_id,
+      'current type:',
+      clip.playback_type,
+    )
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/get-playback-type/${clip.clip_id}`,
         { withCredentials: true },
       )
+
+      console.log('API response for playback type:', response.data)
 
       if (response.data.playback_type !== clip.playback_type) {
         console.info(
@@ -400,6 +408,8 @@ const Video = () => {
           setAudioClips(updatedAudioClips)
         }
       }
+
+      console.log('Returning clip with playback type:', clip.playback_type)
       return clip
     } catch (error) {
       console.error('Error fetching current playback type:', error)
@@ -526,6 +536,31 @@ const Video = () => {
 
   const prepareAudioClips = (selectedAdId: string, adIdsAudioClips: any) => {
     const selectedAudioClips = adIdsAudioClips[selectedAdId]
+
+    const extendedClip = selectedAudioClips.find(
+      (clip: { playback_type: string }) => clip.playback_type === 'extended',
+    )
+    if (extendedClip) {
+      const testUrl = `${audioClipsUploadsPath(
+        `${extendedClip.file_path.replace(/^\./, '')}/${
+          extendedClip.file_name
+        }`,
+      )}`
+      console.log('Testing extended clip URL:', testUrl)
+
+      fetch(testUrl)
+        .then((response) => {
+          console.log(
+            'Extended clip URL test response:',
+            response.status,
+            response.statusText,
+          )
+        })
+        .catch((error) => {
+          console.error('Extended clip URL test failed:', error)
+        })
+    }
+
     if (selectedAudioClips.length > 100) {
       setClipStackSize(10)
     }
@@ -555,6 +590,13 @@ const Video = () => {
           autoplay: false,
         })
         clip.clip_audio.load()
+
+        clip.clip_audio.on('loaderror', function () {
+          console.error('Audio load error:', clip.clip_id, clip.clip_audio_path)
+        })
+        clip.clip_audio.on('playerror', function () {
+          console.error('Audio play error:', clip.clip_id, clip.clip_audio_path)
+        })
 
         clipStackData.push(clip)
       }
@@ -798,9 +840,17 @@ const Video = () => {
           // Handle EXTENDED playback
           else {
             if (
+              updatedClip.playback_type === 'extended' &&
               updatedClip.clip_start_time <= currentTimeRef.current + 0.3 &&
               updatedClip.clip_start_time >= previousTimeRef.current - 0.3
             ) {
+              console.log('EXTENDED CLIP DETECTION TRIGGERED', {
+                clipId: updatedClip.clip_id,
+                clipStartTime: updatedClip.clip_start_time,
+                currentTime: currentTimeRef.current,
+                previousTime: previousTimeRef.current,
+              })
+
               setCurrentClipIndex(currentClipIndexRef.current + 1)
 
               // Play the clip only if it wasn't played recently
@@ -814,20 +864,52 @@ const Video = () => {
 
                   // Play extended clip
                   const currentAudio = updatedClip.clip_audio
+                  console.log(
+                    'Attempting to pause YouTube video for extended clip:',
+                    updatedClip.clip_id,
+                  )
+
                   currentEvent?.pauseVideo()
+                  console.log(
+                    'YouTube player state after pause attempt:',
+                    currentEvent?.getPlayerState(),
+                  )
+
+                  console.log(
+                    'Extended audio load state before play:',
+                    currentAudio
+                      ? currentAudio.state()
+                      : 'audio object is null',
+                  )
 
                   if (currentAudio?.state() === 'loaded') {
                     setTimeout(() => {
+                      console.log('In timeout before playing extended clip')
                       if (!currentAudio.playing()) {
+                        console.log(
+                          'Attempting to play extended clip:',
+                          updatedClip.clip_id,
+                        )
                         currentAudio.play()
+                        console.log('Extended clip play initiated')
                         currentAudio.volume(descriptionVolumeRef.current / 100)
+                      } else {
+                        console.log('Extended clip already playing')
                       }
                     }, 50)
                   } else {
+                    console.log(
+                      'Extended audio not loaded, waiting for load event',
+                    )
                     currentAudio?.once('load', function () {
+                      console.log('Extended audio loaded event fired')
                       setTimeout(() => {
                         if (!currentAudio.playing()) {
+                          console.log(
+                            'Attempting to play extended clip after load',
+                          )
                           currentAudio.play()
+                          console.log('Extended clip play initiated after load')
                           currentAudio.volume(
                             descriptionVolumeRef.current / 100,
                           )
@@ -884,7 +966,19 @@ const Video = () => {
           updatedClip.clip_start_time <= currentTimeRef.current
         ) {
           // A skip has most likely occurred
-          console.error('SKIP DETECTED', updatedClip)
+          console.error('SKIP DETECTED - DETAILED', {
+            clipId: updatedClip.clip_id,
+            clipStartTime: updatedClip.clip_start_time,
+            currentTime: currentTimeRef.current,
+            previousTime: previousTimeRef.current,
+            audioState: updatedClip.clip_audio
+              ? updatedClip.clip_audio.state()
+              : 'unknown',
+            audioUrl: updatedClip.clip_audio_path,
+            inlineClipPlaying: !!currentInlineACRef.current?.playing(),
+            extendedClipPlaying: !!currentExtendedACRef.current?.playing(),
+            youtubeState: currentEvent?.getPlayerState(),
+          })
 
           // Add a new clip to the stack
           const newClip =
