@@ -24,9 +24,10 @@ const UserDescribedVideos = () => {
   const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
   const [LoadMoreAIVideos, setLoadMoreAIVideos] = useState<boolean>(false)
   const [LoadMoreDraftVideos, setLoadMoreDraftVideos] = useState<boolean>(false)
-  const [showLoadMoreButton, setShowLoadMoreButton] = useState(true)
-  const [showLoadMoreAIButton, setShowLoadMoreAIButton] = useState(true)
-  const [showLoadMoreDraftButton, setShowLoadMoreDraftButton] = useState(true)
+  // Initialize these to false instead of true
+  const [showLoadMoreButton, setShowLoadMoreButton] = useState(false)
+  const [showLoadMoreAIButton, setShowLoadMoreAIButton] = useState(false)
+  const [showLoadMoreDraftButton, setShowLoadMoreDraftButton] = useState(false)
   const { userId } = useParams()
 
   // Function to track video views in localStorage
@@ -76,15 +77,7 @@ const UserDescribedVideos = () => {
 
   const getUserVideos = async (
     url: string,
-    setStateFunction: {
-      (value: React.SetStateAction<any[]>): void
-      (value: React.SetStateAction<any[]>): void
-      (value: React.SetStateAction<any[]>): void
-      (value: React.SetStateAction<any[]>): void
-      (value: React.SetStateAction<any[]>): void
-      (value: React.SetStateAction<any[]>): void
-      (arg0: never[]): void
-    },
+    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
     page: number,
   ) => {
     try {
@@ -99,8 +92,19 @@ const UserDescribedVideos = () => {
       const videosArray = normalizedData.videos
       const totalVideos = normalizedData.total
 
+      // If no videos, update state and hide spinner and load more button
       if (!videosArray || videosArray.length === 0) {
         setStateFunction([])
+
+        // Hide the appropriate "Load more" button based on which function is being called
+        if (setStateFunction === setVideos) {
+          setShowLoadMoreButton(false)
+        } else if (setStateFunction === setAIVideos) {
+          setShowLoadMoreAIButton(false)
+        } else if (setStateFunction === setVideosDraft) {
+          setShowLoadMoreDraftButton(false)
+        }
+
         setShowSpinner(false)
         return
       }
@@ -133,6 +137,16 @@ const UserDescribedVideos = () => {
       )
     } catch (error) {
       console.error('Error fetching videos:', error)
+
+      // In case of error, hide the appropriate load more button
+      if (setStateFunction === setVideos) {
+        setShowLoadMoreButton(false)
+      } else if (setStateFunction === setAIVideos) {
+        setShowLoadMoreAIButton(false)
+      } else if (setStateFunction === setVideosDraft) {
+        setShowLoadMoreDraftButton(false)
+      }
+
       setShowSpinner(false)
     }
   }
@@ -199,9 +213,9 @@ const UserDescribedVideos = () => {
         ? setShowLoadMoreAIButton
         : setShowLoadMoreDraftButton
 
-    // FIX: Use the correct total count based on the current category and compare with updatedVideos.length
+    // Show "Load more" button only if there are more videos to load
     const currentTotal = updatedVideos.length
-    loadMoreFlag(currentTotal > 0 && totalVideos > currentTotal)
+    loadMoreFlag(totalVideos > currentTotal)
 
     const loadMoreSpinnerFlag =
       setStateFunction === setVideos
