@@ -1798,7 +1798,7 @@ const Video = () => {
       try {
         const question = await captureSpeech() // Capture the user's question
         console.log(question)
-        readTextAloud(`You asked: ${question}`) // Confirm the question to the user
+        readTextAloud(question) // Confirm the question to the user
         const answer = await fetchAnswer(question) // Fetch the answer
         readTextAloud(answer) // Read the answer aloud
       } catch (error) {
