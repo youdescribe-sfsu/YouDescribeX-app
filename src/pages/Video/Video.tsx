@@ -286,6 +286,17 @@ const Video = () => {
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
 
+  useEffect(() => {
+    return () => {
+      // Ensure all Howl instances are unloaded when audioClips change
+      audioClips.forEach((clip) => {
+        if (clip.clip_audio) {
+          clip.clip_audio.unload()
+        }
+      })
+    }
+  }, [audioClips])
+
   //
   // END OF YDX STATE VARIABLES
   //
@@ -708,6 +719,14 @@ const Video = () => {
     recentAudioPlayedTime: number,
     playedClipPath: string,
   ) => {
+    console.debug(
+      'Update time:',
+      time,
+      'Played clip:',
+      playedAudioClip,
+      'Recent time:',
+      recentAudioPlayedTime,
+    )
     setCurrentTime(time)
     // check if the audio is not played recently. do not play it again.
     if (recentAudioPlayedTime !== time) {
@@ -741,6 +760,21 @@ const Video = () => {
         // Get current clip and check its playback type
         const currentClip = clipStackRef.current[0]
         const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
+
+        console.debug(
+          'Attempting to play clip:',
+          updatedClip.clip_id,
+          'Playback type:',
+          updatedClip.playback_type,
+        )
+
+        if (
+          playedAudioClip === updatedClip.clip_id &&
+          Math.abs(currentTimeRef.current - recentAudioPlayedTime) < 1.0
+        ) {
+          console.log('Preventing duplicate play of clip:', updatedClip.clip_id)
+          return
+        }
 
         // Handle EXTENDED playback first with independent condition
         if (
@@ -831,11 +865,30 @@ const Video = () => {
               const newClip =
                 audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
 
+              // In the playAudioAtCurrentTime function
               if (newClip) {
-                newClip.clip_audio = new Howl({
-                  src: newClip.clip_audio_path,
-                  html5: true,
-                })
+                // Check if the audio is already loaded before creating a new Howl instance
+                if (
+                  !newClip.clip_audio ||
+                  newClip.clip_audio.state() !== 'loaded'
+                ) {
+                  // Ensure we unload any existing instance first
+                  if (newClip.clip_audio) {
+                    newClip.clip_audio.unload()
+                  }
+
+                  newClip.clip_audio = new Howl({
+                    src: newClip.clip_audio_path,
+                    html5: true,
+                    preload: true,
+                  })
+
+                  // Add error logging for debugging
+                  newClip.clip_audio.on('loaderror', function () {
+                    console.error('Load error for clip:', newClip.clip_id)
+                  })
+                }
+
                 setClipStack([
                   ...clipStackRef.current.slice(1, clipStackSize),
                   newClip,
@@ -924,10 +977,28 @@ const Video = () => {
               audioClips[currentClipIndexRef.current + clipStackSize - 1]
 
             if (newClip) {
-              newClip.clip_audio = new Howl({
-                src: newClip.clip_audio_path,
-                html5: true,
-              })
+              // Check if the audio is already loaded before creating a new Howl instance
+              if (
+                !newClip.clip_audio ||
+                newClip.clip_audio.state() !== 'loaded'
+              ) {
+                // Ensure we unload any existing instance first
+                if (newClip.clip_audio) {
+                  newClip.clip_audio.unload()
+                }
+
+                newClip.clip_audio = new Howl({
+                  src: newClip.clip_audio_path,
+                  html5: true,
+                  preload: true,
+                })
+
+                // Add error logging for debugging inline clips
+                newClip.clip_audio.on('loaderror', function () {
+                  console.error('Load error for inline clip:', newClip.clip_id)
+                })
+              }
+
               setClipStack([
                 ...clipStackRef.current.slice(1, clipStackSize),
                 newClip,
@@ -965,10 +1036,31 @@ const Video = () => {
             audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
 
           if (newClip) {
-            newClip.clip_audio = new Howl({
-              src: newClip.clip_audio_path,
-              html5: true,
-            })
+            // Check if the audio is already loaded before creating a new Howl instance
+            if (
+              !newClip.clip_audio ||
+              newClip.clip_audio.state() !== 'loaded'
+            ) {
+              // Ensure we unload any existing instance first
+              if (newClip.clip_audio) {
+                newClip.clip_audio.unload()
+              }
+
+              newClip.clip_audio = new Howl({
+                src: newClip.clip_audio_path,
+                html5: true,
+                preload: true,
+              })
+
+              // Add error logging for debugging skip detection clips
+              newClip.clip_audio.on('loaderror', function () {
+                console.error(
+                  'Load error for skip detection clip:',
+                  newClip.clip_id,
+                )
+              })
+            }
+
             setClipStack([
               ...clipStackRef.current.slice(1, clipStackSize),
               newClip,
