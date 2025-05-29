@@ -438,6 +438,11 @@ const Video = () => {
       videoData.audio_descriptions.length > 0
     ) {
       videoData.audio_descriptions.forEach((ad) => {
+        if (ad.status !== 'published') {
+          console.log('Skipping draft audio description:', ad._id)
+          return // Skip this iteration
+        }
+
         adIds.push(ad._id)
 
         // Initialize adIdsUsers[ad._id] as an object if it doesn't exist
