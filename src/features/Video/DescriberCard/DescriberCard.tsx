@@ -8,6 +8,7 @@ import './describerCard.scss'
 interface Props {
   picture: string
   name: string
+  type: string
   describerId: string
   selectedDescriberId: string
   overall_rating_average: number
@@ -24,6 +25,7 @@ interface Props {
 const DescriberCard = ({
   picture,
   name,
+  type,
   describerId,
   selectedDescriberId,
   overall_rating_average,
@@ -149,7 +151,7 @@ const DescriberCard = ({
   }
 
   const needAvatar =
-    name !== 'AI Description Draft' &&
+    type !== 'AI' &&
     (!contributions || contributions.size <= 1)
 
   return (

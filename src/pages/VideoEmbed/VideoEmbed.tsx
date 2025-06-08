@@ -280,17 +280,11 @@ const VideoEmbed = () => {
             overall_rating_votes_sum: ad.overall_rating_votes_sum,
             feedbacks: ad.feedbacks,
             picture: ad.user.picture,
-            name:
-              ad.user.user_type && ad.user.user_type === 'AI'
-                ? 'AI Description Draft'
-                : ad.user.name,
+            name: ad.user.name,
           }
         } else {
           // If adIdsUsers[ad._id] already exists, update the name property conditionally
-          adIdsUsers[ad._id].name =
-            ad.user.user_type && ad.user.user_type === 'AI'
-              ? 'AI Description Draft'
-              : ad.user.name
+          adIdsUsers[ad._id].name = ad.user.name
         }
 
         // adIdsUsers[ad._id].overall_rating_votes_counter =

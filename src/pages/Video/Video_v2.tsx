@@ -859,6 +859,7 @@ const Video = () => {
           selectedDescriberId={selectedADId}
           picture={describers[describerId].picture}
           name={describers[describerId].name}
+          type={describers[describerId].user_type}
           overall_rating_average={
             describers[describerId].overall_rating_average
           }

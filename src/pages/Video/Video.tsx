@@ -53,6 +53,7 @@ interface IADUserId {
     feedbacks: Feedbacks
     picture: string
     name: string
+    type: string
     collaborative_edit: boolean
     contributions: Map<string, number>
     prev_audio_description: string
@@ -363,10 +364,8 @@ const Video = () => {
             picture: ad.user.picture,
             user: ad.user,
 
-            name:
-              ad.user?.user_type === 'AI'
-                ? 'AI Description Draft'
-                : ad.user?.name || 'Unknown',
+            name: ad.user?.name || 'Unknown',
+            type: ad.user.user_type,
             collaborative_edit: ad.collaborative_editing,
             contributions: ad.contributions,
             prev_audio_description: ad.prev_audio_description,
@@ -376,10 +375,7 @@ const Video = () => {
         } else {
           console.log(`Updating existing entry for adId: ${ad._id}`)
           // Update existing entry's name
-          adIdsUsers[ad._id].name =
-            ad.user?.user_type === 'AI'
-              ? 'AI Description Draft'
-              : ad.user?.name || 'Unknown'
+          adIdsUsers[ad._id].name = ad.user?.name || 'Unknown'
           console.log(`Updated name for ${ad._id}:`, adIdsUsers[ad._id].name)
         }
 
@@ -975,6 +971,7 @@ const Video = () => {
             selectedDescriberId={selectedADId}
             picture={describers[describerId].picture}
             name={describers[describerId].name}
+            type={describers[describerId].type}
             overall_rating_average={
               describers[describerId].overall_rating_average
             }
@@ -1787,7 +1784,7 @@ const Video = () => {
 
     if (e.altKey && e.code === 'KeyD') {
       currentEventRef.current?.pauseVideo() // Pause video
-      readTextAloud('Getting the description please wait for 5 seconds')
+      readTextAloud('Getting the description')
       dingSound.play() // Play ding sound
       const description = await fetchDescription()
       console.log('descriptiondescription', description)
@@ -1798,7 +1795,7 @@ const Video = () => {
       try {
         const question = await captureSpeech() // Capture the user's question
         console.log(question)
-        readTextAloud(question) // Confirm the question to the user
+        readTextAloud(`${question}`) // Confirm the question to the user
         const answer = await fetchAnswer(question) // Fetch the answer
         readTextAloud(answer) // Read the answer aloud
       } catch (error) {
