@@ -438,7 +438,7 @@ const Video = () => {
       videoData.audio_descriptions.length > 0
     ) {
       videoData.audio_descriptions.forEach((ad) => {
-        if (ad.status !== 'published') {
+        if (ad.status !== 'published' || ad.user?.user_type === 'AI') {
           console.log('Skipping draft audio description:', ad._id)
           return // Skip this iteration
         }
