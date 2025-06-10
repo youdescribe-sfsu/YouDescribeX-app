@@ -542,10 +542,13 @@ const Video = () => {
       // console.log('Navigating to Not Found')
       // navigate('/not-found')
     }
-    setSearchParams((params) => {
-      if (selectedAd) params.set('ad', selectedAd)
-      return params
-    })
+    setSearchParams(
+      (params) => {
+        if (selectedAd) params.set('ad', selectedAd)
+        return params
+      },
+      { replace: true },
+    )
     setSelectedADId(selectedAd ?? '')
     prepareAudioClips(selectedAd ?? '', adIdsAudioClips)
   }
