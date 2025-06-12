@@ -35,11 +35,11 @@ type FetchVideosDataFunction = (
 ) => Promise<void>
 
 const CustomButton = ({
-  className,
-  onClick,
-  disabled,
-  children,
-}: {
+                        className,
+                        onClick,
+                        disabled,
+                        children,
+                      }: {
   onClick: () => void
   className: string
   disabled: boolean
@@ -129,6 +129,10 @@ const Wishlist = () => {
   const [searchCache, setSearchCache] = useState<{ [key: string]: any }>({})
 
   const cancelRequest = useRef<CancelTokenSource | null>(null)
+
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+    null,
+  )
 
   const caseInsensitiveSort = (rowA: any, rowB: any) => {
     const a = rowA.title.toLowerCase()
@@ -563,6 +567,25 @@ const Wishlist = () => {
     searchParam?: string,
     categoryValues?: string[],
   ) => {
+    const now = Date.now()
+    const cacheEntries = Object.keys(searchCache)
+    if (cacheEntries.length > 0) {
+      setSearchCache((prevCache) => {
+        const cleanCache = { ...prevCache }
+        let hasChanges = false
+
+        cacheEntries.forEach((key) => {
+          const entry = cleanCache[key]
+          if (!entry.timestamp || now - entry.timestamp > 120000) {
+            delete cleanCache[key]
+            hasChanges = true
+          }
+        })
+
+        return hasChanges ? cleanCache : prevCache
+      })
+    }
+
     // Use provided parameters or fall back to state values
     const searchValue = searchParam !== undefined ? searchParam : search
     const categoryValue =
@@ -639,6 +662,7 @@ const Wishlist = () => {
               aiRequested,
             },
             totalItems,
+            timestamp: Date.now(), // ADD THIS LINE
           },
         }))
 
@@ -819,12 +843,28 @@ const Wishlist = () => {
   }
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value)
-    // Update URL with search parameter
+    const newSearchValue = event.target.value
+    setSearch(newSearchValue) // Update immediately for responsive UI
+
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
+    }
+
+    // Update URL immediately (for browser back/forward to work)
     setSearchParams((params) => {
-      params.set('search', event.target.value)
+      params.set('search', newSearchValue)
+      params.set('page', '1') // Reset to page 1 when searching
       return params
     })
+
+    // But debounce the actual data loading
+    const newTimeout = setTimeout(() => {
+      // Only trigger the useEffect-based data loading after user stops typing
+      // The useEffect will pick up the URL change and load data
+    }, 300) // Wait 300ms after user stops typing
+
+    setSearchTimeout(newTimeout)
   }
 
   const handleCategoryChange = (
@@ -862,6 +902,15 @@ const Wishlist = () => {
     })
     loadTableVideos(currentPageNumber, newPerPage)
   }
+
+  useEffect(() => {
+    return () => {
+      // Cleanup timeout when component unmounts
+      if (searchTimeout) {
+        clearTimeout(searchTimeout)
+      }
+    }
+  }, [searchTimeout])
 
   return (
     <main id="wish-list" title="Wish list page" className="wish-list">
@@ -1083,7 +1132,12 @@ const Wishlist = () => {
               }
               return params
             })
-            loadTableVideos(0, perPage, column.sortField, direction)
+            loadTableVideos(
+              currentPageNumber,
+              perPage,
+              column.sortField,
+              direction,
+            ) // FIXED: use currentPageNumber instead of 0
           }}
           sortServer
           onChangeRowsPerPage={(newPerPage) => handlePerRowsChange(newPerPage)}
