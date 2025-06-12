@@ -35,11 +35,11 @@ type FetchVideosDataFunction = (
 ) => Promise<void>
 
 const CustomButton = ({
-                        className,
-                        onClick,
-                        disabled,
-                        children,
-                      }: {
+  className,
+  onClick,
+  disabled,
+  children,
+}: {
   onClick: () => void
   className: string
   disabled: boolean
@@ -507,7 +507,7 @@ const Wishlist = () => {
     // Try to restore the last state if available
     restoreLastState()
 
-    // Get parameters from URL
+    // Get parameters from URL - but don't auto-trigger search
     const searchParam = searchParams.get('search') || ''
     const categoriesParam = searchParams.get('categories')
     const pageParam = searchParams.get('page')
@@ -532,16 +532,21 @@ const Wishlist = () => {
     const parsedPerPage = perPageParam ? parseInt(perPageParam, 10) : 10
     setPerPage(parsedPerPage)
 
-    // IMPORTANT: Pass the extracted values directly to loadTableVideos
-    // instead of relying on the state variables which update asynchronously
-    loadTableVideos(
-      parsedPage,
-      parsedPerPage,
-      sortFieldParam || '',
-      sortDirectionParam || '',
-      searchParam, // Pass search directly
-      categoryValues, // Pass categories directly
-    )
+    // ONLY load data if this is the initial page load or if there are existing search params
+    // Don't auto-load on every URL change
+    if (searchParam || categoriesParam || pageParam) {
+      loadTableVideos(
+        parsedPage,
+        parsedPerPage,
+        sortFieldParam || '',
+        sortDirectionParam || '',
+        searchParam,
+        categoryValues,
+      )
+    } else {
+      // Load default data (no search, no filters)
+      loadTableVideos(1, parsedPerPage, '', '', '', [])
+    }
 
     loadTopVideos()
 
@@ -557,7 +562,7 @@ const Wishlist = () => {
       aiRequestedUrl,
       setrecentAIRequested,
     )
-  }, [searchParams, userDataStore.getState().userId])
+  }, [])
 
   const loadTableVideos = (
     pageNumber: number,
@@ -844,43 +849,38 @@ const Wishlist = () => {
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newSearchValue = event.target.value
-    setSearch(newSearchValue) // Update immediately for responsive UI
-
-    // Clear existing timeout
-    if (searchTimeout) {
-      clearTimeout(searchTimeout)
-    }
-
-    // Update URL immediately (for browser back/forward to work)
-    setSearchParams((params) => {
-      params.set('search', newSearchValue)
-      params.set('page', '1') // Reset to page 1 when searching
-      return params
-    })
-
-    // But debounce the actual data loading
-    const newTimeout = setTimeout(() => {
-      // Only trigger the useEffect-based data loading after user stops typing
-      // The useEffect will pick up the URL change and load data
-    }, 300) // Wait 300ms after user stops typing
-
-    setSearchTimeout(newTimeout)
+    setSearch(newSearchValue) // Only update local state, don't trigger search
   }
 
   const handleCategoryChange = (
     selectedCategories: MultiValue<{ value: string; label: string }>,
   ) => {
     const values = Array.from(selectedCategories, (option) => option.value)
-    setSelectedCategories(values)
-    // Update URL with categories parameter
+    setSelectedCategories(values) // Only update local state, don't trigger search
+
+    // Don't update URL params here - only update when search button is clicked
+  }
+
+  const executeSearch = () => {
+    // Reset to page 1 for new search
+    setCurrentPageNumber(1)
+
+    // Update URL with all current search parameters
     setSearchParams((params) => {
-      if (values.length > 0) {
-        params.set('categories', values.join(','))
+      params.set('search', search)
+      params.set('page', '1') // Always start from page 1
+
+      if (selectedCategories.length > 0) {
+        params.set('categories', selectedCategories.join(','))
       } else {
         params.delete('categories')
       }
+
       return params
     })
+
+    // Execute the actual search
+    loadTableVideos(1, perPage, '', '', search, selectedCategories)
   }
 
   const handlePageChange = (page: number) => {
@@ -1068,7 +1068,7 @@ const Wishlist = () => {
       <form
         onSubmit={(e: any) => {
           e.preventDefault()
-          loadTableVideos(0, perPage)
+          executeSearch() // Use the new search function
         }}
       >
         <div className="w3-row-padding classic-container search-container">
@@ -1103,7 +1103,10 @@ const Wishlist = () => {
         <div className="search-button-container">
           <button
             className="w3-btn w3-indigo search-button"
-            onClick={() => loadTableVideos(0, perPage)}
+            onClick={(e) => {
+              e.preventDefault()
+              executeSearch() // Use the new search function
+            }}
             type="submit"
           >
             Search
