@@ -149,6 +149,7 @@ const Video = () => {
   const [clipStack, setClipStack] = useState<Clip[]>([])
   const [clipStackSize, setClipStackSize] = useState<number>(5)
   const [currentClipIndex, setCurrentClipIndex] = useState<number>(0)
+  const seekDebounceTimer = useRef<NodeJS.Timeout | null>(null)
 
   const [showLanguageSelector, setShowLanguageSelector] = useState(false)
 
@@ -234,6 +235,9 @@ const Video = () => {
       }
       if (timer) {
         clearInterval(timer)
+      }
+      if (seekDebounceTimer.current) {
+        clearTimeout(seekDebounceTimer.current)
       }
     }
   }, [])
@@ -788,7 +792,7 @@ const Video = () => {
         if (
           updatedClip.playback_type === 'extended' &&
           updatedClip.clip_start_time <= currentTimeRef.current &&
-          currentTimeRef.current - updatedClip.clip_start_time < 1.0
+          currentTimeRef.current - updatedClip.clip_start_time < 3.0
         ) {
           console.log('EXTENDED CLIP DETECTION TRIGGERED', {
             clipId: updatedClip.clip_id,
@@ -931,17 +935,27 @@ const Video = () => {
 
           // Play the inline clip
           const currentAudio = updatedClip.clip_audio
-          const seekTime = currentTimeRef.current - updatedClip.clip_start_time
+          const clipProgress =
+            currentTimeRef.current - updatedClip.clip_start_time
+          const remainingDuration = updatedClip.clip_duration - clipProgress
 
-          // Ensure seek time is within valid range
-          if (seekTime < 0) {
-            console.debug('Seek time is negative, skipping')
+          if (remainingDuration < 0.5) {
+            console.log(
+              `Skipping clip ${
+                updatedClip.clip_id
+              } - only ${remainingDuration.toFixed(2)}s remaining`,
+            )
             return
           }
 
-          console.debug(`Seeking to ${seekTime} seconds`)
+          const seekTime = Math.max(0, clipProgress)
 
-          // Check if audio is loaded and play with a small buffer delay
+          console.debug(
+            `Seeking to ${seekTime} seconds (${remainingDuration.toFixed(
+              2,
+            )}s remaining)`,
+          )
+
           if (currentAudio?.state() === 'loaded') {
             currentAudio.seek(seekTime)
             // Add small delay before playing to prevent start cutoff
@@ -1093,13 +1107,24 @@ const Video = () => {
       case 0: // end of the video
         clearInterval(timer)
         break
-      case 1: // Playing
-        // If the difference between current time and previous time is greater than 0.2 seconds, update the clip stack
-        if (Math.abs(currentTime - previousYTTime) > 0.2) {
-          console.info('User has potentially seeked to a different time')
+      case 1: {
+        // Playing
+        // Enhanced seek detection
+        const timeDiff = Math.abs(currentTime - previousYTTime)
+        if (timeDiff > 0.5) {
+          // More than 0.5 seconds difference
+          console.info(
+            `Significant time jump detected: ${timeDiff.toFixed(2)}s`,
+          )
           setPreviousYTTime(currentTime)
           updateClipStackData()
+
+          // Reset playback tracking to allow clips to play at new position
+          setRecentAudioPlayedTime(0.0)
+          setPlayedAudioClip('')
+          setPlayedClipPath('')
         }
+
         // Case for Extended Audio Clips:
         // When an extended Audio Clip is playing, YT video is paused
         // User plays the YT Video. Extended is still played along with the video. Overlapping with Dialogs &/ other audio clips
@@ -1123,13 +1148,22 @@ const Video = () => {
         }
         clearInterval(timer)
         break
-      case 2: // Paused
-        // If the difference between current time and previous time is greater than 0.2 seconds, update the clip stack
-        if (Math.abs(currentTime - previousYTTime) > 0.2) {
-          console.info('User has potentially seeked to a different time')
+      }
+      case 2: {
+        // Paused
+        // Enhanced seek detection
+        const timeDiff = Math.abs(currentTime - previousYTTime)
+        if (timeDiff > 0.5) {
+          console.info(`Seek detected while paused: ${timeDiff.toFixed(2)}s`)
           setPreviousYTTime(currentTime)
           updateClipStackData()
+
+          // Reset playback tracking
+          setRecentAudioPlayedTime(0.0)
+          setPlayedAudioClip('')
+          setPlayedClipPath('')
         }
+
         // Case for Inline Audio Clips:
         // When an inline Audio Clip is playing along with the Video,
         // If user pauses the YT video, Inline Clip is still played.
@@ -1143,21 +1177,47 @@ const Video = () => {
         }
         clearInterval(timer)
         break
-      case 3: // Buffering
-        // onSeek - Buffering event is also called
-        // so that when user wants to go back and play the same clip again, recentAudioPlayedTime will be reset to 0.
-        setPlayedClipPath('')
-        setPlayedAudioClip('')
+      }
+      case 3: {
+        // Buffering (seek detected)
         console.info('Buffering (on seek)')
-        setRecentAudioPlayedTime(0.0)
+
+        // Clear any pending seek operations
+        if (seekDebounceTimer.current) {
+          clearTimeout(seekDebounceTimer.current)
+        }
+
+        // Debounce the seek operation
+        seekDebounceTimer.current = setTimeout(() => {
+          const newTime = event.target.getCurrentTime()
+          const oldTime = currentTimeRef.current
+
+          console.log(
+            `Seek detected: ${oldTime.toFixed(2)} -> ${newTime.toFixed(2)}`,
+          )
+
+          // Stop any currently playing clips
+          if (currInlineAC) {
+            currInlineAC.stop()
+            setCurrInlineAC(undefined)
+          }
+          if (currExtendedAC) {
+            currExtendedAC.stop()
+            setCurrExtendedAC(undefined)
+          }
+
+          // Reset playback tracking
+          setPlayedClipPath('')
+          setPlayedAudioClip('')
+          setRecentAudioPlayedTime(0.0)
+
+          // Update clip stack for new position
+          updateClipStackOnSeek(newTime)
+        }, 100) // 100ms debounce
+
         clearInterval(timer)
-        updateClipStackData()
-        setCurrExtendedAC(undefined)
-        setCurrInlineAC(undefined)
         break
-      default: // All other states
-        clearInterval(timer)
-        break
+      }
     }
   }
   const onReady = (event: any) => {
@@ -1222,6 +1282,52 @@ const Video = () => {
     // Update clipStack
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex])
+
+  const updateClipStackOnSeek = (seekTime: number) => {
+    // Find the nearest clip index for the seek position
+    const nearestIndex = audioClips.findIndex(
+      (clip) => clip.clip_start_time >= seekTime,
+    )
+
+    const startIndex = Math.max(
+      0,
+      nearestIndex === -1 ? audioClips.length - clipStackSize : nearestIndex,
+    )
+
+    // Unload all current clips
+    clipStack.forEach((clip) => {
+      if (clip.clip_audio) {
+        clip.clip_audio.unload()
+      }
+    })
+
+    // Load new clips starting from seek position
+    const newClipStack = []
+    for (
+      let i = startIndex;
+      i < Math.min(startIndex + clipStackSize, audioClips.length);
+      i++
+    ) {
+      const clip = audioClips[i]
+      if (clip) {
+        clip.clip_audio = new Howl({
+          src: clip.clip_audio_path,
+          html5: true,
+          preload: true,
+        })
+        clip.clip_audio.load()
+        newClipStack.push(clip)
+      }
+    }
+
+    setClipStack(newClipStack)
+    setCurrentClipIndex(startIndex)
+
+    // Reset recent audio played time to allow clips to play at new position
+    setRecentAudioPlayedTime(0.0)
+    setPlayedAudioClip('')
+    setPlayedClipPath('')
+  }
 
   const saveVideoToHistory = async (
     videoId: string,
