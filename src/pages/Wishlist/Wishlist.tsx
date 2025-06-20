@@ -118,6 +118,8 @@ const Wishlist = () => {
     useState<VideosState | null>(null)
   const [, setRecentAIRequestedSpinner] = useState(true) // For loading state
 
+  const [isSearching, setIsSearching] = useState(false)
+
   const [, setShowWishlistSpinner] = useState(true)
   const [searchParams, setSearchParams] = useSearchParams()
   const [rows, setRows] = useState<any[]>([])
@@ -504,10 +506,12 @@ const Wishlist = () => {
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
 
-    // Try to restore the last state if available
+    console.log('Component mounted, reading URL parameters...')
+
+    // CRITICAL: First try to restore session state (for users returning from video description)
     restoreLastState()
 
-    // Get parameters from URL - but don't auto-trigger search
+    // Read URL parameters to restore search state - DON'T clear them!
     const searchParam = searchParams.get('search') || ''
     const categoriesParam = searchParams.get('categories')
     const pageParam = searchParams.get('page')
@@ -515,12 +519,20 @@ const Wishlist = () => {
     const sortFieldParam = searchParams.get('sortField')
     const sortDirectionParam = searchParams.get('sortDirection')
 
-    // Initialize states from URL parameters
+    console.log('URL parameters found:', {
+      search: searchParam,
+      categories: categoriesParam,
+      page: pageParam,
+    })
+
+    // Set states from URL parameters
     setSearch(searchParam)
 
     let categoryValues: string[] = []
     if (categoriesParam) {
-      categoryValues = categoriesParam.split(',')
+      categoryValues = categoriesParam
+        .split(',')
+        .map((cat) => decodeURIComponent(cat))
       setSelectedCategories(categoryValues)
     } else {
       setSelectedCategories([])
@@ -532,24 +544,34 @@ const Wishlist = () => {
     const parsedPerPage = perPageParam ? parseInt(perPageParam, 10) : 10
     setPerPage(parsedPerPage)
 
-    // ONLY load data if this is the initial page load or if there are existing search params
-    // Don't auto-load on every URL change
-    if (searchParam || categoriesParam || pageParam) {
-      loadTableVideos(
-        parsedPage,
-        parsedPerPage,
-        sortFieldParam || '',
-        sortDirectionParam || '',
-        searchParam,
-        categoryValues,
-      )
+    // IMPORTANT: Auto-execute search if URL has search criteria
+    // This ensures back button works correctly
+    if (
+      searchParam ||
+      categoriesParam ||
+      (pageParam && parseInt(pageParam, 10) > 1)
+    ) {
+      console.log('Auto-executing search from URL parameters')
+      setIsSearching(true) // Show loading immediately
+
+      // Small delay to ensure state has been set
+      setTimeout(() => {
+        loadTableVideos(
+          parsedPage,
+          parsedPerPage,
+          sortFieldParam || '',
+          sortDirectionParam || '',
+          searchParam,
+          categoryValues,
+        )
+      }, 100)
     } else {
-      // Load default data (no search, no filters)
+      // Load default data for fresh visits
       loadTableVideos(1, parsedPerPage, '', '', '', [])
     }
 
+    // Load supporting sections
     loadTopVideos()
-
     fetchAndSetVideosData(
       wishlistData,
       setShowWishlistSpinner,
@@ -572,6 +594,7 @@ const Wishlist = () => {
     searchParam?: string,
     categoryValues?: string[],
   ) => {
+    // Cache cleanup logic (keep your existing cache cleanup code here)
     const now = Date.now()
     const cacheEntries = Object.keys(searchCache)
     if (cacheEntries.length > 0) {
@@ -596,7 +619,6 @@ const Wishlist = () => {
     const categoryValue =
       categoryValues !== undefined ? categoryValues : selectedCategories
 
-    // Create a cache key from search parameters
     const cacheKey = `${searchValue}_${categoryValue.join(
       ',',
     )}_${pageNumber}_${rowsPerPage}_${column}_${sortDirection}`
@@ -611,6 +633,7 @@ const Wishlist = () => {
         wishListItems
       YouTubeService.getVideoDetails(youTubeIds).then((videoDetails) => {
         parseTableData(videoDetails, votes, categories, updatedAt, aiRequested)
+        setIsSearching(false) // Hide loading when done
       })
       return
     }
@@ -635,11 +658,12 @@ const Wishlist = () => {
         },
       )
       .then((response) => {
+        // Your existing response processing code
         const wishListItems = response.data.data
         const totalItems = response.data.totalItems
         setTotalRows(totalItems)
 
-        // Cache the search results
+        // Cache and process data (keep your existing logic)
         const youTubeIds: any[] = []
         const youDescribeIds = []
         const votes: any[] = []
@@ -667,7 +691,7 @@ const Wishlist = () => {
               aiRequested,
             },
             totalItems,
-            timestamp: Date.now(), // ADD THIS LINE
+            timestamp: Date.now(),
           },
         }))
 
@@ -682,14 +706,107 @@ const Wishlist = () => {
             updatedAt,
             aiRequested,
           )
+          setIsSearching(false) // Hide loading when completely done
         })
       })
       .catch((error) => {
         console.error('Error fetching wishlist data:', error)
         setTotalRows(0)
         setRows([])
+        setIsSearching(false) // Hide loading on error too
       })
   }
+
+  const SimpleLoadingMessage = () => {
+    if (!isSearching) return null
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #dee2e6',
+          borderRadius: '8px',
+          margin: '15px 0',
+          color: '#495057',
+        }}
+      >
+        <div
+          style={{
+            marginRight: '12px',
+            fontSize: '18px',
+            animation: 'spin 1s linear infinite',
+          }}
+        >
+          ⟳
+        </div>
+        <span style={{ fontSize: '16px', fontWeight: '500' }}>
+          Please wait while we search...
+        </span>
+      </div>
+    )
+  }
+
+  const UpdatedSearchForm = () => (
+    <form
+      onSubmit={(e: any) => {
+        e.preventDefault()
+        executeSearch()
+      }}
+    >
+      <div className="w3-row-padding classic-container search-container">
+        <span className="category-label">Category</span>
+        <div className="category-select">
+          <Select
+            options={allCategories.map((category) => {
+              const option = { value: category, label: category }
+              if (category === 'How-To & Style') {
+                option.value = 'Howto & Style'
+              }
+              return option
+            })}
+            placeholder="All"
+            isMulti
+            onChange={handleCategoryChange}
+            value={selectedCategories.map((cat) => ({
+              value: cat,
+              label: cat,
+            }))}
+            isDisabled={isSearching} // Disable during search
+          />
+        </div>
+        <span className="search-label">Wishlist Search</span>
+        <input
+          type="text"
+          placeholder="Search Wishlist"
+          className="search-input"
+          value={search}
+          onChange={handleChange}
+          disabled={isSearching} // Disable during search
+        />
+      </div>
+
+      {/* Simple loading message */}
+      <SimpleLoadingMessage />
+
+      <div className="search-button-container">
+        <button
+          className="w3-btn w3-indigo search-button"
+          onClick={(e) => {
+            e.preventDefault()
+            executeSearch()
+          }}
+          type="submit"
+          disabled={isSearching} // Disable during search
+        >
+          {isSearching ? 'Searching...' : 'Search'}
+        </button>
+      </div>
+    </form>
+  )
 
   const parseTableData = (
     youTubeVideos: any[],
@@ -862,16 +979,25 @@ const Wishlist = () => {
   }
 
   const executeSearch = () => {
-    // Reset to page 1 for new search
+    console.log('Manual search initiated:', { search, selectedCategories })
+
+    // Show simple loading
+    setIsSearching(true)
+
+    // Reset to page 1 for new searches
     setCurrentPageNumber(1)
 
-    // Update URL with all current search parameters
+    // Update URL to reflect search state (essential for bookmarking/back button)
     setSearchParams((params) => {
       params.set('search', search)
-      params.set('page', '1') // Always start from page 1
+      params.set('page', '1')
 
       if (selectedCategories.length > 0) {
-        params.set('categories', selectedCategories.join(','))
+        // Properly encode categories for URL
+        const encodedCategories = selectedCategories
+          .map((cat) => encodeURIComponent(cat))
+          .join(',')
+        params.set('categories', encodedCategories)
       } else {
         params.delete('categories')
       }
@@ -879,28 +1005,56 @@ const Wishlist = () => {
       return params
     })
 
-    // Execute the actual search
+    // Execute the search
     loadTableVideos(1, perPage, '', '', search, selectedCategories)
   }
 
   const handlePageChange = (page: number) => {
     setCurrentPageNumber(page)
-    // Update URL with page parameter
+    setIsSearching(true) // Show loading for page changes
+
+    // Update URL to reflect new page while preserving search parameters
     setSearchParams((params) => {
       params.set('page', page.toString())
       return params
     })
-    loadTableVideos(page, perPage)
+
+    // Load data for new page with current search context
+    loadTableVideos(
+      page,
+      perPage,
+      searchParams.get('sortField') || '',
+      searchParams.get('sortDirection') || '',
+      search,
+      selectedCategories,
+    )
   }
 
   const handlePerRowsChange = (newPerPage: number) => {
     setPerPage(newPerPage)
-    // Update URL with perPage parameter
+    setIsSearching(true) // Show loading for per-page changes
+
+    // Calculate appropriate page number for new page size
+    const currentFirstItem = (currentPageNumber - 1) * perPage + 1
+    const newPageNumber = Math.max(1, Math.ceil(currentFirstItem / newPerPage))
+    setCurrentPageNumber(newPageNumber)
+
+    // Update URL with perPage and adjusted page parameter
     setSearchParams((params) => {
       params.set('perPage', newPerPage.toString())
+      params.set('page', newPageNumber.toString())
       return params
     })
-    loadTableVideos(currentPageNumber, newPerPage)
+
+    // Load data with new pagination settings
+    loadTableVideos(
+      newPageNumber,
+      newPerPage,
+      searchParams.get('sortField') || '',
+      searchParams.get('sortDirection') || '',
+      search,
+      selectedCategories,
+    )
   }
 
   useEffect(() => {
@@ -1068,7 +1222,7 @@ const Wishlist = () => {
       <form
         onSubmit={(e: any) => {
           e.preventDefault()
-          executeSearch() // Use the new search function
+          executeSearch()
         }}
       >
         <div className="w3-row-padding classic-container search-container">
@@ -1089,6 +1243,7 @@ const Wishlist = () => {
                 value: cat,
                 label: cat,
               }))}
+              isDisabled={isSearching} // Disable during search
             />
           </div>
           <span className="search-label">Wishlist Search</span>
@@ -1098,21 +1253,28 @@ const Wishlist = () => {
             className="search-input"
             value={search}
             onChange={handleChange}
+            disabled={isSearching} // Disable during search
           />
         </div>
+
+        {/* Simple loading message */}
+        <SimpleLoadingMessage />
+
         <div className="search-button-container">
           <button
             className="w3-btn w3-indigo search-button"
             onClick={(e) => {
               e.preventDefault()
-              executeSearch() // Use the new search function
+              executeSearch()
             }}
             type="submit"
+            disabled={isSearching} // Disable during search
           >
-            Search
+            {isSearching ? 'Searching...' : 'Search'}
           </button>
         </div>
       </form>
+
       <div className="table-container">
         <DataTable
           title="All Wishlist Videos"
@@ -1124,6 +1286,8 @@ const Wishlist = () => {
           paginationTotalRows={totalRows}
           onChangePage={(page) => handlePageChange(page)}
           onSort={(column, direction) => {
+            setIsSearching(true) // Show loading for sort operations
+
             // Update URL with sort parameters
             setSearchParams((params) => {
               if (column.sortField) {
@@ -1136,11 +1300,13 @@ const Wishlist = () => {
               return params
             })
             loadTableVideos(
-              currentPageNumber,
+              currentPageNumber, // KEEP current page, don't reset
               perPage,
               column.sortField,
               direction,
-            ) // FIXED: use currentPageNumber instead of 0
+              search,
+              selectedCategories,
+            )
           }}
           sortServer
           onChangeRowsPerPage={(newPerPage) => handlePerRowsChange(newPerPage)}
