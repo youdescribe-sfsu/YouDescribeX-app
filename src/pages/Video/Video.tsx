@@ -539,6 +539,12 @@ const Video = () => {
     }
     // console.log('Selected AD', selectedAd)
 
+    if (!selectedAd || !adIdsAudioClips[selectedAd]) {
+      console.log('No valid audio description selected')
+      getYTVideoInfo()
+      return
+    }
+
     if (
       audioDescriptionsIds?.length &&
       audioDescriptionsIds?.indexOf(selectedAd) === -1

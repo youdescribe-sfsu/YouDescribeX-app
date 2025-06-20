@@ -601,20 +601,15 @@ const EditClip = ({
     }
   }
 
-  // handle Record Ready Set Go
-  const handleReadySetGo = () => {
-    const _321Go = ['3', '2', '1', 'Go', 'start']
-    // using the concept of closures & IIFE in JavaScript
+  const handleReadySetGo = (): void => {
+    const _321Go = ['3', '2', '1', 'GO!', 'start']
+
     _321Go.forEach((val, i) => {
-      setTimeout(
-        (function (i_local) {
-          return function () {
-            setReadySetGo(i_local)
-          }
-        })(val),
-        1000 * i,
-      )
+      setTimeout(() => {
+        setReadySetGo(val)
+      }, 1000 * i)
     })
+
     // start recording once ready set go is completed
     setTimeout(() => {
       startRecording()
