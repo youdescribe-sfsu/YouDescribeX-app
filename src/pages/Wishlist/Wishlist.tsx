@@ -1284,6 +1284,7 @@ const Wishlist = () => {
           pagination
           paginationServer
           paginationTotalRows={totalRows}
+          paginationDefaultPage={currentPageNumber}
           onChangePage={(page) => handlePageChange(page)}
           onSort={(column, direction) => {
             setIsSearching(true) // Show loading for sort operations
