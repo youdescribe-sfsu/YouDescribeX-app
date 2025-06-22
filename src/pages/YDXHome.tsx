@@ -1217,7 +1217,7 @@ const YDXHome = (): React.ReactElement => {
     const clipStackData = []
     // Create Howl objects for each clip
     for (let i = newClipIndex; i < newClipIndex + clipStackSize; i++) {
-      const clip = sortedAudioClips[i]  // Change to sortedAudioClips
+      const clip = sortedAudioClips[i] // Change to sortedAudioClips
       if (clip) {
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
@@ -1231,7 +1231,7 @@ const YDXHome = (): React.ReactElement => {
     }
     // Update clipStack
     setClipStack(clipStackData)
-  }, [sortedAudioClips, clipStackSize])  // Update dependencies
+  }, [sortedAudioClips, clipStackSize]) // Update dependencies
 
   const updateClipsDataCallback = useMemo(
     () =>
