@@ -118,6 +118,86 @@ const EditClip = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clipStartTime, clipEndTime, initialClipDescriptionText])
 
+  // Helper function to determine what text to display
+  const getDescriptionDisplay = () => {
+    // If it's a recorded clip with no meaningful text
+    if (
+      isRecorded &&
+      (!clipDescriptionText || clipDescriptionText.trim() === '')
+    ) {
+      return {
+        displayText: '🎙️ Voice recording - no transcript available',
+        isPlaceholder: true,
+        canEdit: false,
+        className: 'text-muted font-italic',
+      }
+    }
+
+    // If it's a recorded clip but has text (maybe from teleprompter)
+    if (isRecorded && clipDescriptionText) {
+      return {
+        displayText: clipDescriptionText,
+        isPlaceholder: false,
+        canEdit: true,
+        className: 'recorded-with-text',
+        helperText: '📝 This text was saved with your recording',
+      }
+    }
+
+    // If it's a TTS clip (normal case)
+    return {
+      displayText: clipDescriptionText || '',
+      isPlaceholder: false,
+      canEdit: true,
+      className: '',
+    }
+  }
+
+  // Helper function for audio mode configuration
+  const getAudioModeConfig = () => {
+    if (!clipAudioPath) {
+      return {
+        icon: '🎵',
+        title: 'Add Audio Description',
+        subtitle: 'Choose how to add audio to this scene',
+        mode: 'empty',
+      }
+    } else if (isRecorded) {
+      return {
+        icon: '🎙️',
+        title: 'Your Voice Recording',
+        subtitle: `Duration: ${clipDuration.toFixed(2)}s`,
+        mode: 'recorded',
+      }
+    } else {
+      return {
+        icon: '🤖',
+        title: 'AI Voice (Text-to-Speech)',
+        subtitle: 'Generated from your text description',
+        mode: 'tts',
+      }
+    }
+  }
+
+  // Get configurations
+  const descriptionDisplay = getDescriptionDisplay()
+  const audioMode = getAudioModeConfig()
+
+  // New handler functions
+  const handleConvertToTextMode = () => {
+    setClipDescriptionText('') // Enable text field
+    toast.info('You can now add text to your recording')
+  }
+
+  const handleRegenerateAI = async () => {
+    if (!clipDescriptionText) {
+      toast.error('Please enter text before generating AI voice')
+      return
+    }
+    // Call your existing save function to regenerate TTS
+    await handleClickSaveClipDescription(clipDescriptionText)
+  }
+
   useEffect(() => {
     const tooltipTriggerList = document.querySelectorAll(
       '[data-bs-toggle="tooltip"]',
@@ -557,59 +637,100 @@ const EditClip = ({
   const handleClickReplaceClip = async (e: any) => {
     setShowSpinner(true)
     e.preventDefault()
-    if (mediaBlobUrl === null) {
-      toast.error('Error while saving the recorded audio. Please record again.')
-      setShowSpinner(false)
-    } else {
-      // create a new FormData object for easy file uploads
-      const formData = new FormData()
-      const audioBlob = await fetch(`${mediaBlobUrl}`).then((r) => r.blob()) // get blob from the audio URI
-      const audioFile = new File([audioBlob], 'voice.mp3', {
-        type: 'audio/mp3',
-      })
-      formData.append('clipDescriptionText', clipDescriptionText)
-      formData.append('clipStartTime', String(clipStartTime))
-      formData.append('newACType', clipDescriptionType)
-      formData.append('youtubeVideoId', youtubeVideoId)
-      formData.append('recordedClipDuration', String(recordedClipDuration))
-      formData.append('audioDescriptionId', audioDescriptionId)
-      formData.append('userId', userId)
-      formData.append('file', audioFile)
 
-      // upload formData using axios
-      axios
-        .put(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/record-replace-clip-audio/${clipId}`,
-          formData,
+    // If currently TTS and user wants to record
+    if (!isRecorded && mediaBlobUrl) {
+      // Your existing recording replacement logic
+      if (mediaBlobUrl === null) {
+        toast.error(
+          'Error while saving the recorded audio. Please record again.',
+        )
+        setShowSpinner(false)
+        return
+      } else {
+        // create a new FormData object for easy file uploads
+        const formData = new FormData()
+        const audioBlob = await fetch(`${mediaBlobUrl}`).then((r) => r.blob()) // get blob from the audio URI
+        const audioFile = new File([audioBlob], 'voice.mp3', {
+          type: 'audio/mp3',
+        })
+        formData.append('clipDescriptionText', clipDescriptionText)
+        formData.append('clipStartTime', String(clipStartTime))
+        formData.append('newACType', clipDescriptionType)
+        formData.append('youtubeVideoId', youtubeVideoId)
+        formData.append('recordedClipDuration', String(recordedClipDuration))
+        formData.append('audioDescriptionId', audioDescriptionId)
+        formData.append('userId', userId)
+        formData.append('file', audioFile)
+
+        // upload formData using axios
+        axios
+          .put(
+            `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/record-replace-clip-audio/${clipId}`,
+            formData,
+            {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            },
+          )
+          .then((res) => {
+            toast.success(
+              'Replaced Clip Successfully with the Recorded Audio!!',
+            )
+            setTimeout(() => {
+              setUpdateData(!updateData)
+              setShowSpinner(false)
+            }, 4000) // setting the timeout to show the toast message for 4 sec
+          })
+          .catch((err) => {
+            // console.log(err)
+            toast.error(
+              'Error while replacing Audio Clip. Please try again later.',
+            )
+          })
+      }
+    } else if (isRecorded && clipDescriptionText) {
+      // NEW: If currently recorded and user wants to switch to TTS
+      try {
+        const response = await axios.post(
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/switch-to-tts/${clipId}`,
           {
-            headers: { 'Content-Type': 'multipart/form-data' },
+            text: clipDescriptionText,
+            userId: userId,
+            youtubeVideoId: youtubeVideoId,
+            audioDescriptionId: audioDescriptionId,
+          },
+          {
+            withCredentials: true,
+            headers: { 'Content-Type': 'application/json' },
           },
         )
-        .then((res) => {
-          toast.success('Replaced Clip Successfully with the Recorded Audio!!')
-          setTimeout(() => {
-            setUpdateData(!updateData)
-            setShowSpinner(false)
-          }, 4000) // setting the timeout to show the toast message for 4 sec
-        })
-        .catch((err) => {
-          // console.log(err)
-          toast.error(
-            'Error while replacing Audio Clip. Please try again later.',
-          )
-        })
+
+        toast.success('Switched to AI voice successfully!')
+        setUpdateData(!updateData)
+        setShowSpinner(false)
+      } catch (err) {
+        toast.error('Error switching to AI voice. Please try again.')
+        setShowSpinner(false)
+      }
+    } else {
+      toast.error('Cannot switch voice mode without text description')
+      setShowSpinner(false)
     }
   }
-
-  const handleReadySetGo = (): void => {
-    const _321Go = ['3', '2', '1', 'GO!', 'start']
-
+  // handle Record Ready Set Go
+  const handleReadySetGo = () => {
+    const _321Go = ['3', '2', '1', 'Go', 'start']
+    // using the concept of closures & IIFE in JavaScript
     _321Go.forEach((val, i) => {
-      setTimeout(() => {
-        setReadySetGo(val)
-      }, 1000 * i)
+      setTimeout(
+        (function (i_local) {
+          return function () {
+            setReadySetGo(i_local)
+          }
+        })(val),
+        1000 * i,
+      )
     })
-
     // start recording once ready set go is completed
     setTimeout(() => {
       startRecording()
@@ -627,17 +748,49 @@ const EditClip = ({
               <h6 className="text-white">
                 Clip Description: {isRecorded ? '(Recorded)' : ''}
               </h6>
-              <TextareaAutosize
-                className="form-control form-control-sm border rounded text-justify description-textarea"
-                id="description"
-                name="description"
-                value={clipDescriptionText}
-                onChange={(e) => {
-                  setClipDescriptionText(e.target.value)
-                  setClipDescText(e.target.value)
-                }}
-                disabled={isPreview}
-              ></TextareaAutosize>
+              <div className="description-text-container">
+                <TextareaAutosize
+                  className={`expand-textarea ${descriptionDisplay.className} ${
+                    isPreview ? 'preview-textarea' : ''
+                  }`}
+                  value={descriptionDisplay.displayText}
+                  onChange={(e) => {
+                    // Only allow editing if it's not a placeholder
+                    if (descriptionDisplay.canEdit) {
+                      setClipDescriptionText(e.target.value)
+                      setClipDescText(e.target.value)
+                    }
+                  }}
+                  placeholder="Type your audio description here..."
+                  disabled={!descriptionDisplay.canEdit || isPreview}
+                  onFocus={() => {
+                    if (descriptionDisplay.isPlaceholder) {
+                      toast.info(
+                        "To add text to this recording, use 'Convert to Text Mode' below",
+                      )
+                    }
+                  }}
+                />
+
+                {/* Add helper text when appropriate */}
+                {descriptionDisplay.helperText && (
+                  <small className="form-text text-muted">
+                    {descriptionDisplay.helperText}
+                  </small>
+                )}
+
+                {/* Add option to switch to text mode for recordings */}
+                {isRecorded && !clipDescriptionText && !isPreview && (
+                  <Button
+                    size="sm"
+                    variant="link"
+                    className="mt-2"
+                    onClick={handleConvertToTextMode}
+                  >
+                    <i className="fa fa-keyboard" /> Convert to Text Mode
+                  </Button>
+                )}
+              </div>
               {/* play, save & Delete buttons */}
               <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
                 <Button
@@ -856,17 +1009,28 @@ const EditClip = ({
             visibility: isPreview ? 'hidden' : 'visible',
           }}
         >
-          <h6 className="text-white text-center">
-            Record & Replace AI&apos;s voice
-            <span
-              className="ms-2 text-info"
-              data-bs-toggle="tooltip"
-              data-bs-placement="right"
-              title="Read your script during recording. The text will appear as a teleprompter to help you remember what to say. Only your audio will be saved."
-            >
-              <i className="fa fa-question-circle"></i>
-            </span>
-          </h6>
+          <div className="audio-mode-header text-center mb-3">
+            <div className="mode-indicator">
+              <span className="mode-icon" style={{ fontSize: '2em' }}>
+                {audioMode.icon}
+              </span>
+              <h6 className="text-white mb-1">{audioMode.title}</h6>
+              <small className="text-muted">{audioMode.subtitle}</small>
+            </div>
+
+            {/* Visual mode indicator */}
+            <div className="mode-badge-container mt-2">
+              {audioMode.mode === 'recorded' && (
+                <span className="badge bg-primary">Human Voice</span>
+              )}
+              {audioMode.mode === 'tts' && (
+                <span className="badge bg-info">AI Voice</span>
+              )}
+              {audioMode.mode === 'empty' && (
+                <span className="badge bg-secondary">No Audio Yet</span>
+              )}
+            </div>
+          </div>
           <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 w-100 my-2">
             <div className="mx-1">
               {status === 'recording' && readySetGo !== '' ? (
@@ -921,84 +1085,195 @@ const EditClip = ({
               )}
             </div>
             {/* No recording to Play */}
-            {mediaBlobUrl === null ? (
-              <>
-                {/* Disabled buttons */}
-                <div
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  title="No recording to Play"
-                >
-                  <button
-                    type="button"
-                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn mx-3 ydx-button"
-                  >
-                    Listen
-                  </button>
+          </div>
+          {/* NEW: Smart audio controls based on current mode */}
+          <div className="audio-controls-section">
+            {audioMode.mode === 'recorded' ? (
+              // Controls when user has recorded audio (either fresh recording or existing)
+              <div className="recorded-audio-controls">
+                <div className="playback-section text-center mb-3">
+                  {/* Show different buttons based on whether we have a fresh recording or saved recording */}
+                  {mediaBlobUrl || clipAudioPath ? (
+                    <Button
+                      onClick={handlePlayPauseRecordedAudio}
+                      className="btn btn-primary me-2"
+                    >
+                      {isRecordedAudioPlaying ? (
+                        <>
+                          <i className="fa fa-pause" /> Pause Recording
+                        </>
+                      ) : (
+                        <>
+                          <i className="fa fa-play" /> Listen to Recording
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      className="btn btn-primary me-2 disabled"
+                      disabled
+                      title="No recording available to play"
+                    >
+                      <i className="fa fa-play" /> No Recording
+                    </Button>
+                  )}
+
+                  {/* Show duration information */}
+                  <div className="text-white small">
+                    Duration: {recordedClipDuration.toFixed(2)}s
+                  </div>
                 </div>
-                <div
-                  data-bs-toggle="toggle"
-                  data-bs-placement="bottom"
-                  title="No recording to Replace"
-                >
+
+                <div className="action-buttons text-center">
+                  {/* Re-record button - always available for recorded mode */}
                   <Button
-                    className="btn rounded btn-sm text-white primary-btn-color disabled-btn ydx-button"
-                    disabled
+                    onClick={() => {
+                      // Clear any existing recording state and start fresh
+                      setReadySetGo('ready')
+                      toast.info('Get ready to re-record your voice')
+                    }}
+                    className="btn btn-warning me-2"
                   >
-                    Replace
+                    <i className="fa fa-microphone" /> Re-record
+                  </Button>
+
+                  {/* Switch to AI voice - only if we have text */}
+                  <Button
+                    onClick={() => {
+                      if (
+                        !clipDescriptionText ||
+                        clipDescriptionText.trim() === ''
+                      ) {
+                        toast.error(
+                          'Please add text before switching to AI voice',
+                        )
+                        return
+                      }
+                      setIsReplaceModal(true)
+                    }}
+                    className="btn btn-info"
+                    disabled={
+                      !clipDescriptionText || clipDescriptionText.trim() === ''
+                    }
+                    title={
+                      !clipDescriptionText
+                        ? 'Add text description first'
+                        : 'Switch to AI voice using your text'
+                    }
+                  >
+                    <i className="fa fa-robot" /> Switch to AI Voice
                   </Button>
                 </div>
-              </>
-            ) : isRecordedAudioPlaying ? ( //Listen to your recording
-              <>
-                <button
-                  type="button"
-                  className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  title="Listen to your recording"
-                  onClick={handlePlayPauseRecordedAudio} // toggle function for play / pause
-                >
-                  Pause/Stop
-                </button>
-                <div
-                  data-bs-toggle="toggle"
-                  data-bs-placement="bottom"
-                  title="Replace the AI's Voice with your Voice"
-                >
+              </div>
+            ) : audioMode.mode === 'tts' ? (
+              // Controls when user has AI-generated audio
+              <div className="tts-audio-controls">
+                <div className="playback-section text-center mb-3">
                   <Button
-                    className="btn rounded btn-sm text-white primary-btn-color ydx-button"
-                    onClick={() => setIsReplaceModal(true)}
+                    onClick={handlePlayPauseAdAudio}
+                    className="btn btn-primary me-2"
                   >
-                    Replace
+                    {isAdAudioPlaying ? (
+                      <>
+                        <i className="fa fa-pause" /> Pause AI Voice
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa fa-play" /> Listen to AI Voice
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="text-white small">
+                    Generated from your text
+                  </div>
+                </div>
+
+                <div className="action-buttons text-center">
+                  {/* Regenerate AI voice */}
+                  <Button
+                    onClick={async () => {
+                      if (
+                        !clipDescriptionText ||
+                        clipDescriptionText.trim() === ''
+                      ) {
+                        toast.error(
+                          'Please enter text before regenerating AI voice',
+                        )
+                        return
+                      }
+                      // Call the existing save function which regenerates TTS
+                      await handleClickSaveClipDescription(clipDescriptionText)
+                    }}
+                    className="btn btn-secondary me-2"
+                    disabled={
+                      !clipDescriptionText || clipDescriptionText.trim() === ''
+                    }
+                  >
+                    <i className="fa fa-refresh" /> Regenerate AI Voice
+                  </Button>
+
+                  {/* Switch to recording */}
+                  <Button
+                    onClick={() => {
+                      setReadySetGo('ready')
+                      toast.info('Get ready to record your voice')
+                    }}
+                    className="btn btn-success"
+                  >
+                    <i className="fa fa-microphone" /> Use My Voice Instead
                   </Button>
                 </div>
-              </>
+              </div>
             ) : (
-              <>
-                <button
-                  type="button"
-                  className="btn rounded btn-sm text-white primary-btn-color mx-3 ydx-button"
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  title="Listen to your recording"
-                  onClick={handlePlayPauseRecordedAudio} // toggle function for play / pause
-                >
-                  Listen
-                </button>
-                <div
-                  data-bs-toggle="toggle"
-                  data-bs-placement="bottom"
-                  title="Replace the AI's Voice with your Voice"
-                >
+              // No audio exists yet - guide user to create some
+              <div className="no-audio-controls">
+                <div className="text-center mb-3">
+                  <p className="text-white">
+                    Choose how to add audio to this scene:
+                  </p>
+                </div>
+
+                <div className="action-buttons text-center">
                   <Button
-                    className="btn rounded btn-sm text-white primary-btn-color ydx-button"
-                    onClick={() => setIsReplaceModal(true)}
+                    onClick={() => {
+                      // Focus on the text area to encourage typing first
+                      const textarea = document.querySelector(
+                        '.expand-textarea',
+                      ) as HTMLTextAreaElement
+                      if (textarea) {
+                        textarea.focus()
+                        toast.info(
+                          'Type your description, then save to generate AI voice',
+                        )
+                      }
+                    }}
+                    className="btn btn-primary me-3"
                   >
-                    Replace
+                    <i className="fa fa-keyboard" /> Type & Generate AI Voice
+                  </Button>
+
+                  <Button
+                    onClick={() => {
+                      setReadySetGo('ready')
+                      toast.info('Get ready to record your voice')
+                    }}
+                    className="btn btn-success"
+                  >
+                    <i className="fa fa-microphone" /> Record My Voice
                   </Button>
                 </div>
-              </>
+
+                {/* Show disabled buttons to maintain layout */}
+                <div className="mt-3 text-center">
+                  <Button className="btn btn-outline-secondary me-2" disabled>
+                    <i className="fa fa-play" /> Listen (No audio yet)
+                  </Button>
+                  <Button className="btn btn-outline-secondary" disabled>
+                    <i className="fa fa-exchange" /> Replace (No audio yet)
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
           <div className="text-center">
@@ -1038,8 +1313,14 @@ const EditClip = ({
       {
         <ModalComponent
           id="replaceModal"
-          title="Replace"
-          text="Are you sure you want to replace AI's voice with the one you recorded?"
+          title={
+            isRecorded ? 'Switch to AI Voice?' : 'Replace with Your Recording?'
+          }
+          text={
+            isRecorded
+              ? 'This will generate an AI voice from your text description. Your recording will be replaced.'
+              : 'This will replace the AI voice with your new recording. The text will be preserved.'
+          }
           modalTask={(e: any) => handleClickReplaceClip(e)}
           show={isReplaceModal}
           handleClose={() => setIsReplaceModal(false)}
