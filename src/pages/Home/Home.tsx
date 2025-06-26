@@ -179,19 +179,15 @@ const Home = () => {
     // Try to get videos from cache first
     const cachedVideos = videoCache.getVideoData()
     if (cachedVideos && cachedVideos.videos.length > 0) {
-      // Sort before storing to ensure latest audio descriptions are at top
-      const sortedVideos = [...cachedVideos.videos].sort((a, b) => {
-        return (
-          (b.audioDescriptionTimestamp || 0) -
-          (a.audioDescriptionTimestamp || 0)
-        )
-      })
-
-      setRawVideoData(sortedVideos)
+      // Trust the order that was cached
+      setRawVideoData(cachedVideos.videos)
       setShowSpinner(false)
-      console.log('Loaded videos from cache with proper sorting')
-    } else {
-      fetchHomePageVideos()
+
+      // Optionally, fetch fresh data in the background if cache is getting old
+      const cacheAge = Date.now() - cachedVideos.timestamp
+      if (cacheAge > CACHE_TTL / 2) {
+        fetchHomePageVideos(1, true) // Background refresh
+      }
     }
 
     checkUserPolicyReview()
@@ -314,15 +310,13 @@ const Home = () => {
 
   const parseHomePageData = useCallback(
     (combinedData: any, isFirstPage = false) => {
-      // Extract existing videos data
       const existingVideoData: VideoData[] = isFirstPage
-        ? [] // On first page, start fresh
+        ? []
         : [...rawVideoData]
-
-      // Process new videos from API response
       const youtubeData = combinedData.youtubeData
       const ydxVideos = combinedData.videos
 
+      // Handle error cases
       if (
         !youtubeData ||
         !youtubeData.items ||
@@ -348,102 +342,74 @@ const Home = () => {
         return
       }
 
-      // Create map for faster video lookup
-      const existingIds = new Set(
-        existingVideoData.map((video) => video.youTubeId),
-      )
-
-      // Process new videos
-      const newVideosData: VideoData[] = []
-
-      for (let i = 0; i < youtubeData.items.length; i += 1) {
-        const item = youtubeData.items[i]
-        if (!item.statistics || !item.snippet) {
-          continue
-        }
-
-        const ydxVideo = ydxVideos[i]
-        if (!ydxVideo) continue
-
-        // Extract timestamp for sorting
-        const audioDescriptionTimestamp =
-          ydxVideo.latest_audio_description_updated_at
-            ? parseInt(String(ydxVideo.latest_audio_description_updated_at))
-            : 0
-
-        const youTubeId = item.id
-
-        // Skip if we already have this video
-        if (existingIds.has(youTubeId)) {
-          continue
-        }
-
-        const thumbnailMedium =
-          item.snippet.thumbnails.medium || item.snippet.thumbnails.default
-        const duration = convertSecondsToCardFormat(
-          convertISO8601ToSeconds(item.contentDetails.duration),
-          true,
-        )
-        const title = item.snippet.title
-        const description = item.snippet.description
-        const author = item.snippet.channelTitle
-        const views = convertViewsToCardFormat(
-          Number(item.statistics.viewCount),
-        )
-        const publishedAt = new Date(item.snippet.publishedAt).getMilliseconds()
-
-        const now = Date.now()
-        const time = convertTimeToCardFormat(Number(now - publishedAt))
-
-        console.log('Video ID:', ydxVideo.youtube_id)
-        console.log(
-          'Timestamp raw:',
-          ydxVideo.latest_audio_description_updated_at,
-        )
-        console.log(
-          'Timestamp type:',
-          typeof ydxVideo.latest_audio_description_updated_at,
-        )
-        console.log(
-          'Parsed timestamp:',
-          parseInt(String(ydxVideo.latest_audio_description_updated_at)),
-        )
-
-        newVideosData.push({
-          youTubeId,
-          description,
-          thumbnailMediumUrl: thumbnailMedium.url,
-          duration,
-          title,
-          author,
-          views,
-          time,
-          buttons: 'none',
-          audioDescriptionTimestamp, // Store the timestamp for sorting
-        })
-      }
-
-      // Merge and sort videos by audio description timestamp
-      const allVideosData = [...existingVideoData, ...newVideosData]
-
-      // Sort videos by audio description timestamp, newest first
-      allVideosData.sort((a, b) => {
-        return (
-          (b.audioDescriptionTimestamp || 0) -
-          (a.audioDescriptionTimestamp || 0)
-        )
+      // Create lookup map for YouTube data
+      const youtubeDataMap = new Map<string, any>()
+      youtubeData.items.forEach((item: any) => {
+        youtubeDataMap.set(item.id, item)
       })
 
-      // Store sorted raw data
+      // Track existing videos to prevent duplicates
+      const existingIds = new Set(existingVideoData.map((v) => v.youTubeId))
+
+      // Process new videos maintaining backend order
+      const newVideosData: VideoData[] = []
+
+      for (const ydxVideo of ydxVideos) {
+        const youtubeId = ydxVideo.youtube_id
+
+        // Skip if already displayed
+        if (existingIds.has(youtubeId)) {
+          continue
+        }
+
+        const youtubeItem = youtubeDataMap.get(youtubeId)
+        if (!youtubeItem?.statistics || !youtubeItem?.snippet) {
+          console.warn(`Missing YouTube data for video ${youtubeId}`)
+          continue
+        }
+
+        // Build video data
+        const videoData: VideoData = {
+          youTubeId: youtubeId,
+          description: youtubeItem.snippet.description,
+          thumbnailMediumUrl:
+            youtubeItem.snippet.thumbnails?.medium?.url ||
+            youtubeItem.snippet.thumbnails?.default?.url ||
+            '',
+          duration: convertSecondsToCardFormat(
+            convertISO8601ToSeconds(youtubeItem.contentDetails.duration),
+            true,
+          ),
+          title: youtubeItem.snippet.title,
+          author: youtubeItem.snippet.channelTitle,
+          views: convertViewsToCardFormat(
+            Number(youtubeItem.statistics.viewCount),
+          ),
+          time: convertTimeToCardFormat(
+            Date.now() - new Date(youtubeItem.snippet.publishedAt).getTime(),
+          ),
+          buttons: 'none',
+          audioDescriptionTimestamp:
+            ydxVideo.latest_audio_description_updated_at || 0,
+        }
+
+        newVideosData.push(videoData)
+      }
+
+      // Combine videos maintaining order
+      const allVideosData = isFirstPage
+        ? newVideosData
+        : [...existingVideoData, ...newVideosData]
+
       setRawVideoData(allVideosData)
       setRenderKey((prev) => prev + 1)
 
-      // Update our cache with the latest video data
+      // Cache the results
       if (allVideosData.length > 0) {
         videoCache.setVideoData(allVideosData)
       }
     },
-    [rawVideoData],
+    [rawVideoData, videoCache],
   )
 
   const loadMoreResults = () => {
