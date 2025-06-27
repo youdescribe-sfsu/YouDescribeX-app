@@ -178,7 +178,13 @@ const Home = () => {
 
     // Try to get videos from cache first
     const cachedVideos = videoCache.getVideoData()
+
     if (cachedVideos && cachedVideos.videos.length > 0) {
+      console.log(
+        'Loading from cache, video count:',
+        cachedVideos.videos.length,
+      )
+
       // Trust the order that was cached
       setRawVideoData(cachedVideos.videos)
       setShowSpinner(false)
@@ -186,14 +192,18 @@ const Home = () => {
       // Optionally, fetch fresh data in the background if cache is getting old
       const cacheAge = Date.now() - cachedVideos.timestamp
       if (cacheAge > CACHE_TTL / 2) {
+        console.log('Cache is getting old, refreshing in background')
         fetchHomePageVideos(1, true) // Background refresh
       }
+    } else {
+      console.log('No cache found, fetching from API')
+      // No cache available - fetch from API
+      fetchHomePageVideos()
     }
 
     checkUserPolicyReview()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
   const fetchHomePageVideos = async (
     page: number = currentPage,
     isBackgroundFetch = false,
