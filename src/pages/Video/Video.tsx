@@ -1588,8 +1588,12 @@ const Video = () => {
     console.log('Checking timestamp', currentEventRef.current?.getCurrentTime())
     // Api call for getting ai description
     try {
+<<<<<<< HEAD
       // const url = `http://localhost:4001/api/users/info-bot`
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/info-bot`
+=======
+      const url = `http://34.9.0.158:4001/api/users/info-bot`
+>>>>>>> a71fcde (resolve conflict)
       const response = await axios.post(
         url,
         {
@@ -1687,8 +1691,12 @@ const Video = () => {
 
     // Fetch AI answer api call
     try {
+<<<<<<< HEAD
       // const url = `http://localhost:4001/api/users/info-bot`
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/info-bot`
+=======
+      const url = `http://34.9.0.158:4001/api/users/info-bot`
+>>>>>>> a71fcde (resolve conflict)
       const response = await axios.post(
         url,
         {
@@ -1755,6 +1763,7 @@ const Video = () => {
         const question = await captureSpeech() // Capture the user's question
         console.log(question)
         readTextAloud(`${question}`) // Confirm the question to the user
+        readTextAloud(question) // Confirm the question to the user
         const answer = await fetchAnswer(question) // Fetch the answer
         readTextAloud(answer) // Read the answer aloud
       } catch (error) {
