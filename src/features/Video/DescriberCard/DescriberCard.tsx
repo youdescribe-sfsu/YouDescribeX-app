@@ -73,7 +73,7 @@ const DescriberCard = ({
                 'Provide Collaborative edit for this describer',
               )}
               title={translate('Provide Collaborative edit for this describer')}
-              text={translate('Collaborative edit')}
+              text={translate('Collaborative Edit')}
               color="w3-lime w3-block w3-margin-top"
               onClick={() => handleNewCollabEdit(describerId)}
             />
