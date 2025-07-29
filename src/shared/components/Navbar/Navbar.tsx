@@ -101,7 +101,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
           <div className="w3-right w3-hide-small w3-hide-medium">
             <Link
               to={myHistoryUrl}
-              className="classic-link w3-bar-item w3-small"
+              className="classic-link w3-bar-item"
               style={{ position: 'relative', top: '11px' }}
             >
               <i className="fa fa-home" aria-hidden="true">
@@ -111,7 +111,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
             </Link>
             <Link
               to="/wishlist"
-              className="classic-link w3-bar-item w3-small"
+              className="classic-link w3-bar-item"
               style={{ position: 'relative', top: '11px' }}
             >
               <i className="fa fa-heart" aria-hidden="true">
@@ -134,7 +134,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
             </a> */}
             <Link
               to="/support"
-              className="classic-link w3-bar-item w3-small"
+              className="classic-link w3-bar-item"
               style={{ position: 'relative', top: '11px' }}
             >
               <i className="fa fa-question-circle" aria-hidden="true">
