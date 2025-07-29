@@ -112,7 +112,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
             <Link
               to="/wishlist"
               className="classic-link w3-bar-item w3-small"
-              style={{ position: 'relative', top: '11px'}}
+              style={{ position: 'relative', top: '11px' }}
             >
               <i className="fa fa-heart" aria-hidden="true">
                 &nbsp;&nbsp;
