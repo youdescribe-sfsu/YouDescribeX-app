@@ -1982,7 +1982,7 @@ const Video = () => {
                 {describerCards.slice(1)}
                 <Button
                   title={translate('Turn off descriptions for this video')}
-                  text={translate('Turn off descriptions')}
+                  text={translate('Turn Off Descriptions')}
                   color="w3-indigo w3-block w3-margin-top"
                   ariaLabel="Turn off descriptions for this video"
                   onClick={handleTurnOffDescriptions}

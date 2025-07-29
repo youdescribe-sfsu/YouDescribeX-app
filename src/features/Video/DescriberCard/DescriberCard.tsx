@@ -56,14 +56,14 @@ const DescriberCard = ({
           <Button
             ariaLabel={translate("Rate this describer's audio description")}
             title={translate("Rate this describer's audio description")}
-            text={translate('Rate description')}
+            text={translate('Rate Description')}
             color="w3-indigo w3-block w3-margin-top"
             onClick={() => handleRatingPopup()}
           />
           <Button
             ariaLabel={translate('Provide feedback for this describer')}
             title={translate('Provide feedback for this describer')}
-            text={translate('Optional feedback')}
+            text={translate('Optional Feedback')}
             color="w3-indigo w3-block w3-margin-top"
             onClick={() => handleFeedbackPopup()}
           />

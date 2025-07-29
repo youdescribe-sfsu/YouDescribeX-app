@@ -17,7 +17,7 @@ const UserAvatar = ({ userMenuToggle, signOut }: Props) => {
           aria-label={`Logged in as ${userDataStore.getState().userName}`}
           alt={`Logged in as ${userDataStore.getState().userName}`}
           src={`${userPicture}`}
-          height="33px"
+          height="45px"
           className="avatar-img"
         />
       </button>
