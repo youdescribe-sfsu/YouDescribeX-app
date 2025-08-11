@@ -151,8 +151,7 @@ const DescriberCard = ({
   }
 
   const needAvatar =
-    type !== 'AI' &&
-    (!contributions || contributions.size <= 1)
+    type !== 'AI' && (!contributions || contributions.size <= 1)
 
   return (
     <div id="describer-card" className="describer-card">
