@@ -10,6 +10,35 @@
     "description": "Photo of Andrew Taylor Scott, a white man with a beard and his hair is tied behiend his head. He is smiling at the camera. there are some trees in the background."
   },
   {
+    "name": "Kaustubha Eluri",
+    "bio": "Kaustubha Eluri is a Full Stack Web and Mobile Developer with a strong background in AI/ML and product-driven research. He is the Developer for YouDescribeX, an AI-powered accessibility platform led by Professor Ilmi Yoon. At YouDescribeX, Kaustubha works across mobile, web, and AI systems, building cross-platform tools that generate audio descriptions for visually impaired users. His work integrates large language models, computer vision modules, and conversational features to enhance video accessibility and create inclusive digital experiences. Kaustubha’s broader research focuses on Agentic AI—intelligent systems capable of memory, reasoning, and goal-driven behavior. He is particularly interested in human-AI collaboration, mobile intelligence, and the use of generative models to address real-world challenges in accessibility, education, and responsible AI adoption.",
+    "img": "Kaustubha.jpg",
+    "designation": "Lead Software Engineer(Web & Mobile)\nAI/ML",
+    "tenure": "2025 - Present",
+    "year": "present",
+    "description": "Photo of Kaustubha Eluri, a South Asian man with short black hair and a beard. He is smiling at the camera while holding a camera in one hand and standing in front of a scenic mountain lake surrounded by pine forests."
+  },
+  {
+  "name": "Gio Jung",
+  "bio": "I have Bachelor's degree in Mathematics and Master's degree in Computer Science, currently. My research focuses on evaluating vision language models to assess how well they are good at describing images and videos.",
+  "img": "gio.jpg",
+  "designation": "Machine Learning",
+  "pdf": "None",
+  "tenure": "2024 - Present",
+  "year": "present",
+  "description": "Photo of Gio Jung, a 28 year old asian man with black hair. He is wearing a black t-shirt and the background is white."
+  },
+  {
+    "name": "Juvenal F Barajas",
+    "bio": "I hold a Bachelor's degree in Computer Science and am currently completing my Master's, where my research focuses on large-scale video captioning models. I am particularly interested in the intersection of vision and language, model scaling, and multi-modal learning.",
+    "img": "juve.jpeg",
+    "designation": "Machine Learning",
+    "pdf": "None",
+    "tenure": "2023 - Present",
+    "year": "present",
+    "description": "Photo of Juvenal Barajas, a 25 year old man with curly brown hair. He is smiling at the camera with a grey background."
+  },
+  {
     "name": "Sanjay Mirani",
     "bio": "Sanjay Mirani is a Full Stack Web Developer specializing in building scalable, user-friendly web applications. With expertise in both front-end and back-end development, he focuses on creating clean, efficient, and impactful solutions. His work spans modern frameworks, APIs, and cloud technologies, with a strong interest in delivering seamless digital experiences.",
     "img": "noImage.jpg",
@@ -36,15 +65,6 @@
     "tenure": "2019 - Present",
     "year": "present",
     "description": "Photo of Jianfei Zhao, a white man with a beard and his hair is tied behiend his head. He is smiling at the camera. there are some trees in the background."
-  },
-  {
-    "name": "Kaustubha Eluri",
-    "bio": "Kaustubha Eluri is a Full Stack Web and Mobile Developer with a strong background in AI/ML and product-driven research. He is the Developer for YouDescribeX, an AI-powered accessibility platform led by Professor Ilmi Yoon. At YouDescribeX, Kaustubha works across mobile, web, and AI systems, building cross-platform tools that generate audio descriptions for visually impaired users. His work integrates large language models, computer vision modules, and conversational features to enhance video accessibility and create inclusive digital experiences. Kaustubha’s broader research focuses on Agentic AI—intelligent systems capable of memory, reasoning, and goal-driven behavior. He is particularly interested in human-AI collaboration, mobile intelligence, and the use of generative models to address real-world challenges in accessibility, education, and responsible AI adoption.",
-    "img": "Kaustubha.jpg",
-    "designation": "Software Engineer(Web & Mobile)\nAI/ML",
-    "tenure": "2025 - Present",
-    "year": "present",
-    "description": "Photo of Kaustubha Eluri, a South Asian man with short black hair and a beard. He is smiling at the camera while holding a camera in one hand and standing in front of a scenic mountain lake surrounded by pine forests."
   },
   {
     "name": "Benjamin Kao",
@@ -209,9 +229,9 @@
     "description": "No image available. A silhouette image of a guy"
   },
   {
-    "name": "Jose Castanon",
-    "bio": "Jose is pursuing his master's in Computer Science at San Francisco State University after finishing his undergraduate studies in Spring 2020. He has an interest in full stack web development. He currently works on site maintenance and development for YouDescribe.",
-    "img": "jose.jpg",
+    "name": "Mar Castanon",
+    "bio": "Mar is pursuing her master's in Computer Science at San Francisco State University after finishing her undergraduate studies in Spring 2020. She has an interest in full stack web development. She currently works on site maintenance and development for YouDescribe.",
+    "img": "Mar.jpeg",
     "designation": "YouDescribe",
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2022",
