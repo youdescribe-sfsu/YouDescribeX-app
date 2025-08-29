@@ -22,6 +22,49 @@
   }
 }
 
+.team-section {
+  margin: 3rem 0;
+  padding: 2rem 1rem;
+  
+  @media (max-width: 768px) {
+    margin: 2rem 0;
+    padding: 1.5rem 0.5rem;
+  }
+  
+  &:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  
+  &:not(:last-child) {
+    border-bottom: 1px solid #e0e0e0;
+  }
+}
+
+.section-title {
+  text-align: center;
+  color: #3f51b5;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  position: relative;
+  
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #3f51b5, #7986cb);
+    border-radius: 2px;
+  }
+}
+
 .member {
   width: auto;
   margin: 0px !important;
