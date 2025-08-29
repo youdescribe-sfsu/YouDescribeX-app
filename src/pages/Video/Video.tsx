@@ -593,12 +593,9 @@ const Video = () => {
   ) => {
     // playing
     if (currentState === 1) {
-      // If all clips have been played, skip check
       if (clipStackRef.current.length === 0) {
         return
       }
-
-      // If a clip is currently playing, skip check
       if (
         currentInlineACRef.current?.playing() ||
         currentExtendedACRef.current?.playing()
@@ -615,7 +612,7 @@ const Video = () => {
             nextClip.clip_start_time >= previousTimeRef.current)
 
         if (isTimeToPlay) {
-          // --- THIS IS YOUR EXISTING, WORKING LOGIC FOR PLAYING INLINE CLIPS ---
+          // --- EXISTING, WORKING LOGIC FOR PLAYING INLINE CLIPS ---
           console.warn(
             'An inline clip is supposed to be playing right now',
             currentTimeRef.current,
@@ -658,7 +655,6 @@ const Video = () => {
               setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
             }
           }
-          // --- END OF YOUR EXISTING LOGIC ---
         }
         // FIX 1: ADDED THIS 'ELSE IF' BLOCK TO DISCARD SKIPPED INLINE CLIPS
         else if (currentTimeRef.current > nextClip.clip_end_time) {
@@ -681,7 +677,6 @@ const Video = () => {
       }
       // Case for playing extended clips when the player come across their start or end times
       else {
-        // --- YOUR EXISTING LOGIC FOR PLAYING EXTENDED CLIPS ON TIME ---
         if (
           clipStackRef.current[0].clip_start_time <=
             currentTimeRef.current + 0.1 &&
@@ -739,7 +734,7 @@ const Video = () => {
           clipStackRef.current[0],
         )
 
-        // This is your existing "discard" logic
+        // This is existing "discard" logic
         setCurrentClipIndex(currentClipIndexRef.current + 1)
         const newClip = audioClips[currentClipIndexRef.current + clipStackSize]
         const newStack = clipStackRef.current.slice(1)
