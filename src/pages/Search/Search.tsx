@@ -336,10 +336,10 @@ const Search = () => {
             <div className="w3-margin-top w3-center load-more">
               <Button
                 onClick={showYTButtonHandler}
-                ariaLabel={translate('Search on Youtube')}
-                title={translate('Search on Youtube')}
+                ariaLabel={translate('Search on YouTube')}
+                title={translate('Search on YouTube')}
                 color="w3-indigo"
-                text={translate('Search on Youtube')}
+                text={translate('Search on YouTube')}
               />
             </div>
           )}
