@@ -1721,10 +1721,18 @@ const Video = () => {
 
   // Read text aloud
   const readTextAloud = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'en-US'
-    window.speechSynthesis.speak(utterance)
-    currentEventRef.current?.pauseVideo()
+    const voices = window.speechSynthesis.getVoices();
+    const desiredVoice = voices.find(
+      (voice) => voice.name === 'Google US English'
+    );
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (desiredVoice) {
+      utterance.voice = desiredVoice;
+    } else {
+      utterance.lang = 'en-US';
+    }
+    window.speechSynthesis.speak(utterance);
+    currentEventRef.current?.pauseVideo();
   }
   const dingSound = new Howl({ src: ['/ding-new.mp3'] })
 
