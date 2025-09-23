@@ -53,7 +53,6 @@ const DescriberCard = ({
           onClick={() => navigate(`/editor/${videoId}/${selectedDescriberId}`)}
         />
       ) : (
-        
         <>
           <Button
             ariaLabel={translate("Rate this describer's audio description")}
@@ -80,7 +79,6 @@ const DescriberCard = ({
               onClick={() => handleNewCollabEdit(describerId)}
             />
           )}
-            
         </>
       )
     }
