@@ -165,9 +165,15 @@
 }
 
 @keyframes pulse {
-  0% { border-color: #dc3545; }
-  50% { border-color: #ff6b6b; }
-  100% { border-color: #dc3545; }
+  0% {
+    border-color: #dc3545;
+  }
+  50% {
+    border-color: #ff6b6b;
+  }
+  100% {
+    border-color: #dc3545;
+  }
 }
 
 .teleprompter-header {
