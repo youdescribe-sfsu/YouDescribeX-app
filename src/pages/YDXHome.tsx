@@ -61,7 +61,7 @@ const YDXHome = (): React.ReactElement => {
   const [currentTime, setCurrentTime] = useState(0.0) //stores current running time of the YouTube video
   const [timer, setTimer] = useState<NodeJS.Timer>() // stores TBD
   const [unitLength, setUnitLength] = useState(0) // stores unit length based on the video length to maintain colored div's on the timelines
-  const [draggableTime, setDraggableTime] = useState({ x: -3, y: 0 }) // stores the position of the draggable bar on the #draggable-div
+  const [draggableTime, setDraggableTime] = useState({ x: 0, y: 0 }) // stores the position of the draggable bar on the #draggable-div
   const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<any[]>([]) // stores dialog-timestamps data for a video from backend db
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPublished, setIsPublished] = useState(true) // holds the published state of the Video & Audio Description
@@ -119,10 +119,6 @@ const YDXHome = (): React.ReactElement => {
   const [clipStack, setClipStack] = useState<Clip[]>([])
   const [clipStackSize, setClipStackSize] = useState<number>(5)
   const [currentClipIndex, setCurrentClipIndex] = useState<number>(0)
-
-  const [playedClips, setPlayedClips] = useState<Set<string>>(new Set())
-  const [sortedAudioClips, setSortedAudioClips] = useState<Clip[]>([])
-  const [lastProcessedIndex, setLastProcessedIndex] = useState(-1)
 
   // Balancer value for volume controls
   const [descriptionVolume, setDescriptionVolume] = useState(
@@ -186,6 +182,15 @@ const YDXHome = (): React.ReactElement => {
     youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
+
+  useEffect(() => {
+    if (unitLength > 0 && videoId) {
+      setShowSpinner(true)
+      fetchDialogData()
+      setShowSpinner(true)
+      fetchAudioDescriptionData()
+    }
+  }, [unitLength, videoId])
 
   function reset() {
     setSeconds(0)
@@ -273,6 +278,7 @@ const YDXHome = (): React.ReactElement => {
     // const currWidth = 700;
     const draggableDivWidth = (96 * currWidth) / 100
     setDraggableDivWidth(draggableDivWidth)
+    return draggableDivWidth
     // could add this to change the unit length for every window resize.. commenting this for now
     // window.addEventListener('resize', () => {
     //   const newWidth = divRef.current.clientWidth;
@@ -281,7 +287,10 @@ const YDXHome = (): React.ReactElement => {
     // });
   }
   // calculate unit length of the timeline width based on video length
-  const calculateUnitLength = (videoEndTime: number) => {
+  const calculateUnitLength = (
+    videoEndTime: number,
+    draggableDivWidth: number,
+  ) => {
     const unitLength = draggableDivWidth / videoEndTime // let unitlength = 644 / 299;
     setUnitLength(unitLength)
   }
@@ -339,12 +348,8 @@ const YDXHome = (): React.ReactElement => {
       .then((video_length) => {
         setShowSpinner(false)
         // order of the below function calls is important
-        calculateDraggableDivWidth() // for calculating the draggable-div width of the timeline
-        calculateUnitLength(video_length) // calculate unit length of the timeline width based on video length
-        setShowSpinner(true)
-        fetchDialogData() // use axios and get dialog timestamps for the Dialog Timeline});
-        setShowSpinner(true)
-        fetchAudioDescriptionData()
+        const calculatedWidth = calculateDraggableDivWidth()
+        calculateUnitLength(video_length, calculatedWidth)
       })
       .catch((err) => {
         // console.error(err.response.data);
@@ -384,13 +389,6 @@ const YDXHome = (): React.ReactElement => {
           const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) =>
             convertClipObject(clip),
           )
-
-          const sortedClipData = [...audioClipsData].sort(
-            (a, b) => a.clip_start_time - b.clip_start_time,
-          )
-
-          setSortedAudioClips(sortedClipData)
-
           // data is nested - so Notes data is in res.data.Notes
           const notesData = data.Notes[0]
           // update the audio path for every clip row - the path might change later- TODO: change the server IP
@@ -536,223 +534,23 @@ const YDXHome = (): React.ReactElement => {
   // function to update currentime state variable & draggable bar time.
   const updateTime = (
     time: number,
-    playedAudioClip: string, // kept for compatibility
-    recentAudioPlayedTime: number, // kept for compatibility
-    playedClipPath: string, // kept for compatibility
+    playedAudioClip: string,
+    recentAudioPlayedTime: number,
+    playedClipPath: string,
   ) => {
     setCurrentTime(time)
-    // IMPORTANT: Keep the draggable timeline update
+    // for updating the draggable component position based on current time
     setDraggableTime({ x: unitLength * time, y: 0 })
-
-    // Use the new playback system
-    playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
-
+    // check if the audio is not played recently. do not play it again.
+    if (recentAudioPlayedTime !== time) {
+      // To Play audio files based on current time
+      playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
+    }
     setPreviousTime(time)
   }
 
-  const playAudioAtCurrentTime = async (
-    updatedCurrentTime: number,
-    playedAudioClip: string, // kept for compatibility
-    playedClipPath: string, // kept for compatibility
-  ) => {
-    // Only play when video is playing
-    if (currentState !== 1) return
-
-    // Use the new layered approach
-    const clipsToPlay = findClipsToPlay(updatedCurrentTime)
-
-    for (const clip of clipsToPlay) {
-      await verifyAndPlayClip(clip, updatedCurrentTime)
-    }
-
-    updateLastProcessedIndex(updatedCurrentTime)
-  }
-
-  // Add the helper functions:
-  const findClipsToPlay = (currentTime: number): Clip[] => {
-    const candidates: Clip[] = []
-    const TOLERANCE = 0.05 // 50ms tolerance for timing precision
-    const startIndex = Math.max(0, lastProcessedIndex)
-
-    // Start from last processed position for efficiency
-    for (let i = startIndex; i < sortedAudioClips.length; i++) {
-      const clip = sortedAudioClips[i]
-
-      // Stop looking if we've gone too far ahead
-      if (clip.clip_start_time > currentTime + 0.2) break
-
-      // Method 1: Direct time match (normal playback)
-      if (Math.abs(clip.clip_start_time - currentTime) <= TOLERANCE) {
-        candidates.push(clip)
-      }
-      // Method 2: Missed clip recovery (for slight timing misses)
-      else if (
-        clip.clip_start_time < currentTime &&
-        clip.clip_start_time > previousTimeRef.current &&
-        !playedClips.has(clip.clip_id)
-      ) {
-        console.log(`Recovering missed clip: ${clip.clip_id}`)
-        candidates.push(clip)
-      }
-      // Method 3: Seek detection for inline clips already in progress
-      else if (
-        clip.playback_type === 'inline' &&
-        clip.clip_start_time <= currentTime &&
-        clip.clip_end_time >= currentTime &&
-        Math.abs(currentTime - previousTimeRef.current) > 1.0
-      ) {
-        console.log(`Seek detected into clip: ${clip.clip_id}`)
-        candidates.push(clip)
-      }
-    }
-
-    return candidates
-  }
-
-  const verifyAndPlayClip = async (clip: Clip, currentTime: number) => {
-    // Check if already played to prevent duplicates
-    if (playedClips.has(clip.clip_id)) {
-      console.log(`Preventing duplicate play: ${clip.clip_id}`)
-      return
-    }
-
-    // Mark as played immediately to prevent race conditions
-    setPlayedClips((prev) => new Set(prev).add(clip.clip_id))
-
-    // Check and update playback type if needed (preserving your existing function)
-    const updatedClip = await checkPlaybackTypeBeforePlaying(clip)
-
-    if (updatedClip.playback_type === 'extended') {
-      playExtendedClip(updatedClip)
-    } else {
-      playInlineClip(updatedClip, currentTime)
-    }
-  }
-
-  const playExtendedClip = (clip: Clip) => {
-    console.log(`Playing extended clip: ${clip.clip_id}`)
-
-    // Pause the video (maintaining YDXHome's approach)
-    currentEvent?.pauseVideo()
-
-    if (clip.clip_audio?.state() === 'loaded') {
-      setTimeout(() => {
-        if (clip.clip_audio && !clip.clip_audio.playing()) {
-          clip.clip_audio.play()
-          clip.clip_audio.volume(descriptionVolumeRef.current / 100)
-        }
-      }, 50)
-    } else {
-      // Handle loading if not ready
-      clip.clip_audio?.once('load', function () {
-        setTimeout(() => {
-          if (clip.clip_audio && !clip.clip_audio.playing()) {
-            clip.clip_audio.play()
-            clip.clip_audio.volume(descriptionVolumeRef.current / 100)
-          }
-        }, 50)
-      })
-    }
-
-    setCurrExtendedAC(clip.clip_audio)
-
-    // Set up end handler
-    clip.clip_audio?.once('end', () => {
-      setCurrExtendedAC(undefined)
-      currentEvent?.playVideo()
-      clip.clip_audio?.unload()
-      setCurrentExtACPaused(false) // YDXHome specific
-    })
-
-    updateClipStack()
-  }
-
-  const playInlineClip = (clip: Clip, currentTime: number) => {
-    console.log(`Playing inline clip: ${clip.clip_id}`)
-
-    const clipProgress = currentTime - clip.clip_start_time
-    const remainingDuration = clip.clip_duration - clipProgress
-
-    // Skip if too little content remains
-    if (remainingDuration < 0.5) {
-      console.log(
-        `Skipping clip ${clip.clip_id} - only ${remainingDuration.toFixed(
-          2,
-        )}s remaining`,
-      )
-      return
-    }
-
-    const seekTime = Math.max(0, clipProgress)
-
-    if (clip.clip_audio?.state() === 'loaded') {
-      if (seekTime > 0) {
-        clip.clip_audio.seek(seekTime)
-      }
-      setTimeout(() => {
-        if (clip.clip_audio && !clip.clip_audio.playing()) {
-          clip.clip_audio.play()
-          clip.clip_audio.volume(descriptionVolumeRef.current / 100)
-        }
-      }, 50)
-    } else {
-      clip.clip_audio?.once('load', function () {
-        if (seekTime > 0) {
-          clip.clip_audio?.seek(seekTime)
-        }
-        setTimeout(() => {
-          if (clip.clip_audio && !clip.clip_audio.playing()) {
-            clip.clip_audio.play()
-            clip.clip_audio.volume(descriptionVolumeRef.current / 100)
-          }
-        }, 50)
-      })
-    }
-
-    setCurrInlineAC(clip.clip_audio)
-
-    clip.clip_audio?.once('end', () => {
-      setCurrInlineAC(undefined)
-      clip.clip_audio?.unload()
-    })
-
-    updateClipStack()
-  }
-
-  const updateLastProcessedIndex = (currentTime: number) => {
-    // Find the last clip that's definitely past
-    for (let i = sortedAudioClips.length - 1; i >= 0; i--) {
-      if (sortedAudioClips[i].clip_start_time <= currentTime - 0.05) {
-        setLastProcessedIndex(i)
-        break
-      }
-    }
-  }
-
-  const updateClipStack = () => {
-    const newClipIndex = currentClipIndexRef.current + 1
-    setCurrentClipIndex(newClipIndex)
-
-    // Change audioClips to sortedAudioClips
-    const newClip = sortedAudioClips[newClipIndex + clipStackSize - 1]
-    if (newClip && !newClip.clip_audio) {
-      newClip.clip_audio = new Howl({
-        src: newClip.clip_audio_path,
-        html5: true,
-        preload: true,
-      })
-
-      // Add error handlers (matching YDXHome style)
-      newClip.clip_audio.on('loaderror', function () {
-        console.error('Load error for clip:', newClip.clip_id)
-      })
-    }
-
-    setClipStack((prev) => [...prev.slice(1), newClip].filter(Boolean))
-  }
-
   // To Play audio files based on current time
-  const playAudioAtCurrentTimeOld = async (
+  const playAudioAtCurrentTime = async (
     updatedCurrentTime: number,
     playedAudioClip: string,
     playedClipPath: string,
@@ -1078,39 +876,19 @@ const YDXHome = (): React.ReactElement => {
         }
         clearInterval(timer)
         break
-      case 3: {
-        // Buffering
-        console.info('Buffering (on seek)')
-
-        // Use the existing seek handling from dragProgressBar
+      case 3: // Buffering
+        // onSeek - Buffering event is also called
+        // so that when user wants to go back and play the same clip again, recentAudioPlayedTime will be reset to 0.
         setPlayedClipPath('')
         setPlayedAudioClip('')
         setRecentAudioPlayedTime(0.0)
-
-        // NEW: Clear played clips intelligently
-        const seekTime = event.target.getCurrentTime()
-        setPlayedClips((prev) => {
-          const newSet = new Set(prev)
-          sortedAudioClips.forEach((clip) => {
-            if (clip.clip_start_time > seekTime) {
-              newSet.delete(clip.clip_id)
-            }
-          })
-          return newSet
-        })
-
-        // NEW: Update processing index
-        const newIndex =
-          sortedAudioClips.findIndex(
-            (clip) => clip.clip_start_time >= seekTime,
-          ) - 1
-        setLastProcessedIndex(Math.max(-1, newIndex))
-
         clearInterval(timer)
         setCurrExtendedAC(undefined)
         setCurrInlineAC(undefined)
         break
-      }
+      default: // All other states
+        clearInterval(timer)
+        break
     }
   }
   const onReady = (event: any) => {
@@ -1149,7 +927,6 @@ const YDXHome = (): React.ReactElement => {
     const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
     setPreviousTime(currentPlayerTime ?? 0)
   }
-
   const dragProgressBar = async (
     event: DraggableEvent,
     position: DraggableData,
@@ -1161,51 +938,30 @@ const YDXHome = (): React.ReactElement => {
     const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
     setCurrentTime(currentPlayerTime ?? 0)
     setPreviousTime(currentPlayerTime ?? 0)
-
-    // Clear the old tracking (keeping for compatibility)
     setRecentAudioPlayedTime(0.0)
     setPlayedAudioClip('')
     setPlayedClipPath('')
-
-    // NEW: Clear played clips for the new position
-    const seekTime = currentPlayerTime ?? 0
-    setPlayedClips((prev) => {
-      const newSet = new Set(prev)
-      // Clear any clips after the seek position
-      sortedAudioClips.forEach((clip) => {
-        if (clip.clip_start_time > seekTime) {
-          newSet.delete(clip.clip_id)
-        }
-      })
-      return newSet
-    })
-
-    // NEW: Update the last processed index
-    const newProcessingIndex =
-      sortedAudioClips.findIndex((clip) => clip.clip_start_time >= seekTime) - 1
-    setLastProcessedIndex(Math.max(-1, newProcessingIndex))
-
-    // Keep the existing clip stack update
     updateClipsDataCallback()
-
-    // Keep existing cleanup for extended/inline clips
     if (currentExtendedACRef.current) {
+      // to stop playing -> pause and set time to 0
       currentExtendedACRef.current.pause()
       currentExtendedACRef.current.seek(0)
       currentExtendedACRef.current.unload()
       setCurrExtendedAC(undefined)
+      // currentEvent?.playVideo()
     }
     if (currentInlineACRef.current) {
+      // to stop playing -> pause and set time to 0
       currentInlineACRef.current.pause()
       currentInlineACRef.current.seek(0)
       currentInlineACRef.current.unload()
-      setCurrInlineAC(undefined)
+      setCurrExtendedAC(undefined)
+      // currentEvent?.playVideo()
     }
   }
 
   const updateClipStackData = useCallback(() => {
-    // Use sortedAudioClips instead of audioClips
-    const newClipIndex = sortedAudioClips.findIndex(
+    const newClipIndex = audioClips.findIndex(
       (clip) =>
         clip.clip_start_time >= currentTimeRef.current ||
         (clip.clip_start_time < currentTimeRef.current &&
@@ -1217,12 +973,12 @@ const YDXHome = (): React.ReactElement => {
     const clipStackData = []
     // Create Howl objects for each clip
     for (let i = newClipIndex; i < newClipIndex + clipStackSize; i++) {
-      const clip = sortedAudioClips[i] // Change to sortedAudioClips
+      const clip = audioClips[i]
       if (clip) {
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
           html5: true,
-          preload: true,
+          preload: true, // Ensure preloading
           autoplay: false,
         })
         clip.clip_audio.load()
@@ -1231,7 +987,7 @@ const YDXHome = (): React.ReactElement => {
     }
     // Update clipStack
     setClipStack(clipStackData)
-  }, [sortedAudioClips, clipStackSize]) // Update dependencies
+  }, [audioClips, setCurrentClipIndex])
 
   const updateClipsDataCallback = useMemo(
     () =>
@@ -1402,6 +1158,26 @@ const YDXHome = (): React.ReactElement => {
     }
   }
 
+  // Create wrapper functions for each clip that include the clip ID and type
+  const createClipSaveHandler = (
+    clipId: string,
+    clipDescriptionType: string,
+  ) => {
+    return async (updatedClipDescriptionText: string) => {
+      try {
+        await handleClickSaveClipDescription(
+          clipId,
+          updatedClipDescriptionText,
+          clipDescriptionType,
+        )
+        toast.success('Description Saved Successfully!')
+      } catch (error) {
+        console.error('Error saving clip description:', error)
+        toast.error('Error saving description. Please try again.')
+      }
+    }
+  }
+
   return (
     <div className="ydx-body ydx-html">
       {/* Spinner div - displayed based on showSpinner */}
@@ -1443,73 +1219,98 @@ const YDXHome = (): React.ReactElement => {
         </div>
         <hr className="m-2 ydx-hr" />
         {/* Dialog Timeline */}
-        <div className="row div-below-hr">
-          <div className="col-3 text-white" ref={divRef1}>
-            <h6 className="dialog-timeline-text text-center fw-bolder">
+        <div className="timeline-section-wrapper">
+          <div className="timeline-header">
+            <h6 className="timeline-title">
               Dialog Timeline (
               {videoLength ? convertSecondsToCardFormat(videoLength) : 'N/A'}):
             </h6>
+            <div className="timeline-actions">
+              <span className="clips-count">
+                Audio Clips Count: {audioClips.length}
+              </span>
+              {undoDeletedClipInfo && (
+                <Button
+                  className="btn rounded btn-sm text-white bg-warning ydx-button"
+                  onClick={fetchUndoDeletedClipData}
+                >
+                  <i className="fa fa-undo" /> Undo Last Deleted
+                </Button>
+              )}
+            </div>
           </div>
-          {videoLength && ( // Only render if videoLength is present
-            <div className="col-7 mt-3" ref={divRef2}>
-              <div className="row mx-1 timeline-div">
-                <div id="draggable-div" className="draggable-div" ref={divRef3}>
-                  {/* Dialog Timeline blue & white div's */}
-                  {videoDialogTimestamps.map((dialog, key) => (
-                    <Draggable
-                      axis="x"
-                      key={key}
-                      position={dialog.controlledPosition}
-                      bounds="parent"
-                    >
-                      <div
-                        className="dialog-timestamps-div"
-                        style={{
-                          width: dialog.width,
-                          height: '20px',
-                        }}
-                      ></div>
-                    </Draggable>
-                  ))}
-                  {videoLength && ( // Only render if videoLength is present
-                    // ProgressBar
-                    <Draggable
-                      axis="x"
-                      bounds="parent"
-                      defaultPosition={{ x: 0, y: 0 }}
-                      position={draggableTime}
-                      onDrag={(e, data) => {
-                        dragProgressBar(e, data)
+          {videoLength && (
+            <div className="timeline-container-wrapper" ref={divRef2}>
+              <div className="timeline-track-wrapper" ref={divRef3}>
+                {/* Audio Clips Timeline - Consistent with Video.tsx */}
+                {audioClips.map((clip, key) => {
+                  const left = clip.clip_start_time * unitLength
+                  const isExtended = clip.playback_type === 'extended'
+
+                  return (
+                    <div
+                      key={`audio-${key}`}
+                      className="audio-clip-timeline-segment"
+                      style={{
+                        position: 'absolute',
+                        left: `${left}px`,
+                        width: isExtended
+                          ? '3px'
+                          : `${clip.clip_duration * unitLength}px`,
+                        height: '20px',
+                        backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b',
+                        top: '0px',
+                        zIndex: 3,
+                        borderRadius: '2px',
+                        opacity: 0.8,
                       }}
-                      onStop={(e, data) => {
-                        stopProgressBar(e, data)
+                      title={`${
+                        clip.playback_type
+                      }: ${clip.description_text?.substring(0, 50)}...`}
+                    />
+                  )
+                })}
+                {/* Dialog Timeline blue & white div's */}
+                {videoDialogTimestamps.map((dialog, key) => (
+                  <Draggable
+                    axis="x"
+                    key={key}
+                    position={dialog.controlledPosition}
+                    bounds="parent"
+                  >
+                    <div
+                      className="dialog-timestamps-div"
+                      style={{
+                        width: dialog.width,
+                        height: '20px',
                       }}
-                    >
-                      <div tabIndex={0} className="progress-bar-div">
-                        <p className="mt-5 text-white progress-bar-time">
-                          {convertSecondsToCardFormat(currentTime)}
-                        </p>
-                      </div>
-                    </Draggable>
-                  )}
-                </div>
+                    ></div>
+                  </Draggable>
+                ))}
+                {videoLength && ( // Only render if videoLength is present
+                  // ProgressBar
+                  <Draggable
+                    axis="x"
+                    bounds="parent"
+                    defaultPosition={{ x: 0, y: 0 }}
+                    position={draggableTime}
+                    onDrag={(e, data) => {
+                      dragProgressBar(e, data)
+                    }}
+                    onStop={(e, data) => {
+                      stopProgressBar(e, data)
+                    }}
+                  >
+                    <div tabIndex={0} className="progress-bar-div">
+                      <p className="mt-5 text-white progress-bar-time">
+                        {convertSecondsToCardFormat(currentTime)}
+                      </p>
+                    </div>
+                  </Draggable>
+                )}
               </div>
             </div>
           )}
-          <div className="col-2 mt-3">
-            <p className="text-white fw-bolder text-size">
-              Audio Clips Count: {audioClips.length}
-            </p>
-            {undoDeletedClipInfo && ( // Render the undo button if there is deleted clip info
-              <Button
-                className="btn rounded btn-md text-white bg-warning ydx-button"
-                onClick={fetchUndoDeletedClipData}
-                // disabled={isPreviewAudioDescription}
-              >
-                <i className="fa fa-undo" /> {'  '} Undo Last Deleted
-              </Button>
-            )}
-          </div>
         </div>
 
         {/* <div className="row">
