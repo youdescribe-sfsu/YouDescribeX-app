@@ -5,7 +5,6 @@ import '@/assets/css/audioDesc.css'
 import '@/assets/css/editAudioDesc.css'
 import { toast } from 'react-toastify'
 import axios from 'axios'
-import TeleprompterView from '@/features/Describe/AudioClip/TeleprompterView'
 import { Tooltip } from 'bootstrap'
 
 interface Props {
@@ -40,6 +39,7 @@ const NewAudioClipComponent = ({
     'text',
   )
   const [recordingDuration, setRecordingDuration] = useState(0)
+  const [readySetGo, setReadySetGo] = useState('')
 
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0)
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0)
@@ -67,8 +67,12 @@ const NewAudioClipComponent = ({
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
-    if (isRecording) {
+    if (status === 'recording') {
+      setIsRecording(true)
+      setRecordingDuration(0) // Reset when recording actually starts
       interval = setInterval(updateRecordingDuration, 100)
+    } else if (status === 'stopped') {
+      setIsRecording(false)
     }
     // else if (!isRecording && recordingDuration !== 0) {
     //   setRecordingDuration(0)
@@ -87,16 +91,36 @@ const NewAudioClipComponent = ({
     setNewACStartTime(currentTime)
   }
 
+  // Handle Record Ready Set Go - Match EditClip.tsx exactly
+  const handleReadySetGo = (): void => {
+    const _321Go = ['3', '2', '1', 'GO!', 'start']
+
+    _321Go.forEach((val, i) => {
+      setTimeout(() => {
+        setReadySetGo(val)
+      }, 1000 * i)
+    })
+
+    // start recording once ready set go is completed
+    setTimeout(() => {
+      handleStartRecording()
+    }, 3700)
+  }
+
   const handleStartRecording = () => {
-    setIsRecording(true)
     setRecordingError(null)
-    setRecordingDuration(0)
     startRecording()
   }
 
   const handleStopRecording = () => {
     setIsRecording(false)
     stopRecording()
+  }
+
+  const handleReRecord = () => {
+    clearBlobUrl()
+    setRecordingDuration(0)
+    setReadySetGo('')
   }
 
   const calculateClipStartTimeinSeconds = () => {
@@ -179,40 +203,32 @@ const NewAudioClipComponent = ({
       </div>
       <form onSubmit={handleSaveNewAudioClip}>
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <div className="form-check form-check-inline ms-3">
-            <input
-              className="form-check-input ydx-input text-size"
-              type="radio"
-              id="inlineRadio"
-              value="inline"
-              checked={showInlineACComponent}
-              readOnly
-            />
-            <label
-              className={`inline-extended-label px-2 ${
+          <div className="ms-3">
+            <span
+              className={`inline-extended-label px-3 py-2 text-size fw-bold ${
                 showInlineACComponent
-                  ? 'inline-bg text-dark text-size'
+                  ? 'inline-bg text-dark'
                   : 'extended-bg text-white'
               }`}
             >
               {showInlineACComponent ? 'Inline' : 'Extended'}
-            </label>
+            </span>
           </div>
-          <div className="d-flex align-items-center">
-            <h6 className="text-white fw-bolder text-size mb-0 me-2">Title:</h6>
+          <div className="dialog-form-field">
+            <label className="dialog-form-label">Title:</label>
             <input
               type="text"
-              className="form-control form-control-sm  text-size text-center"
+              className="dialog-input-enhanced"
               placeholder="Title goes here.."
               value={newACTitle}
               onChange={(e) => setNewACTitle(e.target.value)}
               required
             />
           </div>
-          <div className="d-flex align-items-center">
-            <h6 className="text-white fw-bolder text-size mb-0 me-2">Type:</h6>
+          <div className="dialog-form-field">
+            <label className="dialog-form-label">Type:</label>
             <select
-              className="form-select form-select-sm text-size text-center"
+              className="dialog-select-enhanced"
               value={newACType}
               onChange={(e) => setNewACType(e.target.value)}
               required
@@ -272,11 +288,11 @@ const NewAudioClipComponent = ({
           <h6 className="text-white text-size mb-2">
             Choose Description Method:
           </h6>
-          <div className="btn-group" role="group">
+          <div className="method-selection-enhanced">
             <button
               type="button"
-              className={`btn btn-md text-size m-2 ${
-                descriptionMethod === 'text' ? 'btn-primary' : 'btn-secondary'
+              className={`method-button-enhanced ${
+                descriptionMethod === 'text' ? 'active' : ''
               }`}
               onClick={() => setDescriptionMethod('text')}
             >
@@ -284,8 +300,8 @@ const NewAudioClipComponent = ({
             </button>
             <button
               type="button"
-              className={`btn btn-md text-size m-2 ${
-                descriptionMethod === 'audio' ? 'btn-primary' : 'btn-secondary'
+              className={`method-button-enhanced ${
+                descriptionMethod === 'audio' ? 'active' : ''
               }`}
               onClick={() => setDescriptionMethod('audio')}
             >
@@ -320,73 +336,89 @@ const NewAudioClipComponent = ({
                 <i className="fa fa-question-circle"></i>
               </span>
             </h6>
-            {/* Add this new instructional text block */}
-            <div className="alert alert-info mb-3 text-center">
-              <i className="fa fa-info-circle me-2"></i>
-              <strong>Script for recording:</strong> You can write a script
-              below to read while recording. This text will appear as a
-              teleprompter during recording but only your audio will be saved.
-            </div>
 
-            {/* Add text area for script */}
+            {/* Text area for script - consistent with EditClip */}
             <textarea
               className="form-control text-size form-control-sm border rounded description-textarea mb-3"
               rows={4}
-              placeholder="Write your script here (optional). You'll see this text while recording to help you remember what to say."
+              placeholder="Write your script here. You'll see this text while recording to help you remember what to say."
               value={newACDescriptionText}
               onChange={(e) => setNewACDescriptionText(e.target.value)}
             ></textarea>
-            <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 mx-3 my-2">
-              {!isRecording ? (
+
+            {/* Recording controls - simplified without teleprompter */}
+            <div className="bg-white rounded text-dark d-flex justify-content-center align-items-center p-2 mx-3 my-2">
+              {status !== 'recording' && readySetGo === '' && !mediaBlobUrl ? (
                 <button
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="bottom"
+                  title="Click to Start Recording your voice"
                   type="button"
                   className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
-                  onClick={handleStartRecording}
-                  disabled={status === 'recording'}
+                  onClick={handleReadySetGo}
                 >
-                  <i className="fa fa-microphone text-danger" />
+                  <i className="fa fa-microphone text-danger fs-5 mt-1" />
                 </button>
-              ) : (
+              ) : readySetGo !== 'start' && readySetGo !== '' ? (
                 <button
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="bottom"
+                  title="Ready Set Go"
+                  type="button"
+                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
+                >
+                  <b className="fs-5 mt-1">{readySetGo}</b>
+                </button>
+              ) : status === 'recording' ? (
+                <button
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="bottom"
+                  title="Click to Stop Recording"
                   type="button"
                   className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
                   onClick={handleStopRecording}
-                  disabled={status !== 'recording'}
                 >
-                  <i className="fa fa-stop text-danger" />
+                  <i className="fa fa-stop text-danger fs-5 mt-1" />
                 </button>
-              )}
+              ) : null}
+
               {mediaBlobUrl && (
-                <audio
-                  src={mediaBlobUrl}
-                  controls
-                  className="ml-3 flex-grow-1"
-                />
+                <div className="d-flex align-items-center gap-2 w-100">
+                  <audio src={mediaBlobUrl} controls className="flex-grow-1" />
+                  <button
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="bottom"
+                    title="Record Again"
+                    type="button"
+                    className="btn rounded btn-sm border border-warning bg-light ydx-button d-flex align-items-center gap-1"
+                    onClick={handleReRecord}
+                  >
+                    <i className="fa fa-microphone text-danger" />
+                    <span className="small">Clear & Re-record</span>
+                  </button>
+                </div>
               )}
             </div>
+
+            {/* Simple recording status - no teleprompter */}
             {status === 'recording' && (
-              <div className="text-warning">Recording in progress...</div>
-            )}
-            {recordingError && (
-              <div className="text-danger">{recordingError}</div>
-            )}
-            <div className="text-light">
-              Recording Duration: {recordingDuration.toFixed(1)} sec
-            </div>
-            {isRecording && (
-              <div className="mt-3 w-100">
-                {/* Add enhanced teleprompter */}
-                <div className="teleprompter-container recording-active">
-                  <div className="teleprompter-header">
-                    <i className="fa fa-microphone text-danger me-2"></i>
-                    <span>Read from this script while recording</span>
-                  </div>
-                  <div className="teleprompter-text-area">
-                    <p className="teleprompter-text">{newACDescriptionText}</p>
-                  </div>
+              <div className="text-center mt-2">
+                <div className="text-warning">
+                  <i className="fa fa-microphone me-2 text-danger"></i>
+                  Recording in progress... Read from the text area above
+                </div>
+                <div className="text-light mt-1">
+                  Recording Duration: {recordingDuration.toFixed(1)} sec
                 </div>
               </div>
             )}
+
+            {/* Show recording duration for completed recordings */}
+            {!status || status === 'stopped' ? (
+              <div className="text-light text-center mt-2">
+                Recording Duration: {recordingDuration.toFixed(1)} sec
+              </div>
+            ) : null}
           </div>
         )}
         <div className="text-center mt-3">

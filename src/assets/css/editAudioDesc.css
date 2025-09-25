@@ -1,70 +1,1295 @@
 @import '../css/index.css';
+
+/*
+ * ENHANCED EDIT CLIP COMPONENT SYSTEM - SPACING OPTIMIZED
+ * This creates a workflow-driven interface that guides users naturally
+ * through audio description creation tasks with clear visual hierarchy
+ * and efficient space usage for improved task focus
+ */
+
+/* Main Edit Component Container - Optimized for better space efficiency */
 .edit-component {
-  background-color: #7a7979;
-  margin-top: 0.16%;
-  margin-right: 2.5%;
-  margin-left: 1.3%;
-  border-radius: 5px;
+  background-color: var(--background-tertiary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-md); /* Further reduced padding */
+  margin-top: var(--space-lg);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+
+  /* Smooth entrance animation */
+  animation: slideDown var(--duration-normal) ease;
+
+  /* Ensure proper content flow with optimized spacing */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm); /* Further reduced gap */
 }
 
-.save-desc-btn {
-  background-color: var(--success-color);
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.description-textarea {
-  resize: none;
-  min-width: 520px;
-  max-width: 560px;
-  font-size: 1.25rem;
+.audio-mode-header {
+  background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--primary-color) dd
+  );
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm); /* Further reduced for more compact header */
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-xs); /* Even tighter gap */
+
+  /* Enhanced visual feedback for different audio modes */
+  border-left: 4px solid var(--text-accent);
 }
 
-.play-pause-icons {
-  font-size: smaller;
+.audio-mode-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs); /* Tight spacing for icon and text relationship */
 }
 
-.fa-stop {
-  font-size: x-small;
+.audio-mode-icon {
+  font-size: var(--text-xl); /* Increased font size */
+  padding: var(--space-xs);
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
 }
 
-.edit-time-div {
-  background-color: white;
-  padding: 3px;
-  border: solid white 1px;
-  border-radius: 10px;
-  margin-bottom: 8px;
+.audio-mode-title {
+  font-size: var(--text-xl); /* Increased font size */
+  font-weight: 600;
 }
 
-.edit-component-title-div {
-  margin-right: 3.3rem;
+.audio-mode-description {
+  font-size: var(--text-base); /* Increased font size */
+  opacity: 0.9;
+  font-style: italic;
 }
 
-.description-section {
-  width: 65%;
+.primary-content-section {
+  display: grid;
+  grid-template-columns: 1.7fr 1.3fr;
+  gap: var(--space-sm); /* Further reduced gap */
+  align-items: start;
 }
 
-.vertical-divider-div {
-  background-color: wheat;
-  width: 2px;
-  height: 95px;
+.description-editing-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs); /* Further reduced gap */
 }
 
-.disabled-btn {
-  opacity: 0.45;
-  cursor: not-allowed !important;
+.timing-controls-section {
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm); /* Further reduced padding */
+  border: 1px solid var(--border-primary);
 }
 
-/* Chrome, Safari, Edge, Opera */
-.ydx-input::-webkit-outer-spin-button,
-.ydx-input::-webkit-inner-spin-button {
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xs); /* Further reduced margin */
+  padding-bottom: 0; /* Remove bottom padding */
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.section-title {
+  font-size: var(--text-2xl); /* Increased font size */
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.description-status {
+  font-size: var(--text-base); /* Increased font size */
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.enhanced-description-textarea {
+  background-color: var(--background-primary);
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-2xl); /* Increased font size */
+  line-height: 1.6;
+  padding: var(--space-xs) var(--space-sm); /* Further reduced padding */
+  resize: vertical;
+  min-height: 100px;
+  transition: all var(--duration-fast) ease;
+  width: 100%;
+  font-family: inherit;
+}
+
+.enhanced-description-textarea:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  background-color: #2a2a2a;
+}
+
+.enhanced-description-textarea::placeholder {
+  color: var(--text-secondary);
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.recorded-clip-message {
+  background-color: #2a5d31;
+  border: 2px solid #4caf50;
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.recorded-clip-message .recording-status {
+  font-size: var(--text-2xl);
+  color: #4caf50;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-weight: 600;
+}
+
+.recorded-clip-message .recording-status i {
+  font-size: var(--text-xl);
+}
+/* Primary Actions - Optimized for quick action selection */
+.primary-actions {
+  display: flex;
+  gap: var(--space-xs); /* Further reduced gap */
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Timing Controls - Compact but functional layout */
+.timing-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(
+          --space-sm
+  ); /* Reduced from var(--space-lg) for more compact timing interface */
+  align-items: start;
+}
+
+.timing-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs); /* Tight spacing for label-to-input relationship */
+}
+
+.timing-label {
+  font-size: var(--text-xs); /* Smaller labels for less visual noise */
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.time-input-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  background-color: var(--background-tertiary);
+  border: 2px solid var(--border-primary);
+  border-radius: var(
+          --radius-md
+  ); /* Smaller radius for more compact appearance */
+  padding: var(--space-sm) var(--space-md);
+  transition: all var(--duration-fast) ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.time-input-container:focus-within {
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.time-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  width: 48px;
+  min-width: 48px;
+  text-align: center;
+  outline: none;
+  font-family: 'Courier New', monospace;
+}
+
+.time-input:focus {
+  background-color: var(--surface-hover);
+  border-radius: var(--radius-sm);
+}
+
+.time-separator {
+  color: var(--text-primary);
+  font-weight: bold;
+  font-size: var(--text-xl); /* Slightly smaller for better proportion */
+  opacity: 0.7;
+}
+
+.duration-display {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(
+          --space-sm
+  ); /* Reduced from var(--space-md) for more compact display */
+  background-color: var(--background-primary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-primary);
+}
+
+.duration-value {
+  font-size: var(
+          --text-lg
+  ); /* Reduced from var(--text-xl) for better proportion */
+  font-weight: 600;
+  color: var(--text-accent);
+}
+
+/* Audio Controls Section - Streamlined for efficiency */
+.audio-controls-section {
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(
+          --space-md
+  ); /* Significantly reduced from var(--space-xl) for better space usage */
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.mode-switch-hint {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Voice Mode Controls - Compact recording interface */
+.voice-mode-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md); /* Reduced from var(--space-lg) for tighter workflow */
+}
+
+.current-recording-info {
+  background-color: var(--background-primary);
+  border-radius: var(--radius-md);
+  padding: var(
+          --space-md
+  ); /* Reduced from var(--space-lg) for more compact info display */
+  border-left: 4px solid var(--extended-color);
+}
+
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.recording-duration {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.voice-actions {
+  display: flex;
+  gap: var(
+          --space-sm
+  ); /* Reduced from var(--space-md) for more cohesive action grouping */
+  flex-wrap: wrap;
+}
+
+/* AI Mode Controls - Streamlined AI voice interface */
+.ai-mode-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md); /* Reduced from var(--space-lg) for better flow */
+}
+
+.ai-voice-info {
+  background-color: var(--background-primary);
+  border-radius: var(--radius-md);
+  padding: var(
+          --space-md
+  ); /* Reduced from var(--space-lg) for more compact info display */
+  border-left: 4px solid var(--inline-color);
+}
+
+.ai-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.regenerate-hint {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.ai-actions {
+  display: flex;
+  gap: var(
+          --space-sm
+  ); /* Reduced from var(--space-md) for more cohesive action grouping */
+  flex-wrap: wrap;
+}
+
+/* Recording Interface - Efficient recording experience */
+.recording-interface {
+  background-color: var(--background-primary);
+  border-radius: var(--radius-lg);
+  padding: var(
+          --space-lg
+  ); /* Reduced from var(--space-xl) for more efficient use of space */
+  margin-top: var(
+          --space-md
+  ); /* Reduced from var(--space-lg) for tighter content flow */
+  border: 2px dashed var(--border-primary);
+}
+
+.recording-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(
+          --space-md
+  ); /* Reduced from var(--space-lg) for more compact recording interface */
+}
+
+.recording-active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md); /* Reduced from var(--space-lg) for better workflow */
+  width: 100%;
+}
+
+.recording-stop-btn {
+  font-size: var(
+          --text-base
+  ); /* Reduced from var(--text-lg) for better proportion */
+  padding: var(--space-sm) var(--space-lg); /* Optimized padding for better button proportion */
+
+  /* Pulsing animation for recording state */
+  animation: recordingPulse 2s infinite;
+}
+
+@keyframes recordingPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}
+
+.start-recording-btn {
+  font-size: var(
+          --text-base
+  ); /* Reduced from var(--text-lg) for better proportion */
+  padding: var(--space-sm) var(--space-lg); /* Optimized padding */
+}
+
+/* Countdown Display - Compact visual feedback */
+.countdown-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs); /* Reduced for tighter countdown elements */
+}
+
+.countdown-number {
+  font-size: 2.5rem; /* Reduced from 3rem for better proportion */
+  font-weight: bold;
+  color: var(--text-accent);
+  animation: countdownPulse 1s ease-in-out;
+}
+
+@keyframes countdownPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.countdown-label {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Enhanced Teleprompter - Streamlined recording guidance */
+.teleprompter-wrapper {
+  width: 100%;
+  max-width: 600px;
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid var(--border-accent);
+
+  /* Optimized integration spacing */
+  margin: var(--space-md) 0; /* Reduced from var(--space-lg) for better flow */
+}
+
+.teleprompter-wrapper .teleprompter-header {
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+  padding: var(--space-sm) var(--space-md); /* Reduced padding for more compact header */
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 600;
+
+  /* Ensure header stays visible above component content */
+  position: relative;
+  z-index: 1;
+}
+
+/* Original teleprompter container - optimized for compatibility */
+.teleprompter-container {
+  width: 100%;
+  max-width: 600px;
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid var(--border-accent);
+}
+
+.teleprompter-header {
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+  padding: var(--space-sm) var(--space-md); /* Reduced padding for consistency */
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 600;
+}
+
+.teleprompter-content {
+  padding: var(
+          --space-lg
+  ); /* Reduced from var(--space-xl) for more efficient content area */
+  max-height: 200px;
+  overflow-y: auto;
+
+  /* Smooth scrolling for better reading experience */
+  scroll-behavior: smooth;
+}
+
+.teleprompter-text {
+  font-size: var(
+          --text-base
+  ); /* Reduced from var(--text-lg) for better content density */
+  line-height: 1.6; /* Reduced from 1.8 for more compact text layout */
+  color: var(--text-primary);
+  margin: 0;
+
+  /* Better text rendering for reading */
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+/* Recorded Audio Playback - Compact playback controls */
+.recorded-audio-playback {
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-md);
+  padding: var(
+          --space-md
+  ); /* Reduced from var(--space-lg) for more compact playback interface */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--border-primary);
+}
+
+.playback-info {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Video Synchronization Controls - Streamlined video integration */
+.video-sync-controls {
+  margin-top: var(
+          --space-md
+  ); /* Reduced from var(--space-lg) for better content flow */
+  padding-top: var(--space-md); /* Reduced for consistency */
+  border-top: 1px solid var(--border-primary);
+  text-align: center;
+}
+
+.video-control-btn {
+  font-size: var(--text-base);
+  padding: var(--space-sm) var(--space-lg); /* Optimized button padding */
+  min-width: 200px;
+}
+
+/* Enhanced Button Styling - Building on foundation system */
+.ydx-button {
+  /* Enhanced from base system for EditClip context */
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  white-space: nowrap;
+
+  /* Better visual feedback */
+  position: relative;
+  overflow: hidden;
+}
+
+.ydx-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+  );
+  transition: left var(--duration-normal) ease;
+}
+
+.ydx-button:hover::before {
+  left: 100%;
+}
+
+/* Disabled button enhancements */
+.ydx-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.ydx-button:disabled::before {
+  display: none;
+}
+
+/* Responsive Design - Mobile-first approach with optimized spacing */
+@media (max-width: 768px) {
+  .edit-component {
+    padding: var(--space-sm); /* Consistent mobile padding */
+    gap: var(--space-sm);
+  }
+
+  .primary-content-section {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .timing-controls-section {
+    order: 2;
+  }
+
+  .timing-inputs-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+
+  .audio-mode-header {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--space-sm); /* More compact mobile header */
+  }
+
+  .primary-actions,
+  .voice-actions,
+  .ai-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .enhanced-description-textarea {
+    font-size: var(--text-sm);
+  }
+
+  .teleprompter-text {
+    font-size: var(--text-sm); /* Smaller text for mobile readability */
+  }
+
+  .countdown-number {
+    font-size: 2rem; /* Further reduced for mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-component {
+    padding: var(--space-sm); /* Minimal padding for very small screens */
+  }
+
+  .audio-controls-section,
+  .timing-controls-section {
+    padding: var(--space-sm);
+  }
+
+  .video-control-btn {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+/* Print styles for documentation */
+@media print {
+  .edit-component {
+    background: white;
+    color: black;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+
+  .recording-interface,
+  .video-sync-controls {
+    display: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .edit-component {
+    border-width: 2px;
+  }
+
+  .enhanced-description-textarea:focus {
+    border-width: 3px;
+  }
+
+  .ydx-button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .edit-component,
+  .countdown-number,
+  .recording-stop-btn {
+    animation: none;
+  }
+
+  .ydx-button::before {
+    display: none;
+  }
+}
+
+/* Integrated Recording Interface - Seamless content-area recording */
+.integrated-recording-interface {
+  background-color: var(--background-secondary);
+  border: 2px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin: var(--space-sm) 0;
+  animation: slideDown var(--duration-normal) ease;
+}
+
+.recording-preparation-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  text-align: center;
+}
+
+.preparation-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.preparation-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.active-recording-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+.recording-in-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.recording-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.recording-pulse {
+  animation: recordingPulse 2s infinite;
+}
+
+.countdown-in-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.countdown-circle {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--text-accent);
+  animation: countdownPulse 1s ease-in-out;
+  background-color: var(--background-primary);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border-accent);
+}
+
+.countdown-message {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Enhanced mobile support for integrated recording */
+@media (max-width: 768px) {
+  .preparation-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .countdown-circle {
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+  }
+}
+
+/* Make the Record Voice button stand out prominently */
+.record-voice-prominent {
+  background: linear-gradient(135deg, #28a745, #218838) !important;
+  border: 2px solid #28a745 !important;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3) !important;
+  font-weight: 600 !important;
+  font-size: var(--text-base) !important;
+  padding: var(--space-xs) var(--space-md) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.record-voice-prominent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.record-voice-prominent:hover::before {
+  left: 100%;
+}
+
+.record-voice-prominent:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4) !important;
+}
+
+/* Recording Status Display */
+.recording-status-display {
+  text-align: center;
+  margin: var(--space-md) 0;
+}
+
+.duration-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background-color: var(--background-primary);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-primary);
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+.recording-action-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .recording-action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.recording-playback-confirmation {
+  background-color: var(--background-secondary);
+  border: 2px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  text-align: center;
+  margin-top: var(--space-md);
+}
+
+.playback-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.switch-to-tts-inline {
+  background-color: var(--background-tertiary);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  border: 2px solid var(--border-accent);
+  margin: var(--space-sm) 0;
+  width: 100%;
+}
+
+.inline-text-header {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.inline-action-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
+/* Modern Time Input with Increment/Decrement Controls */
+.modern-time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.modern-time-input-container {
+  display: flex;
+  align-items: center;
+  background-color: var(--background-tertiary);
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+  transition: all var(--duration-fast) ease;
+  box-shadow: var(--shadow-sm);
+  min-height: 40px;
+}
+
+.modern-time-input-container:focus-within {
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.time-field-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  flex: 1;
+}
+
+/* Clean end time - no controls needed */
+.time-field-readonly {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex: 1;
+}
+
+.time-field-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.modern-time-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-weight: 600;
+  width: 48px;
+  min-width: 48px;
+  height: 24px;
+  text-align: center;
+  outline: none;
+  font-family: 'Courier New', monospace;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) ease;
+  box-sizing: border-box;
+}
+
+.modern-time-input[readonly] {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.modern-time-input:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.modern-time-separator {
+  color: var(--text-accent);
+  font-size: var(--text-base);
+  font-weight: 300;
+  margin: 0 var(--space-xs);
+  opacity: 0.8;
+}
+
+/* Hide browser's default number input arrows for clean appearance */
+.modern-time-input::-webkit-outer-spin-button,
+.modern-time-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
-  outline: none;
-  border-radius: 5px;
 }
 
-/* Firefox */
-.ydx-input[type='number'] {
+.modern-time-input[type='number'] {
   -moz-appearance: textfield;
+}
+
+.modern-timing-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.modern-timing-label i {
+  color: var(--text-accent);
+}
+
+.modern-duration-display {
+  background: linear-gradient(135deg, var(--primary-color), #4960df);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm);
+  text-align: center;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  margin-top: var(--space-sm);
+}
+
+.modern-duration-label {
+  font-size: var(--text-sm);
+  opacity: 0.9;
+  margin-bottom: var(--space-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.modern-duration-value {
+  font-size: var(--text-base);
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.timing-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  align-items: start;
+}
+
+.timing-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Enhanced Dialog-Specific Styles for Better Presence */
+
+/* Improved Radio Button Styling */
+.playback-type-enhanced {
+  display: flex;
+  gap: var(--space-lg);
+  align-items: center;
+  margin: var(--space-md) 0;
+}
+
+.radio-option-enhanced {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) ease;
+  border: 1px solid var(--border-primary);
+  background-color: var(--background-primary);
+  min-height: 44px; /* Touch-friendly size within your system */
+}
+
+.radio-option-enhanced:hover {
+  background-color: var(--background-tertiary);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+}
+
+.radio-option-enhanced input[type='radio'] {
+  width: 18px; /* Slightly larger but not overwhelming */
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.radio-option-enhanced label {
+  font-size: var(--text-base); /* Using your existing scale */
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
+}
+
+.radio-option-enhanced.selected {
+  background-color: rgba(0, 123, 255, 0.08);
+  border-color: var(--border-accent);
+}
+
+/* Enhanced Form Fields for Dialog */
+.dialog-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: var(--space-sm) 0;
+}
+
+.dialog-form-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dialog-input-enhanced {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-base); /* Consistent with your scale */
+  font-weight: 400;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  transition: all var(--duration-fast) ease;
+  min-height: 44px; /* Consistent with radio buttons */
+}
+
+.dialog-input-enhanced:focus {
   outline: none;
-  border-radius: 5px;
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  background-color: var(--background-secondary);
+}
+
+.dialog-input-enhanced::placeholder {
+  color: var(--text-secondary);
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Enhanced Select Dropdown */
+.dialog-select-enhanced {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-base);
+  font-weight: 400;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+  min-height: 44px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right var(--space-sm) center;
+  background-size: 10px;
+  padding-right: calc(var(--space-md) + 20px);
+}
+
+.dialog-select-enhanced:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  background-color: var(--background-secondary);
+}
+
+.dialog-select-enhanced:hover {
+  border-color: var(--border-secondary);
+  background-color: var(--background-tertiary);
+}
+
+/* Enhanced Dialog Layout */
+.dialog-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+  margin: var(--space-md) 0;
+}
+
+.dialog-left-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.dialog-right-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Enhanced Method Selection Buttons */
+.method-selection-enhanced {
+  display: flex;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0;
+}
+
+.method-button-enhanced {
+  flex: 1;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-base);
+  font-weight: 500;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+  text-transform: capitalize;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.method-button-enhanced:hover {
+  border-color: var(--border-accent);
+  background-color: var(--background-tertiary);
+  transform: translateY(-1px);
+}
+
+.method-button-enhanced.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Responsive adjustments that maintain spacing integrity */
+@media (max-width: 768px) {
+  .dialog-content-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .playback-type-enhanced {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
+  }
+
+  .method-selection-enhanced {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
 }

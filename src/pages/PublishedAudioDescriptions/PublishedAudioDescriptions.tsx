@@ -14,7 +14,7 @@ import AudioClip from '../../features/Describe/AudioClip/AudioClip'
 import Notes from '../../features/Describe/Notes/Notes'
 import convertSecondsToCardFormat from '../../shared/utils/convertSecondsToCardFormat'
 import InsertPublish from '../../features/Describe/InsertPublish/InsertPublish'
-import Buttons from '../../features/Describe/Buttons/Buttons'
+import { Buttons } from '../../features/Describe/Buttons/Buttons'
 
 import Spinner from '../../shared/components/Spinner/Spinner'
 import { Howl } from 'howler'

@@ -13,7 +13,7 @@ import AudioClip from '../features/Describe/AudioClip/AudioClip'
 import Notes from '../features/Describe/Notes/Notes'
 import convertSecondsToCardFormat from '../shared/utils/convertSecondsToCardFormat'
 import InsertPublish from '../features/Describe/InsertPublish/InsertPublish'
-import Buttons from '../features/Describe/Buttons/Buttons'
+import { Buttons } from '../features/Describe/Buttons/Buttons'
 import Spinner from '../shared/components/Spinner/Spinner'
 import { Howl } from 'howler'
 import { debounce } from 'debounce'
@@ -61,7 +61,7 @@ const YDXHome = (): React.ReactElement => {
   const [currentTime, setCurrentTime] = useState(0.0) //stores current running time of the YouTube video
   const [timer, setTimer] = useState<NodeJS.Timer>() // stores TBD
   const [unitLength, setUnitLength] = useState(0) // stores unit length based on the video length to maintain colored div's on the timelines
-  const [draggableTime, setDraggableTime] = useState({ x: -3, y: 0 }) // stores the position of the draggable bar on the #draggable-div
+  const [draggableTime, setDraggableTime] = useState({ x: 0, y: 0 }) // stores the position of the draggable bar on the #draggable-div
   const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<any[]>([]) // stores dialog-timestamps data for a video from backend db
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPublished, setIsPublished] = useState(true) // holds the published state of the Video & Audio Description
@@ -183,6 +183,15 @@ const YDXHome = (): React.ReactElement => {
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
 
+  useEffect(() => {
+    if (unitLength > 0 && videoId) {
+      setShowSpinner(true)
+      fetchDialogData()
+      setShowSpinner(true)
+      fetchAudioDescriptionData()
+    }
+  }, [unitLength, videoId])
+
   function reset() {
     setSeconds(0)
     setIsActive(false)
@@ -269,6 +278,7 @@ const YDXHome = (): React.ReactElement => {
     // const currWidth = 700;
     const draggableDivWidth = (96 * currWidth) / 100
     setDraggableDivWidth(draggableDivWidth)
+    return draggableDivWidth
     // could add this to change the unit length for every window resize.. commenting this for now
     // window.addEventListener('resize', () => {
     //   const newWidth = divRef.current.clientWidth;
@@ -277,7 +287,10 @@ const YDXHome = (): React.ReactElement => {
     // });
   }
   // calculate unit length of the timeline width based on video length
-  const calculateUnitLength = (videoEndTime: number) => {
+  const calculateUnitLength = (
+    videoEndTime: number,
+    draggableDivWidth: number,
+  ) => {
     const unitLength = draggableDivWidth / videoEndTime // let unitlength = 644 / 299;
     setUnitLength(unitLength)
   }
@@ -335,12 +348,8 @@ const YDXHome = (): React.ReactElement => {
       .then((video_length) => {
         setShowSpinner(false)
         // order of the below function calls is important
-        calculateDraggableDivWidth() // for calculating the draggable-div width of the timeline
-        calculateUnitLength(video_length) // calculate unit length of the timeline width based on video length
-        setShowSpinner(true)
-        fetchDialogData() // use axios and get dialog timestamps for the Dialog Timeline});
-        setShowSpinner(true)
-        fetchAudioDescriptionData()
+        const calculatedWidth = calculateDraggableDivWidth()
+        calculateUnitLength(video_length, calculatedWidth)
       })
       .catch((err) => {
         // console.error(err.response.data);
@@ -1210,101 +1219,98 @@ const YDXHome = (): React.ReactElement => {
         </div>
         <hr className="m-2 ydx-hr" />
         {/* Dialog Timeline */}
-        <div className="row div-below-hr">
-          <div className="col-3 text-white" ref={divRef1}>
-            <h6 className="dialog-timeline-text text-center fw-bolder">
+        <div className="timeline-section-wrapper">
+          <div className="timeline-header">
+            <h6 className="timeline-title">
               Dialog Timeline (
               {videoLength ? convertSecondsToCardFormat(videoLength) : 'N/A'}):
             </h6>
+            <div className="timeline-actions">
+              <span className="clips-count">
+                Audio Clips Count: {audioClips.length}
+              </span>
+              {undoDeletedClipInfo && (
+                <Button
+                  className="btn rounded btn-sm text-white bg-warning ydx-button"
+                  onClick={fetchUndoDeletedClipData}
+                >
+                  <i className="fa fa-undo" /> Undo Last Deleted
+                </Button>
+              )}
+            </div>
           </div>
-          {videoLength && ( // Only render if videoLength is present
-            <div className="col-7 mt-3" ref={divRef2}>
-              <div className="row mx-1 timeline-div">
-                <div id="draggable-div" className="draggable-div" ref={divRef3}>
-                  {/* Audio Clips Timeline - Consistent with Video.tsx */}
-                  {audioClips.map((clip, key) => {
-                    const left = (clip.clip_start_time / videoLength) * 100
-                    const isExtended = clip.playback_type === 'extended'
+          {videoLength && (
+            <div className="timeline-container-wrapper" ref={divRef2}>
+              <div className="timeline-track-wrapper" ref={divRef3}>
+                {/* Audio Clips Timeline - Consistent with Video.tsx */}
+                {audioClips.map((clip, key) => {
+                  const left = clip.clip_start_time * unitLength
+                  const isExtended = clip.playback_type === 'extended'
 
-                    return (
-                      <div
-                        key={`audio-${key}`}
-                        className="audio-clip-timeline-segment"
-                        style={{
-                          position: 'absolute',
-                          left: `${left}%`,
-                          width: isExtended
-                            ? '0.5%'
-                            : `${(clip.clip_duration / videoLength) * 100}%`,
-                          height: '20px',
-                          backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b',
-                          top: '0px',
-                          zIndex: 3,
-                          borderRadius: '2px',
-                          opacity: 0.8,
-                        }}
-                        title={`${
-                          clip.playback_type
-                        }: ${clip.description_text?.substring(0, 50)}...`}
-                      />
-                    )
-                  })}
-                  {/* Dialog Timeline blue & white div's */}
-                  {videoDialogTimestamps.map((dialog, key) => (
-                    <Draggable
-                      axis="x"
-                      key={key}
-                      position={dialog.controlledPosition}
-                      bounds="parent"
-                    >
-                      <div
-                        className="dialog-timestamps-div"
-                        style={{
-                          width: dialog.width,
-                          height: '20px',
-                        }}
-                      ></div>
-                    </Draggable>
-                  ))}
-                  {videoLength && ( // Only render if videoLength is present
-                    // ProgressBar
-                    <Draggable
-                      axis="x"
-                      bounds="parent"
-                      defaultPosition={{ x: 0, y: 0 }}
-                      position={draggableTime}
-                      onDrag={(e, data) => {
-                        dragProgressBar(e, data)
+                  return (
+                    <div
+                      key={`audio-${key}`}
+                      className="audio-clip-timeline-segment"
+                      style={{
+                        position: 'absolute',
+                        left: `${left}px`,
+                        width: isExtended
+                          ? '3px'
+                          : `${clip.clip_duration * unitLength}px`,
+                        height: '20px',
+                        backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b',
+                        top: '0px',
+                        zIndex: 3,
+                        borderRadius: '2px',
+                        opacity: 0.8,
                       }}
-                      onStop={(e, data) => {
-                        stopProgressBar(e, data)
+                      title={`${
+                        clip.playback_type
+                      }: ${clip.description_text?.substring(0, 50)}...`}
+                    />
+                  )
+                })}
+                {/* Dialog Timeline blue & white div's */}
+                {videoDialogTimestamps.map((dialog, key) => (
+                  <Draggable
+                    axis="x"
+                    key={key}
+                    position={dialog.controlledPosition}
+                    bounds="parent"
+                  >
+                    <div
+                      className="dialog-timestamps-div"
+                      style={{
+                        width: dialog.width,
+                        height: '20px',
                       }}
-                    >
-                      <div tabIndex={0} className="progress-bar-div">
-                        <p className="mt-5 text-white progress-bar-time">
-                          {convertSecondsToCardFormat(currentTime)}
-                        </p>
-                      </div>
-                    </Draggable>
-                  )}
-                </div>
+                    ></div>
+                  </Draggable>
+                ))}
+                {videoLength && ( // Only render if videoLength is present
+                  // ProgressBar
+                  <Draggable
+                    axis="x"
+                    bounds="parent"
+                    defaultPosition={{ x: 0, y: 0 }}
+                    position={draggableTime}
+                    onDrag={(e, data) => {
+                      dragProgressBar(e, data)
+                    }}
+                    onStop={(e, data) => {
+                      stopProgressBar(e, data)
+                    }}
+                  >
+                    <div tabIndex={0} className="progress-bar-div">
+                      <p className="mt-5 text-white progress-bar-time">
+                        {convertSecondsToCardFormat(currentTime)}
+                      </p>
+                    </div>
+                  </Draggable>
+                )}
               </div>
             </div>
           )}
-          <div className="col-2 mt-3">
-            <p className="text-white fw-bolder text-size">
-              Audio Clips Count: {audioClips.length}
-            </p>
-            {undoDeletedClipInfo && ( // Render the undo button if there is deleted clip info
-              <Button
-                className="btn rounded btn-md text-white bg-warning ydx-button"
-                onClick={fetchUndoDeletedClipData}
-                // disabled={isPreviewAudioDescription}
-              >
-                <i className="fa fa-undo" /> {'  '} Undo Last Deleted
-              </Button>
-            )}
-          </div>
         </div>
 
         {/* <div className="row">
