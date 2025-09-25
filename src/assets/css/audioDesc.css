@@ -353,7 +353,7 @@
   resize: vertical;
   min-height: 120px;
   transition: border-color var(--duration-fast) ease,
-  box-shadow var(--duration-fast) ease;
+    box-shadow var(--duration-fast) ease;
   width: 100%;
 }
 

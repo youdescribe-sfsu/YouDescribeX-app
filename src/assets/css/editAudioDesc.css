@@ -38,9 +38,9 @@
 
 .audio-mode-header {
   background: linear-gradient(
-          135deg,
-          var(--primary-color),
-          var(--primary-color) dd
+    135deg,
+    var(--primary-color),
+    var(--primary-color) dd
   );
   border-radius: var(--radius-md);
   padding: var(--space-xs) var(--space-sm); /* Further reduced for more compact header */
@@ -188,7 +188,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(
-          --space-sm
+    --space-sm
   ); /* Reduced from var(--space-lg) for more compact timing interface */
   align-items: start;
 }
@@ -214,7 +214,7 @@
   background-color: var(--background-tertiary);
   border: 2px solid var(--border-primary);
   border-radius: var(
-          --radius-md
+    --radius-md
   ); /* Smaller radius for more compact appearance */
   padding: var(--space-sm) var(--space-md);
   transition: all var(--duration-fast) ease;
@@ -256,7 +256,7 @@
   grid-column: 1 / -1;
   text-align: center;
   padding: var(
-          --space-sm
+    --space-sm
   ); /* Reduced from var(--space-md) for more compact display */
   background-color: var(--background-primary);
   border-radius: var(--radius-md);
@@ -265,7 +265,7 @@
 
 .duration-value {
   font-size: var(
-          --text-lg
+    --text-lg
   ); /* Reduced from var(--text-xl) for better proportion */
   font-weight: 600;
   color: var(--text-accent);
@@ -276,7 +276,7 @@
   background-color: var(--background-secondary);
   border-radius: var(--radius-lg);
   padding: var(
-          --space-md
+    --space-md
   ); /* Significantly reduced from var(--space-xl) for better space usage */
   border: 1px solid var(--border-primary);
   box-shadow: var(--shadow-sm);
@@ -299,7 +299,7 @@
   background-color: var(--background-primary);
   border-radius: var(--radius-md);
   padding: var(
-          --space-md
+    --space-md
   ); /* Reduced from var(--space-lg) for more compact info display */
   border-left: 4px solid var(--extended-color);
 }
@@ -320,7 +320,7 @@
 .voice-actions {
   display: flex;
   gap: var(
-          --space-sm
+    --space-sm
   ); /* Reduced from var(--space-md) for more cohesive action grouping */
   flex-wrap: wrap;
 }
@@ -336,7 +336,7 @@
   background-color: var(--background-primary);
   border-radius: var(--radius-md);
   padding: var(
-          --space-md
+    --space-md
   ); /* Reduced from var(--space-lg) for more compact info display */
   border-left: 4px solid var(--inline-color);
 }
@@ -359,7 +359,7 @@
 .ai-actions {
   display: flex;
   gap: var(
-          --space-sm
+    --space-sm
   ); /* Reduced from var(--space-md) for more cohesive action grouping */
   flex-wrap: wrap;
 }
@@ -369,10 +369,10 @@
   background-color: var(--background-primary);
   border-radius: var(--radius-lg);
   padding: var(
-          --space-lg
+    --space-lg
   ); /* Reduced from var(--space-xl) for more efficient use of space */
   margin-top: var(
-          --space-md
+    --space-md
   ); /* Reduced from var(--space-lg) for tighter content flow */
   border: 2px dashed var(--border-primary);
 }
@@ -382,7 +382,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(
-          --space-md
+    --space-md
   ); /* Reduced from var(--space-lg) for more compact recording interface */
 }
 
@@ -396,7 +396,7 @@
 
 .recording-stop-btn {
   font-size: var(
-          --text-base
+    --text-base
   ); /* Reduced from var(--text-lg) for better proportion */
   padding: var(--space-sm) var(--space-lg); /* Optimized padding for better button proportion */
 
@@ -418,7 +418,7 @@
 
 .start-recording-btn {
   font-size: var(
-          --text-base
+    --text-base
   ); /* Reduced from var(--text-lg) for better proportion */
   padding: var(--space-sm) var(--space-lg); /* Optimized padding */
 }
@@ -511,7 +511,7 @@
 
 .teleprompter-content {
   padding: var(
-          --space-lg
+    --space-lg
   ); /* Reduced from var(--space-xl) for more efficient content area */
   max-height: 200px;
   overflow-y: auto;
@@ -522,7 +522,7 @@
 
 .teleprompter-text {
   font-size: var(
-          --text-base
+    --text-base
   ); /* Reduced from var(--text-lg) for better content density */
   line-height: 1.6; /* Reduced from 1.8 for more compact text layout */
   color: var(--text-primary);
@@ -538,7 +538,7 @@
   background-color: var(--background-secondary);
   border-radius: var(--radius-md);
   padding: var(
-          --space-md
+    --space-md
   ); /* Reduced from var(--space-lg) for more compact playback interface */
   display: flex;
   justify-content: space-between;
@@ -555,7 +555,7 @@
 /* Video Synchronization Controls - Streamlined video integration */
 .video-sync-controls {
   margin-top: var(
-          --space-md
+    --space-md
   ); /* Reduced from var(--space-lg) for better content flow */
   padding-top: var(--space-md); /* Reduced for consistency */
   border-top: 1px solid var(--border-primary);
@@ -589,10 +589,10 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.2),
-          transparent
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
   );
   transition: left var(--duration-normal) ease;
 }
@@ -841,10 +841,10 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.2),
-          transparent
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
   );
   transition: left 0.5s ease;
 }

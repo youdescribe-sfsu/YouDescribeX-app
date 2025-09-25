@@ -17,7 +17,7 @@
 
 .ydx-code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-  monospace;
+    monospace;
 }
 
 /* Enhanced Design System with comprehensive spacing, colors, and typography */
@@ -69,9 +69,9 @@
   /* Shadow System - For depth and elevation */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-  0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-  0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
   /* Animation durations for consistent motion */
   --duration-fast: 150ms;
@@ -160,7 +160,7 @@
   padding: var(--space-sm);
   font-size: var(--text-base);
   transition: border-color var(--duration-fast) ease,
-  box-shadow var(--duration-fast) ease;
+    box-shadow var(--duration-fast) ease;
 }
 
 .ydx-input:focus {
