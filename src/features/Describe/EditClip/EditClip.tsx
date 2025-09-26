@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import '@/assets/css/audioDesc.css'
+import '@/assets/css/editAudioDesc.css'
 import axios from 'axios'
-import { toast } from 'react-toastify' // for toast messages
+import { toast } from 'react-toastify'
 import TextareaAutosize from 'react-textarea-autosize'
 import ModalComponent from '../../../shared/components/Modal/Modal'
 import Button from 'react-bootstrap/Button'
 import { YouTubePlayer } from 'youtube-player/dist/types'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
 import padNumber from '@/shared/utils/padNumber'
-import TeleprompterView from '@/features/Describe/AudioClip/TeleprompterView'
 import { Tooltip } from 'bootstrap'
 
 interface Props {
@@ -71,8 +71,23 @@ const EditClip = ({
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
-  // use 3 state variables to hold the value of 3 input type number fields
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+  // Enhanced state management for better user experience
+  const [clipDescriptionText, setClipDescriptionText] = useState(
+    initialClipDescriptionText,
+  )
+  const [recordedClipDuration, setRecordedClipDuration] = useState(0.0)
+  const [readySetGo, setReadySetGo] = useState('')
+  const [isDeleteModal, setIsDeleteModal] = useState(false)
+
+  // Audio playback state management
+  const [recordedAudio, setRecordedAudio] = useState<HTMLAudioElement>()
+  const [adAudio, setAdAudio] = useState<HTMLAudioElement>()
+  const [isRecordedAudioPlaying, setIsRecordedAudioPlaying] = useState(false)
+  const [isAdAudioPlaying, setIsAdAudioPlaying] = useState(false)
+  const [isYoutubeVideoPlaying, setIsYoutubeVideoPlaying] = useState(false)
+
+  // Time input state for enhanced timing controls
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0)
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0)
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0)
@@ -82,180 +97,235 @@ const EditClip = ({
   const [clipDurationMinutes, setClipDurationMinutes] = useState(0.0)
   const [clipDurationSeconds, setClipDurationSeconds] = useState(0.0)
   const [clipDurationMilliSeconds, setClipDurationMilliSeconds] = useState(0.0)
-  const [isDeleteModal, setIsDeleteModal] = useState(false)
-  const [isReplaceModal, setIsReplaceModal] = useState(false)
+  const [recordingDuration, setRecordingDuration] = useState(0)
 
-  // const [clipEndTimeMinutes, setClipEndTimeMinutes] = useState(0.0);
-  // const [clipEndTimeSeconds, setClipEndTimeSeconds] = useState(0.0);
-  // const [clipEndTimeMilliSeconds, setClipEndTimeMilliSeconds] = useState(0.0);
+  const [isIntegratedRecordingMode, setIsIntegratedRecordingMode] =
+    useState(false)
+  const [isPreparingToRecord, setIsPreparingToRecord] = useState(false)
+  const [showTextAreaForRecording, setShowTextAreaForRecording] =
+    useState(false)
 
-  // variable and function declaration of the react-media-recorder package
+  const [showSwitchToTTSModal, setShowSwitchToTTSModal] = useState(false)
+  const [switchToTTSText, setSwitchToTTSText] = useState('')
+
+  // Media recorder integration
   const { status, startRecording, stopRecording, mediaBlobUrl } =
     useReactMediaRecorder({
       audio: true,
-    }) // using only the audio recorder here
-  // this state variable keeps track of the play/pause state of the recorded audio
-  const [isRecordedAudioPlaying, setIsRecordedAudioPlaying] = useState(false)
-  // this state variable is updated whenever mediaBlobUrl is updated. i.e. whenever a new recording is created
-  const [recordedAudio, setRecordedAudio] = useState<HTMLAudioElement>()
-  const [adAudio, setAdAudio] = useState<HTMLAudioElement>()
-  const [isAdAudioPlaying, setIsAdAudioPlaying] = useState(false)
-  const [isYoutubeVideoPlaying, setIsYoutubeVideoPlaying] = useState(false)
+    })
 
-  // initialize state variables from props
-  const [clipDescriptionText, setClipDescriptionText] = useState(
-    initialClipDescriptionText,
-  )
+  const updateRecordingDuration = useCallback(() => {
+    setRecordingDuration((prevDuration) => prevDuration + 0.1)
+  }, [])
 
-  const [recordedClipDuration, setRecordedClipDuration] = useState(0.0)
+  const clipDurationAsTimestamp = convertSecondsToCardFormat(clipDuration)
 
-  const [readySetGo, setReadySetGo] = useState('')
-
-  useEffect(() => {
-    setClipDescriptionText(initialClipDescriptionText ?? '')
-    handleClipStartTimeInputsRender()
-    handleClipEndTimeInputsRender()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clipStartTime, clipEndTime, initialClipDescriptionText])
-
-  // Helper function to determine what text to display
-  const getDescriptionDisplay = () => {
-    // If it's a recorded clip with no meaningful text
-    if (
-      isRecorded &&
-      (!clipDescriptionText || clipDescriptionText.trim() === '')
-    ) {
+  const getAudioModeDisplay = (isRecorded: boolean, hasText: boolean) => {
+    if (isRecorded) {
       return {
-        displayText: '🎙️ Voice recording - no transcript available',
-        isPlaceholder: true,
-        canEdit: false,
-        className: 'text-muted font-italic',
+        mode: 'voice',
+        title: 'Voice Recording',
+        icon: 'fa-microphone',
+        primaryAction: 'Replace Recording',
+        secondaryAction: 'Switch to AI Voice',
+        description: 'Your voice recording is ready',
       }
     }
-
-    // If it's a recorded clip but has text (maybe from teleprompter)
-    if (isRecorded && clipDescriptionText) {
-      return {
-        displayText: clipDescriptionText,
-        isPlaceholder: false,
-        canEdit: true,
-        className: 'recorded-with-text',
-        helperText: '📝 This text was saved with your recording',
-      }
-    }
-
-    // If it's a TTS clip (normal case)
     return {
-      displayText: clipDescriptionText || '',
-      isPlaceholder: false,
-      canEdit: true,
-      className: '',
+      mode: 'ai',
+      title: 'AI Voice (Text-to-Speech)',
+      icon: 'fa-robot',
+      primaryAction: 'Regenerate AI Voice',
+      secondaryAction: 'Use My Voice',
+      description: 'AI-generated voice from your text description',
     }
   }
 
-  // Helper function for audio mode configuration
-  const getAudioModeConfig = () => {
-    if (!clipAudioPath) {
-      return {
-        icon: '🎵',
-        title: 'Add Audio Description',
-        subtitle: 'Choose how to add audio to this scene',
-        mode: 'empty',
+  const getDescriptionPlaceholder = (isRecorded: boolean) => {
+    if (isRecorded) {
+      return 'Add a text transcript of your recording for better accessibility (optional but recommended)...'
+    }
+    return 'Describe what you see in this scene. Be specific about actions, expressions, and visual details...'
+  }
+
+  // Get current audio mode configuration for enhanced UI
+  const audioModeConfig = getAudioModeDisplay(isRecorded, !!clipDescriptionText)
+  const descriptionPlaceholder = getDescriptionPlaceholder(isRecorded)
+
+  // Helper functions for enhanced audio mode communication
+
+  const getSmartButtonConfig = () => {
+    if (isRecorded) {
+      if (
+        showTextAreaForRecording &&
+        clipDescriptionText !== initialClipDescriptionText
+      ) {
+        return {
+          label: 'Save Transcript',
+          icon: 'fa-save',
+          disabled: false,
+          action: 'update',
+        }
       }
-    } else if (isRecorded) {
+      return null
+    }
+
+    // For AI clips - original logic
+    if (!clipDescriptionText || clipDescriptionText.trim() === '') {
       return {
-        icon: '🎙️',
-        title: 'Your Voice Recording',
-        subtitle: `Duration: ${clipDuration.toFixed(2)}s`,
-        mode: 'recorded',
+        label: 'Add Description Text',
+        icon: 'fa-edit',
+        disabled: true,
+        action: 'create',
       }
-    } else {
+    }
+
+    if (isPreparingToRecord) {
       return {
-        icon: '🤖',
-        title: 'AI Voice (Text-to-Speech)',
-        subtitle: 'Generated from your text description',
-        mode: 'tts',
+        label: 'Start Recording This Script',
+        icon: 'fa-microphone',
+        disabled: false,
+        action: 'start-recording',
       }
+    }
+
+    if (!clipAudioPath || clipAudioPath.trim() === '') {
+      return {
+        label: 'Generate AI Voice',
+        icon: 'fa-robot',
+        disabled: false,
+        action: 'generate',
+      }
+    }
+
+    if (clipDescriptionText !== initialClipDescriptionText) {
+      return {
+        label: 'Update AI Voice',
+        icon: 'fa-sync',
+        disabled: false,
+        action: 'update',
+      }
+    }
+
+    return {
+      label: 'Saved',
+      icon: 'fa-check',
+      disabled: true,
+      action: 'saved',
     }
   }
 
-  // Get configurations
-  const descriptionDisplay = getDescriptionDisplay()
-  const audioMode = getAudioModeConfig()
-
-  // New handler functions
-  const handleConvertToTextMode = () => {
-    setClipDescriptionText('') // Enable text field
-    toast.info('You can now add text to your recording')
-  }
-
-  const handleRegenerateAI = async () => {
-    if (!clipDescriptionText) {
-      toast.error('Please enter text before generating AI voice')
-      return
-    }
-    // Call your existing save function to regenerate TTS
-    await handleClickSaveClipDescription(clipDescriptionText)
-  }
-
+  // Initialize component state and setup
   useEffect(() => {
+    // Set up tooltips for enhanced user guidance
     const tooltipTriggerList = document.querySelectorAll(
       '[data-bs-toggle="tooltip"]',
     )
     Array.from(tooltipTriggerList).map(
       (tooltipTriggerEl) => new Tooltip(tooltipTriggerEl),
     )
-    // setClipDescriptionText(initialClipDescriptionText);
-    // set the button text & state based on YouTube Player's currentState
+
+    // Initialize description text from props
+    setClipDescriptionText(initialClipDescriptionText ?? '')
+
+    // Setup timing input fields
+    handleClipStartTimeInputsRender()
+    handleClipEndTimeInputsRender()
+
+    // Configure YouTube player state tracking
     setIsYoutubeVideoPlaying(
       currentState === -1 || currentState === 0 || currentState === 2
         ? false
         : currentState === 1,
     )
-    // scrolls to the latest clip when a new clip is added
-    const date = new Date()
-    const TEN_SEC = 10 * 1000
-    // if (date.getTime() - new Date(clipCreatedAt).getTime() <= TEN_SEC) {
-    //   ref.current?.scrollIntoView({
-    //     behavior: 'smooth',
-    //     block: 'start',
-    //     inline: 'start',
-    //   })
-    // }
 
-    // following statements execute whenever mediaBlobUrl is updated.. used it in the dependency array
+    // Setup audio playback when new recording is available
     if (mediaBlobUrl !== null) {
-      setRecordedAudio(new Audio(mediaBlobUrl))
-      const aud = new Audio(mediaBlobUrl)
-      // set audio duration if recorded
-      aud.addEventListener(
+      const newAudio = new Audio(mediaBlobUrl)
+      setRecordedAudio(newAudio)
+
+      // Calculate and set recorded audio duration
+      newAudio.addEventListener(
         'loadedmetadata',
         function () {
-          if (aud.duration === Infinity) {
-            // set it to bigger than the actual duration
-            aud.currentTime = 1e101
-            aud.ontimeupdate = function () {
+          if (newAudio.duration === Infinity) {
+            // Handle edge case for some audio formats
+            newAudio.currentTime = 1e101
+            newAudio.ontimeupdate = function () {
               this.ontimeupdate = () => {
                 return
               }
-              setRecordedClipDuration(aud.duration)
-              aud.currentTime = 0
+              const browserDuration =
+                Math.round(newAudio.duration * 1000) / 1000
+              setRecordedClipDuration(browserDuration)
+              newAudio.currentTime = 0
             }
           } else {
-            setRecordedClipDuration(aud.duration)
+            const browserDuration = Math.round(newAudio.duration * 1000) / 1000
+            setRecordedClipDuration(browserDuration)
           }
         },
         false,
       )
     }
-    setAdAudio(new Audio(clipAudioPath))
-    // render the start time input fields based on the updated prop value - clipStartTime
-    handleClipStartTimeInputsRender()
-    handleClipEndTimeInputsRender()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clipAudioPath, clipCreatedAt, currentState, mediaBlobUrl])
 
-  // render the values in the input[type='number'] fields of the start time - renders everytime the clipStartTime value changes
+    // Setup existing audio clip playback
+    setAdAudio(new Audio(clipAudioPath))
+  }, [
+    clipAudioPath,
+    clipCreatedAt,
+    currentState,
+    mediaBlobUrl,
+    initialClipDescriptionText,
+    clipStartTime,
+    clipEndTime,
+  ])
+
+  useEffect(() => {
+    return () => {
+      adAudio?.pause()
+      adAudio?.remove?.()
+      recordedAudio?.pause()
+      recordedAudio?.remove?.()
+    }
+  }, [adAudio, recordedAudio])
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+    if (status === 'recording') {
+      setRecordingDuration(0) // Reset duration when recording actually starts
+      interval = setInterval(() => {
+        setRecordingDuration((prev) => prev + 0.1)
+      }, 100)
+    }
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [status])
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+    if (status === 'recording') {
+      interval = setInterval(updateRecordingDuration, 100)
+    }
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [status, updateRecordingDuration])
+
+  useEffect(() => {
+    if (recordedClipDuration > 0 && clipDuration > 0) {
+      const difference = Math.abs(recordedClipDuration - clipDuration)
+      if (difference > 0.1) {
+        console.log(
+          `Syncing duration: frontend=${recordedClipDuration}s, backend=${clipDuration}s`,
+        )
+        setRecordedClipDuration(clipDuration) // Backend wins
+      }
+    }
+  }, [recordedClipDuration, clipDuration])
+
+  // Enhanced timing input rendering functions
   const handleClipStartTimeInputsRender = () => {
     const cardFormat = convertSecondsToCardFormat(clipStartTime).split(':')
     setClipStartTimeHours(parseInt(cardFormat[0]))
@@ -272,259 +342,7 @@ const EditClip = ({
     setClipDurationMilliSeconds(parseInt(cardFormat[3]))
   }
 
-  // calculate the Start Time in seconds from the Hours, Minutes & Seconds passed from handleBlur functions
-  const calculateClipStartTimeinSeconds = (
-    milliseconds: number,
-    minutes: number,
-    seconds: number,
-  ) => {
-    const calculatedSeconds = +milliseconds / 1000 + +minutes * 60 + +seconds
-    // restrict the audio block to the timeline
-    if (clipPlaybackType === 'inline') {
-      if (calculatedSeconds + clipDuration <= videoLength) {
-        handleClipStartTimeUpdate(calculatedSeconds)
-      } else {
-        toast.error(
-          'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
-        )
-        handleClipStartTimeInputsRender()
-      }
-    }
-    // extended clip
-    else {
-      // check if the updated start time is more than the videolength, if yes, throw error and retain the old state
-      if (calculatedSeconds < videoLength) {
-        // handleClipStartTimeUpdate is the prop function received from parent component - this runs an axios PUT call and updates the clipStartTime
-        handleClipStartTimeUpdate(calculatedSeconds)
-      } else {
-        toast.error(
-          'Oops!! Start Time cannot be later than the video end time.',
-        ) // show toast error message
-        handleClipStartTimeInputsRender()
-      }
-    }
-  }
-
-  // function for toggling play pause functionality of the recorded audio - on button click
-  const handlePlayPauseRecordedAudio = () => {
-    if (isRecordedAudioPlaying) {
-      recordedAudio?.pause()
-      setIsRecordedAudioPlaying(false)
-    } else {
-      recordedAudio?.play()
-      setIsRecordedAudioPlaying(true)
-      // this is for setting setIsRecordedAudioPlaying variable to false, once the playback is completed.
-      recordedAudio?.addEventListener('ended', function () {
-        setIsRecordedAudioPlaying(false)
-      })
-    }
-  }
-
-  // function for toggling play pause functionality of audio Clip - on button click
-  const handlePlayPauseAdAudio = () => {
-    if (isAdAudioPlaying) {
-      adAudio?.pause()
-      setIsAdAudioPlaying(false)
-    } else {
-      const audioProm = adAudio?.play()
-      // handle exceptions in playing audio - like having the wrong url in the audiopath
-      if (audioProm !== undefined) {
-        audioProm
-          .then(() => {
-            // Automatic playback started!
-            setIsAdAudioPlaying(true)
-            // this is for setting setIsAdAudioPlaying variable to false, once the playback is completed.
-            adAudio?.addEventListener('ended', function () {
-              setIsAdAudioPlaying(false)
-            })
-          })
-          .catch((err) => {
-            // Auto-play was prevented
-            toast.error('Oops! Cannot find Audio. Please try later.')
-            // console.error(err);
-          })
-      }
-    }
-  }
-
-  // function for toggling play pause functionality of the YouTube video - on button click
-  const handlePlayPauseYouTubeVideo = () => {
-    // if youTube video is not started or it has ended or it is paused
-    if (currentState === -1 || currentState === 0 || currentState === 2) {
-      currentEvent?.playVideo()
-      setIsYoutubeVideoPlaying(true)
-    }
-    // if youTube video is playing
-    else if (currentState === 1) {
-      currentEvent?.pauseVideo()
-      setIsYoutubeVideoPlaying(false)
-    }
-  }
-
-  // const handleOnChangeClipStartTimeHours = (e: any) => {
-  //   setClipStartTimeHours(Number(e.target.value))
-  //   if (e.target.value.length > 2) {
-  //     setClipStartTimeHours(Number(e.target.value.substring(0, 2)))
-  //   }
-  // }
-  // const handleOnChangeClipStartTimeMinutes = (e: any) => {
-  //   setClipStartTimeMinutes(Number(e.target.value))
-  //   if (e.target.value.length > 2) {
-  //     setClipStartTimeMinutes(e.target.value.substring(0, 2));
-  //   } else if (e.target.value.length === 2) {
-  //     if (parseInt(e.target.value) >= 60) {
-  //       setClipStartTimeMinutes(59);
-  //     }
-  //   }
-  // }
-  // const handleOnChangeClipStartTimeSeconds = (e: any) => {
-  //   setClipStartTimeSeconds(Number(e.target.value))
-  //   if (e.target.value.length > 2) {
-  //     setClipStartTimeSeconds(Number(e.target.value.substring(0, 2)))
-  //   } else if (e.target.value.length === 2) {
-  //     if (parseInt(e.target.value) >= 60) {
-  //       setClipStartTimeSeconds(59)
-  //     }
-  //   }
-  // }
-
-  // const handleOnChangeClipStartTimeMilliSeconds = (e: any) => {
-  //   setClipStartTimeMilliSeconds(Number(e.target.value))
-  //   if (e.target.value.length > 2) {
-  //     setClipStartTimeMilliSeconds(Number(e.target.value.substring(0, 2)))
-  //   } else if (e.target.value.length === 2) {
-  //     if (parseInt(e.target.value) >= 60) {
-  //       setClipStartTimeMilliSeconds(59)
-  //     }
-  //   }
-  // }
-  const handleBlurClipStartTimeMilliSeconds = (e: any) => {
-    // store the current clipStartTimeHours in a temp variable,
-    // so that when calculateClipStartTimeinSeconds without going into the loops,
-    // it has the previous value in it
-    let tempStartTimeMilliSeconds = clipStartTimeMilliSeconds
-    if (e.target.value.length === 1) {
-      setClipStartTimeMilliSeconds(Number(e.target.value + '0'))
-      tempStartTimeMilliSeconds = Number(e.target.value + '0')
-      if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeMilliSeconds(59)
-        tempStartTimeMilliSeconds = 59
-      }
-    } else if (e.target.value.length === 0) {
-      setClipStartTimeMilliSeconds(0)
-      tempStartTimeMilliSeconds = 0
-    }
-    // call the function which will update the clipStartTime in the parent component and the db is updated too.
-    calculateClipStartTimeinSeconds(
-      tempStartTimeMilliSeconds,
-      clipStartTimeMinutes,
-      clipStartTimeSeconds,
-    )
-  }
-  const handleBlurClipStartTimeMinutes = (e: any) => {
-    // store the current clipStartTimeMinutes in a temp variable,
-    // so that when calculateClipStartTimeinSeconds without going into the loops,
-    // it has the previous value in it
-    let tempStartTimeMinutes = clipStartTimeMinutes
-    if (e.target.value.length === 1) {
-      setClipStartTimeMinutes(Number(e.target.value + '0'))
-      tempStartTimeMinutes = Number(e.target.value + '0')
-      if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeMinutes(59)
-        tempStartTimeMinutes = 59
-      }
-    } else if (e.target.value.length === 0) {
-      setClipStartTimeMinutes(0)
-      tempStartTimeMinutes = 0
-    }
-    // call the function which will update the clipStartTime in the parent component and the db is updated too.
-    calculateClipStartTimeinSeconds(
-      clipStartTimeMilliSeconds,
-      tempStartTimeMinutes,
-      clipStartTimeSeconds,
-    )
-  }
-  const handleBlurClipStartTimeSeconds = (e: any) => {
-    // store the current clipStartTimeSeconds in a temp variable,
-    // so that when calculateClipStartTimeinSeconds without going into the loops,
-    // it has the previous value in it
-    let tempStartTimeSeconds = clipStartTimeSeconds
-    if (e.target.value.length === 1) {
-      setClipStartTimeSeconds(Number(e.target.value + '0'))
-      tempStartTimeSeconds = Number(e.target.value + '0')
-      if (parseInt(e.target.value + '0') >= 60) {
-        setClipStartTimeSeconds(59)
-        tempStartTimeSeconds = 59
-      }
-    } else if (e.target.value.length === 0) {
-      setClipStartTimeSeconds(0)
-      tempStartTimeSeconds = 0
-    }
-    // call the function which will update the clipStartTime in the parent component and the db is updated too.
-    calculateClipStartTimeinSeconds(
-      clipStartTimeMilliSeconds,
-      clipStartTimeMinutes,
-      tempStartTimeSeconds,
-    )
-  }
-
-  const handleBlurClipStartTimeHours = (e: any) => {
-    // Store the current clipStartTimeHours in a temp variable
-    let tempStartTimeHours = clipStartTimeHours
-    // Ensure the input value is within bounds
-    if (e.target.value.length === 1) {
-      setClipStartTimeHours(Number(e.target.value + '0'))
-      tempStartTimeHours = Number(e.target.value + '0')
-      if (parseInt(e.target.value + '0') >= 24) {
-        setClipStartTimeHours(23)
-        tempStartTimeHours = 23
-      }
-    } else if (e.target.value.length === 2) {
-      // If the input is two digits, ensure it's within bounds
-      const inputValue = parseInt(e.target.value, 10)
-      if (inputValue >= 24) {
-        setClipStartTimeHours(23)
-        tempStartTimeHours = 23
-      } else {
-        setClipStartTimeHours(inputValue)
-        tempStartTimeHours = inputValue
-      }
-    } else if (e.target.value.length === 0) {
-      // If the input is empty, set it to 0
-      setClipStartTimeHours(0)
-      tempStartTimeHours = 0
-    }
-    const calculatedSeconds =
-      +e.target.value * 3600 +
-      +clipStartTimeMinutes * 60 +
-      +clipStartTimeSeconds +
-      +clipStartTimeMilliSeconds / 1000
-
-    if (clipPlaybackType === 'inline') {
-      if (calculatedSeconds + clipDuration <= videoLength) {
-        handleClipStartTimeUpdate(calculatedSeconds)
-      } else {
-        toast.error(
-          'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
-        )
-        handleClipStartTimeInputsRender()
-      }
-    }
-    // extended clip
-    else {
-      // check if the updated start time is more than the videolength, if yes, throw error and retain the old state
-      if (calculatedSeconds < videoLength) {
-        // handleClipStartTimeUpdate is the prop function received from parent component - this runs an axios PUT call and updates the clipStartTime
-        handleClipStartTimeUpdate(calculatedSeconds)
-      } else {
-        toast.error(
-          'Oops!! Start Time cannot be later than the video end time.',
-        ) // show toast error message
-        handleClipStartTimeInputsRender()
-      }
-    }
-  }
-
+  // Enhanced timing input handlers with proper validation - restored from original
   const handleOnChangeClipStartTimeHours = (e: any) => {
     setClipStartTimeHours(Number(e.target.value))
   }
@@ -541,67 +359,299 @@ const EditClip = ({
     setClipStartTimeMilliSeconds(Number(e.target.value))
   }
 
-  const handleBlurClipStartTime = () => {
+  // Individual blur handlers with field-specific validation
+  const handleBlurClipStartTimeHours = (e: any) => {
+    let tempStartTimeHours = clipStartTimeHours
+
+    // Handle single digit input by padding with zero
+    if (e.target.value.length === 1) {
+      setClipStartTimeHours(Number(e.target.value + '0'))
+      tempStartTimeHours = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      }
+    } else if (e.target.value.length === 2) {
+      const inputValue = parseInt(e.target.value, 10)
+      if (inputValue >= 24) {
+        setClipStartTimeHours(23)
+        tempStartTimeHours = 23
+      } else {
+        setClipStartTimeHours(inputValue)
+        tempStartTimeHours = inputValue
+      }
+    } else if (e.target.value.length === 0) {
+      setClipStartTimeHours(0)
+      tempStartTimeHours = 0
+    }
+
+    // Calculate and validate total time
     const calculatedSeconds =
-      clipStartTimeHours * 3600 +
+      tempStartTimeHours * 3600 +
       clipStartTimeMinutes * 60 +
       clipStartTimeSeconds +
       clipStartTimeMilliSeconds / 1000
 
+    calculateClipStartTimeinSeconds(
+      clipStartTimeMilliSeconds,
+      clipStartTimeMinutes,
+      clipStartTimeSeconds,
+    )
+  }
+
+  const handleBlurClipStartTimeMinutes = (e: any) => {
+    let tempStartTimeMinutes = clipStartTimeMinutes
+
+    if (e.target.value.length === 1) {
+      setClipStartTimeMinutes(Number(e.target.value + '0'))
+      tempStartTimeMinutes = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 60) {
+        setClipStartTimeMinutes(59)
+        tempStartTimeMinutes = 59
+      }
+    } else if (e.target.value.length === 0) {
+      setClipStartTimeMinutes(0)
+      tempStartTimeMinutes = 0
+    }
+
+    calculateClipStartTimeinSeconds(
+      clipStartTimeMilliSeconds,
+      tempStartTimeMinutes,
+      clipStartTimeSeconds,
+    )
+  }
+
+  const handleBlurClipStartTimeSeconds = (e: any) => {
+    let tempStartTimeSeconds = clipStartTimeSeconds
+
+    if (e.target.value.length === 1) {
+      setClipStartTimeSeconds(Number(e.target.value + '0'))
+      tempStartTimeSeconds = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 60) {
+        setClipStartTimeSeconds(59)
+        tempStartTimeSeconds = 59
+      }
+    } else if (e.target.value.length === 0) {
+      setClipStartTimeSeconds(0)
+      tempStartTimeSeconds = 0
+    }
+
+    calculateClipStartTimeinSeconds(
+      clipStartTimeMilliSeconds,
+      clipStartTimeMinutes,
+      tempStartTimeSeconds,
+    )
+  }
+
+  const handleBlurClipStartTimeMilliSeconds = (e: any) => {
+    let tempStartTimeMilliSeconds = clipStartTimeMilliSeconds
+
+    if (e.target.value.length === 1) {
+      setClipStartTimeMilliSeconds(Number(e.target.value + '0'))
+      tempStartTimeMilliSeconds = Number(e.target.value + '0')
+      if (parseInt(e.target.value + '0') >= 100) {
+        setClipStartTimeMilliSeconds(99)
+        tempStartTimeMilliSeconds = 99
+      }
+    } else if (e.target.value.length === 0) {
+      setClipStartTimeMilliSeconds(0)
+      tempStartTimeMilliSeconds = 0
+    }
+
+    calculateClipStartTimeinSeconds(
+      tempStartTimeMilliSeconds,
+      clipStartTimeMinutes,
+      clipStartTimeSeconds,
+    )
+  }
+
+  // Enhanced timing validation and update functions
+  const calculateClipStartTimeinSeconds = (
+    milliseconds: number,
+    minutes: number,
+    seconds: number,
+  ) => {
+    const calculatedSeconds = +milliseconds / 1000 + +minutes * 60 + +seconds
+
+    // Validate timing constraints based on playback type
     if (clipPlaybackType === 'inline') {
       if (calculatedSeconds + clipDuration <= videoLength) {
         handleClipStartTimeUpdate(calculatedSeconds)
       } else {
         toast.error(
-          'Audio Clip cannot be outside the timeline. Change it to extended and adjust the start time.',
+          'Inline clips cannot extend beyond the video timeline. Consider changing to extended mode.',
         )
         handleClipStartTimeInputsRender()
       }
     } else {
+      // Extended clip validation
       if (calculatedSeconds < videoLength) {
         handleClipStartTimeUpdate(calculatedSeconds)
       } else {
-        toast.error(
-          'Oops!! Start Time cannot be later than the video end time.',
-        )
+        toast.error('Start time cannot be later than the video end time.')
         handleClipStartTimeInputsRender()
       }
     }
   }
 
-  // handle save clip description - axios call -> generate audio & update endtime, duration
-  const saveClipDescription = (e: any) => {
-    e.preventDefault()
-    handleClickSaveClipDescription(clipDescriptionText)
-    // // check if the clip has been updated
-    // if (clipDescriptionText !== initialClipDescriptionText) {
-    //   // show spinner
-    //   setShowSpinner(true)
-    //   axios
-    //     .put(
-    //       `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
-    //       {
-    //         userId: userId,
-    //         youtubeVideoId: youtubeVideoId,
-    //         clipDescriptionText: clipDescriptionText,
-    //         clipDescriptionType: clipDescriptionType,
-    //         audioDescriptionId: audioDescriptionId,
-    //       },
-    //     )
-    //     .then((res) => {
-    //       // below prop is used to re-render the parent component i.e. fetch audio clip data
-    //       setUpdateData(!updateData)
-    //       setShowSpinner(false) // stop showing spinner
-    //       toast.success('Description Saved Successfully!!') // show toast message
-    //     })
-    //     .catch((err) => {
-    //       // err.response.data.message has the message text send by the server
-    //       toast.error(err.response.data.message) // show toast message
-    //     })
-    // }
+  // Enhanced audio playback control functions
+  const handlePlayPauseRecordedAudio = () => {
+    if (isRecordedAudioPlaying) {
+      recordedAudio?.pause()
+      setIsRecordedAudioPlaying(false)
+    } else {
+      recordedAudio?.play()
+      setIsRecordedAudioPlaying(true)
+      recordedAudio?.addEventListener('ended', function () {
+        setIsRecordedAudioPlaying(false)
+      })
+    }
   }
 
-  // delete a clip
+  const handlePlayPauseAdAudio = () => {
+    if (isAdAudioPlaying) {
+      adAudio?.pause()
+      setIsAdAudioPlaying(false)
+    } else {
+      const audioProm = adAudio?.play()
+      if (audioProm !== undefined) {
+        audioProm
+          .then(() => {
+            setIsAdAudioPlaying(true)
+            adAudio?.addEventListener('ended', function () {
+              setIsAdAudioPlaying(false)
+            })
+          })
+          .catch((err) => {
+            toast.error('Cannot play audio. Please try again later.')
+          })
+      }
+    }
+  }
+
+  const handlePlayPauseYouTubeVideo = () => {
+    if (currentState === -1 || currentState === 0 || currentState === 2) {
+      currentEvent?.playVideo()
+      setIsYoutubeVideoPlaying(true)
+    } else if (currentState === 1) {
+      currentEvent?.pauseVideo()
+      setIsYoutubeVideoPlaying(false)
+    }
+  }
+
+  // Enhanced recording workflow functions
+  const handleReadySetGo = (): void => {
+    const countdown = ['3', '2', '1', 'GO!', 'start']
+
+    countdown.forEach((val, i) => {
+      setTimeout(() => {
+        setReadySetGo(val)
+      }, 1000 * i)
+    })
+
+    // Start recording after countdown
+    setTimeout(() => {
+      startRecording()
+    }, 3700)
+  }
+
+  const saveClipDescription = (e: any) => {
+    e.preventDefault()
+
+    // Get the current button configuration to determine what action to take
+    const buttonConfig = getSmartButtonConfig()
+
+    if (!buttonConfig) {
+      return
+    }
+
+    if (buttonConfig.action === 'start-recording') {
+      // User clicked the "Start Recording This Script" button
+      handleReadySetGo()
+    } else {
+      // Normal save operation
+      handleClickSaveClipDescription(clipDescriptionText)
+    }
+  }
+
+  // Toggle text area visibility for recorded clips
+  const handleToggleTextAreaForRecording = () => {
+    setShowTextAreaForRecording(!showTextAreaForRecording)
+  }
+
+  // Determine if text area should be shown
+  const shouldShowTextArea = !isRecorded
+
+  const handleStartIntegratedRecording = () => {
+    setIsIntegratedRecordingMode(true)
+    setIsPreparingToRecord(true)
+    // Scroll to keep the content editing area in view
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
+  const handleReplaceWithNewRecording = useCallback(async () => {
+    if (!mediaBlobUrl) {
+      toast.error('No recording found. Please record audio first.')
+      return
+    }
+
+    setShowSpinner(true)
+
+    try {
+      const formData = new FormData()
+      const audioBlob = await fetch(`${mediaBlobUrl}`).then((r) => r.blob())
+      const audioFile = new File([audioBlob], 'voice.mp3', {
+        type: 'audio/mp3',
+      })
+
+      formData.append(
+        'clipDescriptionText',
+        clipDescriptionText || 'Voice recording (no transcript)',
+      )
+      formData.append('clipStartTime', String(clipStartTime))
+      formData.append('newACType', clipDescriptionType)
+      formData.append('youtubeVideoId', youtubeVideoId)
+      formData.append('recordedClipDuration', String(recordedClipDuration))
+      formData.append('audioDescriptionId', audioDescriptionId)
+      formData.append('userId', userId)
+      formData.append('file', audioFile)
+
+      await axios.put(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/record-replace-clip-audio/${clipId}`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+
+      toast.success('Successfully replaced with your recorded audio!')
+
+      // Reset integrated recording mode after successful replacement
+      setIsIntegratedRecordingMode(false)
+      setIsPreparingToRecord(false)
+
+      setTimeout(() => {
+        setUpdateData(!updateData)
+        setShowSpinner(false)
+      }, 2000)
+    } catch (err) {
+      toast.error('Error replacing audio. Please try again.')
+      setShowSpinner(false)
+    }
+  }, [
+    mediaBlobUrl,
+    clipDescriptionText,
+    clipStartTime,
+    clipDescriptionType,
+    youtubeVideoId,
+    recordedClipDuration,
+    audioDescriptionId,
+    userId,
+    clipId,
+    updateData,
+    setUpdateData,
+    setShowSpinner,
+  ])
+
+  // Enhanced delete functionality
   const handleClickDeleteClip = (e: any) => {
     setShowSpinner(true)
     e.preventDefault()
@@ -611,732 +661,559 @@ const EditClip = ({
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/delete-clip/${clipId}`,
         {
           withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          params: {
-            youtubeVideoId: youtubeVideoId,
-          },
+          headers: { 'Content-Type': 'application/json' },
+          params: { youtubeVideoId: youtubeVideoId },
         },
       )
       .then((res) => {
-        toast.success(
-          'Clip Deleted Successfully!! Please wait while we fetch latest Clip Data',
-        )
+        toast.success('Clip deleted successfully!')
         fetchUserVideoData()
         setUndoDeletedClip(true)
         setNeedRefresh(true)
       })
       .catch((err) => {
         console.error(err)
-        toast.error('Error Deleting Clip. Please try again later.')
+        toast.error('Error deleting clip. Please try again.')
+        setShowSpinner(false)
       })
   }
 
-  // handle record & replace
-  const handleClickReplaceClip = async (e: any) => {
-    setShowSpinner(true)
-    e.preventDefault()
+  // New function for switching between audio modes
+  // NOTE: This requires a backend API endpoint that may need to be implemented
+  // The endpoint should handle converting recorded audio clips back to TTS mode
+  // Expected backend behavior:
+  // 1. Delete existing audio file
+  // 2. Generate new TTS audio from the provided text
+  // 3. Update clip metadata (is_recorded: false, updated file paths)
+  // 4. Return success confirmation
+  const handleSwitchToTTS = async () => {
+    if (!switchToTTSText.trim()) {
+      toast.error('Please enter text for AI voice generation')
+      return
+    }
 
-    // If currently TTS and user wants to record
-    if (!isRecorded && mediaBlobUrl) {
-      // Your existing recording replacement logic
-      if (mediaBlobUrl === null) {
-        toast.error(
-          'Error while saving the recorded audio. Please record again.',
-        )
-        setShowSpinner(false)
-        return
-      } else {
-        // create a new FormData object for easy file uploads
-        const formData = new FormData()
-        const audioBlob = await fetch(`${mediaBlobUrl}`).then((r) => r.blob()) // get blob from the audio URI
-        const audioFile = new File([audioBlob], 'voice.mp3', {
-          type: 'audio/mp3',
-        })
-        formData.append('clipDescriptionText', clipDescriptionText)
-        formData.append('clipStartTime', String(clipStartTime))
-        formData.append('newACType', clipDescriptionType)
-        formData.append('youtubeVideoId', youtubeVideoId)
-        formData.append('recordedClipDuration', String(recordedClipDuration))
-        formData.append('audioDescriptionId', audioDescriptionId)
-        formData.append('userId', userId)
-        formData.append('file', audioFile)
+    try {
+      setShowSpinner(true)
 
-        // upload formData using axios
-        axios
-          .put(
-            `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/record-replace-clip-audio/${clipId}`,
-            formData,
-            {
-              headers: { 'Content-Type': 'multipart/form-data' },
-            },
-          )
-          .then((res) => {
-            toast.success(
-              'Replaced Clip Successfully with the Recorded Audio!!',
-            )
-            setTimeout(() => {
-              setUpdateData(!updateData)
-              setShowSpinner(false)
-            }, 4000) // setting the timeout to show the toast message for 4 sec
-          })
-          .catch((err) => {
-            // console.log(err)
-            toast.error(
-              'Error while replacing Audio Clip. Please try again later.',
-            )
-          })
-      }
-    } else if (isRecorded && clipDescriptionText) {
-      // NEW: If currently recorded and user wants to switch to TTS
-      try {
-        const response = await axios.post(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/switch-to-tts/${clipId}`,
-          {
-            text: clipDescriptionText,
-            userId: userId,
-            youtubeVideoId: youtubeVideoId,
-            audioDescriptionId: audioDescriptionId,
-          },
-          {
-            withCredentials: true,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
+      // Call the backend to switch to TTS
+      await axios.post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/switch-to-tts/${clipId}`,
+        {
+          youtubeVideoId: youtubeVideoId,
+          text: switchToTTSText,
+          audioDescriptionId: audioDescriptionId,
+          userId: userId,
+        },
+        { withCredentials: true },
+      )
 
-        toast.success('Switched to AI voice successfully!')
-        setUpdateData(!updateData)
-        setShowSpinner(false)
-      } catch (err) {
-        toast.error('Error switching to AI voice. Please try again.')
-        setShowSpinner(false)
-      }
-    } else {
-      toast.error('Cannot switch voice mode without text description')
+      toast.success('Successfully switched to AI voice!')
+      setShowSwitchToTTSModal(false)
+      setSwitchToTTSText('')
+      setUpdateData(!updateData)
+    } catch (err: any) {
+      console.error('Switch to TTS error:', err)
+      toast.error('Error switching to AI voice. Please try again.')
+    } finally {
       setShowSpinner(false)
     }
   }
-  // handle Record Ready Set Go
-  const handleReadySetGo = () => {
-    const _321Go = ['3', '2', '1', 'Go', 'start']
-    // using the concept of closures & IIFE in JavaScript
-    _321Go.forEach((val, i) => {
-      setTimeout(
-        (function (i_local) {
-          return function () {
-            setReadySetGo(i_local)
-          }
-        })(val),
-        1000 * i,
-      )
-    })
-    // start recording once ready set go is completed
-    setTimeout(() => {
-      startRecording()
-    }, 3700)
-  }
 
   return (
-    <div className="edit-component text-white" ref={ref} id={clipId}>
-      <div className="d-flex justify-content-evenly align-items-center">
-        {/* Clip Description & Start time Div */}
-        <div className="description-section mt-1">
-          <div className="d-flex justify-content-between align-items-start">
-            {/* Description label, text area & buttons*/}
-            <div className="d-flex justify-content-center align-items-start flex-column">
-              <h6 className="text-white">
-                Clip Description: {isRecorded ? '(Recorded)' : ''}
-              </h6>
-              <div className="description-text-container">
-                <TextareaAutosize
-                  className={`expand-textarea ${descriptionDisplay.className} ${
-                    isPreview ? 'preview-textarea' : ''
-                  }`}
-                  value={descriptionDisplay.displayText}
-                  onChange={(e) => {
-                    // Only allow editing if it's not a placeholder
-                    if (descriptionDisplay.canEdit) {
-                      setClipDescriptionText(e.target.value)
-                      setClipDescText(e.target.value)
-                    }
-                  }}
-                  placeholder="Type your audio description here..."
-                  disabled={!descriptionDisplay.canEdit || isPreview}
-                  onFocus={() => {
-                    if (descriptionDisplay.isPlaceholder) {
-                      toast.info(
-                        "To add text to this recording, use 'Convert to Text Mode' below",
-                      )
-                    }
-                  }}
-                />
+    <div className="edit-component" ref={ref} id={clipId}>
+      {/* Audio Mode Header - Clear visual indicator of current mode */}
+      <div className="audio-mode-header">
+        <div className="audio-mode-badge">
+          <i className={`fa ${audioModeConfig.icon} audio-mode-icon`}></i>
+          <span className="audio-mode-title">{audioModeConfig.title}</span>
+        </div>
+        <div className="audio-mode-description">
+          {audioModeConfig.description}
+        </div>
+      </div>
 
-                {/* Add helper text when appropriate */}
-                {descriptionDisplay.helperText && (
-                  <small className="form-text text-muted">
-                    {descriptionDisplay.helperText}
-                  </small>
-                )}
+      {/* Primary Content Section - Description editing gets prime real estate */}
+      <div className="primary-content-section">
+        <div className="description-editing-area">
+          <div className="section-header">
+            <h6 className="section-title">Description Content</h6>
+            <div className="description-status">
+              {clipDescriptionText?.length || 0} characters
+            </div>
+          </div>
 
-                {/* Add option to switch to text mode for recordings */}
-                {isRecorded && !clipDescriptionText && !isPreview && (
-                  <Button
-                    size="sm"
-                    variant="link"
-                    className="mt-2"
-                    onClick={handleConvertToTextMode}
-                  >
-                    <i className="fa fa-keyboard" /> Convert to Text Mode
-                  </Button>
-                )}
-              </div>
-              {/* play, save & Delete buttons */}
-              <div className="my-2 d-flex justify-content-evenly align-items-center w-100">
-                <Button
-                  className="btn rounded btn-sm text-white bg-danger ydx-button"
-                  onClick={() => setIsDeleteModal(true)}
-                  disabled={isPreview}
-                >
-                  <i className="fa fa-trash" /> {'  '} Delete
-                </Button>
-                <Button
-                  type="button"
-                  className="btn rounded btn-sm text-white save-desc-btn ydx-button"
-                  onClick={saveClipDescription}
-                  disabled={isPreview}
-                >
-                  <i className="fa fa-save" /> {'  '} Save
-                </Button>
-                {isAdAudioPlaying ? (
-                  <button
-                    type="button"
-                    className="btn rounded btn-sm primary-btn-color text-white ydx-button"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="bottom"
-                    title="Pause Audio"
-                    onClick={handlePlayPauseAdAudio}
-                  >
-                    <i className="fa fa-pause" /> {'  '} Pause
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn rounded btn-sm primary-btn-color text-white ydx-button"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="bottom"
-                    title="Play this Clip"
-                    onClick={handlePlayPauseAdAudio}
-                  >
-                    <i className="fa fa-play" /> {'  '} Play
-                  </button>
-                )}
+          {/* Show text area based on recording mode */}
+          {shouldShowTextArea ? (
+            <TextareaAutosize
+              className="enhanced-description-textarea"
+              placeholder={descriptionPlaceholder}
+              value={clipDescriptionText}
+              onChange={(e) => {
+                setClipDescriptionText(e.target.value)
+                setClipDescText(e.target.value)
+              }}
+              disabled={isPreview}
+              minRows={4}
+              maxRows={8}
+            />
+          ) : (
+            /* Show message for recorded clips when text area is hidden */
+            <div className="recorded-clip-message">
+              <div className="recording-status">
+                <i className="fa fa-microphone-alt"></i>
+                <span>Voice recording completed</span>
               </div>
             </div>
-            {/* Start Time div */}
-            <div className="mx-2 d-flex justify-content-between align-items-center flex-column">
-              <h6 className="text-white">
+          )}
+
+          {/* Integrated Recording Interface - appears in content editing area when user wants to record */}
+          {isIntegratedRecordingMode && (
+            <div className="integrated-recording-interface">
+              {isPreparingToRecord ? (
+                /* Script Preparation Phase - user can still edit their text and prepare for recording */
+                <div className="recording-preparation-area">
+                  <div className="preparation-header">
+                    <i className="fa fa-microphone text-primary"></i>
+                    <span>
+                      {isRecorded
+                        ? 'Ready to record a replacement? You can edit your script above first.'
+                        : 'Ready to record? You can still edit your script above.'}
+                    </span>
+                  </div>
+                  <div className="preparation-actions">
+                    <button
+                      className="ydx-button ydx-button--primary"
+                      onClick={() => {
+                        // Transition from preparation to actual recording
+                        setIsPreparingToRecord(false)
+                        handleReadySetGo() // Use your existing countdown logic
+                      }}
+                    >
+                      <i className="fa fa-microphone" />
+                      Start Recording
+                    </button>
+
+                    <button
+                      className="ydx-button ydx-button--secondary"
+                      onClick={() => {
+                        // Exit recording mode and return to normal editing
+                        setIsIntegratedRecordingMode(false)
+                        setIsPreparingToRecord(false)
+                      }}
+                    >
+                      <i className="fa fa-times" />
+                      Cancel Recording
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Active Recording Phase - countdown and recording in progress */
+                <div className="active-recording-area">
+                  {status === 'recording' && readySetGo !== '' ? (
+                    <div className="recording-in-progress">
+                      <div className="recording-header">
+                        <i className="fa fa-microphone text-danger recording-pulse"></i>
+                        <span>
+                          Recording in progress - read your script above
+                        </span>
+                      </div>
+
+                      {/* Recording Duration Display */}
+                      <div className="recording-status-display">
+                        <div className="duration-indicator">
+                          <i className="fa fa-clock text-warning"></i>
+                          <span>{recordingDuration.toFixed(1)}s</span>
+                        </div>
+                      </div>
+
+                      <div className="recording-action-buttons">
+                        <button
+                          className="ydx-button ydx-button--danger"
+                          onClick={() => {
+                            stopRecording()
+                            setReadySetGo('')
+                          }}
+                        >
+                          <i className="fa fa-stop" />
+                          Stop Recording
+                        </button>
+
+                        <button
+                          className="ydx-button ydx-button--secondary"
+                          onClick={() => {
+                            stopRecording()
+                            setRecordingDuration(0)
+                            setReadySetGo('')
+                            setTimeout(() => setIsPreparingToRecord(true), 100)
+                          }}
+                        >
+                          <i className="fa fa-redo" />
+                          Start Over
+                        </button>
+                      </div>
+                    </div>
+                  ) : readySetGo !== 'start' && readySetGo !== '' ? (
+                    /* Countdown Display */
+                    <div className="countdown-in-content">
+                      <div className="countdown-circle">{readySetGo}</div>
+                      <div className="countdown-message">
+                        Get ready to read your script...
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {/* Show recording playback and confirmation after recording stops */}
+              {mediaBlobUrl && status === 'stopped' && (
+                <div className="recording-playback-confirmation">
+                  <div className="playback-header">
+                    <i className="fa fa-check-circle text-success"></i>
+                    <span>Recording completed! Listen and confirm:</span>
+                  </div>
+
+                  <audio src={mediaBlobUrl} controls className="w-100 mb-3" />
+
+                  <div className="confirmation-actions">
+                    <button
+                      className="ydx-button ydx-button--success"
+                      onClick={handleReplaceWithNewRecording}
+                    >
+                      <i className="fa fa-check" />
+                      Use This Recording
+                    </button>
+
+                    <button
+                      className="ydx-button ydx-button--secondary"
+                      onClick={() => {
+                        setIsIntegratedRecordingMode(false)
+                        setIsPreparingToRecord(false)
+                      }}
+                    >
+                      <i className="fa fa-times" />
+                      Keep Original
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Primary Action Buttons - Unified smart button approach */}
+          <div className="primary-actions">
+            {/* Record Voice button - ONLY show when NOT in recording mode */}
+            {!isRecorded && !isPreview && !isIntegratedRecordingMode && (
+              <button
+                className="ydx-button ydx-button--primary record-voice-prominent"
+                onClick={handleStartIntegratedRecording}
+                title="Replace AI voice with your own recording"
+              >
+                <i className="fa fa-microphone" />
+                Record Your Voice
+              </button>
+            )}
+
+            {/* Replace Recording button - ONLY show when NOT in recording mode */}
+            {isRecorded && !isPreview && !isIntegratedRecordingMode && (
+              <button
+                className="ydx-button ydx-button--primary record-voice-prominent"
+                onClick={handleStartIntegratedRecording}
+                title="Record a new audio clip to replace the current one"
+              >
+                <i className="fa fa-microphone" />
+                🎤 Record New Audio
+              </button>
+            )}
+
+            {/* Save/Generate button - HIDE the redundant "Start Recording This Script" when recording interface is active */}
+            {!isIntegratedRecordingMode &&
+              (() => {
+                const buttonConfig = getSmartButtonConfig()
+                if (!buttonConfig) {
+                  return null
+                }
+                return (
+                  <button
+                    className={`ydx-button ${
+                      buttonConfig.disabled
+                        ? 'ydx-button--secondary'
+                        : 'ydx-button--success'
+                    }`}
+                    onClick={
+                      buttonConfig.disabled ? undefined : saveClipDescription
+                    }
+                    disabled={isPreview || buttonConfig.disabled}
+                  >
+                    <i className={`fa ${buttonConfig.icon}`} />
+                    {buttonConfig.label}
+                  </button>
+                )
+              })()}
+
+            <button
+              className={`ydx-button ${
+                isAdAudioPlaying
+                  ? 'ydx-button--secondary'
+                  : 'ydx-button--primary'
+              }`}
+              onClick={handlePlayPauseAdAudio}
+            >
+              <i
+                className={`fa ${isAdAudioPlaying ? 'fa-pause' : 'fa-play'}`}
+              />
+              {isAdAudioPlaying ? 'Pause Audio' : 'Play Audio'}
+            </button>
+
+            {/* Convert to AI Voice section - inline interface for recorded clips */}
+            {isRecorded && !isPreview && (
+              <>
+                {!showSwitchToTTSModal ? (
+                  <button
+                    className="ydx-button ydx-button--secondary"
+                    onClick={() => {
+                      setSwitchToTTSText(clipDescriptionText || '')
+                      setShowSwitchToTTSModal(true)
+                    }}
+                    title="Switch back to AI-generated voice"
+                  >
+                    <i className="fa fa-robot" />
+                    Switch to AI Voice
+                  </button>
+                ) : (
+                  <div className="switch-to-tts-inline">
+                    <div className="inline-text-header">
+                      <i className="fa fa-robot text-primary me-2"></i>
+                      <span>Enter text for AI voice generation:</span>
+                    </div>
+                    <textarea
+                      className="enhanced-description-textarea"
+                      rows={3}
+                      placeholder="Describe what you recorded so the AI can generate similar speech..."
+                      value={switchToTTSText}
+                      onChange={(e) => setSwitchToTTSText(e.target.value)}
+                      style={{ marginTop: '8px', marginBottom: '8px' }}
+                    />
+                    <div className="inline-action-buttons">
+                      <button
+                        className="ydx-button ydx-button--primary"
+                        onClick={handleSwitchToTTS}
+                        disabled={!switchToTTSText.trim()}
+                      >
+                        <i className="fa fa-robot" />
+                        Generate AI Voice
+                      </button>
+                      <button
+                        className="ydx-button ydx-button--secondary"
+                        onClick={() => {
+                          setShowSwitchToTTSModal(false)
+                          setSwitchToTTSText('')
+                        }}
+                      >
+                        <i className="fa fa-times" />
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            <button
+              className="ydx-button ydx-button--danger"
+              onClick={() => setIsDeleteModal(true)}
+              disabled={isPreview}
+            >
+              <i className="fa fa-trash" />
+              Delete Clip
+            </button>
+          </div>
+        </div>
+
+        <div className="timing-controls-section">
+          <div className="section-header">
+            <h6 className="section-title">Timing Controls</h6>
+          </div>
+
+          <div className="timing-inputs-grid">
+            {/* START TIME - Editable for Positioning */}
+            <div className="timing-input-group">
+              <div className="modern-timing-label">
+                <i className="fa fa-play"></i>
                 Start Time
-                {/* TODO: We will need to handle three digit long minutes or videos longer than hour */}
-              </h6>
-              <div className="edit-time-div">
-                <div className="text-dark text-center d-flex justify-content-evenly">
+              </div>
+              <div className="modern-time-input-container">
+                <div className="time-field-group">
+                  <span className="time-field-label">HR</span>
                   <input
                     type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark ydx-input"
-                    min="0"
+                    className="modern-time-input"
                     value={padNumber(clipStartTimeHours)}
                     onChange={handleOnChangeClipStartTimeHours}
                     onBlur={handleBlurClipStartTimeHours}
+                    min="0"
+                    max="23"
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
-                  <div className="mx-1">:</div>
+                </div>
+
+                <span className="modern-time-separator">:</span>
+
+                <div className="time-field-group">
+                  <span className="time-field-label">MIN</span>
                   <input
                     type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark ydx-input"
-                    min="0"
+                    className="modern-time-input"
                     value={padNumber(clipStartTimeMinutes)}
                     onChange={handleOnChangeClipStartTimeMinutes}
                     onBlur={handleBlurClipStartTimeMinutes}
+                    min="0"
+                    max="59"
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
-                  <div className="mx-1">:</div>
+                </div>
+
+                <span className="modern-time-separator">:</span>
+
+                <div className="time-field-group">
+                  <span className="time-field-label">SEC</span>
                   <input
                     type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark ydx-input"
+                    className="modern-time-input"
                     value={padNumber(clipStartTimeSeconds)}
                     onChange={handleOnChangeClipStartTimeSeconds}
                     onBlur={handleBlurClipStartTimeSeconds}
+                    min="0"
+                    max="59"
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
-                  <div className="mx-1">:</div>
+                </div>
+
+                <span className="modern-time-separator">:</span>
+
+                <div className="time-field-group">
+                  <span className="time-field-label">MS</span>
                   <input
                     type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark ydx-input"
+                    className="modern-time-input"
                     value={padNumber(clipStartTimeMilliSeconds)}
                     onChange={handleOnChangeClipStartTimeMilliSeconds}
                     onBlur={handleBlurClipStartTimeMilliSeconds}
+                    min="0"
+                    max="99"
                     onKeyDown={(evt) =>
                       ['e', 'E', '+', '-'].includes(evt.key) &&
                       evt.preventDefault()
                     }
                   />
-                  {/* <div className="mx-1">.</div>
-                  <input
-                    type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark"
-                    value={
-                      clipStartTimeMilliSeconds < 10
-                        ? `0` + clipStartTimeMilliSeconds
-                        : clipStartTimeMilliSeconds
-                    }
-                    readOnly
-                  /> */}
                 </div>
               </div>
-              <h6 className="text-white">
+            </div>
+
+            {/* END TIME - Read-only Display */}
+            <div className="timing-input-group">
+              <div className="modern-timing-label">
+                <i className="fa fa-stop"></i>
                 End Time
-                {/* TODO: We will need to handle three digit long minutes or videos longer than hour */}
-              </h6>
-              <div className="edit-time-div">
-                <div className="text-dark text-center d-flex justify-content-evenly">
+              </div>
+              <div className="modern-time-input-container">
+                <div className="time-field-group">
+                  <span className="time-field-label">HR</span>
                   <input
                     type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark ydx-input"
-                    min="0"
+                    className="modern-time-input"
                     value={padNumber(clipDurationHours)}
-                    // onChange={handleOnChangeClipStartTimeMinutes}
-                    // onBlur={handleBlurClipStartTimeMinutes}
-                    onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
-                      evt.preventDefault()
-                    }
-                  />
-                  <div className="mx-1">:</div>
-                  <input
-                    type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark ydx-input"
-                    min="0"
-                    value={padNumber(clipDurationMinutes)}
-                    // onChange={handleOnChangeClipStartTimeMinutes}
-                    // onBlur={handleBlurClipStartTimeMinutes}
-                    onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
-                      evt.preventDefault()
-                    }
-                  />
-                  <div className="mx-1">:</div>
-                  <input
-                    type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark ydx-input"
-                    value={padNumber(clipDurationSeconds)}
-                    // onChange={handleOnChangeClipStartTimeSeconds}
-                    // onBlur={handleBlurClipStartTimeSeconds}
-                    onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
-                      evt.preventDefault()
-                    }
-                  />
-                  <div className="mx-1">:</div>
-                  <input
-                    type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark ydx-input"
-                    value={padNumber(clipDurationMilliSeconds)}
-                    // onChange={handleOnChangeClipStartTimeMilliSeconds}
-                    // onBlur={handleBlurClipStartTimeMilliSeconds}
-                    onKeyDown={(evt) =>
-                      ['e', 'E', '+', '-'].includes(evt.key) &&
-                      evt.preventDefault()
-                    }
-                  />
-                  {/* <div className="mx-1">.</div>
-                  <input
-                    type="number"
-                    style={{ width: '25px' }}
-                    className="text-white bg-dark"
-                    value={
-                      clipStartTimeMilliSeconds < 10
-                        ? `0` + clipStartTimeMilliSeconds
-                        : clipStartTimeMilliSeconds
-                    }
                     readOnly
-                  /> */}
+                  />
                 </div>
-              </div>
-              {/* Clip Duration div */}
-              <div>
-                <h6 className="text-white text-center">
-                  {/* Duration: {convertSecondsToCardFormat(clipDuration)} sec*/}
-                  Duration: {clipDuration.toFixed(2)} sec
-                </h6>
+
+                <span className="modern-time-separator">:</span>
+
+                <div className="time-field-group">
+                  <span className="time-field-label">MIN</span>
+                  <input
+                    type="number"
+                    className="modern-time-input"
+                    value={padNumber(clipDurationMinutes)}
+                    readOnly
+                  />
+                </div>
+
+                <span className="modern-time-separator">:</span>
+
+                <div className="time-field-group">
+                  <span className="time-field-label">SEC</span>
+                  <input
+                    type="number"
+                    className="modern-time-input"
+                    value={padNumber(clipDurationSeconds)}
+                    readOnly
+                  />
+                </div>
+
+                <span className="modern-time-separator">:</span>
+
+                <div className="time-field-group">
+                  <span className="time-field-label">MS</span>
+                  <input
+                    type="number"
+                    className="modern-time-input"
+                    value={padNumber(clipDurationMilliSeconds)}
+                    readOnly
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        {/* vertical divider line */}
-        <div className="d-flex justify-content-between align-items-start">
-          <div
-            className="d-flex flex-column align-items-center"
-            style={{
-              visibility: isPreview ? 'hidden' : 'visible',
-            }}
-          >
-            <h6>Or</h6>
-            <div className="vertical-divider-div"></div>
-          </div>
-        </div>
-        {/* Record & Replace Section */}
-        <div
-          style={{
-            visibility: isPreview ? 'hidden' : 'visible',
-          }}
-        >
-          <div className="audio-mode-header text-center mb-3">
-            <div className="mode-indicator">
-              <span className="mode-icon" style={{ fontSize: '2em' }}>
-                {audioMode.icon}
-              </span>
-              <h6 className="text-white mb-1">{audioMode.title}</h6>
-              <small className="text-muted">{audioMode.subtitle}</small>
+
+          {/* Duration Display */}
+          <div className="modern-duration-display">
+            <div className="modern-duration-label">
+              <i className="fa fa-clock"></i>
+              Total Duration
             </div>
-
-            {/* Visual mode indicator */}
-            <div className="mode-badge-container mt-2">
-              {audioMode.mode === 'recorded' && (
-                <span className="badge bg-primary">Human Voice</span>
-              )}
-              {audioMode.mode === 'tts' && (
-                <span className="badge bg-info">AI Voice</span>
-              )}
-              {audioMode.mode === 'empty' && (
-                <span className="badge bg-secondary">No Audio Yet</span>
-              )}
+            <div className="modern-duration-value">
+              {clipDurationAsTimestamp} seconds
             </div>
-          </div>
-          <div className="bg-white rounded text-dark d-flex justify-content-between align-items-center p-2 w-100 my-2">
-            <div className="mx-1">
-              {status === 'recording' && readySetGo !== '' ? (
-                <button
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  title="Click to Stop Recording"
-                  type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
-                  onClick={stopRecording} // default functions given by the react-media-recorder package
-                >
-                  <i className="fa fa-stop text-danger  fs-5 mt-1" />
-                </button>
-              ) : (readySetGo === '' && status !== 'recording') ||
-                (readySetGo === 'start' && status === 'stopped') ? (
-                <button
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  title="Click to Start Recording your voice"
-                  type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
-                  onClick={handleReadySetGo} // default functions given by the react-media-recorder package
-                >
-                  <i className="fa fa-microphone text-danger fs-5 mt-1" />
-                </button>
-              ) : readySetGo !== 'start' ? (
-                <button
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  title="Ready Set Go"
-                  type="button"
-                  className="btn rounded btn-sm mx-auto border border-warning bg-light ydx-button"
-                >
-                  <b className="fs-5 mt-1">{readySetGo}</b>
-                </button>
-              ) : (
-                <></>
-              )}
-              {status === 'recording' && (
-                <div className="mt-3">
-                  {/* Add this teleprompter with enhanced visual indicator */}
-                  <div className="teleprompter-container recording-active">
-                    <div className="teleprompter-header">
-                      <i className="fa fa-microphone text-danger me-2"></i>
-                      <span>Read from this script while recording</span>
-                    </div>
-                    <div className="teleprompter-text-area">
-                      <p className="teleprompter-text">{clipDescriptionText}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            {/* No recording to Play */}
-          </div>
-          {/* NEW: Smart audio controls based on current mode */}
-          <div className="audio-controls-section">
-            {audioMode.mode === 'recorded' ? (
-              // Controls when user has recorded audio (either fresh recording or existing)
-              <div className="recorded-audio-controls">
-                <div className="playback-section text-center mb-3">
-                  {/* Show different buttons based on whether we have a fresh recording or saved recording */}
-                  {mediaBlobUrl || clipAudioPath ? (
-                    <Button
-                      onClick={handlePlayPauseRecordedAudio}
-                      className="btn btn-primary me-2"
-                    >
-                      {isRecordedAudioPlaying ? (
-                        <>
-                          <i className="fa fa-pause" /> Pause Recording
-                        </>
-                      ) : (
-                        <>
-                          <i className="fa fa-play" /> Listen to Recording
-                        </>
-                      )}
-                    </Button>
-                  ) : (
-                    <Button
-                      className="btn btn-primary me-2 disabled"
-                      disabled
-                      title="No recording available to play"
-                    >
-                      <i className="fa fa-play" /> No Recording
-                    </Button>
-                  )}
-
-                  {/* Show duration information */}
-                  <div className="text-white small">
-                    Duration: {recordedClipDuration.toFixed(2)}s
-                  </div>
-                </div>
-
-                <div className="action-buttons text-center">
-                  {/* Re-record button - always available for recorded mode */}
-                  <Button
-                    onClick={() => {
-                      // Clear any existing recording state and start fresh
-                      setReadySetGo('ready')
-                      toast.info('Get ready to re-record your voice')
-                    }}
-                    className="btn btn-warning me-2"
-                  >
-                    <i className="fa fa-microphone" /> Re-record
-                  </Button>
-
-                  {/* Switch to AI voice - only if we have text */}
-                  <Button
-                    onClick={() => {
-                      if (
-                        !clipDescriptionText ||
-                        clipDescriptionText.trim() === ''
-                      ) {
-                        toast.error(
-                          'Please add text before switching to AI voice',
-                        )
-                        return
-                      }
-                      setIsReplaceModal(true)
-                    }}
-                    className="btn btn-info"
-                    disabled={
-                      !clipDescriptionText || clipDescriptionText.trim() === ''
-                    }
-                    title={
-                      !clipDescriptionText
-                        ? 'Add text description first'
-                        : 'Switch to AI voice using your text'
-                    }
-                  >
-                    <i className="fa fa-robot" /> Switch to AI Voice
-                  </Button>
-                </div>
-              </div>
-            ) : audioMode.mode === 'tts' ? (
-              // Controls when user has AI-generated audio
-              <div className="tts-audio-controls">
-                <div className="playback-section text-center mb-3">
-                  <Button
-                    onClick={handlePlayPauseAdAudio}
-                    className="btn btn-primary me-2"
-                  >
-                    {isAdAudioPlaying ? (
-                      <>
-                        <i className="fa fa-pause" /> Pause AI Voice
-                      </>
-                    ) : (
-                      <>
-                        <i className="fa fa-play" /> Listen to AI Voice
-                      </>
-                    )}
-                  </Button>
-
-                  <div className="text-white small">
-                    Generated from your text
-                  </div>
-                </div>
-
-                <div className="action-buttons text-center">
-                  {/* Regenerate AI voice */}
-                  <Button
-                    onClick={async () => {
-                      if (
-                        !clipDescriptionText ||
-                        clipDescriptionText.trim() === ''
-                      ) {
-                        toast.error(
-                          'Please enter text before regenerating AI voice',
-                        )
-                        return
-                      }
-                      // Call the existing save function which regenerates TTS
-                      await handleClickSaveClipDescription(clipDescriptionText)
-                    }}
-                    className="btn btn-secondary me-2"
-                    disabled={
-                      !clipDescriptionText || clipDescriptionText.trim() === ''
-                    }
-                  >
-                    <i className="fa fa-refresh" /> Regenerate AI Voice
-                  </Button>
-
-                  {/* Switch to recording */}
-                  <Button
-                    onClick={() => {
-                      setReadySetGo('ready')
-                      toast.info('Get ready to record your voice')
-                    }}
-                    className="btn btn-success"
-                  >
-                    <i className="fa fa-microphone" /> Use My Voice Instead
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              // No audio exists yet - guide user to create some
-              <div className="no-audio-controls">
-                <div className="text-center mb-3">
-                  <p className="text-white">
-                    Choose how to add audio to this scene:
-                  </p>
-                </div>
-
-                <div className="action-buttons text-center">
-                  <Button
-                    onClick={() => {
-                      // Focus on the text area to encourage typing first
-                      const textarea = document.querySelector(
-                        '.expand-textarea',
-                      ) as HTMLTextAreaElement
-                      if (textarea) {
-                        textarea.focus()
-                        toast.info(
-                          'Type your description, then save to generate AI voice',
-                        )
-                      }
-                    }}
-                    className="btn btn-primary me-3"
-                  >
-                    <i className="fa fa-keyboard" /> Type & Generate AI Voice
-                  </Button>
-
-                  <Button
-                    onClick={() => {
-                      setReadySetGo('ready')
-                      toast.info('Get ready to record your voice')
-                    }}
-                    className="btn btn-success"
-                  >
-                    <i className="fa fa-microphone" /> Record My Voice
-                  </Button>
-                </div>
-
-                {/* Show disabled buttons to maintain layout */}
-                <div className="mt-3 text-center">
-                  <Button className="btn btn-outline-secondary me-2" disabled>
-                    <i className="fa fa-play" /> Listen (No audio yet)
-                  </Button>
-                  <Button className="btn btn-outline-secondary" disabled>
-                    <i className="fa fa-exchange" /> Replace (No audio yet)
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            Recording Duration: {recordedClipDuration.toFixed(2)} sec
-          </div>
-          <div className="d-flex justify-content-center align-items-center rounded mx-auto p-1">
-            {isYoutubeVideoPlaying ? (
-              <button
-                type="button"
-                className="btn rounded btn-sm text-white primary-btn-color ydx-button"
-                data-bs-toggle="tooltip"
-                data-bs-placement="bottom"
-                title="YouTube Video plays/pauses along with the Audio Clip"
-                onClick={handlePlayPauseYouTubeVideo}
-              >
-                <i className="fa fa-pause play-pause-icons" />
-                {'  '} Pause Video with AD
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn rounded btn-sm text-white primary-btn-color ydx-button"
-                data-bs-toggle="tooltip"
-                data-bs-placement="bottom"
-                title="YouTube Video plays/pauses along with the Audio Clips"
-                onClick={handlePlayPauseYouTubeVideo}
-              >
-                <i className="fa fa-play play-pause-icons" />
-                {'  '} Play Video with Description
-              </button>
-            )}
           </div>
         </div>
       </div>
 
-      {/* <!-- Replace Modal --> Confirmation Modal - opens when user hits Replace and asks for a confirmation if AI's audio is to be replaced with the user recorded audio*/}
-      {
-        <ModalComponent
-          id="replaceModal"
-          title={
-            isRecorded ? 'Switch to AI Voice?' : 'Replace with Your Recording?'
-          }
-          text={
-            isRecorded
-              ? 'This will generate an AI voice from your text description. Your recording will be replaced.'
-              : 'This will replace the AI voice with your new recording. The text will be preserved.'
-          }
-          modalTask={(e: any) => handleClickReplaceClip(e)}
-          show={isReplaceModal}
-          handleClose={() => setIsReplaceModal(false)}
-        />
-      }
-      {/* <!-- Delete Modal --> Confirmation Modal - opens when user hits Delete and asks for a confirmation if Audio Clip need to be deleted*/}
-      {
-        <ModalComponent
-          id="deleteModal"
-          title="Delete"
-          text={'Are you sure you want to delete the Audio Clip?'}
-          modalTask={(e: any) => handleClickDeleteClip(e)}
-          show={isDeleteModal}
-          handleClose={() => setIsDeleteModal(false)}
-        />
-      }
+      {/* Video Synchronization Controls - Keep only this */}
+      {!isPreview && !isIntegratedRecordingMode && (
+        <div className="video-sync-controls">
+          <button
+            className={`ydx-button ${
+              isYoutubeVideoPlaying
+                ? 'ydx-button--secondary'
+                : 'ydx-button--primary'
+            } video-control-btn`}
+            onClick={handlePlayPauseYouTubeVideo}
+          >
+            <i
+              className={`fa ${isYoutubeVideoPlaying ? 'fa-pause' : 'fa-play'}`}
+            />
+            {isYoutubeVideoPlaying ? 'Pause' : 'Play'} Video with Description
+          </button>
+        </div>
+      )}
+
+      <ModalComponent
+        id="deleteModal"
+        title="Delete Clip"
+        text="Are you sure you want to delete this audio clip? This action cannot be undone."
+        modalTask={(e: any) => handleClickDeleteClip(e)}
+        show={isDeleteModal}
+        handleClose={() => setIsDeleteModal(false)}
+      />
     </div>
   )
 }
