@@ -1588,7 +1588,8 @@ const Video = () => {
     console.log('Checking timestamp', currentEventRef.current?.getCurrentTime())
     // Api call for getting ai description
     try {
-      const url = `http://localhost:4001/api/users/info-bot`
+      // const url = `http://localhost:4001/api/users/info-bot`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/info-bot`
       const response = await axios.post(
         url,
         {
@@ -1686,7 +1687,8 @@ const Video = () => {
 
     // Fetch AI answer api call
     try {
-      const url = `http://localhost:4001/api/users/info-bot`
+      // const url = `http://localhost:4001/api/users/info-bot`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/info-bot`
       const response = await axios.post(
         url,
         {
@@ -1764,10 +1766,10 @@ const Video = () => {
 
   useEffect(() => {
     console.log('Adding event listener for keyboard shortcuts')
-    document.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [])
 
