@@ -158,7 +158,7 @@ const AudioClip = ({
     const newClipStartTime = Number(parseFloat(`${adBarTime}`).toFixed(2))
 
     // Validate positioning bounds
-    if (Number(newClipStartTime) >= 1 && newClipStartTime < videoLength) {
+    if (Number(newClipStartTime) >= 0.02 && newClipStartTime < videoLength) {
       if (clipPlaybackType === 'inline') {
         // For inline clips, ensure they don't extend beyond timeline
         if (newClipStartTime + clipDuration <= videoLength) {
@@ -183,11 +183,11 @@ const AudioClip = ({
   const handleLeftNudgeClick = (e: any) => {
     const newClipStartTime = (parseFloat(`${clipStartTime}`) - 0.25).toFixed(2)
 
-    if (Number(newClipStartTime) >= 1) {
+    if (Number(newClipStartTime) >= 0.02) {
       updateStartTimeNDraggablePosition(newClipStartTime)
       toast.success(`Moved clip earlier by 0.25 seconds`)
     } else {
-      toast.warning('Cannot move clip before the 1-second mark')
+      toast.warning('Cannot move clip before 0.02 seconds')
     }
   }
 
