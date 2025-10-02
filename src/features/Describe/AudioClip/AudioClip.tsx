@@ -181,9 +181,7 @@ const AudioClip = ({
 
   // Enhanced Nudge functionality with better UX feedback
   const handleLeftNudgeClick = (e: any) => {
-    const newClipStartTime = (
-      parseFloat(`${initialClipStartTime}`) - 0.25
-    ).toFixed(2)
+    const newClipStartTime = (parseFloat(`${clipStartTime}`) - 0.25).toFixed(2)
 
     if (Number(newClipStartTime) >= 1) {
       updateStartTimeNDraggablePosition(newClipStartTime)
@@ -195,7 +193,7 @@ const AudioClip = ({
 
   const handleRightNudgeClick = (e: any) => {
     const newClipStartTime = Number(
-      (parseFloat(`${initialClipStartTime}`) + 0.25).toFixed(2),
+      (parseFloat(`${clipStartTime}`) + 0.25).toFixed(2),
     )
 
     if (clipPlaybackType === 'inline') {
