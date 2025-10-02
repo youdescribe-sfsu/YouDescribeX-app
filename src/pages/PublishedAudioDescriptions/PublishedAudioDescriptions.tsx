@@ -79,7 +79,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   const [draggableTime, setDraggableTime] = useState({ x: -3, y: 0 }) // stores the position of the draggable bar on the #draggable-div
   const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<any[]>([]) // stores dialog-timestamps data for a video from backend db
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isPublished, setIsPublished] = useState(true) // holds the published state of the Video & Audio Description
+  const [isPublished, setIsPublished] = useState(false) // holds the published state of the Video & Audio Description
   const [audioClips, setAudioClips] = useState<Clip[]>([]) // stores list of Audio Clips data for a video from backend db
   const audioClipsListRef = useRef<HTMLDivElement>(null)
   // store current extended & inline Audio Clips to pause/play based on the YT video current state
