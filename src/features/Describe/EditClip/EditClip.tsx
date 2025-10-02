@@ -335,7 +335,8 @@ const EditClip = ({
   }
 
   const handleClipEndTimeInputsRender = () => {
-    const cardFormat = convertSecondsToCardFormat(clipEndTime).split(':')
+    const calculatedEndTime = clipStartTime + clipDuration
+    const cardFormat = convertSecondsToCardFormat(calculatedEndTime).split(':')
     setClipDurationHours(parseInt(cardFormat[0]))
     setClipDurationMinutes(parseInt(cardFormat[1]))
     setClipDurationSeconds(parseInt(cardFormat[2]))
@@ -397,6 +398,8 @@ const EditClip = ({
       clipStartTimeMinutes,
       clipStartTimeSeconds,
     )
+
+    handleClipEndTimeInputsRender()
   }
 
   const handleBlurClipStartTimeMinutes = (e: any) => {
@@ -419,6 +422,8 @@ const EditClip = ({
       tempStartTimeMinutes,
       clipStartTimeSeconds,
     )
+
+    handleClipEndTimeInputsRender()
   }
 
   const handleBlurClipStartTimeSeconds = (e: any) => {
@@ -441,6 +446,8 @@ const EditClip = ({
       clipStartTimeMinutes,
       tempStartTimeSeconds,
     )
+
+    handleClipEndTimeInputsRender()
   }
 
   const handleBlurClipStartTimeMilliSeconds = (e: any) => {
@@ -463,6 +470,8 @@ const EditClip = ({
       clipStartTimeMinutes,
       clipStartTimeSeconds,
     )
+
+    handleClipEndTimeInputsRender()
   }
 
   // Enhanced timing validation and update functions
