@@ -367,6 +367,9 @@ const YDXHome = (): React.ReactElement => {
         .get(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${videoId}&${audioDescriptionId}`,
           {
+            params: {
+              preview: 'true',
+            },
             headers: {
               audiodescription: audioDescriptionId,
             },
