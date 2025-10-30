@@ -739,10 +739,10 @@ const YDXHome = (): React.ReactElement => {
 
           setPlayedAudioClip(updatedClip.clip_id)
           setRecentAudioPlayedTime(currentTimeRef.current)
+          setCurrentClipIndex(currentClipIndexRef.current + 1)
           const clipAudioPath = updatedClip.clip_audio_path
 
           if (clipAudioPath !== playedClipPath) {
-            setCurrentClipIndex(currentClipIndexRef.current + 1)
             setPlayedClipPath(clipAudioPath)
 
             // Event listeners for play and end
