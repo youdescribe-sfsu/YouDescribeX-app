@@ -919,12 +919,13 @@ const Wishlist = () => {
     aiReq: any,
   ) => {
     const videoCardsComponents = []
+    let validVideoIndex = 0 // Track index for valid videos
     for (let i = 0; i < youTubeVideos.length; i += 1) {
       const item = youTubeVideos[i]
       if (!item?.snippet || !item?.statistics) {
         continue
       }
-      const _id = topYouDescribeIds[i]
+      const _id = topYouDescribeIds[validVideoIndex]
       const youTubeId = item.id
       const thumbnailMedium = item.snippet?.thumbnails?.medium || {}
       const title = item.snippet?.title || 'Untitled'
@@ -935,12 +936,12 @@ const Wishlist = () => {
       )
       const publishedAt = new Date(item.snippet?.publishedAt || new Date())
       const now = Date.now()
-      const votes = topVotes[i]
-      const aiRequested = aiReq[i]
+      const votes = topVotes[validVideoIndex]
+      const aiRequested = aiReq[validVideoIndex]
       const time = convertTimeToCardFormat(
         Number(now - publishedAt.getTime()), // Fixed: getTime() instead of getMilliseconds()
       )
-      const voted = votedArr[i]?.voted
+      const voted = votedArr[validVideoIndex]?.voted
 
       videoCardsComponents.push(
         <div className="wishlist-video-card" key={_id}>
@@ -959,6 +960,7 @@ const Wishlist = () => {
           />
         </div>,
       )
+      validVideoIndex++
     }
     setShowSpinner(false)
     setVideoCardsComponents(videoCardsComponents)
