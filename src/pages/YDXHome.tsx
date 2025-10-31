@@ -77,6 +77,7 @@ const YDXHome = (): React.ReactElement => {
   const [recentAudioPlayedTime, setRecentAudioPlayedTime] = useState(0.0) // used to store the time of a recent AD played to stop playing the same Audio twice concurrently - due to an issue found in updateTime() method because it returns the same currentTime twice or more
   const [playedAudioClip, setPlayedAudioClip] = useState('') // store clipId of the audio clip that is already played.
   const [playedClipPath, setPlayedClipPath] = useState('') // store clip_audio_path of the audio clip that is already played.
+  const [playedClipsSet, setPlayedClipsSet] = useState<Set<string>>(new Set()) // Set-based tracking for robust duplicate prevention
   // Spinner div
   const [showSpinner, setShowSpinner] = useState(false)
   const [undoDeletedClipInfo, setUndoDeletedClip] = useState(false)
@@ -584,6 +585,31 @@ const YDXHome = (): React.ReactElement => {
           updatedClip.clip_start_time <= currentTimeRef.current &&
           currentTimeRef.current - updatedClip.clip_start_time < 1.0
         ) {
+          // Check if already played using Set
+          if (playedClipsSet.has(updatedClip.clip_id)) {
+            console.log(
+              'Extended clip already played (Set check), advancing stack:',
+              updatedClip.clip_id,
+            )
+            setCurrentClipIndex(currentClipIndexRef.current + 1)
+            // Remove from stack and add next clip
+            const newClip =
+              audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+            if (newClip) {
+              newClip.clip_audio = new Howl({
+                src: newClip.clip_audio_path,
+                html5: true,
+              })
+              setClipStack([
+                ...clipStackRef.current.slice(1, clipStackSize),
+                newClip,
+              ])
+            } else {
+              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+            }
+            return
+          }
+
           console.log('EXTENDED CLIP DETECTION TRIGGERED', {
             clipId: updatedClip.clip_id,
             clipStartTime: updatedClip.clip_start_time,
@@ -594,7 +620,10 @@ const YDXHome = (): React.ReactElement => {
 
           setCurrentClipIndex(currentClipIndexRef.current + 1)
 
-          // Play the clip only if it wasn't played recently
+          // Mark as played in Set immediately
+          setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
+
+          // Play the clip only if it wasn't played recently (legacy check for compatibility)
           if (playedAudioClip !== updatedClip.clip_id) {
             setPlayedAudioClip(updatedClip.clip_id)
             setRecentAudioPlayedTime(currentTimeRef.current)
@@ -690,6 +719,15 @@ const YDXHome = (): React.ReactElement => {
             (updatedClip.clip_start_time <= currentTimeRef.current &&
               updatedClip.clip_start_time >= previousTimeRef.current))
         ) {
+          // Check if already played using Set
+          if (playedClipsSet.has(updatedClip.clip_id)) {
+            console.log(
+              'Inline clip already played (Set check), skipping:',
+              updatedClip.clip_id,
+            )
+            return
+          }
+
           console.warn(
             'An inline clip is supposed to be playing right now',
             currentTimeRef.current,
@@ -737,6 +775,8 @@ const YDXHome = (): React.ReactElement => {
 
           setCurrInlineAC(currentAudio)
 
+          // Mark as played in Set
+          setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
           setPlayedAudioClip(updatedClip.clip_id)
           setRecentAudioPlayedTime(currentTimeRef.current)
           setCurrentClipIndex(currentClipIndexRef.current + 1)
@@ -779,7 +819,8 @@ const YDXHome = (): React.ReactElement => {
           updatedClip.playback_type === 'extended' &&
           !currentInlineACRef.current?.playing() &&
           !currentExtendedACRef.current?.playing() &&
-          updatedClip.clip_start_time <= currentTimeRef.current
+          updatedClip.clip_start_time <= currentTimeRef.current &&
+          currentTimeRef.current - updatedClip.clip_start_time >= 1.0 // Only skip if >1s past start
         ) {
           // A skip has most likely occurred
           console.error('SKIP DETECTED - DETAILED', {
@@ -795,6 +836,12 @@ const YDXHome = (): React.ReactElement => {
             extendedClipPlaying: !!currentExtendedACRef.current?.playing(),
             youtubeState: currentEvent?.getPlayerState(),
           })
+
+          // Mark as skipped in Set to prevent retries
+          setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
+
+          // Increment index to track that this clip was processed
+          setCurrentClipIndex(currentClipIndexRef.current + 1)
 
           // Add a new clip to the stack
           const newClip =
@@ -832,6 +879,7 @@ const YDXHome = (): React.ReactElement => {
 
         setPlayedAudioClip('')
         setPlayedClipPath('')
+        setPlayedClipsSet(new Set()) // Reset Set tracking
         setRecentAudioPlayedTime(0.0)
         setCurrInlineAC(undefined)
         setCurrExtendedAC(undefined)
@@ -884,13 +932,11 @@ const YDXHome = (): React.ReactElement => {
         // so that when user wants to go back and play the same clip again, recentAudioPlayedTime will be reset to 0.
         setPlayedClipPath('')
         setPlayedAudioClip('')
+        setPlayedClipsSet(new Set()) // Reset Set tracking
         setRecentAudioPlayedTime(0.0)
         clearInterval(timer)
         setCurrExtendedAC(undefined)
         setCurrInlineAC(undefined)
-        break
-      default: // All other states
-        clearInterval(timer)
         break
     }
   }
