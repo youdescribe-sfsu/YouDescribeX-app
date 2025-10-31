@@ -291,6 +291,14 @@ const EditClip = ({
   }, [adAudio, recordedAudio])
 
   useEffect(() => {
+    // Reload audio when clipAudioPath changes (after TTS regeneration)
+    if (clipAudioPath && !isRecorded) {
+      const newAudio = new Audio(clipAudioPath)
+      setAdAudio(newAudio)
+    }
+  }, [clipAudioPath, isRecorded])
+
+  useEffect(() => {
     let interval: NodeJS.Timeout | null = null
     if (status === 'recording') {
       setRecordingDuration(0) // Reset duration when recording actually starts
