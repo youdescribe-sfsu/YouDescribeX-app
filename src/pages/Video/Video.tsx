@@ -1687,8 +1687,8 @@ const Video = () => {
 
     // Fetch AI answer api call
     try {
-      // const url = `http://localhost:4001/api/users/info-bot`
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/info-bot`
+      const url = `http://localhost:4001/api/users/info-bot`
+      //const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/info-bot`
       const response = await axios.post(
         url,
         {
