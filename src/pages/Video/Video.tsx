@@ -1588,12 +1588,9 @@ const Video = () => {
     console.log('Checking timestamp', currentEventRef.current?.getCurrentTime())
     // Api call for getting ai description
     try {
-<<<<<<< HEAD
       // const url = `http://localhost:4001/api/users/info-bot`
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/info-bot`
-=======
+      // const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/info-bot`
       const url = `http://34.9.0.158:4001/api/users/info-bot`
->>>>>>> a71fcde (resolve conflict)
       const response = await axios.post(
         url,
         {
