@@ -38,6 +38,7 @@ import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import axios from 'axios'
 import YouTubeService from '@/shared/utils/YouTubeService'
+import { requestAiDescriptionWithLana } from '@/shared/utils/aiDescriptionHelpers'
 
 const Video = () => {
   const { videoId } = useParams()
@@ -1408,25 +1409,19 @@ const Video = () => {
         ),
       )
     }
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
-
     try {
+      const userId = userDataStore.getState().userId
+      if (!videoId) {
+        toast.error('Video ID is missing')
+        return
+      }
+
       setRequestAiDescription({
         status: 'pending',
         requested: true,
       })
-      const response = await axios.post(
-        url,
-        {
-          youtube_id: videoId,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      )
+      
+      const response = await requestAiDescriptionWithLana(videoId, userId)
       const data = response.data
       toast.success('AI Descriptions have been requested')
       // console.log('data for asdasd:: ', data)

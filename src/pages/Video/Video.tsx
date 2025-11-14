@@ -40,6 +40,7 @@ import axios from 'axios'
 import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
 import YouTubeService from '@/shared/utils/YouTubeService'
+import { requestAiDescriptionWithLana } from '@/shared/utils/aiDescriptionHelpers'
 
 interface IADUserId {
   [key: string]: {
@@ -748,10 +749,20 @@ const Video = () => {
     playedAudioClip: string,
     playedClipPath: string,
   ) => {
-    if (currentState !== 1) return // Only play when video is playing
+    if (currentState !== 1) {
+      // Only log occasionally to avoid spam
+      if (Math.floor(updatedCurrentTime * 10) % 10 === 0) {
+        console.debug(`Skipping audio check - video not playing (state: ${currentState})`)
+      }
+      return // Only play when video is playing
+    }
 
     // LAYER 1: Detection - Find clips to play
     const clipsToPlay = findClipsToPlay(updatedCurrentTime)
+    
+    if (clipsToPlay.length > 0) {
+      console.log(`Found ${clipsToPlay.length} clip(s) to play at time ${updatedCurrentTime.toFixed(2)}`)
+    }
 
     // LAYER 2: Verification - Play only unplayed clips
     for (const clip of clipsToPlay) {
@@ -764,7 +775,8 @@ const Video = () => {
 
   const findClipsToPlay = (currentTime: number): Clip[] => {
     const candidates: Clip[] = []
-    const TOLERANCE = 0.05 // 50ms tolerance
+    const TOLERANCE = 0.05 // 50ms tolerance for precise matches
+    const EXTENDED_TOLERANCE = 1.0 // 1 second tolerance for extended clips (they pause video, so need wider window)
     const startIndex = Math.max(0, lastProcessedIndex)
 
     // Start from last processed position for efficiency
@@ -774,7 +786,26 @@ const Video = () => {
       // Stop if we've gone too far ahead
       if (clip.clip_start_time > currentTime + 0.2) break
 
-      // Method 1: Direct time match
+      // PRIORITY: Extended clips need special detection (they pause the video)
+      if (clip.playback_type === 'extended') {
+        const timeSinceStart = currentTime - clip.clip_start_time
+        // Detect extended clips within 1 second of their start time
+        if (
+          clip.clip_start_time <= currentTime &&
+          timeSinceStart < EXTENDED_TOLERANCE &&
+          !playedClips.has(clip.clip_id)
+        ) {
+          console.log(`EXTENDED CLIP DETECTED: ${clip.clip_id}`, {
+            clipStartTime: clip.clip_start_time,
+            currentTime: currentTime,
+            timeSinceStart: timeSinceStart.toFixed(3),
+          })
+          candidates.push(clip)
+          continue // Extended clips take priority, skip other checks
+        }
+      }
+
+      // Method 1: Direct time match (for inline clips)
       if (Math.abs(clip.clip_start_time - currentTime) <= TOLERANCE) {
         candidates.push(clip)
       }
@@ -809,6 +840,32 @@ const Video = () => {
       return
     }
 
+    // Ensure audio clip is loaded before playing
+    if (!clip.clip_audio) {
+      console.log(`Loading audio for clip: ${clip.clip_id}`)
+      clip.clip_audio = new Howl({
+        src: clip.clip_audio_path,
+        html5: true,
+        preload: true,
+        autoplay: false,
+      })
+      clip.clip_audio.load()
+      
+      clip.clip_audio.on('loaderror', function () {
+        console.error('Audio load error:', clip.clip_id, clip.clip_audio_path)
+        // Unmark as played so it can be retried
+        setPlayedClips((prev) => {
+          const newSet = new Set(prev)
+          newSet.delete(clip.clip_id)
+          return newSet
+        })
+      })
+      
+      clip.clip_audio.on('playerror', function () {
+        console.error('Audio play error:', clip.clip_id, clip.clip_audio_path)
+      })
+    }
+
     // Mark as played immediately to prevent race conditions
     setPlayedClips((prev) => new Set(prev).add(clip.clip_id))
 
@@ -824,20 +881,60 @@ const Video = () => {
 
   const playExtendedClip = (clip: Clip) => {
     console.log(`Playing extended clip: ${clip.clip_id}`)
-    currentEvent?.pauseVideo()
+    
+    if (!clip.clip_audio) {
+      console.error(`No audio instance for extended clip: ${clip.clip_id}`)
+      return
+    }
 
-    if (clip.clip_audio?.state() === 'loaded') {
+    // Set the extended clip state BEFORE pausing video
+    // This ensures onStateChange handler knows an extended clip is active
+    setCurrExtendedAC(clip.clip_audio)
+
+    // Pause video immediately when extended clip is detected (purple line)
+    // This ensures video stops at the right moment
+    currentEvent?.pauseVideo()
+    console.log(`Video paused for extended clip: ${clip.clip_id}`)
+
+    const playAudio = () => {
       setTimeout(() => {
         if (clip.clip_audio && !clip.clip_audio.playing()) {
           clip.clip_audio.play()
           clip.clip_audio.volume(descriptionVolumeRef.current / 100)
+          console.log(`Extended clip audio playing: ${clip.clip_id}`)
         }
       }, 50)
     }
 
-    setCurrExtendedAC(clip.clip_audio)
+    // Check if audio is already loaded
+    if (clip.clip_audio.state() === 'loaded') {
+      playAudio()
+    } else {
+      // Wait for audio to load
+      console.log(`Waiting for extended clip audio to load: ${clip.clip_id}`)
+      clip.clip_audio.once('load', () => {
+        console.log(`Extended clip audio loaded: ${clip.clip_id}`)
+        playAudio()
+      })
+      
+      // If loading fails, resume video
+      clip.clip_audio.once('loaderror', () => {
+        console.error(`Failed to load extended clip audio: ${clip.clip_id}`)
+        currentEvent?.playVideo()
+        setCurrExtendedAC(undefined)
+        // Unmark as played so it can be retried
+        setPlayedClips((prev) => {
+          const newSet = new Set(prev)
+          newSet.delete(clip.clip_id)
+          return newSet
+        })
+      })
+    }
 
-    clip.clip_audio?.once('end', () => {
+    // Note: currExtendedAC is already set above, before pausing video
+
+    clip.clip_audio.once('end', () => {
+      console.log(`Extended clip finished: ${clip.clip_id}, resuming video`)
       setCurrExtendedAC(undefined)
       currentEvent?.playVideo()
       clip.clip_audio?.unload()
@@ -848,6 +945,11 @@ const Video = () => {
 
   const playInlineClip = (clip: Clip, currentTime: number) => {
     console.log(`Playing inline clip: ${clip.clip_id}`)
+
+    if (!clip.clip_audio) {
+      console.error(`No audio instance for inline clip: ${clip.clip_id}`)
+      return
+    }
 
     // Calculate how far into the clip we should start
     const clipProgress = currentTime - clip.clip_start_time
@@ -865,7 +967,7 @@ const Video = () => {
 
     const seekTime = Math.max(0, clipProgress)
 
-    if (clip.clip_audio?.state() === 'loaded') {
+    const playAudio = () => {
       if (seekTime > 0 && clip.clip_audio) {
         clip.clip_audio.seek(seekTime)
       }
@@ -877,9 +979,32 @@ const Video = () => {
       }, 50)
     }
 
+    // Check if audio is already loaded
+    if (clip.clip_audio.state() === 'loaded') {
+      playAudio()
+    } else {
+      // Wait for audio to load
+      console.log(`Waiting for inline clip audio to load: ${clip.clip_id}`)
+      clip.clip_audio.once('load', () => {
+        console.log(`Inline clip audio loaded: ${clip.clip_id}`)
+        playAudio()
+      })
+      
+      // If loading fails, unmark as played so it can be retried
+      clip.clip_audio.once('loaderror', () => {
+        console.error(`Failed to load inline clip audio: ${clip.clip_id}`)
+        setCurrInlineAC(undefined)
+        setPlayedClips((prev) => {
+          const newSet = new Set(prev)
+          newSet.delete(clip.clip_id)
+          return newSet
+        })
+      })
+    }
+
     setCurrInlineAC(clip.clip_audio)
 
-    clip.clip_audio?.once('end', () => {
+    clip.clip_audio.once('end', () => {
       setCurrInlineAC(undefined)
       clip.clip_audio?.unload()
     })
@@ -907,6 +1032,16 @@ const Video = () => {
         src: newClip.clip_audio_path,
         html5: true,
         preload: true,
+        autoplay: false,
+      })
+      newClip.clip_audio.load()
+      
+      newClip.clip_audio.on('loaderror', function () {
+        console.error('Audio load error in clip stack:', newClip.clip_id, newClip.clip_audio_path)
+      })
+      
+      newClip.clip_audio.on('playerror', function () {
+        console.error('Audio play error in clip stack:', newClip.clip_id, newClip.clip_audio_path)
       })
     }
 
@@ -954,19 +1089,25 @@ const Video = () => {
           setCurrExtendedAC(undefined)
         }
         if (currInlineAC) {
-          // to stop playing -> pause and set time to 0
+          // Resume inline clip if it was paused
           currInlineAC.play()
           currInlineAC.on('end', function () {
             setCurrInlineAC(undefined) // setting back to null, as it is played completely.
           })
-          // currInlineAC.currentTime = 0;
-          // setCurrInlineAC(null);
         }
-        clearInterval(timer)
+        // DO NOT clear timer here - timer should keep running while video is playing!
+        // Timer is managed by onPlay/onPause handlers
         break
       }
       case 2: {
         // Paused
+        // Don't clear timer if an extended clip is active (it paused the video intentionally)
+        // Check both the state and ref to catch timing issues
+        if (currExtendedAC || currentExtendedACRef.current) {
+          console.log('Video paused by extended clip, keeping timer active')
+          break // Don't clear timer or pause inline clips when extended clip is active
+        }
+
         // Enhanced seek detection
         const timeDiff = Math.abs(currentTime - previousYTTime)
         if (timeDiff > 0.5) {
@@ -1072,12 +1213,28 @@ const Video = () => {
     setCurrentTime(event.target.getCurrentTime())
     // pass the current time & recentAudioPlayedTime - to avoid playing same clip multiple times
     if (descriptionsActive) {
-      setTimer(
-        setInterval(
-          () => updateTime(event.target.getCurrentTime()),
-          samplingRate,
-        ),
+      // Clear any existing timer before setting a new one
+      if (timer) {
+        clearInterval(timer)
+      }
+      const newTimer = setInterval(
+        async () => {
+          // Use currentEventRef to get the latest event, not the stale closure
+          if (currentEventRef.current && currentEventRef.current.getCurrentTime) {
+            try {
+              // getCurrentTime() may return a Promise or a number depending on YouTube API version
+              const timeResult = currentEventRef.current.getCurrentTime()
+              const currentTime = timeResult instanceof Promise ? await timeResult : timeResult
+              updateTime(currentTime)
+            } catch (error) {
+              console.error('Error getting current time:', error)
+            }
+          }
+        },
+        samplingRate,
       )
+      setTimer(newTimer)
+      console.log('Timer started for audio descriptions')
     }
     if (!historyTracked.current && videoId) {
       saveVideoToHistory(videoId)
@@ -1256,35 +1413,45 @@ const Video = () => {
       }
 
       describerIds.forEach((describerId, i) => {
-        describerCards.push(
-          <DescriberCard
-            key={i}
-            handleDescriberChange={handleDescriberChange}
-            handleRatingPopup={handleRatingPopup}
-            handleFeedbackPopup={handleFeedbackPopup}
-            handleNewCollabEdit={() => handleNewCollabEdit(selectedADId)}
-            describerId={describerId}
-            selectedDescriberId={selectedADId}
-            picture={describers[describerId].picture}
-            name={describers[describerId].name}
-            overall_rating_average={
-              describers[describerId].overall_rating_average
-            }
-            handleRating={() => {
-              // console.log('Handle Rating')
-            }}
-            videoId={videoId}
-            collaborativeEdit={
-              (describers[describerId].user?.user_type === 'AI' ||
-                describers[describerId].collaborative_edit) &&
-              (!describers[describerId].depth ||
-                describers[describerId].depth < 3) &&
-              checkUserCanCollaborate(describers, describerId)
-            }
-            contributions={describers[describerId].contributions}
-            displayContributions={describers[describerId].displayContributions}
-          />,
-        )
+        // Filter out AI/Lana descriptions from the cards (they will be handled separately via direct navigation)
+        const isAiDescription = 
+          describers[describerId].user?.user_type === 'AI' ||
+          describers[describerId].name === 'AI Description Draft' ||
+          describers[describerId].name === 'Lana Description'
+        
+        if (!isAiDescription) {
+          describerCards.push(
+            <DescriberCard
+              key={i}
+              handleDescriberChange={handleDescriberChange}
+              handleRatingPopup={handleRatingPopup}
+              handleFeedbackPopup={handleFeedbackPopup}
+              handleNewCollabEdit={() => handleNewCollabEdit(selectedADId)}
+              describerId={describerId}
+              selectedDescriberId={selectedADId}
+              picture={describers[describerId].picture}
+              name={describers[describerId].name}
+              overall_rating_average={
+                describers[describerId].overall_rating_average
+              }
+              handleRating={() => {
+                // console.log('Handle Rating')
+              }}
+              videoId={videoId}
+              collaborativeEdit={
+                (describers[describerId].user?.user_type === 'AI' ||
+                  describers[describerId].collaborative_edit) &&
+                (!describers[describerId].depth ||
+                  describers[describerId].depth < 3) &&
+                checkUserCanCollaborate(describers, describerId)
+              }
+              contributions={describers[describerId].contributions}
+              displayContributions={
+                describers[describerId].displayContributions
+              }
+            />,
+          )
+        }
       })
 
       setDescriberCards(describerCards)
@@ -1705,18 +1872,13 @@ const Video = () => {
         return
       }
 
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
-      const response = await axios.post(
-        url,
-        {
-          youtube_id: videoId,
-          selectedLanguageCode: languageCode,
-        },
-        {
-          withCredentials: true,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      )
+      const userId = userDataStore.getState().userId
+      if (!videoId) {
+        toast.error('Video ID is missing')
+        setIsAiRequestPending(false)
+        return
+      }
+      const response = await requestAiDescriptionWithLana(videoId, userId)
 
       if (response.data) {
         setRequestAiDescription({
@@ -1770,7 +1932,16 @@ const Video = () => {
     }
   }
 
-  const handleRequestAIDescriptions = () => {
+  const handleRequestAIDescriptions = async () => {
+    if (!userDataStore.getState().isSignedIn) {
+      toast.error(
+        translate(
+          'You have to be logged in in order to ask for AI Descriptions',
+        ),
+      )
+      return
+    }
+
     if (videoDurationInSeconds > 600) {
       toast.error(
         translate(
@@ -1779,8 +1950,109 @@ const Video = () => {
       )
       return
     }
-    // Show the language selector modal
-    setShowLanguageSelector(true)
+
+    // Check if a Lana description already exists and navigate directly to it
+    if (audioDescriptionsIdsUsers) {
+      const lanaDescriberId = Object.keys(audioDescriptionsIdsUsers).find(
+        (describerId) =>
+          audioDescriptionsIdsUsers[describerId].user?.user_type === 'AI' ||
+          audioDescriptionsIdsUsers[describerId].name ===
+            'AI Description Draft' ||
+          audioDescriptionsIdsUsers[describerId].name === 'Lana Description',
+      )
+      if (lanaDescriberId && videoId) {
+        navigate(`/editor/${videoId}/${lanaDescriberId}`)
+        return
+      }
+    }
+
+    // If no existing description, proceed with requesting new one
+    setIsAiRequestPending(true)
+
+    try {
+      if (requestAiDescription.status === 'pending') {
+        const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/increase-Request-Count`
+        await axios.post(
+          url,
+          { youtube_id: videoId },
+          {
+            withCredentials: true,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
+
+        toast.info(
+          translate(
+            'AI Descriptions are already being generated. You will receive an email when they are ready.',
+          ),
+        )
+        setIsAiRequestPending(false)
+        return
+      }
+
+      const userId = userDataStore.getState().userId
+      if (!videoId) {
+        toast.error('Video ID is missing')
+        setIsAiRequestPending(false)
+        return
+      }
+      const response = await requestAiDescriptionWithLana(videoId, userId)
+
+      if (response.data) {
+        setRequestAiDescription({
+          status: 'pending',
+          requested: true,
+        })
+        toast.success(
+          'AI Descriptions have been requested successfully. You will receive an email when they are ready.',
+        )
+      }
+    } catch (error: unknown) {
+      console.error('AI Description request failed:', error)
+
+      setRequestAiDescription({
+        status: 'notavailable',
+        requested: false,
+      })
+
+      const apiError = error as ApiError
+
+      if (apiError.response) {
+        switch (apiError.response.status) {
+          case 400:
+            toast.error(
+              'Invalid request. Please check your input and try again.',
+            )
+            break
+          case 401:
+            toast.error('Please log in to request AI descriptions.')
+            break
+          case 429:
+            toast.error('Too many requests. Please try again later.')
+            break
+          case 500:
+            toast.error(
+              'The AI description service is currently unavailable. Please try again later.',
+            )
+            break
+          case 503:
+            toast.error(
+              'The Lana AI service is not available. Please ensure the Lana API service is running.',
+            )
+            break
+          default:
+            toast.error('Something went wrong. Please try again later.')
+        }
+      } else if (apiError.request) {
+        toast.error(
+          'Network error. Please check your connection and try again.',
+        )
+      } else {
+        toast.error('An unexpected error occurred. Please try again later.')
+      }
+    } finally {
+      setIsAiRequestPending(false)
+    }
   }
 
   // Function to handle the confirmation of language selection
