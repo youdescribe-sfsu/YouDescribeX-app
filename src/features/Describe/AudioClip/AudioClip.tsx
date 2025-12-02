@@ -390,11 +390,29 @@ const AudioClip = ({
               <i
                 className="fa fa-chevron-left nudge-icons"
                 onClick={handleLeftNudgeClick}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleLeftNudgeClick(e)
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label="Move clip earlier by 0.25 seconds"
                 title="Move earlier by 0.25s"
               />
               <i
                 className="fa fa-chevron-right nudge-icons"
                 onClick={handleRightNudgeClick}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleRightNudgeClick(e)
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label="Move clip later by 0.25 seconds"
                 title="Move later by 0.25s"
               />
             </div>
@@ -486,12 +504,20 @@ const AudioClip = ({
               <i
                 className="fa fa-chevron-up"
                 onClick={() => setEditComponentToggleFunc(clipID, false)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditComponentToggleFunc(clipID, false); } }}
+                tabIndex={0}
+                role="button"
+                aria-label="Collapse detailed editing"
                 title="Collapse detailed editing"
               />
             ) : (
               <i
                 className="fa fa-chevron-down"
                 onClick={() => setEditComponentToggleFunc(clipID, true)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditComponentToggleFunc(clipID, true); } }}
+                tabIndex={0}
+                role="button"
+                aria-label="Expand detailed editing"
                 title="Expand detailed editing"
               />
             )}

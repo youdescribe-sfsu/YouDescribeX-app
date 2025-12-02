@@ -122,6 +122,17 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+.nudge-icons:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.fa-chevron-up:focus,
+.fa-chevron-down:focus {
+  outline: 2px solid var(--text-accent, #007bff);
+  outline-offset: 2px;
+}
+
 /* Timeline Section - Enhanced for better visual hierarchy */
 .timeline-section {
   display: flex;
