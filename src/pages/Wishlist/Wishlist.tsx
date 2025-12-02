@@ -1070,87 +1070,21 @@ const Wishlist = () => {
 
   return (
     <main id="wish-list" title="Wish list page" className="wish-list">
-      <div className="w3-container w3-indigo">
-        <h2 id="wish-list-heading" className="classic-h2" tabIndex={-1}>
-          {translate('WISHLIST')}
-        </h2>
-      </div>
+      {/*<div className="w3-container w3-indigo">*/}
+      {/*  <h2 id="wish-list-heading" className="classic-h2" tabIndex={-1}>*/}
+      {/*    {translate('WISHLIST')}*/}
+      {/*  </h2>*/}
+      {/*</div>*/}
 
-      <section className="top-requested-section">
-        <div className="w3-row-padding classic-container w3-margin-top most-requested-title">
-          Top 5 Most Requested Videos
-        </div>
-        {showSpinner ? <Spinner /> : null}
-        <div className="w3-row-padding classic-container wishlist-video-row">
-          {videoCardsComponents}
-        </div>
-      </section>
-
-      <section className="my-wishlist-section">
-        <header className="w3-container w3-indigo">
-          <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
-        </header>
-
-        <div className="custom-carousel">
-          {!userDataStore.getState().isSignedIn ? (
-            <div className="empty-state-message">
-              <i className="fas fa-lock auth-required-icon"></i>
-              <p className="auth-required-text">
-                {translate('Log in to create and view your personal wishlist')}
-              </p>
-            </div>
-          ) : (
-            <>
-              {!wishlistData && <CustomSpinner />}
-              {wishlistData && wishlistData?.data.length > 0 && (
-                <>
-                  <CustomButton
-                    className="prev-wishlist-icon"
-                    onClick={() =>
-                      handlePreviousPage(
-                        wishlistData,
-                        setShowWishlistSpinner,
-                        wishlistUrl,
-                        setWishlistData,
-                      )
-                    }
-                    disabled={wishlistData.currentPage === 1}
-                  >
-                    &lt;
-                  </CustomButton>
-
-                  <div className="wishlist-video-row">{wishlistData.data}</div>
-
-                  <CustomButton
-                    className="next-wishlist-icon"
-                    onClick={() =>
-                      handleNextPage(
-                        wishlistData,
-                        setShowWishlistSpinner,
-                        wishlistUrl,
-                        setWishlistData,
-                      )
-                    }
-                    disabled={
-                      wishlistData.currentPage === wishlistData.totalPages
-                    }
-                  >
-                    &gt;
-                  </CustomButton>
-                </>
-              )}
-              {wishlistData?.data.length === 0 && (
-                <div className="no-videos-message">
-                  <i className="fas fa-video-slash no-videos-icon"></i>
-                  <p className="no-videos-text">
-                    {translate('No videos in your wishlist')}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </section>
+      {/*<section className="top-requested-section">*/}
+      {/*  <div className="w3-row-padding classic-container w3-margin-top most-requested-title">*/}
+      {/*    Top 5 Most Requested Videos*/}
+      {/*  </div>*/}
+      {/*  {showSpinner ? <Spinner /> : null}*/}
+      {/*  <div className="w3-row-padding classic-container wishlist-video-row">*/}
+      {/*    {videoCardsComponents}*/}
+      {/*  </div>*/}
+      {/*</section>*/}
 
       <section className="recent-ai-descriptions-section">
         <header className="w3-container w3-indigo">
@@ -1213,6 +1147,72 @@ const Wishlist = () => {
                   <i className="fas fa-video-slash no-videos-icon"></i>
                   <p className="no-videos-text">
                     {translate('No AI Requested Videos')}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+
+      <section className="my-wishlist-section">
+        <header className="w3-container w3-indigo">
+          <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
+        </header>
+
+        <div className="custom-carousel">
+          {!userDataStore.getState().isSignedIn ? (
+            <div className="empty-state-message">
+              <i className="fas fa-lock auth-required-icon"></i>
+              <p className="auth-required-text">
+                {translate('Log in to create and view your personal wishlist')}
+              </p>
+            </div>
+          ) : (
+            <>
+              {!wishlistData && <CustomSpinner />}
+              {wishlistData && wishlistData?.data.length > 0 && (
+                <>
+                  <CustomButton
+                    className="prev-wishlist-icon"
+                    onClick={() =>
+                      handlePreviousPage(
+                        wishlistData,
+                        setShowWishlistSpinner,
+                        wishlistUrl,
+                        setWishlistData,
+                      )
+                    }
+                    disabled={wishlistData.currentPage === 1}
+                  >
+                    &lt;
+                  </CustomButton>
+
+                  <div className="wishlist-video-row">{wishlistData.data}</div>
+
+                  <CustomButton
+                    className="next-wishlist-icon"
+                    onClick={() =>
+                      handleNextPage(
+                        wishlistData,
+                        setShowWishlistSpinner,
+                        wishlistUrl,
+                        setWishlistData,
+                      )
+                    }
+                    disabled={
+                      wishlistData.currentPage === wishlistData.totalPages
+                    }
+                  >
+                    &gt;
+                  </CustomButton>
+                </>
+              )}
+              {wishlistData?.data.length === 0 && (
+                <div className="no-videos-message">
+                  <i className="fas fa-video-slash no-videos-icon"></i>
+                  <p className="no-videos-text">
+                    {translate('No videos in your wishlist')}
                   </p>
                 </div>
               )}

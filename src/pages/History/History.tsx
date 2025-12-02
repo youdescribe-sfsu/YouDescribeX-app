@@ -457,6 +457,86 @@ const History = () => {
       <main>
         <section>
           <header className="w3-container w3-indigo">
+            <h2 className="classic-h2">{translate('MY HISTORY')}</h2>
+          </header>
+
+          <div className="d-flex justify-content-center custom-carousel flex min-h-[290px] m-auto">
+            {!userDataStore.getState().isSignedIn ? (
+              <div className="auth-required-message">
+                <i className="fas fa-lock auth-required-icon"></i>
+                <p className="auth-required-text">
+                  Log in to view your browsing history
+                </p>
+              </div>
+            ) : (
+              <>
+                {!historyVideos && <CustomSpinner />}
+                {historyVideos && historyVideos?.data.length > 0 && (
+                  <>
+                    {/* Custom previous button */}
+                    <CustomButton
+                      className="prev-icon"
+                      onClick={() =>
+                        handlePreviousPage(
+                          historyVideos,
+                          setHistoryVideos,
+                          getUserHistoryUrl(),
+                          setShowHistoryVideosSpinner,
+                        )
+                      }
+                      disabled={historyVideos.currentPage === 1}
+                    >
+                      &lt;
+                    </CustomButton>
+
+                    {/* Content for displaying videos */}
+                    <div className="w3-row classic-container row">
+                      {showHistoryVideosSpinner ? (
+                        <CustomSpinner />
+                      ) : (
+                        historyVideos.videoComponentData.map((video) => (
+                          <div
+                            className="col-sm-6 col-md-4 col-lg-3"
+                            key={video.youTubeId}
+                          >
+                            <VideoCard {...video} />
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Custom next button */}
+                    <CustomButton
+                      className="next-icon"
+                      onClick={() =>
+                        handleNextPage(
+                          historyVideos,
+                          setHistoryVideos,
+                          getUserHistoryUrl(),
+                          setShowHistoryVideosSpinner,
+                        )
+                      }
+                      disabled={
+                        historyVideos.currentPage === historyVideos.totalPages
+                      }
+                    >
+                      &gt;
+                    </CustomButton>
+                  </>
+                )}
+                {historyVideos?.data.length === 0 && (
+                  <div className="no-videos-message">
+                    <i className="fas fa-video-slash no-videos-icon"></i>
+                    <p className="no-videos-text">No history to view.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </section>
+
+        <section>
+          <header className="w3-container w3-indigo">
             <h2 className="classic-h2">{translate('MY DESCRIPTIONS')}</h2>
           </header>
 
@@ -541,7 +621,9 @@ const History = () => {
 
         <section>
           <header className="w3-container w3-indigo">
-            <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
+            <h2 className="classic-h2">
+              {translate('MY AI REQUESTED VIDEOS')}
+            </h2>
           </header>
 
           <div className="custom-carousel flex min-h-[290px]">
@@ -618,86 +700,6 @@ const History = () => {
                       Please request AI descriptions to view AI Requested
                       videos.
                     </p>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </section>
-
-        <section>
-          <header className="w3-container w3-indigo">
-            <h2 className="classic-h2">{translate('HISTORY')}</h2>
-          </header>
-
-          <div className="d-flex justify-content-center custom-carousel flex min-h-[290px] m-auto">
-            {!userDataStore.getState().isSignedIn ? (
-              <div className="auth-required-message">
-                <i className="fas fa-lock auth-required-icon"></i>
-                <p className="auth-required-text">
-                  Log in to view your browsing history
-                </p>
-              </div>
-            ) : (
-              <>
-                {!historyVideos && <CustomSpinner />}
-                {historyVideos && historyVideos?.data.length > 0 && (
-                  <>
-                    {/* Custom previous button */}
-                    <CustomButton
-                      className="prev-icon"
-                      onClick={() =>
-                        handlePreviousPage(
-                          historyVideos,
-                          setHistoryVideos,
-                          getUserHistoryUrl(),
-                          setShowHistoryVideosSpinner,
-                        )
-                      }
-                      disabled={historyVideos.currentPage === 1}
-                    >
-                      &lt;
-                    </CustomButton>
-
-                    {/* Content for displaying videos */}
-                    <div className="w3-row classic-container row">
-                      {showHistoryVideosSpinner ? (
-                        <CustomSpinner />
-                      ) : (
-                        historyVideos.videoComponentData.map((video) => (
-                          <div
-                            className="col-sm-6 col-md-4 col-lg-3"
-                            key={video.youTubeId}
-                          >
-                            <VideoCard {...video} />
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Custom next button */}
-                    <CustomButton
-                      className="next-icon"
-                      onClick={() =>
-                        handleNextPage(
-                          historyVideos,
-                          setHistoryVideos,
-                          getUserHistoryUrl(),
-                          setShowHistoryVideosSpinner,
-                        )
-                      }
-                      disabled={
-                        historyVideos.currentPage === historyVideos.totalPages
-                      }
-                    >
-                      &gt;
-                    </CustomButton>
-                  </>
-                )}
-                {historyVideos?.data.length === 0 && (
-                  <div className="no-videos-message">
-                    <i className="fas fa-video-slash no-videos-icon"></i>
-                    <p className="no-videos-text">No history to view.</p>
                   </div>
                 )}
               </>
