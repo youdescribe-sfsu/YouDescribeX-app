@@ -504,7 +504,12 @@ const AudioClip = ({
               <i
                 className="fa fa-chevron-up"
                 onClick={() => setEditComponentToggleFunc(clipID, false)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditComponentToggleFunc(clipID, false); } }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setEditComponentToggleFunc(clipID, false)
+                  }
+                }}
                 tabIndex={0}
                 role="button"
                 aria-label="Collapse detailed editing"
@@ -514,7 +519,12 @@ const AudioClip = ({
               <i
                 className="fa fa-chevron-down"
                 onClick={() => setEditComponentToggleFunc(clipID, true)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditComponentToggleFunc(clipID, true); } }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setEditComponentToggleFunc(clipID, true)
+                  }
+                }}
                 tabIndex={0}
                 role="button"
                 aria-label="Expand detailed editing"
