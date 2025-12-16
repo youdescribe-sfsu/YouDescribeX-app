@@ -317,6 +317,7 @@ const Video = () => {
 
   // YouTube Player Options
   const opts: Options = {
+    host: 'https://www.youtube-nocookie.com',
     width: '100%',
     height: '400',
     playerVars: {
@@ -329,6 +330,7 @@ const Video = () => {
       modestbranding: 1,
       disablekb: 0,
       rel: 0,
+      origin: window.location.origin,
     },
   }
 
