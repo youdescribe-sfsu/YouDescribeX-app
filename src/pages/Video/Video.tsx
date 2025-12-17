@@ -828,16 +828,25 @@ const Video = () => {
       return
     }
 
+    // Mark as played IMMEDIATELY to prevent race conditions during async operations
+    playedClipsRef.current.add(clip.clip_id)
+    setPlayedClips((prev) => new Set(prev).add(clip.clip_id))
+
     // Check and update playback type if needed
     const updatedClip = await checkPlaybackTypeBeforePlaying(clip)
 
     if (updatedClip.playback_type === 'extended') {
-      setPlayedClips((prev) => new Set(prev).add(clip.clip_id))
       playExtendedClip(updatedClip)
     } else {
       const played = playInlineClip(updatedClip, currentTime)
-      if (played) {
-        setPlayedClips((prev) => new Set(prev).add(clip.clip_id))
+      if (!played) {
+        // If inline clip wasn't actually played, remove from played set
+        playedClipsRef.current.delete(clip.clip_id)
+        setPlayedClips((prev) => {
+          const newSet = new Set(prev)
+          newSet.delete(clip.clip_id)
+          return newSet
+        })
       }
     }
   }
