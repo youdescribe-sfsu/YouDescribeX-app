@@ -113,6 +113,7 @@ const Video = () => {
   const [videoLikes, setVideoLikes] = useState('')
   const [videoDurationInSeconds, setVideoDurationInSeconds] = useState(0)
   const [playedClips, setPlayedClips] = useState<Set<string>>(new Set())
+  const playedClipsRef = useRef<Set<string>>(new Set())
   const [sortedAudioClips, setSortedAudioClips] = useState<Clip[]>([])
   const [lastProcessedIndex, setLastProcessedIndex] = useState(-1)
 
@@ -278,6 +279,10 @@ const Video = () => {
   useEffect(() => {
     currentStateRef.current = currentState
   }, [currentState])
+
+  useEffect(() => {
+    playedClipsRef.current = playedClips
+  }, [playedClips])
 
   useEffect(() => {
     if (currentInlineACRef.current?.playing()) {
@@ -787,7 +792,7 @@ const Video = () => {
       if (clip.clip_start_time > currentTime + 0.3) break
 
       // Skip already played clips early
-      if (playedClips.has(clip.clip_id)) continue
+      if (playedClipsRef.current.has(clip.clip_id)) continue
 
       // Method 1: Direct time match
       if (Math.abs(clip.clip_start_time - currentTime) <= TOLERANCE) {
@@ -818,7 +823,7 @@ const Video = () => {
 
   const verifyAndPlayClip = async (clip: Clip, currentTime: number) => {
     // VERIFICATION: Check if already played
-    if (playedClips.has(clip.clip_id)) {
+    if (playedClipsRef.current.has(clip.clip_id)) {
       console.log(`Preventing duplicate play: ${clip.clip_id}`)
       return
     }
