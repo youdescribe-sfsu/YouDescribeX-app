@@ -855,6 +855,17 @@ const Video = () => {
     console.log(`Playing extended clip: ${clip.clip_id}`)
     currentEventRef.current?.pauseVideo()
 
+    // Safety timeout - resume video if 'end' event never fires
+    const safetyTimeout = setTimeout(() => {
+      console.warn(`Extended clip safety timeout triggered: ${clip.clip_id}`)
+      if (clip.clip_audio) {
+        clip.clip_audio.stop()
+        clip.clip_audio.unload()
+      }
+      setCurrExtendedAC(undefined)
+      currentEventRef.current?.playVideo()
+    }, (clip.clip_duration + 2) * 1000) // clip duration + 2s buffer
+
     if (clip.clip_audio?.state() === 'loaded') {
       setTimeout(() => {
         if (clip.clip_audio && !clip.clip_audio.playing()) {
@@ -882,6 +893,7 @@ const Video = () => {
 
     clip.clip_audio?.once('end', () => {
       console.log(`Extended clip audio ended: ${clip.clip_id}`)
+      clearTimeout(safetyTimeout)
       setCurrExtendedAC(undefined)
       currentEventRef.current?.playVideo()
       clip.clip_audio?.unload()
@@ -890,12 +902,14 @@ const Video = () => {
     // Fallback: if audio fails to load/play, resume video after timeout
     clip.clip_audio?.once('loaderror', () => {
       console.error(`Extended clip audio failed to load: ${clip.clip_id}`)
+      clearTimeout(safetyTimeout)
       setCurrExtendedAC(undefined)
       currentEventRef.current?.playVideo()
     })
 
     clip.clip_audio?.once('playerror', () => {
       console.error(`Extended clip audio failed to play: ${clip.clip_id}`)
+      clearTimeout(safetyTimeout)
       setCurrExtendedAC(undefined)
       currentEventRef.current?.playVideo()
     })
