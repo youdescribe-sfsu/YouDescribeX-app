@@ -859,22 +859,21 @@ const Video = () => {
     console.log(`Playing extended clip: ${clip.clip_id}`)
     currentEventRef.current?.pauseVideo()
 
-    // Get duration with fallback - use audio duration if clip_duration is missing
-    const clipDuration = clip.clip_duration || clip.clip_audio?.duration() || 10 // Default 10s fallback
-    console.log(
-      `Extended clip duration: ${clipDuration}s for clip ${clip.clip_id}`,
-    )
+        let safetyTimeout: NodeJS.Timeout | null = null
 
-    // Safety timeout - resume video if 'end' event never fires
-    const safetyTimeout = setTimeout(() => {
-      console.warn(`Extended clip safety timeout triggered: ${clip.clip_id}`)
-      if (clip.clip_audio) {
-        clip.clip_audio.stop()
-        clip.clip_audio.unload()
-      }
-      setCurrExtendedAC(undefined)
-      currentEventRef.current?.playVideo()
-    }, (clipDuration + 2) * 1000) // clip duration + 2s buffer
+          const startSafetyTimeout = (duration: number) => {
+            const timeoutDuration = (duration + 2) * 1000
+            console.log(`Setting safety timeout: ${timeoutDuration}ms for clip ${clip.clip_id}`)
+            safetyTimeout = setTimeout(() => {
+                  console.warn(`Extended clip safety timeout triggered: ${clip.clip_id}`)
+                  if (clip.clip_audio) {
+                      clip.clip_audio.stop()
+                      clip.clip_audio.unload()
+                    }
+                  setCurrExtendedAC(undefined)
+                  currentEventRef.current?.playVideo()
+                }, timeoutDuration)
+            }
 
     if (clip.clip_audio?.state() === 'loaded') {
       setTimeout(() => {
@@ -882,6 +881,9 @@ const Video = () => {
           console.log(`Extended clip audio starting: ${clip.clip_id}`)
           clip.clip_audio.play()
           clip.clip_audio.volume(descriptionVolumeRef.current / 100)
+                    const actualDuration = clip.clip_audio.duration() || clip.clip_duration || 10
+                      console.log(`Extended clip actual duration: ${actualDuration}s`)
+                      startSafetyTimeout(actualDuration)
         }
       }, 50)
     } else {
@@ -894,6 +896,9 @@ const Video = () => {
             )
             clip.clip_audio.play()
             clip.clip_audio.volume(descriptionVolumeRef.current / 100)
+                        const actualDuration = clip.clip_audio.duration() || clip.clip_duration || 10
+                          console.log(`Extended clip actual duration: ${actualDuration}s`)
+                          startSafetyTimeout(actualDuration)
           }
         }, 50)
       })
@@ -903,7 +908,7 @@ const Video = () => {
 
     clip.clip_audio?.once('end', () => {
       console.log(`Extended clip audio ended: ${clip.clip_id}`)
-      clearTimeout(safetyTimeout)
+      if (safetyTimeout) clearTimeout(safetyTimeout)
       setCurrExtendedAC(undefined)
       currentEventRef.current?.playVideo()
       clip.clip_audio?.unload()
@@ -912,14 +917,14 @@ const Video = () => {
     // Fallback: if audio fails to load/play, resume video after timeout
     clip.clip_audio?.once('loaderror', () => {
       console.error(`Extended clip audio failed to load: ${clip.clip_id}`)
-      clearTimeout(safetyTimeout)
+      if (safetyTimeout) clearTimeout(safetyTimeout)
       setCurrExtendedAC(undefined)
       currentEventRef.current?.playVideo()
     })
 
     clip.clip_audio?.once('playerror', () => {
       console.error(`Extended clip audio failed to play: ${clip.clip_id}`)
-      clearTimeout(safetyTimeout)
+      if (safetyTimeout) clearTimeout(safetyTimeout)
       setCurrExtendedAC(undefined)
       currentEventRef.current?.playVideo()
     })
@@ -1137,9 +1142,8 @@ const Video = () => {
           setPlayedClips((prev) => {
             const newSet = new Set(prev)
 
-            // Don't clear clips that are currently playing
-            if (currExtendedAC) return prev
-            if (currInlineAC) return prev
+            if (currentExtendedACRef.current?.playing()) return prev
+            if (currentInlineACRef.current?.playing()) return prev
 
             if (newTime < oldTime) {
               // Backward seek - clear clips between new and old time
@@ -1148,13 +1152,6 @@ const Video = () => {
                   clip.clip_start_time >= newTime &&
                   clip.clip_start_time <= oldTime
                 ) {
-                  newSet.delete(clip.clip_id)
-                }
-              })
-            } else {
-              // Forward seek - clear clips after new time
-              sortedAudioClips.forEach((clip) => {
-                if (clip.clip_start_time > newTime) {
                   newSet.delete(clip.clip_id)
                 }
               })
