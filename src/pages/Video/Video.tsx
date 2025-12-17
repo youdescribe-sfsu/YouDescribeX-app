@@ -862,7 +862,7 @@ const Video = () => {
     let safetyTimeout: NodeJS.Timeout | null = null
 
     const startSafetyTimeout = (duration: number) => {
-      const timeoutDuration = (duration + 2) * 1000
+      const timeoutDuration = (duration + 1) * 1000
       console.log(
         `Setting safety timeout: ${timeoutDuration}ms for clip ${clip.clip_id}`,
       )
