@@ -637,6 +637,10 @@ const Video = () => {
     for (let i = 0; i < maxStackSize; i++) {
       const clip = sortedClipData[i]
       if (clip) {
+        if (clip.clip_audio) {
+          clip.clip_audio.unload()
+          clip.clip_audio = undefined
+        }
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
           html5: true,
@@ -855,6 +859,12 @@ const Video = () => {
     console.log(`Playing extended clip: ${clip.clip_id}`)
     currentEventRef.current?.pauseVideo()
 
+    // Get duration with fallback - use audio duration if clip_duration is missing
+    const clipDuration = clip.clip_duration || clip.clip_audio?.duration() || 10 // Default 10s fallback
+    console.log(
+      `Extended clip duration: ${clipDuration}s for clip ${clip.clip_id}`,
+    )
+
     // Safety timeout - resume video if 'end' event never fires
     const safetyTimeout = setTimeout(() => {
       console.warn(`Extended clip safety timeout triggered: ${clip.clip_id}`)
@@ -864,7 +874,7 @@ const Video = () => {
       }
       setCurrExtendedAC(undefined)
       currentEventRef.current?.playVideo()
-    }, (clip.clip_duration + 2) * 1000) // clip duration + 2s buffer
+    }, (clipDuration + 2) * 1000) // clip duration + 2s buffer
 
     if (clip.clip_audio?.state() === 'loaded') {
       setTimeout(() => {
@@ -993,7 +1003,12 @@ const Video = () => {
     setCurrentClipIndex(newClipIndex)
 
     const newClip = audioClips[newClipIndex + clipStackSize - 1]
-    if (newClip && !newClip.clip_audio) {
+    if (newClip) {
+      // Cleanup any existing audio before creating new
+      if (newClip.clip_audio) {
+        newClip.clip_audio.unload()
+        newClip.clip_audio = undefined
+      }
       newClip.clip_audio = new Howl({
         src: newClip.clip_audio_path,
         html5: true,
@@ -1122,6 +1137,10 @@ const Video = () => {
           setPlayedClips((prev) => {
             const newSet = new Set(prev)
 
+            // Don't clear clips that are currently playing
+            if (currExtendedAC) return prev
+            if (currInlineAC) return prev
+
             if (newTime < oldTime) {
               // Backward seek - clear clips between new and old time
               sortedAudioClips.forEach((clip) => {
@@ -1209,6 +1228,10 @@ const Video = () => {
     for (let i = newClipIndex; i < newClipIndex + clipStackSize; i++) {
       const clip = audioClips[i]
       if (clip) {
+        if (clip.clip_audio) {
+          clip.clip_audio.unload()
+          clip.clip_audio = undefined
+        }
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
           html5: true,
@@ -1257,6 +1280,10 @@ const Video = () => {
     ) {
       const clip = audioClips[i]
       if (clip) {
+        if (clip.clip_audio) {
+          clip.clip_audio.unload()
+          clip.clip_audio = undefined
+        }
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
           html5: true,
