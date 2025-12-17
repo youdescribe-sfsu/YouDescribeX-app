@@ -859,21 +859,23 @@ const Video = () => {
     console.log(`Playing extended clip: ${clip.clip_id}`)
     currentEventRef.current?.pauseVideo()
 
-        let safetyTimeout: NodeJS.Timeout | null = null
+    let safetyTimeout: NodeJS.Timeout | null = null
 
-          const startSafetyTimeout = (duration: number) => {
-            const timeoutDuration = (duration + 2) * 1000
-            console.log(`Setting safety timeout: ${timeoutDuration}ms for clip ${clip.clip_id}`)
-            safetyTimeout = setTimeout(() => {
-                  console.warn(`Extended clip safety timeout triggered: ${clip.clip_id}`)
-                  if (clip.clip_audio) {
-                      clip.clip_audio.stop()
-                      clip.clip_audio.unload()
-                    }
-                  setCurrExtendedAC(undefined)
-                  currentEventRef.current?.playVideo()
-                }, timeoutDuration)
-            }
+    const startSafetyTimeout = (duration: number) => {
+      const timeoutDuration = (duration + 2) * 1000
+      console.log(
+        `Setting safety timeout: ${timeoutDuration}ms for clip ${clip.clip_id}`,
+      )
+      safetyTimeout = setTimeout(() => {
+        console.warn(`Extended clip safety timeout triggered: ${clip.clip_id}`)
+        if (clip.clip_audio) {
+          clip.clip_audio.stop()
+          clip.clip_audio.unload()
+        }
+        setCurrExtendedAC(undefined)
+        currentEventRef.current?.playVideo()
+      }, timeoutDuration)
+    }
 
     if (clip.clip_audio?.state() === 'loaded') {
       setTimeout(() => {
@@ -881,9 +883,10 @@ const Video = () => {
           console.log(`Extended clip audio starting: ${clip.clip_id}`)
           clip.clip_audio.play()
           clip.clip_audio.volume(descriptionVolumeRef.current / 100)
-                    const actualDuration = clip.clip_audio.duration() || clip.clip_duration || 10
-                      console.log(`Extended clip actual duration: ${actualDuration}s`)
-                      startSafetyTimeout(actualDuration)
+          const actualDuration =
+            clip.clip_audio.duration() || clip.clip_duration || 10
+          console.log(`Extended clip actual duration: ${actualDuration}s`)
+          startSafetyTimeout(actualDuration)
         }
       }, 50)
     } else {
@@ -896,9 +899,10 @@ const Video = () => {
             )
             clip.clip_audio.play()
             clip.clip_audio.volume(descriptionVolumeRef.current / 100)
-                        const actualDuration = clip.clip_audio.duration() || clip.clip_duration || 10
-                          console.log(`Extended clip actual duration: ${actualDuration}s`)
-                          startSafetyTimeout(actualDuration)
+            const actualDuration =
+              clip.clip_audio.duration() || clip.clip_duration || 10
+            console.log(`Extended clip actual duration: ${actualDuration}s`)
+            startSafetyTimeout(actualDuration)
           }
         }, 50)
       })
