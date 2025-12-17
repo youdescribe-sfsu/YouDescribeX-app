@@ -166,6 +166,7 @@ const Video = () => {
   const currentClipIndexRef = useRef(currentClipIndex)
 
   const currentEventRef = useRef(currentEvent)
+  const currentStateRef = useRef(currentState)
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
 
@@ -273,6 +274,10 @@ const Video = () => {
     currentEventRef.current = currentEvent
     currentEventRef.current?.setVolume(youTubeVolume)
   }, [currentEvent])
+
+  useEffect(() => {
+    currentStateRef.current = currentState
+  }, [currentState])
 
   useEffect(() => {
     if (currentInlineACRef.current?.playing()) {
@@ -757,7 +762,7 @@ const Video = () => {
     updatedCurrentTime: number,
     prevTime: number,
   ) => {
-    if (currentState !== 1) return // Only play when video is playing
+    if (currentStateRef.current !== 1) return // Only play when video is playing
 
     // LAYER 1: Detection - Find clips to play
     const clipsToPlay = findClipsToPlay(updatedCurrentTime, prevTime)
@@ -859,7 +864,7 @@ const Video = () => {
 
     clip.clip_audio?.once('end', () => {
       setCurrExtendedAC(undefined)
-      currentEvent?.playVideo()
+      currentEventRef.current?.playVideo()
       clip.clip_audio?.unload()
     })
 
@@ -1137,9 +1142,7 @@ const Video = () => {
   }
 
   const updateClipStackData = useCallback(() => {
-    // console.log('Updating Clip Stack | Current Time =', currentTimeRef.current)
-
-    // Unload old Howl objects from previous clip stack to prevent memory leak
+    // Unload existing Howl objects to prevent audio pool exhaustion
     clipStackRef.current.forEach((clip) => {
       if (clip.clip_audio) {
         clip.clip_audio.unload()
@@ -1153,7 +1156,6 @@ const Video = () => {
           clip.clip_end_time > currentTimeRef.current),
     )
     setCurrentClipIndex(newClipIndex)
-    // console.log('Current Clip Index', newClipIndex)
 
     // slice audio clips from newClipIndex to newClipIndex + 5
     const clipStackData = []
@@ -1168,7 +1170,6 @@ const Video = () => {
           autoplay: false,
         })
         clip.clip_audio.load()
-
         clipStackData.push(clip)
       }
     }

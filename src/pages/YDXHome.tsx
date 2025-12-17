@@ -144,6 +144,7 @@ const YDXHome = (): React.ReactElement => {
   // )
 
   const currentEventRef = useRef(currentEvent)
+  const currentStateRef = useRef(currentState)
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
 
@@ -255,6 +256,10 @@ const YDXHome = (): React.ReactElement => {
   useEffect(() => {
     currentEventRef.current = currentEvent
   }, [currentEvent])
+
+  useEffect(() => {
+    currentStateRef.current = currentState
+  }, [currentState])
 
   useEffect(() => {
     if (needRefresh) {
@@ -559,8 +564,8 @@ const YDXHome = (): React.ReactElement => {
     playedAudioClip: string,
     playedClipPath: string,
   ) => {
-    // playing
-    if (currentState === 1) {
+    // playing - use ref to avoid stale closure
+    if (currentStateRef.current === 1) {
       // If all clips have been played, skip check
       if (clipStackRef.current.length === 0) {
         // console.log('No Clips left to play')
@@ -687,7 +692,7 @@ const YDXHome = (): React.ReactElement => {
 
               currentAudio?.once('end', () => {
                 setCurrExtendedAC(undefined)
-                currentEvent?.playVideo()
+                currentEventRef.current?.playVideo()
                 currentAudio.unload()
                 setCurrentExtACPaused(false)
               })
@@ -1010,6 +1015,13 @@ const YDXHome = (): React.ReactElement => {
   }
 
   const updateClipStackData = useCallback(() => {
+    // Unload existing Howl objects to prevent audio pool exhaustion
+    clipStackRef.current.forEach((clip) => {
+      if (clip.clip_audio) {
+        clip.clip_audio.unload()
+      }
+    })
+
     const newClipIndex = audioClips.findIndex(
       (clip) =>
         clip.clip_start_time >= currentTimeRef.current ||
