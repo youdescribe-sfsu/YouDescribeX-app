@@ -26,13 +26,57 @@ const Search = () => {
   const [videoAlreadyOnYD, setVideoAlreadyOnYD] = useState<ReactNode[]>([])
   const [videosNotOnYD, setVideosNotOnYD] = useState<ReactNode[]>([])
   const [currentPage, setCurrentPage] = useState<number>(1)
+  // Store raw YouTube data for session restoration
+  const [youtubeRawData, setYoutubeRawData] = useState<any[]>([])
+
+  // Helper functions for YouTube search state persistence
+  const saveYouTubeSearchState = (ytResults: any[], query: string) => {
+    sessionStorage.setItem(
+      'youtubeSearchState',
+      JSON.stringify({
+        query,
+        results: ytResults,
+        timestamp: Date.now(),
+      }),
+    )
+  }
+
+  const restoreYouTubeSearchState = (currentQuery: string): any[] | null => {
+    const saved = sessionStorage.getItem('youtubeSearchState')
+    if (!saved) return null
+
+    try {
+      const { query, results, timestamp } = JSON.parse(saved)
+      // Only restore if same query and within 10 minutes
+      if (query === currentQuery && Date.now() - timestamp < 600000) {
+        return results
+      }
+    } catch (e) {
+      console.error('Error restoring YouTube search state:', e)
+    }
+    return null
+  }
 
   useEffect(() => {
     setLoadingYDVideos(true)
-    setLoadingYTVideos(true)
-    setVideoAlreadyOnYD([]) // Reset videoAlreadyOnYD to an empty array
-    setVideosNotOnYD([]) // Reset videosNotOnYD to an empty array
-    setShowYTButton(false) // Reset showYTButton state
+    setVideoAlreadyOnYD([])
+
+    // Check for cached YouTube results before resetting
+    const currentQuery = searchParams.get('q') ?? ''
+    const cachedYTResults = restoreYouTubeSearchState(currentQuery)
+
+    if (cachedYTResults && cachedYTResults.length > 0) {
+      // Restore YouTube search state from session
+      setShowYTButton(true)
+      setYoutubeRawData(cachedYTResults)
+      setLoadingYTVideos(false)
+      renderVideosFromYT(cachedYTResults)
+    } else {
+      setLoadingYTVideos(true)
+      setVideosNotOnYD([])
+      setShowYTButton(false)
+    }
+
     getSearchResultsFromYd(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
@@ -236,6 +280,11 @@ const Search = () => {
 
     setLoadingYTVideos(false)
     setVideosNotOnYD(videoNotOnYD)
+
+    // Save raw data for restoration on back navigation
+    const currentQuery = searchParams.get('q') ?? ''
+    setYoutubeRawData(videoFromYoutube)
+    saveYouTubeSearchState(videoFromYoutube, currentQuery)
   }
 
   const loadMoreVideosFromYD = () => {
