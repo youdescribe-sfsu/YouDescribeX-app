@@ -349,29 +349,38 @@ const YDXHome = (): React.ReactElement => {
         const video_length = res.data.video_length
         setVideoLength(video_length)
         setVideoId(video_id)
-        return video_length
+        return { video_id, video_length }
       })
-      .then((video_length) => {
+      .then(({ video_id, video_length }) => {
         setShowSpinner(false)
         // order of the below function calls is important
         const calculatedWidth = calculateDraggableDivWidth()
         calculateUnitLength(video_length, calculatedWidth)
+        fetchDialogData()
+        fetchAudioDescriptionData(false, video_id)
       })
       .catch((err) => {
         // console.error(err.response.data);
         console.error('ERROR in fetchUserVideoData', err)
-
         setShowSpinner(true)
       })
   }
 
   // use axios to get audio descriptions for the videoId (set in fetchUserVideoData()) & userId passed to the url Params
-  const fetchAudioDescriptionData = (isNewClipAdded = false) => {
+  const fetchAudioDescriptionData = (
+    isNewClipAdded = false,
+    passedVideoId?: string,
+  ) => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
-    if (videoId && userDataStore.getState().userId && audioDescriptionId)
+    const effectiveVideoId = passedVideoId || videoId
+    if (
+      effectiveVideoId &&
+      userDataStore.getState().userId &&
+      audioDescriptionId
+    )
       axios
         .get(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${videoId}&${audioDescriptionId}`,
+          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${effectiveVideoId}&${audioDescriptionId}`,
           {
             params: {
               preview: 'true',
