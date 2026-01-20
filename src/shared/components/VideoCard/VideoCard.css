@@ -94,3 +94,22 @@
 .card-span-ai a:hover {
   color: #337ab7;
 }
+
+.card-button {
+  transition: opacity 0.2s ease;
+}
+
+.heart-selected {
+  color: #e91e63 !important; /* Material Design red */
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+/* Add to existing button styles */
+.card-button:disabled {
+  cursor: not-allowed;
+}
+
+.card-button:not(:disabled):hover .fa-heart {
+  transform: scale(1.2);
+}

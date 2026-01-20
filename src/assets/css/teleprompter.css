@@ -1,0 +1,52 @@
+.teleprompter-container {
+  background-color: #222;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 10px 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.teleprompter-text-area {
+  background-color: #333;
+  border-radius: 4px;
+  padding: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.teleprompter-text {
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.5;
+  margin: 0;
+  font-family: 'EB Garamond', serif;
+}
+
+/* Add to teleprompter.css */
+.teleprompter-header {
+  background-color: #333;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px 4px 0 0;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.recording-active {
+  border: 2px solid #dc3545;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}

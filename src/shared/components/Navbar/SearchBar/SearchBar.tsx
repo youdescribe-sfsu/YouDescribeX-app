@@ -128,7 +128,9 @@ const SearchBar = () => {
             name="search"
             onChange={(e) => handleInputChange(e)} // Updated onChange handler
             onKeyDown={(e) => handleKeyDown(e)} // Added keydown handler
-            placeholder={translate('Search')}
+            placeholder={translate(
+              'Search by title, tags, describer name, or YouTube ID',
+            )}
             value={search}
             autoComplete="off"
           />

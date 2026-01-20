@@ -2,21 +2,19 @@ import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import Spinner from '@/shared/components/Spinner/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
-import { apiUrl, youTubeApiKey, youTubeApiUrl } from '@/shared/config'
+import { apiUrl } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardFormat'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
-import ourFetch from '@/shared/utils/ourFetch'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import './UserDescribedVideos.css'
+import YouTubeService from '@/shared/utils/YouTubeService'
 
 const UserDescribedVideos = () => {
   const [showSpinner, setShowSpinner] = useState(true)
-  const [userName, setUserName] = useState('')
-  const [userVideosArray, setUserVideosArray] = useState([])
   const [videos, setVideos] = useState<any[]>([])
   const [videosAI, setAIVideos] = useState<any[]>([])
   const [videosDraft, setVideosDraft] = useState<any[]>([])
@@ -26,19 +24,25 @@ const UserDescribedVideos = () => {
   const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
   const [LoadMoreAIVideos, setLoadMoreAIVideos] = useState<boolean>(false)
   const [LoadMoreDraftVideos, setLoadMoreDraftVideos] = useState<boolean>(false)
-  const [showLoadMoreButton, setShowLoadMoreButton] = useState(true)
-  const [showLoadMoreAIButton, setShowLoadMoreAIButton] = useState(true)
-  const [showLoadMoreDraftButton, setShowLoadMoreDraftButton] = useState(true)
+  // Initialize these to false instead of true
+  const [showLoadMoreButton, setShowLoadMoreButton] = useState(false)
+  const [showLoadMoreAIButton, setShowLoadMoreAIButton] = useState(false)
+  const [showLoadMoreDraftButton, setShowLoadMoreDraftButton] = useState(false)
   const { userId } = useParams()
 
-  const getUserInfo = async () => {
-    const url = `${apiUrl}/users/${userId}`
-    ourFetch(url).then((response) => {
-      if (response.result) {
-        const user = response.result
-        setUserName(user.name)
-      }
-    })
+  // Function to track video views in localStorage
+  const handleView = (videoId: string): void => {
+    const recentViews: Record<string, number> = JSON.parse(
+      localStorage.getItem('recentViews') || '{}',
+    )
+
+    // Update the view timestamp for the given video ID
+    recentViews[videoId] = Date.now()
+    localStorage.setItem('recentViews', JSON.stringify(recentViews))
+  }
+
+  const onVideoClick = (videoId: string) => {
+    handleView(videoId)
   }
 
   const myDescribedVideosUrl = process.env.REACT_APP_USE_YDX
@@ -53,54 +57,98 @@ const UserDescribedVideos = () => {
     ? `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/get-user-Ai-DescriptionRequests`
     : `${apiUrl}/users/get-user-Ai-DescriptionRequests`
 
+  const normalizeApiResponse = (
+    responseData: any,
+  ): { videos: any[]; total: number } => {
+    // If response is an array (first endpoint case), take the first item
+    if (Array.isArray(responseData)) {
+      return {
+        videos: responseData[0]?.videos || [],
+        total: responseData[0]?.total || 0,
+      }
+    }
+
+    // Otherwise, it's already in the desired object format (second and third endpoints)
+    return {
+      videos: responseData?.videos || [],
+      total: responseData?.total || 0,
+    }
+  }
+
   const getUserVideos = async (
     url: string,
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
     page: number,
   ) => {
-    let youTubeIds = ''
-    const youTubeVideoIds: string[] = []
-    const youDescribeVideosIds: string[] = []
-    const audioDescriptionIds: string[] = []
-
-    axios
-      .get(url, {
-        params: {
-          paginate: 'false',
-          page: page,
-        },
+    try {
+      // Step 1: Get video IDs from our backend (keep this part)
+      const response = await axios.get(url, {
+        params: { paginate: 'false', page },
         withCredentials: true,
       })
-      .then((response) => {
-        const videosArray = response.data.videos
-        const totalVideos = response.data.total
-        for (let i = 0; i < videosArray.length; i += 1) {
-          youTubeVideoIds.push(videosArray[i].youtube_video_id)
-          youDescribeVideosIds.push(videosArray[i].video_id)
-          audioDescriptionIds.push(videosArray[i].audio_description_id)
-        }
-        youTubeIds = youTubeVideoIds.join(',')
-        return { youTubeIds, totalVideos }
-      })
-      .then(({ youTubeIds, totalVideos }) => {
-        const url = `${youTubeApiUrl}/videos?id=${youTubeIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-        ourFetch(url).then((data) => {
-          window.localStorage.setItem(
-            'userVideosYoutubeData',
-            JSON.stringify(data),
-          )
-          const youTubeVideosArray = data
 
-          parseResponseData(
-            youTubeVideosArray,
-            youDescribeVideosIds,
-            audioDescriptionIds,
-            setStateFunction,
-            totalVideos,
-            page,
-          )
-        })
-      })
+      const normalizedData = normalizeApiResponse(response.data)
+
+      const videosArray = normalizedData.videos
+      const totalVideos = normalizedData.total
+
+      // If no videos, update state and hide spinner and load more button
+      if (!videosArray || videosArray.length === 0) {
+        setStateFunction([])
+
+        // Hide the appropriate "Load more" button based on which function is being called
+        if (setStateFunction === setVideos) {
+          setShowLoadMoreButton(false)
+        } else if (setStateFunction === setAIVideos) {
+          setShowLoadMoreAIButton(false)
+        } else if (setStateFunction === setVideosDraft) {
+          setShowLoadMoreDraftButton(false)
+        }
+
+        setShowSpinner(false)
+        return
+      }
+
+      // Extract required IDs
+      const youTubeVideoIds = videosArray.map(
+        (video: { youtube_video_id: any }) => video.youtube_video_id,
+      )
+      const youDescribeVideosIds = videosArray.map(
+        (video: { video_id: any }) => video.video_id,
+      )
+      const audioDescriptionIds = videosArray.map(
+        (video: { audio_description_id: any }) => video.audio_description_id,
+      )
+
+      // Step 2: Replace YouTube API call with YouTubeService
+      const videoDetails = await YouTubeService.getVideoDetails(youTubeVideoIds)
+
+      // Create compatible format for parseResponseData
+      const youTubeVideosArray = { items: videoDetails }
+
+      // Process the response (existing method)
+      parseResponseData(
+        youTubeVideosArray,
+        youDescribeVideosIds,
+        audioDescriptionIds,
+        setStateFunction,
+        totalVideos,
+        page,
+      )
+    } catch (error) {
+      console.error('Error fetching videos:', error)
+
+      // In case of error, hide the appropriate load more button
+      if (setStateFunction === setVideos) {
+        setShowLoadMoreButton(false)
+      } else if (setStateFunction === setAIVideos) {
+        setShowLoadMoreAIButton(false)
+      } else if (setStateFunction === setVideosDraft) {
+        setShowLoadMoreDraftButton(false)
+      }
+
+      setShowSpinner(false)
+    }
   }
 
   const parseResponseData = (
@@ -112,6 +160,7 @@ const UserDescribedVideos = () => {
     page: number,
   ) => {
     const videoComponents = []
+    // Determine which collection of videos we're working with
     const existingVideos =
       setStateFunction === setVideos
         ? videos
@@ -148,6 +197,7 @@ const UserDescribedVideos = () => {
             views={views}
             time={time}
             buttons="edit"
+            onClick={() => onVideoClick(youTubeId)}
           />
         </div>,
       )
@@ -155,6 +205,7 @@ const UserDescribedVideos = () => {
 
     const updatedVideos = [...existingVideos, ...videoComponents]
 
+    // Determine which state setter to use based on which category we're processing
     const loadMoreFlag =
       setStateFunction === setVideos
         ? setShowLoadMoreButton
@@ -162,7 +213,9 @@ const UserDescribedVideos = () => {
         ? setShowLoadMoreAIButton
         : setShowLoadMoreDraftButton
 
-    loadMoreFlag(totalVideos > page * 20)
+    // Show "Load more" button only if there are more videos to load
+    const currentTotal = updatedVideos.length
+    loadMoreFlag(totalVideos > currentTotal)
 
     const loadMoreSpinnerFlag =
       setStateFunction === setVideos
@@ -233,7 +286,6 @@ const UserDescribedVideos = () => {
 
   useEffect(() => {
     if (userId) {
-      getUserInfo()
       getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
     }
   }, [userId, currentPage])

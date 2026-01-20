@@ -5,12 +5,14 @@ import { translate } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import ClassicSpinner from '@/shared/components/ClassicSpinner/ClassicSpinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
-import { apiUrl, youTubeApiKey, youTubeApiUrl } from '@/shared/config'
+import { apiUrl, youTubeApiUrl, youTubeApiKey } from '@/shared/config'
 import convertISO8601ToSeconds from '@/shared/utils/convertISO8601ToSeconds'
 import convertSecondsToCardFormat from '@/shared/utils/convertSecondsToCardFormat'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import ourFetch from '@/shared/utils/ourFetch'
+import YouTubeService from '@/shared/utils/YouTubeService'
+import axios from 'axios'
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -24,13 +26,57 @@ const Search = () => {
   const [videoAlreadyOnYD, setVideoAlreadyOnYD] = useState<ReactNode[]>([])
   const [videosNotOnYD, setVideosNotOnYD] = useState<ReactNode[]>([])
   const [currentPage, setCurrentPage] = useState<number>(1)
+  // Store raw YouTube data for session restoration
+  const [youtubeRawData, setYoutubeRawData] = useState<any[]>([])
+
+  // Helper functions for YouTube search state persistence
+  const saveYouTubeSearchState = (ytResults: any[], query: string) => {
+    sessionStorage.setItem(
+      'youtubeSearchState',
+      JSON.stringify({
+        query,
+        results: ytResults,
+        timestamp: Date.now(),
+      }),
+    )
+  }
+
+  const restoreYouTubeSearchState = (currentQuery: string): any[] | null => {
+    const saved = sessionStorage.getItem('youtubeSearchState')
+    if (!saved) return null
+
+    try {
+      const { query, results, timestamp } = JSON.parse(saved)
+      // Only restore if same query and within 10 minutes
+      if (query === currentQuery && Date.now() - timestamp < 600000) {
+        return results
+      }
+    } catch (e) {
+      console.error('Error restoring YouTube search state:', e)
+    }
+    return null
+  }
 
   useEffect(() => {
     setLoadingYDVideos(true)
-    setLoadingYTVideos(true)
-    setVideoAlreadyOnYD([]) // Reset videoAlreadyOnYD to an empty array
-    setVideosNotOnYD([]) // Reset videosNotOnYD to an empty array
-    setShowYTButton(false) // Reset showYTButton state
+    setVideoAlreadyOnYD([])
+
+    // Check for cached YouTube results before resetting
+    const currentQuery = searchParams.get('q') ?? ''
+    const cachedYTResults = restoreYouTubeSearchState(currentQuery)
+
+    if (cachedYTResults && cachedYTResults.length > 0) {
+      // Restore YouTube search state from session
+      setShowYTButton(true)
+      setYoutubeRawData(cachedYTResults)
+      setLoadingYTVideos(false)
+      renderVideosFromYT(cachedYTResults)
+    } else {
+      setLoadingYTVideos(true)
+      setVideosNotOnYD([])
+      setShowYTButton(false)
+    }
+
     getSearchResultsFromYd(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
@@ -39,6 +85,8 @@ const Search = () => {
     return new Promise<void>((resolve, reject) => {
       const value = searchParams.get('q') ?? ''
       let query = (value || '').trim()
+
+      // Handle YouTube URL search
       if (
         value.match(
           /^https:\/\/(?:www\.)?youtube.com\/watch\?(?=v=\w+)(?:\S+)?$/g,
@@ -47,6 +95,7 @@ const Search = () => {
         const url = new URL(value)
         query = url.searchParams.get('v') ?? ''
       }
+
       const serverVideoIds: any[] = []
       const url = `${apiUrl}/videos/search?q=${query}&page=${page}`
 
@@ -62,16 +111,81 @@ const Search = () => {
             serverVideoIds.push(videoDbResponseVideos[i].youtube_id)
           }
 
-          const videoIds = serverVideoIds.join(',')
-          setVideoIDs(videoIds)
+          const videoIds = serverVideoIds
+          setVideoIDs(videoIds.join(','))
           return { videoDbResponseVideos, videoIds, query }
         })
         .then(({ videoDbResponseVideos, videoIds }) => {
-          fetchAndRenderVideoFromYD(videoDbResponseVideos, videoIds, page)
-          resolve()
+          // Use the new service to fetch video details
+          YouTubeService.getVideoDetails(videoIds)
+            .then((videoDetails) => {
+              // Create a map for easy access by ID
+              const videoMap = new Map()
+              videoDetails.forEach((video) => {
+                videoMap.set(video.id, video)
+              })
+
+              // Render videos
+              const videosAlreadyOnYD = page === 1 ? [] : [...videoAlreadyOnYD]
+
+              for (let i = 0; i < videoDbResponseVideos.length; i += 1) {
+                const video = videoDbResponseVideos[i]
+                const item = videoMap.get(video.youtube_id)
+
+                if (!item || !item.statistics || !item.snippet) {
+                  continue
+                }
+
+                const _id = video._id
+                const youTubeId = item.id
+                const thumbnailMedium = item.snippet.thumbnails.medium
+                const duration = convertSecondsToCardFormat(
+                  convertISO8601ToSeconds(item.contentDetails.duration),
+                )
+                const title = item.snippet.title
+                const description = item.snippet.description
+                const author = item.snippet.channelTitle
+                const views = convertViewsToCardFormat(
+                  Number(item.statistics.viewCount),
+                )
+                const publishedAt = new Date(item.snippet.publishedAt)
+                const now = Date.now()
+                const time = convertTimeToCardFormat(
+                  Number(now - publishedAt.getMilliseconds()),
+                )
+
+                videosAlreadyOnYD.push(
+                  <div className="col-sm-6 col-md-4 col-lg-3" key={_id}>
+                    <VideoCard
+                      key={_id}
+                      youTubeId={youTubeId}
+                      description={description}
+                      thumbnailMediumUrl={thumbnailMedium.url}
+                      duration={duration}
+                      title={title}
+                      author={author}
+                      views={views}
+                      time={time}
+                      buttons="none"
+                    />
+                  </div>,
+                )
+              }
+
+              setLoadingYDVideos(false)
+              setLoadMoreYDVideos(false)
+              setVideoAlreadyOnYD(videosAlreadyOnYD)
+              resolve()
+            })
+            .catch((error) => {
+              console.error('Error fetching video details:', error)
+              setLoadingYDVideos(false)
+              reject(error)
+            })
         })
         .catch((error) => {
           console.error('Error fetching search results:', error)
+          setLoadingYDVideos(false)
           reject(error)
         })
     })
@@ -81,6 +195,7 @@ const Search = () => {
     setLoadingYTVideos(true)
     const value = searchParams.get('q') ?? ''
     let query = (value || '').trim()
+
     if (
       value.match(
         /^https:\/\/(?:www\.)?youtube.com\/watch\?(?=v=\w+)(?:\S+)?$/g,
@@ -89,17 +204,25 @@ const Search = () => {
       const url = new URL(value)
       query = url.searchParams.get('v') ?? ''
     }
-    const urlForYD = `${youTubeApiUrl}/search?part=snippet&q=${query}&maxResults=50&key=${youTubeApiKey}`
-    ourFetch(urlForYD)
+
+    // Direct call to YouTube's API for search
+    const searchUrl = `${youTubeApiUrl}/search?part=snippet&q=${query}&maxResults=50&key=${youTubeApiKey}`
+
+    ourFetch(searchUrl)
       .then((videos: any) => {
         const videoFoundOnYTIds = []
         for (let i = 0; i < videos.items.length; i++) {
           const video = videos.items[i]
-          videoFoundOnYTIds.push(video.id.videoId)
+          if (video.id.kind === 'youtube#video') {
+            // Make sure we only get videos
+            videoFoundOnYTIds.push(video.id.videoId)
+          }
         }
         const idsYTvideo = videoFoundOnYTIds.join(',')
-        const urlForYT = `${youTubeApiUrl}/videos?id=${idsYTvideo}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-        return ourFetch(urlForYT)
+
+        // Direct call to YouTube's API for video details
+        const videoDetailsUrl = `${youTubeApiUrl}/videos?id=${idsYTvideo}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
+        return ourFetch(videoDetailsUrl)
       })
       .then((videosFromYouTube: any) => {
         const videoFromYoutube = videosFromYouTube.items
@@ -110,63 +233,6 @@ const Search = () => {
         console.error('Error fetching YouTube results:', error)
         setLoadingYTVideos(false)
       })
-  }
-
-  const fetchAndRenderVideoFromYD = (
-    videoDbResponseVideos: any[],
-    videoIds: string,
-    page = 1,
-  ) => {
-    const urlfForYT = `${youTubeApiUrl}/videos?id=${videoIds}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
-    ourFetch(urlfForYT).then((videoDataFromYDdatabase: any) => {
-      const videoFromYDdatabase = videoDataFromYDdatabase.items
-      console.log({ videoFromYDdatabase })
-      const videosAlreadyOnYD = page === 1 ? [] : [...videoAlreadyOnYD]
-      for (let i = 0; i < videoFromYDdatabase.length; i += 1) {
-        const item = videoFromYDdatabase[i]
-        if (!item.statistics || !item.snippet) {
-          continue
-        }
-        const _id = videoDbResponseVideos[i]._id
-        const youTubeId = item.id
-        const thumbnailMedium = item.snippet.thumbnails.medium
-        const duration = convertSecondsToCardFormat(
-          convertISO8601ToSeconds(item.contentDetails.duration),
-        )
-        const title = item.snippet.title
-        const description = item.snippet.description
-        const author = item.snippet.channelTitle
-        const views = convertViewsToCardFormat(
-          Number(item.statistics.viewCount),
-        )
-        const publishedAt = new Date(item.snippet.publishedAt)
-        const now = Date.now()
-        const time = convertTimeToCardFormat(
-          Number(now - publishedAt.getMilliseconds()),
-        )
-
-        videosAlreadyOnYD.push(
-          <div className="col-sm-6 col-md-4 col-lg-3" key={_id}>
-            <VideoCard
-              key={_id}
-              youTubeId={youTubeId}
-              description={description}
-              thumbnailMediumUrl={thumbnailMedium.url}
-              duration={duration}
-              title={title}
-              author={author}
-              views={views}
-              time={time}
-              buttons="none"
-            />
-          </div>,
-        )
-      }
-
-      setLoadingYDVideos(false)
-      setLoadMoreYDVideos(false)
-      setVideoAlreadyOnYD(videosAlreadyOnYD)
-    })
   }
 
   const renderVideosFromYT = (videoFromYoutube: any) => {
@@ -214,6 +280,11 @@ const Search = () => {
 
     setLoadingYTVideos(false)
     setVideosNotOnYD(videoNotOnYD)
+
+    // Save raw data for restoration on back navigation
+    const currentQuery = searchParams.get('q') ?? ''
+    setYoutubeRawData(videoFromYoutube)
+    saveYouTubeSearchState(videoFromYoutube, currentQuery)
   }
 
   const loadMoreVideosFromYD = () => {
@@ -314,10 +385,10 @@ const Search = () => {
             <div className="w3-margin-top w3-center load-more">
               <Button
                 onClick={showYTButtonHandler}
-                ariaLabel={translate('Search on Youtube')}
-                title={translate('Search on Youtube')}
+                ariaLabel={translate('Search on YouTube')}
+                title={translate('Search on YouTube')}
                 color="w3-indigo"
-                text={translate('Search on Youtube')}
+                text={translate('Search on YouTube')}
               />
             </div>
           )}
