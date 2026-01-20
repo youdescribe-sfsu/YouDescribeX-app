@@ -90,7 +90,7 @@ const DescriberCard = ({
         text={translate('Use description')}
         color="w3-indigo w3-block"
         onClick={() => handleDescriberChange(describerId)}
-      /> 
+      />
     )
   }
 
