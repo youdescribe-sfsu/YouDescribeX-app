@@ -1382,7 +1382,7 @@ const Video = () => {
       )
       return
     }
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-lana`
 
     try {
       setRequestAiDescription({
