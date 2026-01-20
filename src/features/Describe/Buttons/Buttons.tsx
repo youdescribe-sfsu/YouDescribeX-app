@@ -13,7 +13,7 @@ interface Props {
   isPreviewAudioDescription?: boolean
 }
 
-const Buttons = ({
+export const Buttons = ({
   setHandleClicksFromParent,
   handlePlayPause,
   isGloballyPaused,
@@ -30,7 +30,7 @@ const Buttons = ({
           {isPreviewAudioDescription ? (
             <button
               type="button"
-              className="btn btn-sm inline-bg text-dark ydx-button w-100"
+              className="btn btn-lg inline-bg text-dark ydx-button ydx-button--lg w-100"
               onClick={() => setHandleClicksFromParent('inline')}
             >
               <i className="fa fa-plus" /> {'   '}
@@ -42,7 +42,7 @@ const Buttons = ({
           {isPreviewAudioDescription ? (
             <button
               type="button"
-              className="btn btn-sm extended-bg text-white ydx-button w-100"
+              className="btn btn-lg extended-bg text-white ydx-button ydx-button--lg w-100"
               onClick={() => setHandleClicksFromParent('extended')}
             >
               <i className="fa fa-plus" /> {'   '}
@@ -72,5 +72,3 @@ const Buttons = ({
     </div>
   )
 }
-
-export default Buttons

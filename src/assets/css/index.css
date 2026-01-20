@@ -1,13 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap');
+
 .ydx-body {
   background-color: #383838;
   padding-top: 10px;
   padding-bottom: 40px;
   margin: 0;
   line-height: 1.6;
-  /* font-family: -apple-system, BlinkMacSystemFont, 'Fira Sans', 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Droid Sans', 'Helvetica Neue',
-    sans-serif; */
   font-family: 'EB Garamond', serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -22,27 +20,204 @@
     monospace;
 }
 
-.ydx-button {
-  box-shadow: 0px 0px 4px 1px rgb(206, 246, 240);
-}
-
-.ydx-button-lable {
-  margin-left: 10px;
-}
-
-.ydx-button:hover {
-  box-shadow: 0px 1px 4px 2px bisque, 0px 1px 2px 2px white;
-}
-
+/* Enhanced Design System with comprehensive spacing, colors, and typography */
 :root {
+  /* Color System - Organized by purpose and with better naming */
   --primary-color: #3f51b5;
   --extended-color: #9c27b0;
   --inline-color: #ffeb3b;
-  --success-color: #19887e;
+  --success-color: #4caf50;
   --inactive-color: #cdcdcd;
+
+  /* Enhanced color palette for better hierarchy */
+  --background-primary: #383838;
+  --background-secondary: #2a2a2a;
+  --background-tertiary: #444444;
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-accent: #ffeb3b;
+
+  /* Border and surface colors */
+  --border-primary: #555555;
+  --border-accent: #007bff;
+  --surface-elevated: #555555;
+  --surface-hover: #666666;
+
+  /* Spacing System - Creates consistent visual rhythm */
+  --space-xs: 0.25rem; /* 4px - for tight spacing */
+  --space-sm: 0.5rem; /* 8px - for small gaps */
+  --space-md: 1rem; /* 16px - for standard spacing */
+  --space-lg: 1.25rem; /* 20px - for section separation */
+  --space-xl: 1.75rem; /* 28px - for major section breaks */
+  --space-2xl: 2.5rem; /* 40px - for large separations */
+
+  --space-md-lg: 1.125rem; /* 18px - between md and lg */
+
+  /* Typography Scale - Creates clear information hierarchy */
+  --text-xs: 0.875rem; /* 14px - for small labels */
+  --text-sm: 1rem; /* 16px - for secondary text */
+  --text-base: 1.125rem; /* 18px - for body text */
+  --text-lg: 1.25rem; /* 20px - for emphasized text */
+  --text-xl: 1.375rem; /* 22px - for section headers */
+  --text-2xl: 1.5rem; /* 24px - for main headers */
+
+  /* Border Radius System - For consistent shape language */
+  --radius-sm: 0.25rem; /* 4px - for small elements */
+  --radius-md: 0.5rem; /* 8px - for standard components */
+  --radius-lg: 0.75rem; /* 12px - for cards and major elements */
+
+  /* Shadow System - For depth and elevation */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Animation durations for consistent motion */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
 }
 
-/* remove box shadow for Toasts */
+/* Enhanced Button System - Replaces inconsistent button styling */
+.ydx-button {
+  /* Base button styling with better visual hierarchy */
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-base);
+  font-weight: 500;
+  transition: all var(--duration-fast) ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+
+  /* Improved shadow system for better depth perception */
+  box-shadow: var(--shadow-sm);
+}
+
+.ydx-button:hover {
+  /* Enhanced hover state with better visual feedback */
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.ydx-button:active {
+  /* Better active state for tactile feedback */
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Button variants for different purposes */
+.ydx-button--primary {
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+}
+
+.ydx-button--success {
+  background-color: var(--success-color);
+  color: var(--text-primary);
+}
+
+.ydx-button--danger {
+  background-color: #dc3545;
+  color: var(--text-primary);
+}
+
+.ydx-button--secondary {
+  background-color: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
+/* Button sizes for better hierarchy */
+.ydx-button--sm {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-xs);
+}
+
+.ydx-button--lg {
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--text-lg);
+}
+
+/* Disabled state improvements */
+.ydx-button:disabled,
+.disabled-btn {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Enhanced Input System - Creates consistent form styling */
+.ydx-input {
+  background-color: var(--background-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  font-size: var(--text-base);
+  transition: border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+}
+
+.ydx-input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Enhanced Card System - For better content organization */
+.ydx-card {
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--duration-normal) ease;
+}
+
+.ydx-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Typography utility classes for consistent text hierarchy */
+.text-hierarchy-primary {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+
+.text-hierarchy-secondary {
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.text-hierarchy-tertiary {
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+/* Layout utility classes for consistent spacing */
+.spacing-section {
+  margin-bottom: var(--space-xl);
+}
+
+.spacing-component {
+  margin-bottom: var(--space-lg);
+}
+
+.spacing-element {
+  margin-bottom: var(--space-md);
+}
+
+/* Remove box shadow for Toasts - keeping existing functionality */
 .Toastify__close-button {
   box-shadow: none;
 }
@@ -50,16 +225,37 @@
   box-shadow: none;
 }
 
-/* italics for placeholders in text area */
+/* Enhanced placeholder styling */
 ::-webkit-input-placeholder {
   font-style: italic;
+  color: var(--text-secondary);
 }
 :-moz-placeholder {
   font-style: italic;
+  color: var(--text-secondary);
 }
 ::-moz-placeholder {
   font-style: italic;
+  color: var(--text-secondary);
 }
 :-ms-input-placeholder {
   font-style: italic;
+  color: var(--text-secondary);
+}
+
+.save-desc-btn {
+  background-color: var(--success-color) !important;
+  padding: var(--space-sm) var(--space-lg) !important;
+  font-size: var(--text-lg) !important;
+  font-weight: 600 !important;
+  border: 2px solid var(--success-color) !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--text-primary) !important;
+}
+
+.save-desc-btn:hover {
+  background-color: #45a049 !important;
+  border-color: #45a049 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-lg) !important;
 }

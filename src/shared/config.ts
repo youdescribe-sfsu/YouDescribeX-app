@@ -19,9 +19,8 @@ const youTubeApiUrl =
   'https://www.googleapis.com/youtube/v3'
 
 // YouDescribe APIKey
-const youTubeApiKey =
-  process.env.REACT_APP_YOUTUBE_API_KEY ||
-  'AIzaSyBQFD0fJoEO2l8g0OIrqbtjj2qXXVNO__U'
+const youTubeApiKey = process.env.REACT_APP_YOUTUBE_API_KEY
+//   'AIzaSyBQFD0fJoEO2l8g0OIrqbtjj2qXXVNO__U'
 
 // YouDescribe Google Client Id
 const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID
@@ -58,6 +57,6 @@ export {
   nudgeIncrementDecrementValue,
   seekToPositionDelayFix,
   startDateTimeStamp,
-  youTubeApiKey,
   youTubeApiUrl,
+  youTubeApiKey,
 }

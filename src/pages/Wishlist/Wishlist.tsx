@@ -2,12 +2,9 @@ import { translate, userDataStore } from '@/App'
 import Button from '@/shared/components/Button/Button'
 import Spinner from 'react-bootstrap/Spinner'
 import VideoCard from '@/shared/components/VideoCard/VideoCard'
-import { apiUrl } from '@/shared/config'
 import axios, { CancelTokenSource } from 'axios'
 import convertTimeToCardFormat from '@/shared/utils/convertTimeToCardFormat'
 import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
-// import getTimeZoneOffset from '@/shared/utils/getTimeZoneOffset'
-import ourFetch from '@/shared/utils/ourFetch'
 import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react'
 import DataTable, { Media, TableColumn } from 'react-data-table-component'
 import { useNavigate } from 'react-router-dom'
@@ -15,6 +12,8 @@ import Select, { MultiValue } from 'react-select'
 import './wishlist.scss'
 import { toast } from 'react-toastify'
 import parseISO8601Duration from '@/shared/utils/convertISO8601ToTime'
+import YouTubeService from '@/shared/utils/YouTubeService'
+import { useSearchParams } from 'react-router-dom'
 
 interface VideosState {
   data: any[]
@@ -119,19 +118,23 @@ const Wishlist = () => {
     useState<VideosState | null>(null)
   const [, setRecentAIRequestedSpinner] = useState(true) // For loading state
 
+  const [isSearching, setIsSearching] = useState(false)
+
   const [, setShowWishlistSpinner] = useState(true)
-  // const [youTubeIds, setYouTubeIds] = useState<string[]>([])
-  // const [youDescribeIds, setYouDescribeIds] = useState<string[]>([])
-  // const [votes, setVotes] = useState<number[]>([])
-  // const [updatedAt, setUpdatedAt] = useState<string[]>([])
-  // const [categories, setCategories] = useState<string[]>([])
+  const [searchParams, setSearchParams] = useSearchParams()
   const [rows, setRows] = useState<any[]>([])
   const [videoCardsComponents, setVideoCardsComponents] = useState<ReactNode[]>(
     [],
   )
   const [showSpinner, setShowSpinner] = useState(true)
+  // Add search cache state
+  const [searchCache, setSearchCache] = useState<{ [key: string]: any }>({})
 
   const cancelRequest = useRef<CancelTokenSource | null>(null)
+
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+    null,
+  )
 
   const caseInsensitiveSort = (rowA: any, rowB: any) => {
     const a = rowA.title.toLowerCase()
@@ -233,16 +236,65 @@ const Wishlist = () => {
 
   const fetchVideoDetails = async (videoIds: string[]) => {
     try {
-      // Your logic for fetching video details goes here
-      // Make sure to handle errors appropriately
-      const url = `${apiUrl}/videos/getyoutubedatafromcache?youtubeids=${videoIds.join(
-        ',',
-      )}&key=wishlist`
-      const response = await ourFetch(url)
-      return response.result
+      return await YouTubeService.getVideoDetails(videoIds)
     } catch (error) {
       console.error('Error fetching video details:', error)
-      throw error // Rethrow the error for handling in the calling function
+      throw error
+    }
+  }
+
+  // Function to restore the last state from session storage
+  const restoreLastState = () => {
+    const lastStateString = sessionStorage.getItem('wishlistLastState')
+    if (lastStateString) {
+      try {
+        const lastState = JSON.parse(lastStateString)
+
+        // Update URL parameters if they're not already set
+        setSearchParams((params) => {
+          let paramsChanged = false
+
+          if (lastState.search && !params.has('search')) {
+            params.set('search', lastState.search)
+            paramsChanged = true
+          }
+
+          if (
+            lastState.selectedCategories?.length &&
+            !params.has('categories')
+          ) {
+            params.set('categories', lastState.selectedCategories.join(','))
+            paramsChanged = true
+          }
+
+          if (lastState.currentPageNumber && !params.has('page')) {
+            params.set('page', lastState.currentPageNumber.toString())
+            paramsChanged = true
+          }
+
+          if (lastState.perPage && !params.has('perPage')) {
+            params.set('perPage', lastState.perPage.toString())
+            paramsChanged = true
+          }
+
+          if (lastState.sortField && !params.has('sortField')) {
+            params.set('sortField', lastState.sortField)
+            paramsChanged = true
+          }
+
+          if (lastState.sortDirection && !params.has('sortDirection')) {
+            params.set('sortDirection', lastState.sortDirection)
+            paramsChanged = true
+          }
+
+          return paramsChanged ? params : params
+        })
+
+        // Clear the stored state
+        sessionStorage.removeItem('wishlistLastState')
+      } catch (error) {
+        console.error('Error restoring last state:', error)
+      }
     }
   }
 
@@ -254,6 +306,8 @@ const Wishlist = () => {
   ) => {
     const pageNumber = dataState?.currentPage || 1
 
+    const isAIDescriptions = url.includes('get-All-AI-descriptions')
+
     try {
       const response = await axios.get(url, {
         params: {
@@ -263,9 +317,12 @@ const Wishlist = () => {
       })
 
       const totalVideosLength = response.data.totalVideos
-      const calculatedTotalVideoPages = Math.ceil(
-        totalVideosLength / itemsPerPage,
+
+      const calculatedTotalVideoPages = Math.max(
+        1,
+        Math.ceil(totalVideosLength / itemsPerPage),
       )
+
       const wishListItems = response.data.result
       const topYouTubeIds = []
       const topYouDescribeIds = []
@@ -284,30 +341,30 @@ const Wishlist = () => {
         })
       }
 
-      const youTubeResponse = await fetchVideoDetails(topYouTubeIds)
+      const youTubeVideos = await fetchVideoDetails(topYouTubeIds)
       const videoCardsComponents = []
 
-      for (let i = 0; i < youTubeResponse.items.length; i += 1) {
-        const item = youTubeResponse.items[i]
-        if (!item.statistics || !item.snippet) {
+      for (let i = 0; i < youTubeVideos.length; i += 1) {
+        const item = youTubeVideos[i]
+        if (!item?.snippet || !item?.statistics) {
           continue
         }
 
         const _id = topYouDescribeIds[i]
         const youTubeId = item.id
-        const thumbnailMedium = item.snippet.thumbnails.medium
-        const title = item.snippet.title
-        const description = item.snippet.description
-        const author = item.snippet.channelTitle
+        const thumbnailMedium = item.snippet?.thumbnails?.medium || { url: '' }
+        const title = item.snippet?.title || 'Untitled'
+        const description = item.snippet?.description || ''
+        const author = item.snippet?.channelTitle || 'Unknown'
         const views = convertViewsToCardFormat(
-          Number(item.statistics.viewCount),
+          Number(item.statistics?.viewCount || 0),
         )
-        const publishedAt = new Date(item.snippet.publishedAt)
+        const publishedAt = new Date(item.snippet?.publishedAt || new Date())
         const now = Date.now()
         const votes = topVotes[i]
         const aiRequested = aiReq[i]
         const time = convertTimeToCardFormat(
-          Number(now - publishedAt.getMilliseconds()),
+          Number(now - publishedAt.getTime()), // Fixed: getTime() instead of getMilliseconds()
         )
         videoCardsComponents.push(
           <div className="wishlist-video-card" key={_id}>
@@ -320,9 +377,23 @@ const Wishlist = () => {
               views={views}
               time={time}
               votes={votes}
-              buttons="upvote-describe"
-              userVote={true}
+              buttons={isAIDescriptions ? 'view-only' : 'upvote-describe'}
+              userVote={!isAIDescriptions}
               aiRequested={aiRequested}
+              onClick={async () => {
+                setShowSpinner(true)
+                await loadTopVideos()
+                await loadTableVideos(currentPageNumber, perPage)
+                if (userDataStore.getState().isSignedIn) {
+                  await fetchAndSetVideosData(
+                    wishlistData,
+                    setShowWishlistSpinner,
+                    wishlistUrl,
+                    setWishlistData,
+                  )
+                }
+                setShowSpinner(false)
+              }}
             />
           </div>,
         )
@@ -336,11 +407,10 @@ const Wishlist = () => {
       }
 
       setVideosData(newVideosData)
-
       setLoadingState(false)
     } catch (error) {
       console.error('Error fetching and setting wish list data:', error)
-      // Handle the error as needed
+      setLoadingState(false)
     }
   }
 
@@ -386,6 +456,19 @@ const Wishlist = () => {
 
   const describeThisVideo = (youTubeId: string) => {
     if (userDataStore.getState().isSignedIn) {
+      // Store the current state before navigating
+      sessionStorage.setItem(
+        'wishlistLastState',
+        JSON.stringify({
+          search,
+          selectedCategories,
+          currentPageNumber,
+          perPage,
+          sortField: searchParams.get('sortField') || '',
+          sortDirection: searchParams.get('sortDirection') || '',
+        }),
+      )
+
       axios
         .post(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-new-user-ad`,
@@ -418,11 +501,77 @@ const Wishlist = () => {
 
   const wishlistUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-user-wishlist`
   const aiRequestedUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-All-AI-descriptions`
+
+  // In the useEffect where we read URL parameters
   useEffect(() => {
     document.title = translate('YouDescribe - Wish List')
-    loadTableVideos(currentPageNumber, perPage)
-    loadTopVideos()
 
+    console.log('Component mounted, reading URL parameters...')
+
+    // CRITICAL: First try to restore session state (for users returning from video description)
+    restoreLastState()
+
+    // Read URL parameters to restore search state - DON'T clear them!
+    const searchParam = searchParams.get('search') || ''
+    const categoriesParam = searchParams.get('categories')
+    const pageParam = searchParams.get('page')
+    const perPageParam = searchParams.get('perPage')
+    const sortFieldParam = searchParams.get('sortField')
+    const sortDirectionParam = searchParams.get('sortDirection')
+
+    console.log('URL parameters found:', {
+      search: searchParam,
+      categories: categoriesParam,
+      page: pageParam,
+    })
+
+    // Set states from URL parameters
+    setSearch(searchParam)
+
+    let categoryValues: string[] = []
+    if (categoriesParam) {
+      categoryValues = categoriesParam
+        .split(',')
+        .map((cat) => decodeURIComponent(cat))
+      setSelectedCategories(categoryValues)
+    } else {
+      setSelectedCategories([])
+    }
+
+    const parsedPage = pageParam ? parseInt(pageParam, 10) : 1
+    setCurrentPageNumber(parsedPage)
+
+    const parsedPerPage = perPageParam ? parseInt(perPageParam, 10) : 10
+    setPerPage(parsedPerPage)
+
+    // IMPORTANT: Auto-execute search if URL has search criteria
+    // This ensures back button works correctly
+    if (
+      searchParam ||
+      categoriesParam ||
+      (pageParam && parseInt(pageParam, 10) > 1)
+    ) {
+      console.log('Auto-executing search from URL parameters')
+      setIsSearching(true) // Show loading immediately
+
+      // Small delay to ensure state has been set
+      setTimeout(() => {
+        loadTableVideos(
+          parsedPage,
+          parsedPerPage,
+          sortFieldParam || '',
+          sortDirectionParam || '',
+          searchParam,
+          categoryValues,
+        )
+      }, 100)
+    } else {
+      // Load default data for fresh visits
+      loadTableVideos(1, parsedPerPage, '', '', '', [])
+    }
+
+    // Load supporting sections
+    loadTopVideos()
     fetchAndSetVideosData(
       wishlistData,
       setShowWishlistSpinner,
@@ -435,24 +584,60 @@ const Wishlist = () => {
       aiRequestedUrl,
       setrecentAIRequested,
     )
+  }, [])
 
-    // fetchAndSetWishlistData(wishlistData, setShowWishlistSpinner)
-  }, [userDataStore.getState().userId])
-
-  /*
-    Loads data for the table using the /wishlist/search endpoint
-    The endpoint requires the following query parameters
-      - page: The page number to be fetched
-      - perPage: Number of items to be displayed on each page
-      - search: The search string to be passed (joined with the %20 separator)
-      - category: The list of categories that the search should be filtered by. Each category is comma separated and joined with the %20 separator.
-  */
   const loadTableVideos = (
     pageNumber: number,
     rowsPerPage: number,
     column = '',
     sortDirection = '',
+    searchParam?: string,
+    categoryValues?: string[],
   ) => {
+    // Cache cleanup logic (keep your existing cache cleanup code here)
+    const now = Date.now()
+    const cacheEntries = Object.keys(searchCache)
+    if (cacheEntries.length > 0) {
+      setSearchCache((prevCache) => {
+        const cleanCache = { ...prevCache }
+        let hasChanges = false
+
+        cacheEntries.forEach((key) => {
+          const entry = cleanCache[key]
+          if (!entry.timestamp || now - entry.timestamp > 120000) {
+            delete cleanCache[key]
+            hasChanges = true
+          }
+        })
+
+        return hasChanges ? cleanCache : prevCache
+      })
+    }
+
+    // Use provided parameters or fall back to state values
+    const searchValue = searchParam !== undefined ? searchParam : search
+    const categoryValue =
+      categoryValues !== undefined ? categoryValues : selectedCategories
+
+    const cacheKey = `${searchValue}_${categoryValue.join(
+      ',',
+    )}_${pageNumber}_${rowsPerPage}_${column}_${sortDirection}`
+
+    // Check if we have cached results
+    if (searchCache[cacheKey]) {
+      console.log('Using cached search results')
+      const { wishListItems, totalItems } = searchCache[cacheKey]
+      setTotalRows(totalItems)
+
+      const { youTubeIds, votes, categories, updatedAt, aiRequested } =
+        wishListItems
+      YouTubeService.getVideoDetails(youTubeIds).then((videoDetails) => {
+        parseTableData(videoDetails, votes, categories, updatedAt, aiRequested)
+        setIsSearching(false) // Hide loading when done
+      })
+      return
+    }
+
     const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-all-wishlist`
     axios
       .post(
@@ -460,26 +645,32 @@ const Wishlist = () => {
         {
           page: pageNumber,
           limit: rowsPerPage,
-          search: search,
-          category: selectedCategories,
+          search: searchValue,
+          category: categoryValue,
           sortField: column,
           sort: sortDirection,
         },
         {
           withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
       )
       .then((response) => {
+        // Your existing response processing code
         const wishListItems = response.data.data
-        setTotalRows(response.data.totalItems)
-        // const wishListItems = responseData.data
-        // setTotalRows(responseData.totalItems)
-        const youTubeIds = []
+        const totalItems = response.data.totalItems
+        setTotalRows(totalItems)
+
+        // Cache and process data (keep your existing logic)
+        const youTubeIds: any[] = []
         const youDescribeIds = []
-        const votes = []
-        const updatedAt = []
-        const categories = []
-        const aiRequested = []
+        const votes: any[] = []
+        const updatedAt: any[] = []
+        const categories: any[] = []
+        const aiRequested: any[] = []
+
         for (let i = 0; i < wishListItems.length; i += 1) {
           youTubeIds.push(wishListItems[i].youtube_id)
           youDescribeIds.push(wishListItems[i]._id)
@@ -488,53 +679,155 @@ const Wishlist = () => {
           categories.push(wishListItems[i].category)
           aiRequested.push(wishListItems[i].aiRequested)
         }
-        // setYouTubeIds(youTubeIds)
-        // setYouDescribeIds(youDescribeIds)
-        // setVotes(votes)
-        // setUpdatedAt(updatedAt)
-        // setCategories(categories)
+
+        setSearchCache((prevCache) => ({
+          ...prevCache,
+          [cacheKey]: {
+            wishListItems: {
+              youTubeIds,
+              votes,
+              updatedAt,
+              categories,
+              aiRequested,
+            },
+            totalItems,
+            timestamp: Date.now(),
+          },
+        }))
+
         return { youTubeIds, votes, categories, updatedAt, aiRequested }
       })
       .then(({ youTubeIds, votes, categories, updatedAt, aiRequested }) => {
-        const url = `${
-          process.env.REACT_APP_YDX_BACKEND_URL
-        }/api/videos/getyoutubedatafromcache?youtubeids=${youTubeIds.join(
-          ',',
-        )}&key=wishlist`
-        ourFetch(url).then((response) => {
+        YouTubeService.getVideoDetails(youTubeIds).then((videoDetails) => {
           parseTableData(
-            response.result,
+            videoDetails,
             votes,
             categories,
             updatedAt,
             aiRequested,
           )
+          setIsSearching(false) // Hide loading when completely done
         })
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('Error fetching wishlist data:', error)
         setTotalRows(0)
         setRows([])
+        setIsSearching(false) // Hide loading on error too
       })
   }
 
+  const SimpleLoadingMessage = () => {
+    if (!isSearching) return null
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #dee2e6',
+          borderRadius: '8px',
+          margin: '15px 0',
+          color: '#495057',
+        }}
+      >
+        <div
+          style={{
+            marginRight: '12px',
+            fontSize: '18px',
+            animation: 'spin 1s linear infinite',
+          }}
+        >
+          ⟳
+        </div>
+        <span style={{ fontSize: '16px', fontWeight: '500' }}>
+          Please wait while we search...
+        </span>
+      </div>
+    )
+  }
+
+  const UpdatedSearchForm = () => (
+    <form
+      onSubmit={(e: any) => {
+        e.preventDefault()
+        executeSearch()
+      }}
+    >
+      <div className="w3-row-padding classic-container search-container">
+        <span className="category-label">Category</span>
+        <div className="category-select">
+          <Select
+            options={allCategories.map((category) => {
+              const option = { value: category, label: category }
+              if (category === 'How-To & Style') {
+                option.value = 'Howto & Style'
+              }
+              return option
+            })}
+            placeholder="All"
+            isMulti
+            onChange={handleCategoryChange}
+            value={selectedCategories.map((cat) => ({
+              value: cat,
+              label: cat,
+            }))}
+            isDisabled={isSearching} // Disable during search
+          />
+        </div>
+        <span className="search-label">Wishlist Search</span>
+        <input
+          type="text"
+          placeholder="Search Wishlist"
+          className="search-input"
+          value={search}
+          onChange={handleChange}
+          disabled={isSearching} // Disable during search
+        />
+      </div>
+
+      {/* Simple loading message */}
+      <SimpleLoadingMessage />
+
+      <div className="search-button-container">
+        <button
+          className="w3-btn w3-indigo search-button"
+          onClick={(e) => {
+            e.preventDefault()
+            executeSearch()
+          }}
+          type="submit"
+          disabled={isSearching} // Disable during search
+        >
+          {isSearching ? 'Searching...' : 'Search'}
+        </button>
+      </div>
+    </form>
+  )
+
   const parseTableData = (
-    youTubeResponse: any,
+    youTubeVideos: any[],
     votes: any,
     categories: any,
     updatedAt: any,
     aiRequested: any,
   ) => {
     const rows = []
-    for (let i = 0; i < youTubeResponse.items.length; i += 1) {
-      const item = youTubeResponse.items[i]
-      if (!item.statistics || !item.snippet) {
+    for (let i = 0; i < youTubeVideos.length; i += 1) {
+      const item = youTubeVideos[i]
+      if (!item?.statistics || !item?.snippet) {
         continue
       }
       const youTubeId = item.id
-      const thumbnailMedium = item.snippet.thumbnails.medium
-      const title = item.snippet.title
-      const author = item.snippet.channelTitle
-      const duration = parseISO8601Duration(item.contentDetails.duration)
+      const thumbnailMedium = item.snippet?.thumbnails?.medium || {}
+      const title = item.snippet?.title || 'Untitled'
+      const author = item.snippet?.channelTitle || 'Unknown'
+      const duration = parseISO8601Duration(
+        item.contentDetails?.duration || 'PT0S',
+      )
       const now = Date.now() + new Date().getTimezoneOffset() * 60000
       const lastUpdatedAt = String(updatedAt[i])
 
@@ -602,14 +895,10 @@ const Wishlist = () => {
       })
       .then(
         ({ topYouTubeIds, topYouDescribeIds, topVotes, votedArr, aiReq }) => {
-          const url = `${
-            process.env.REACT_APP_YDX_BACKEND_URL
-          }/api/videos/getyoutubedatafromcache?youtubeids=${topYouTubeIds.join(
-            ',',
-          )}&key=wishlist`
-          ourFetch(url).then((response) => {
+          YouTubeService.getVideoDetails(topYouTubeIds).then((videoDetails) => {
+            // Pass the array directly without wrapping it
             parseFetchedData(
-              response.result,
+              videoDetails,
               topYouDescribeIds,
               topYouTubeIds,
               topVotes,
@@ -622,7 +911,7 @@ const Wishlist = () => {
   }
 
   const parseFetchedData = (
-    youTubeResponse: any,
+    youTubeVideos: any[],
     topYouDescribeIds: any,
     topYouTubeIds: any,
     topVotes: any,
@@ -630,26 +919,29 @@ const Wishlist = () => {
     aiReq: any,
   ) => {
     const videoCardsComponents = []
-    for (let i = 0; i < youTubeResponse.items.length; i += 1) {
-      const item = youTubeResponse.items[i]
-      if (!item.statistics || !item.snippet) {
+    let validVideoIndex = 0 // Track index for valid videos
+    for (let i = 0; i < youTubeVideos.length; i += 1) {
+      const item = youTubeVideos[i]
+      if (!item?.snippet || !item?.statistics) {
         continue
       }
-      const _id = topYouDescribeIds[i]
+      const _id = topYouDescribeIds[validVideoIndex]
       const youTubeId = item.id
-      const thumbnailMedium = item.snippet.thumbnails.medium
-      const title = item.snippet.title
-      const description = item.snippet.description
-      const author = item.snippet.channelTitle
-      const views = convertViewsToCardFormat(Number(item.statistics.viewCount))
-      const publishedAt = new Date(item.snippet.publishedAt)
-      const now = Date.now()
-      const votes = topVotes[i]
-      const aiRequested = aiReq[i]
-      const time = convertTimeToCardFormat(
-        Number(now - publishedAt.getMilliseconds()),
+      const thumbnailMedium = item.snippet?.thumbnails?.medium || {}
+      const title = item.snippet?.title || 'Untitled'
+      const description = item.snippet?.description || ''
+      const author = item.snippet?.channelTitle || 'Unknown'
+      const views = convertViewsToCardFormat(
+        Number(item.statistics?.viewCount || 0),
       )
-      const voted = votedArr[i]?.voted
+      const publishedAt = new Date(item.snippet?.publishedAt || new Date())
+      const now = Date.now()
+      const votes = topVotes[validVideoIndex]
+      const aiRequested = aiReq[validVideoIndex]
+      const time = convertTimeToCardFormat(
+        Number(now - publishedAt.getTime()), // Fixed: getTime() instead of getMilliseconds()
+      )
+      const voted = votedArr[validVideoIndex]?.voted
 
       videoCardsComponents.push(
         <div className="wishlist-video-card" key={_id}>
@@ -665,52 +957,201 @@ const Wishlist = () => {
             buttons="upvote-describe"
             userVote={voted}
             aiRequested={aiRequested}
-
-            //   getAppState={this.props.getAppState}
           />
         </div>,
       )
+      validVideoIndex++
     }
     setShowSpinner(false)
     setVideoCardsComponents(videoCardsComponents)
   }
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value)
+    const newSearchValue = event.target.value
+    setSearch(newSearchValue) // Only update local state, don't trigger search
   }
 
   const handleCategoryChange = (
     selectedCategories: MultiValue<{ value: string; label: string }>,
   ) => {
     const values = Array.from(selectedCategories, (option) => option.value)
-    setSelectedCategories(values)
+    setSelectedCategories(values) // Only update local state, don't trigger search
+
+    // Don't update URL params here - only update when search button is clicked
+  }
+
+  const executeSearch = () => {
+    console.log('Manual search initiated:', { search, selectedCategories })
+
+    // Show simple loading
+    setIsSearching(true)
+
+    // Reset to page 1 for new searches
+    setCurrentPageNumber(1)
+
+    // Update URL to reflect search state (essential for bookmarking/back button)
+    setSearchParams((params) => {
+      params.set('search', search)
+      params.set('page', '1')
+
+      if (selectedCategories.length > 0) {
+        // Properly encode categories for URL
+        const encodedCategories = selectedCategories
+          .map((cat) => encodeURIComponent(cat))
+          .join(',')
+        params.set('categories', encodedCategories)
+      } else {
+        params.delete('categories')
+      }
+
+      return params
+    })
+
+    // Execute the search
+    loadTableVideos(1, perPage, '', '', search, selectedCategories)
   }
 
   const handlePageChange = (page: number) => {
     setCurrentPageNumber(page)
-    loadTableVideos(page, perPage)
+    setIsSearching(true) // Show loading for page changes
+
+    // Update URL to reflect new page while preserving search parameters
+    setSearchParams((params) => {
+      params.set('page', page.toString())
+      return params
+    })
+
+    // Load data for new page with current search context
+    loadTableVideos(
+      page,
+      perPage,
+      searchParams.get('sortField') || '',
+      searchParams.get('sortDirection') || '',
+      search,
+      selectedCategories,
+    )
   }
 
   const handlePerRowsChange = (newPerPage: number) => {
     setPerPage(newPerPage)
-    loadTableVideos(currentPageNumber, newPerPage)
+    setIsSearching(true) // Show loading for per-page changes
+
+    // Calculate appropriate page number for new page size
+    const currentFirstItem = (currentPageNumber - 1) * perPage + 1
+    const newPageNumber = Math.max(1, Math.ceil(currentFirstItem / newPerPage))
+    setCurrentPageNumber(newPageNumber)
+
+    // Update URL with perPage and adjusted page parameter
+    setSearchParams((params) => {
+      params.set('perPage', newPerPage.toString())
+      params.set('page', newPageNumber.toString())
+      return params
+    })
+
+    // Load data with new pagination settings
+    loadTableVideos(
+      newPageNumber,
+      newPerPage,
+      searchParams.get('sortField') || '',
+      searchParams.get('sortDirection') || '',
+      search,
+      selectedCategories,
+    )
   }
+
+  useEffect(() => {
+    return () => {
+      // Cleanup timeout when component unmounts
+      if (searchTimeout) {
+        clearTimeout(searchTimeout)
+      }
+    }
+  }, [searchTimeout])
 
   return (
     <main id="wish-list" title="Wish list page" className="wish-list">
-      <div className="w3-container w3-indigo">
-        <h2 id="wish-list-heading" className="classic-h2" tabIndex={-1}>
-          {translate('WISHLIST')}
-        </h2>
-      </div>
+      {/*<div className="w3-container w3-indigo">*/}
+      {/*  <h2 id="wish-list-heading" className="classic-h2" tabIndex={-1}>*/}
+      {/*    {translate('WISHLIST')}*/}
+      {/*  </h2>*/}
+      {/*</div>*/}
 
-      <section className="top-requested-section">
-        <div className="w3-row-padding classic-container w3-margin-top most-requested-title">
-          Top 5 Most Requested Videos
-        </div>
-        {showSpinner ? <Spinner /> : null}
-        <div className="w3-row-padding classic-container wishlist-video-row">
-          {videoCardsComponents}
+      {/*<section className="top-requested-section">*/}
+      {/*  <div className="w3-row-padding classic-container w3-margin-top most-requested-title">*/}
+      {/*    Top 5 Most Requested Videos*/}
+      {/*  </div>*/}
+      {/*  {showSpinner ? <Spinner /> : null}*/}
+      {/*  <div className="w3-row-padding classic-container wishlist-video-row">*/}
+      {/*    {videoCardsComponents}*/}
+      {/*  </div>*/}
+      {/*</section>*/}
+
+      <section className="recent-ai-descriptions-section">
+        <header className="w3-container w3-indigo">
+          <h2 className="classic-h2">{translate('RECENT AI DESCRIPTIONS')}</h2>
+        </header>
+
+        <div className="custom-carousel">
+          {!userDataStore.getState().isSignedIn ? (
+            <div className="empty-state-message">
+              <i className="fas fa-lock auth-required-icon"></i>
+              <p className="auth-required-text">
+                {translate('Log in to view recent AI-generated descriptions')}
+              </p>
+            </div>
+          ) : (
+            <>
+              {!recentAIRequested && <CustomSpinner />}
+              {recentAIRequested && recentAIRequested?.data.length > 0 && (
+                <>
+                  <CustomButton
+                    className="prev-wishlist-icon"
+                    onClick={() =>
+                      handlePreviousPage(
+                        recentAIRequested,
+                        setRecentAIRequestedSpinner,
+                        aiRequestedUrl,
+                        setrecentAIRequested,
+                      )
+                    }
+                    disabled={recentAIRequested.currentPage === 1}
+                  >
+                    &lt;
+                  </CustomButton>
+
+                  <div className="wishlist-video-row">
+                    {recentAIRequested.data}
+                  </div>
+
+                  <CustomButton
+                    className="next-wishlist-icon"
+                    onClick={() =>
+                      handleNextPage(
+                        recentAIRequested,
+                        setRecentAIRequestedSpinner,
+                        aiRequestedUrl,
+                        setrecentAIRequested,
+                      )
+                    }
+                    disabled={
+                      recentAIRequested.currentPage ===
+                      recentAIRequested.totalPages
+                    }
+                  >
+                    &gt;
+                  </CustomButton>
+                </>
+              )}
+              {recentAIRequested?.data.length === 0 && (
+                <div className="no-videos-message">
+                  <i className="fas fa-video-slash no-videos-icon"></i>
+                  <p className="no-videos-text">
+                    {translate('No AI Requested Videos')}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </section>
 
@@ -719,144 +1160,71 @@ const Wishlist = () => {
           <h2 className="classic-h2">{translate('MY WISHLIST')}</h2>
         </header>
 
-        {userDataStore.getState().isSignedIn ? (
-          <div className="d-flex justify-content-center custom-carousel">
-            <div className="custom-carousel">
+        <div className="custom-carousel">
+          {!userDataStore.getState().isSignedIn ? (
+            <div className="empty-state-message">
+              <i className="fas fa-lock auth-required-icon"></i>
+              <p className="auth-required-text">
+                {translate('Log in to create and view your personal wishlist')}
+              </p>
+            </div>
+          ) : (
+            <>
               {!wishlistData && <CustomSpinner />}
               {wishlistData && wishlistData?.data.length > 0 && (
-                <div className="d-flex justify-content-between align-items-center h-100">
+                <>
                   <CustomButton
                     className="prev-wishlist-icon"
-                    onClick={async () => {
-                      setShowWishlistSpinner(true)
+                    onClick={() =>
                       handlePreviousPage(
                         wishlistData,
                         setShowWishlistSpinner,
                         wishlistUrl,
                         setWishlistData,
                       )
-                      setShowWishlistSpinner(false)
-                    }}
+                    }
                     disabled={wishlistData.currentPage === 1}
                   >
                     &lt;
                   </CustomButton>
 
-                  <div className="w3-row classic-container wishlist-video-row ">
-                    {wishlistData.data}
-                  </div>
+                  <div className="wishlist-video-row">{wishlistData.data}</div>
 
                   <CustomButton
                     className="next-wishlist-icon"
-                    onClick={async () => {
-                      setShowWishlistSpinner(true)
+                    onClick={() =>
                       handleNextPage(
                         wishlistData,
                         setShowWishlistSpinner,
                         wishlistUrl,
                         setWishlistData,
                       )
-                      setRecentAIRequestedSpinner(false)
-                    }}
+                    }
                     disabled={
                       wishlistData.currentPage === wishlistData.totalPages
                     }
                   >
                     &gt;
                   </CustomButton>
-                </div>
+                </>
               )}
-
               {wishlistData?.data.length === 0 && (
                 <div className="no-videos-message">
-                  {translate('No videos in your wishlist')}
+                  <i className="fas fa-video-slash no-videos-icon"></i>
+                  <p className="no-videos-text">
+                    {translate('No videos in your wishlist')}
+                  </p>
                 </div>
               )}
-            </div>
-          </div>
-        ) : (
-          <div className="login-prompt">
-            <p>
-              {translate('Log in to create and view your personal wishlist')}
-            </p>
-          </div>
-        )}
-      </section>
-
-      <section className="recent-ai-descriptions-section">
-        <header className="w3-container w3-indigo">
-          <h2 className="classic-h2">{translate('RECENT AI DESCRIPTIONS')}</h2>
-        </header>
-
-        {userDataStore.getState().isSignedIn ? (
-          <div className="d-flex justify-content-center custom-carousel">
-            <div className="custom-carousel">
-              {!recentAIRequested && <CustomSpinner />}
-              {recentAIRequested && recentAIRequested?.data.length > 0 && (
-                <div className="d-flex justify-content-between align-items-center h-100">
-                  <CustomButton
-                    className="prev-wishlist-icon"
-                    onClick={async () => {
-                      setRecentAIRequestedSpinner(true)
-                      handlePreviousPage(
-                        recentAIRequested,
-                        setRecentAIRequestedSpinner,
-                        aiRequestedUrl,
-                        setrecentAIRequested,
-                      )
-                      setRecentAIRequestedSpinner(false)
-                    }}
-                    disabled={recentAIRequested.currentPage === 1}
-                  >
-                    &lt;
-                  </CustomButton>
-
-                  <div className="w3-row classic-container wishlist-video-row ">
-                    {recentAIRequested.data}
-                  </div>
-
-                  <CustomButton
-                    className="next-wishlist-icon"
-                    onClick={async () => {
-                      setRecentAIRequestedSpinner(true)
-                      handleNextPage(
-                        recentAIRequested,
-                        setRecentAIRequestedSpinner,
-                        aiRequestedUrl,
-                        setrecentAIRequested,
-                      )
-                      setRecentAIRequestedSpinner(false)
-                    }}
-                    disabled={
-                      recentAIRequested.currentPage ===
-                      recentAIRequested.totalPages
-                    }
-                  >
-                    &gt;
-                  </CustomButton>
-                </div>
-              )}
-
-              {recentAIRequested?.data.length === 0 && (
-                <div className="no-videos-message">
-                  {translate('No AI Requested Videos')}
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="login-prompt">
-            <p>
-              {translate('Log in to view recent AI-generated descriptions')}
-            </p>
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </section>
 
       <form
         onSubmit={(e: any) => {
           e.preventDefault()
-          loadTableVideos(0, perPage)
+          executeSearch()
         }}
       >
         <div className="w3-row-padding classic-container search-container">
@@ -873,6 +1241,11 @@ const Wishlist = () => {
               placeholder="All"
               isMulti
               onChange={handleCategoryChange}
+              value={selectedCategories.map((cat) => ({
+                value: cat,
+                label: cat,
+              }))}
+              isDisabled={isSearching} // Disable during search
             />
           </div>
           <span className="search-label">Wishlist Search</span>
@@ -882,18 +1255,28 @@ const Wishlist = () => {
             className="search-input"
             value={search}
             onChange={handleChange}
+            disabled={isSearching} // Disable during search
           />
         </div>
+
+        {/* Simple loading message */}
+        <SimpleLoadingMessage />
+
         <div className="search-button-container">
           <button
             className="w3-btn w3-indigo search-button"
-            onClick={() => loadTableVideos(0, perPage)}
+            onClick={(e) => {
+              e.preventDefault()
+              executeSearch()
+            }}
             type="submit"
+            disabled={isSearching} // Disable during search
           >
-            Search
+            {isSearching ? 'Searching...' : 'Search'}
           </button>
         </div>
       </form>
+
       <div className="table-container">
         <DataTable
           title="All Wishlist Videos"
@@ -903,12 +1286,35 @@ const Wishlist = () => {
           pagination
           paginationServer
           paginationTotalRows={totalRows}
+          paginationDefaultPage={currentPageNumber}
           onChangePage={(page) => handlePageChange(page)}
           onSort={(column, direction) => {
-            loadTableVideos(0, perPage, column.sortField, direction)
+            setIsSearching(true) // Show loading for sort operations
+
+            // Update URL with sort parameters
+            setSearchParams((params) => {
+              if (column.sortField) {
+                params.set('sortField', column.sortField.toString())
+                params.set('sortDirection', direction)
+              } else {
+                params.delete('sortField')
+                params.delete('sortDirection')
+              }
+              return params
+            })
+            loadTableVideos(
+              currentPageNumber, // KEEP current page, don't reset
+              perPage,
+              column.sortField,
+              direction,
+              search,
+              selectedCategories,
+            )
           }}
           sortServer
           onChangeRowsPerPage={(newPerPage) => handlePerRowsChange(newPerPage)}
+          defaultSortFieldId={searchParams.get('sortField') || undefined}
+          defaultSortAsc={searchParams.get('sortDirection') === 'asc'}
           customStyles={{
             cells: {
               style: {

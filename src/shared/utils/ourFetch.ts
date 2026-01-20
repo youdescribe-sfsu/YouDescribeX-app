@@ -18,10 +18,6 @@ const ourFetch = (
   },
 ): Promise<Response> => {
   return new Promise<Response>((resolve, reject) => {
-    console.log('ourFetch called with URL:', url)
-    console.log('Method:', optionObj.method)
-    console.log('Headers:', optionObj.headers)
-
     const req = new XMLHttpRequest()
 
     // Check if the URL is absolute
@@ -37,10 +33,6 @@ const ourFetch = (
     }
 
     req.onload = () => {
-      console.log('XHR onload triggered')
-      console.log('Status:', req.status)
-      console.log('Response:', req.response)
-
       if (req.status === 200) {
         if (JSONparsing) {
           resolve(JSON.parse(req.response))

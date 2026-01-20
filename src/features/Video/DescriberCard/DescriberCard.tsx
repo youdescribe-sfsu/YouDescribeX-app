@@ -20,6 +20,7 @@ interface Props {
   videoId?: string
   collaborativeEdit?: boolean
   contributions: Map<string, number>
+  displayContributions?: { [key: string]: number }
 }
 
 const DescriberCard = ({
@@ -37,11 +38,11 @@ const DescriberCard = ({
   videoId,
   collaborativeEdit,
   contributions,
+  displayContributions, // Add this new prop
 }: Props) => {
   const navigate = useNavigate()
   const getButton = (): ReactNode => {
     const userName = userDataStore.getState().userName
-    console.log('checking describerid', selectedDescriberId)
     const isDescriber = name === userName
     if (describerId === selectedDescriberId) {
       return isDescriber ? (
@@ -57,14 +58,14 @@ const DescriberCard = ({
           <Button
             ariaLabel={translate("Rate this describer's audio description")}
             title={translate("Rate this describer's audio description")}
-            text={translate('Rate description')}
+            text={translate('Rate Description')}
             color="w3-indigo w3-block w3-margin-top"
             onClick={() => handleRatingPopup()}
           />
           <Button
             ariaLabel={translate('Provide feedback for this describer')}
             title={translate('Provide feedback for this describer')}
-            text={translate('Optional feedback')}
+            text={translate('Optional Feedback')}
             color="w3-indigo w3-block w3-margin-top"
             onClick={() => handleFeedbackPopup()}
           />
@@ -74,7 +75,7 @@ const DescriberCard = ({
                 'Provide Collaborative edit for this describer',
               )}
               title={translate('Provide Collaborative edit for this describer')}
-              text={translate('Collaborative edit')}
+              text={translate('Collaborative Edit')}
               color="w3-lime w3-block w3-margin-top"
               onClick={() => handleNewCollabEdit(describerId)}
             />
@@ -120,6 +121,13 @@ const DescriberCard = ({
   }
 
   const getDisplayedName = (): string => {
+    // First check if displayContributions exists and has entries
+    if (displayContributions && Object.keys(displayContributions).length > 1) {
+      const keysArray = Array.from(Object.keys(displayContributions))
+      return keysArray.join('/')
+    }
+
+    // Fall back to the original implementation for backward compatibility
     if (!contributions || contributions.size <= 1) {
       return name
     }
@@ -128,17 +136,36 @@ const DescriberCard = ({
   }
 
   const renderContributionBars = () => {
-    if (!contributions || contributions.size <= 1) {
+    // Use displayContributions if available, otherwise fall back to contributions
+    const contribSource =
+      displayContributions && Object.keys(displayContributions).length > 0
+        ? displayContributions
+        : contributions
+
+    // Skip rendering if there's only one or no contributors
+    if (
+      !contribSource ||
+      (typeof contribSource.size === 'number'
+        ? contribSource.size <= 1
+        : Object.keys(contribSource).length <= 1)
+    ) {
       return null
     }
 
-    const maxContribution = Math.max(
-      ...Array.from(Object.values(contributions)),
-    )
+    // Get values to calculate max contribution
+    const contribValues =
+      typeof contribSource.size === 'number'
+        ? Array.from(Object.values(contribSource))
+        : Object.values(contribSource)
+
+    const maxContribution = Math.max(...contribValues)
 
     return (
       <div className="contribution-bars">
-        {Array.from(Object.entries(contributions)).map(([id, contribution]) => (
+        {(typeof contribSource.size === 'number'
+          ? Array.from(Object.entries(contribSource))
+          : Object.entries(contribSource)
+        ).map(([id, contribution]) => (
           <div key={id} className="contribution-bar">
             <div>{id}</div>
             <div>

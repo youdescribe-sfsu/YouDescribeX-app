@@ -33,33 +33,57 @@
   background-color: #ffffff;
 }
 
-/* pushing the timeline div a bit higher */
-.div-below-hr {
-  margin-top: -10px;
-  margin-bottom: 2.2rem;
+/* Timeline Section Redesign - Balanced Version */
+.timeline-section-wrapper {
+  margin-bottom: 2rem;
+  padding: 1rem 0;
 }
 
-/* dialog timeline */
-/* label of dialog timeline */
-.dialog-timeline-text {
-  font-size: large;
-  height: 120%;
+.timeline-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  margin-bottom: 1rem;
+  color: white;
 }
-/* white div - dialog timeline */
-.timeline-div {
+
+.timeline-title {
+  font-size: large;
+  font-weight: bold;
+  margin: 0;
+}
+
+.clips-count {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.timeline-container-wrapper {
+  position: relative;
+  width: 85%;
+  margin: 0 auto;
+}
+
+.timeline-track-wrapper {
   height: 20px;
   background-color: white;
-  outline: 1.8px #e4a48b solid;
+  border: 1.8px solid #e4a48b;
   border-radius: 10px;
   position: relative;
+  width: 100%;
 }
+
+.timeline-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* draggable component - div - dialog timeline */
 .draggable-div {
   position: relative;
 }
+
 /* red draggable div progress bar - dialog timeline */
 .progress-bar-div {
   /* float: 'left'; */
@@ -69,7 +93,7 @@
   background-color: red;
   position: absolute;
   z-index: 1;
-  margin-top: -14px;
+  top: -12px;
 }
 /* time of the progress-bar draggable */
 .progress-bar-time {
