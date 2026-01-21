@@ -202,32 +202,32 @@ const App = () => {
         url = `${apiUrl}/auth/login/success`
       }
 
-      if (process.env.REACT_APP_ENVIRONMENT === 'development') {
-        const authUser = process.env.REACT_APP_USER_ID || ''
-        url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google/localhost`
-        if (authUser) {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              Authorization: authUser,
-            },
-            credentials: 'include',
-          })
-          const data = await response.json()
+      // if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+      //   const authUser = process.env.REACT_APP_USER_ID || ''
+      //   url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/auth/google/localhost`
+      //   if (authUser) {
+      //     const response = await fetch(url, {
+      //       method: 'GET',
+      //       headers: {
+      //         Authorization: authUser,
+      //       },
+      //       credentials: 'include',
+      //     })
+      //     const data = await response.json()
 
-          setUserData(data.result)
-          handleRedirect()
-        }
-      } else {
-        const response = await fetch(url, {
-          credentials: 'include',
-        })
-        const data = await response.json()
+      //     setUserData(data.result)
+      //     handleRedirect()
+      //   }
+      // } else {
+      const response = await fetch(url, {
+        credentials: 'include',
+      })
+      const data = await response.json()
 
-        setUserData(data.result)
-        handleRedirect()
-      }
+      setUserData(data.result)
+      handleRedirect()
     } catch (error) {
+      //}
       console.error('Login error:', error)
     }
   }
