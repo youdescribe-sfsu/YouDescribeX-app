@@ -668,6 +668,12 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               } else {
                 setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
               }
+              // Remove previous green border and add to current clip
+              const prevelement = document.querySelectorAll('.green-border')
+              prevelement.forEach((elem) =>
+                elem.classList.remove('green-border'),
+              )
+              scrollToAudioClipCard(updatedClip.clip_id)
             }
           }
         }
@@ -760,6 +766,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             } else {
               setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
             }
+            // Remove previous green border and add to current clip
+            const prevelement = document.querySelectorAll('.green-border')
+            prevelement.forEach((elem) => elem.classList.remove('green-border'))
+            scrollToAudioClipCard(updatedClip.clip_id)
           }
         }
 
@@ -801,6 +811,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           } else {
             setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
           }
+          // Remove previous green border and add to current clip
+          const prevelement = document.querySelectorAll('.green-border')
+          prevelement.forEach((elem) => elem.classList.remove('green-border'))
+          scrollToAudioClipCard(updatedClip.clip_id)
         }
       } catch (error) {
         console.error('Error checking playback type:', error)
