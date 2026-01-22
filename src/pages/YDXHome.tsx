@@ -722,6 +722,11 @@ const YDXHome = (): React.ReactElement => {
               } else {
                 setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
               }
+              const prevelement = document.querySelectorAll('.green-border')
+              prevelement.forEach((elem) =>
+                elem.classList.remove('green-border'),
+              )
+              scrollToAudioClipCard(updatedClip.clip_id)
             }
           }
         }
@@ -825,6 +830,9 @@ const YDXHome = (): React.ReactElement => {
             } else {
               setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
             }
+            const prevelement = document.querySelectorAll('.green-border')
+            prevelement.forEach((elem) => elem.classList.remove('green-border'))
+            scrollToAudioClipCard(updatedClip.clip_id)
           }
         }
 
@@ -873,9 +881,26 @@ const YDXHome = (): React.ReactElement => {
           } else {
             setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
           }
+          const prevelement = document.querySelectorAll('.green-border')
+          prevelement.forEach((elem) => elem.classList.remove('green-border'))
+          scrollToAudioClipCard(updatedClip.clip_id)
         }
       } catch (error) {
         console.error('Error checking playback type:', error)
+      }
+    }
+  }
+
+  const scrollToAudioClipCard = (clipId: string) => {
+    const element = document.getElementById(`audio-clip-card-${clipId}`)
+    if (element) {
+      const list = audioClipsListRef.current
+      element?.classList.add('green-border')
+      if (list) {
+        const listTop = list.getBoundingClientRect().top
+        const elementTop = element.offsetTop + 60
+        const scrollTop = elementTop - listTop - list.clientTop
+        list.scrollTo({ top: scrollTop, behavior: 'smooth' })
       }
     }
   }
