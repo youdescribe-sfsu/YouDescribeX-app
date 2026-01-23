@@ -144,10 +144,10 @@ class YouTubeService {
       }
 
       // Make request to our backend proxy
-      const backendUrl = process.env.REACT_APP_YDX_BACKEND_URL || apiUrl
+      const backendUrl = process.env.REACT_APP_YDX_BACKEND_URL
       const response = await axios.get(
         `${backendUrl}/api/youtube-proxy/videos?id=${batchIds.join(',')}`,
-        { withCredentials: true },
+        { withCredentials: false },
       )
 
       return response.data?.items || []
