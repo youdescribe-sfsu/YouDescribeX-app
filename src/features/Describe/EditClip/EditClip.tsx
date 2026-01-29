@@ -312,17 +312,11 @@ const EditClip = ({
   }, [status])
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
-    if (status === 'recording') {
-      interval = setInterval(updateRecordingDuration, 100)
-    }
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [status, updateRecordingDuration])
-
-  useEffect(() => {
-    if (recordedClipDuration > 0 && clipDuration > 0) {
+    if (
+      recordedClipDuration > 0 &&
+      clipDuration > 0 &&
+      !isIntegratedRecordingMode
+    ) {
       const difference = Math.abs(recordedClipDuration - clipDuration)
       if (difference > 0.1) {
         console.log(
@@ -331,7 +325,7 @@ const EditClip = ({
         setRecordedClipDuration(clipDuration) // Backend wins
       }
     }
-  }, [recordedClipDuration, clipDuration])
+  }, [recordedClipDuration, clipDuration, isIntegratedRecordingMode])
 
   // Enhanced timing input rendering functions
   const handleClipStartTimeInputsRender = () => {
