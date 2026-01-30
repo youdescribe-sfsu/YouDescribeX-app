@@ -43,7 +43,7 @@ const InsertPublish = ({
   const [showInlineACComponent, setShowInlineACComponent] = useState(false)
   const [showNewACComponent, setShowNewACComponent] = useState(false)
   const [isModal, setIsModal] = useState(false)
-  const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(true)
+  const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(false)
 
   const handleClickInsertInline = (e: any) => {
     e.preventDefault()
