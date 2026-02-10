@@ -80,7 +80,7 @@ const NewAudioClipComponent = ({
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRecording, updateRecordingDuration])
+  }, [status, updateRecordingDuration])
 
   const handleClipStartTimeInputsRender = () => {
     const cardFormat = convertSecondsToCardFormat(currentTime).split(':')
