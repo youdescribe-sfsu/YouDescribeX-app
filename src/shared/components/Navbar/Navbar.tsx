@@ -71,12 +71,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
             <img
               alt="YouDescribe home"
               height="100%"
-              src={path.join(
-                __dirname,
-                'assets',
-                'img',
-                'youdescribe_logo_full_(indigo_and_grey).png',
-              )}
+              src={path.join(__dirname, 'assets', 'img', 'YD_Logo_Color.png')}
             />
           </Link>
 
@@ -84,12 +79,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
             <img
               alt="YouDescribe home"
               height="100%"
-              src={path.join(
-                __dirname,
-                'assets',
-                'img',
-                'youdescribe_logo_small_(indigo_and_grey).png',
-              )}
+              src={path.join(__dirname, 'assets', 'img', 'YD_Icon_Navy.png')}
             />
           </Link>
 
