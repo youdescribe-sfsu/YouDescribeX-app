@@ -361,14 +361,18 @@ const Home = () => {
       // Track existing videos to prevent duplicates
       const existingIds = new Set(existingVideoData.map((v) => v.youTubeId))
 
+      // ⭐ FIX: Also track videos being added in current batch
+      const currentBatchIds = new Set<string>()
+
       // Process new videos maintaining backend order
       const newVideosData: VideoData[] = []
 
       for (const ydxVideo of ydxVideos) {
         const youtubeId = ydxVideo.youtube_id
 
-        // Skip if already displayed
-        if (existingIds.has(youtubeId)) {
+        // ⭐ FIX: Check both existing AND current batch
+        if (existingIds.has(youtubeId) || currentBatchIds.has(youtubeId)) {
+          console.log(`Skipping duplicate video: ${youtubeId}`)
           continue
         }
 
@@ -403,6 +407,8 @@ const Home = () => {
             ydxVideo.latest_audio_description_updated_at || 0,
         }
 
+        // ⭐ FIX: Mark this video as processed in current batch
+        currentBatchIds.add(youtubeId)
         newVideosData.push(videoData)
       }
 
