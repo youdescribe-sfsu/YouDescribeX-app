@@ -35,9 +35,9 @@
 }
 
 @media screen and (max-width: 992px) {
-    .navbar-logo-img {
-      height: 40px;
-    }
+  .navbar-logo-img {
+    height: 40px;
+  }
 }
 
 /* Search area */
