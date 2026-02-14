@@ -62,7 +62,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
           zIndex: 1,
         }}
       >
-        <div className="w3-bar w3-white w3-card-2 w3-text-indigo">
+        <div className="navbar-bar">
           <Link to="/home" id="logo" className="navbar-logo-link">
             <img
               alt="YouDescribe home"
@@ -76,68 +76,31 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
             />
           </Link>
 
-          <div className="w3-left">
+          <div className="navbar-search-area">
             <SearchBar />
           </div>
 
-          {/* Right-sided navbar links */}
-          <div className="w3-right w3-hide-small w3-hide-medium">
-            <Link
-              to={myHistoryUrl}
-              className="classic-link w3-bar-item"
-              style={{ position: 'relative', top: '11px' }}
-            >
-              <i className="fa fa-home" aria-hidden="true">
-                &nbsp;&nbsp;
-              </i>
+          {/* Right-sided navbar links (desktop) */}
+          <div className="navbar-links w3-hide-small w3-hide-medium">
+            <Link to={myHistoryUrl} className="nav-link-item">
+              <i className="fa fa-home" aria-hidden="true" />
               {translate('HISTORY')}
             </Link>
-            <Link
-              to="/wishlist"
-              className="classic-link w3-bar-item"
-              style={{ position: 'relative', top: '11px' }}
-            >
-              <i className="fa fa-heart" aria-hidden="true">
-                &nbsp;&nbsp;
-              </i>
+            <Link to="/wishlist" className="nav-link-item">
+              <i className="fa fa-heart" aria-hidden="true" />
               {translate('WISHLIST')}
             </Link>
-            {/* <a
-              // href={`${process.env.REACT_APP_REDIRECT_URL}support`}
-              href={`${apiUrl}support`}
-              target="_self"
-              className="classic-link w3-bar-item w3-small"
-              style={{ position: 'relative', top: '11px', padding: '8px' }}
-              rel="noreferrer"
-            >
-              <i className="fa fa-question-circle" aria-hidden="true">
-                &nbsp;&nbsp;
-              </i>
-              {translate('SUPPORT')}
-            </a> */}
-            <Link
-              to="/support"
-              className="classic-link w3-bar-item"
-              style={{ position: 'relative', top: '11px' }}
-            >
-              <i className="fa fa-question-circle" aria-hidden="true">
-                &nbsp;&nbsp;
-              </i>
+            <Link to="/support" className="nav-link-item">
+              <i className="fa fa-question-circle" aria-hidden="true" />
               {translate('SUPPORT')}
             </Link>
-            <div
-              className="w3-bar-item"
-              style={{ position: 'relative', top: '2px' }}
-            >
-              {signInComponent()}
-            </div>
+            <div className="nav-sign-in">{signInComponent()}</div>
           </div>
 
-          {/* Hide right-floated links on small screens and replace them with a menu icon */}
+          {/* Hamburger menu for mobile */}
           <a
             aria-hidden="true"
-            className="w3-bar-item w3-right w3-hide-large"
-            style={{ position: 'relative', top: '8px' }}
+            className="navbar-hamburger w3-hide-large"
             onClick={navMenuOpen}
           >
             <i className="fa fa-bars" aria-hidden="true" />
@@ -152,7 +115,7 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
         style={{ display: 'none' }}
       >
         <a onClick={navMenuClose} className="w3-large w3-padding-16">
-          {translate('Close')} ×
+          {translate('Close')} &times;
         </a>
         <Link
           to="/"
