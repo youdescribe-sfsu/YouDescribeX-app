@@ -63,23 +63,16 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
         }}
       >
         <div className="w3-bar w3-white w3-card-2 w3-text-indigo">
-          <Link
-            to="/home"
-            id="logo"
-            className="w3-bar-item w3-hide-small w3-hide-medium logo"
-          >
+          <Link to="/home" id="logo" className="navbar-logo-link">
             <img
               alt="YouDescribe home"
-              height="100%"
-              src={path.join(__dirname, 'assets', 'img', 'YD_Logo_Color.png')}
-            />
-          </Link>
-
-          <Link to="/home" id="logo" className="w3-bar-item w3-hide-large logo">
-            <img
-              alt="YouDescribe home"
-              height="100%"
-              src={path.join(__dirname, 'assets', 'img', 'YD_Icon_Navy.png')}
+              className="navbar-logo-img"
+              src={path.join(
+                __dirname,
+                'assets',
+                'img',
+                'YD_Logo_Horizontal.png',
+              )}
             />
           </Link>
 
