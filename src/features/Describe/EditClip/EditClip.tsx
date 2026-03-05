@@ -393,7 +393,7 @@ const EditClip = ({
       tempStartTimeHours * 3600 +
       clipStartTimeMinutes * 60 +
       clipStartTimeSeconds +
-      clipStartTimeMilliSeconds / 1000
+      clipStartTimeMilliSeconds / 100
 
     calculateClipStartTimeinSeconds(
       clipStartTimeMilliSeconds,
@@ -482,7 +482,7 @@ const EditClip = ({
     minutes: number,
     seconds: number,
   ) => {
-    const calculatedSeconds = +milliseconds / 1000 + +minutes * 60 + +seconds
+    const calculatedSeconds = +milliseconds / 100 + +minutes * 60 + +seconds
 
     // Validate timing constraints based on playback type
     if (clipPlaybackType === 'inline') {

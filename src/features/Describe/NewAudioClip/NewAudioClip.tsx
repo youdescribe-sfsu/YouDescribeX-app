@@ -128,7 +128,7 @@ const NewAudioClipComponent = ({
       clipStartTimeHours * 3600 +
       clipStartTimeMinutes * 60 +
       clipStartTimeSeconds +
-      clipStartTimeMilliSeconds / 1000
+      clipStartTimeMilliSeconds / 100
     )
   }
 
