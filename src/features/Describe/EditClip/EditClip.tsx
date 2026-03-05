@@ -91,7 +91,7 @@ const EditClip = ({
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0)
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0)
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0.0)
-  const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] =
+  const [clipStartTimeCentiseconds, setClipStartTimeCentiseconds] =
     useState(0.0)
   const [clipDurationHours, setClipDurationHours] = useState(0.0)
   const [clipDurationMinutes, setClipDurationMinutes] = useState(0.0)
@@ -333,7 +333,7 @@ const EditClip = ({
     setClipStartTimeHours(parseInt(cardFormat[0]))
     setClipStartTimeMinutes(parseInt(cardFormat[1]))
     setClipStartTimeSeconds(parseInt(cardFormat[2]))
-    setClipStartTimeMilliSeconds(parseInt(cardFormat[3]))
+    setClipStartTimeCentiseconds(parseInt(cardFormat[3]))
   }
 
   const handleClipEndTimeInputsRender = () => {
@@ -358,8 +358,8 @@ const EditClip = ({
     setClipStartTimeSeconds(Number(e.target.value))
   }
 
-  const handleOnChangeClipStartTimeMilliSeconds = (e: any) => {
-    setClipStartTimeMilliSeconds(Number(e.target.value))
+  const handleOnChangeClipStartTimeCentiseconds = (e: any) => {
+    setClipStartTimeCentiseconds(Number(e.target.value))
   }
 
   // Individual blur handlers with field-specific validation
@@ -393,10 +393,10 @@ const EditClip = ({
       tempStartTimeHours * 3600 +
       clipStartTimeMinutes * 60 +
       clipStartTimeSeconds +
-      clipStartTimeMilliSeconds / 100
+      clipStartTimeCentiseconds / 100
 
     calculateClipStartTimeinSeconds(
-      clipStartTimeMilliSeconds,
+      clipStartTimeCentiseconds,
       clipStartTimeMinutes,
       clipStartTimeSeconds,
     )
@@ -420,7 +420,7 @@ const EditClip = ({
     }
 
     calculateClipStartTimeinSeconds(
-      clipStartTimeMilliSeconds,
+      clipStartTimeCentiseconds,
       tempStartTimeMinutes,
       clipStartTimeSeconds,
     )
@@ -444,7 +444,7 @@ const EditClip = ({
     }
 
     calculateClipStartTimeinSeconds(
-      clipStartTimeMilliSeconds,
+      clipStartTimeCentiseconds,
       clipStartTimeMinutes,
       tempStartTimeSeconds,
     )
@@ -452,23 +452,23 @@ const EditClip = ({
     handleClipEndTimeInputsRender()
   }
 
-  const handleBlurClipStartTimeMilliSeconds = (e: any) => {
-    let tempStartTimeMilliSeconds = clipStartTimeMilliSeconds
+  const handleBlurClipStartTimeCentiseconds = (e: any) => {
+    let tempStartTimeCentiseconds = clipStartTimeCentiseconds
 
     if (e.target.value.length === 1) {
-      setClipStartTimeMilliSeconds(Number(e.target.value + '0'))
-      tempStartTimeMilliSeconds = Number(e.target.value + '0')
+      setClipStartTimeCentiseconds(Number(e.target.value + '0'))
+      tempStartTimeCentiseconds = Number(e.target.value + '0')
       if (parseInt(e.target.value + '0') >= 100) {
-        setClipStartTimeMilliSeconds(99)
-        tempStartTimeMilliSeconds = 99
+        setClipStartTimeCentiseconds(99)
+        tempStartTimeCentiseconds = 99
       }
     } else if (e.target.value.length === 0) {
-      setClipStartTimeMilliSeconds(0)
-      tempStartTimeMilliSeconds = 0
+      setClipStartTimeCentiseconds(0)
+      tempStartTimeCentiseconds = 0
     }
 
     calculateClipStartTimeinSeconds(
-      tempStartTimeMilliSeconds,
+      tempStartTimeCentiseconds,
       clipStartTimeMinutes,
       clipStartTimeSeconds,
     )
@@ -1115,9 +1115,9 @@ const EditClip = ({
                   <input
                     type="number"
                     className="modern-time-input"
-                    value={padNumber(clipStartTimeMilliSeconds)}
-                    onChange={handleOnChangeClipStartTimeMilliSeconds}
-                    onBlur={handleBlurClipStartTimeMilliSeconds}
+                    value={padNumber(clipStartTimeCentiseconds)}
+                    onChange={handleOnChangeClipStartTimeCentiseconds}
+                    onBlur={handleBlurClipStartTimeCentiseconds}
                     min="0"
                     max="99"
                     onKeyDown={(evt) =>
