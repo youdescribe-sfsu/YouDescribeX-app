@@ -763,26 +763,176 @@ const Video = () => {
   const updateTime = (time: number) => {
     const prevTime = currentTimeRef.current // Capture BEFORE update
     setCurrentTime(time)
-    playAudioAtCurrentTime(time, prevTime)
+    playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
     setPreviousTime(time)
   }
 
   const playAudioAtCurrentTime = async (
     updatedCurrentTime: number,
-    prevTime: number,
+    playedAudioClip: string,
+    playedClipPath: string,
   ) => {
-    if (currentStateRef.current !== 1) return // Only play when video is playing
+    // playing
+    if (currentState === 1) {
+      if (clipStackRef.current.length === 0) {
+        return
+      }
+      if (
+        currentInlineACRef.current?.playing() ||
+        currentExtendedACRef.current?.playing()
+      ) {
+        return
+      }
 
-    // LAYER 1: Detection - Find clips to play
-    const clipsToPlay = findClipsToPlay(updatedCurrentTime, prevTime)
+      if (clipStackRef.current[0].playback_type === 'inline') {
+        const nextClip = clipStackRef.current[0]
+        const isTimeToPlay =
+          (nextClip.clip_start_time <= currentTimeRef.current &&
+            nextClip.clip_end_time >= currentTimeRef.current) ||
+          (nextClip.clip_start_time <= currentTimeRef.current &&
+            nextClip.clip_start_time >= previousTimeRef.current)
 
-    // LAYER 2: Verification - Play only unplayed clips
-    for (const clip of clipsToPlay) {
-      await verifyAndPlayClip(clip, updatedCurrentTime)
+        if (isTimeToPlay) {
+          // --- EXISTING, WORKING LOGIC FOR PLAYING INLINE CLIPS ---
+          console.warn(
+            'An inline clip is supposed to be playing right now',
+            currentTimeRef.current,
+          )
+          if (currentInlineACRef.current?.playing()) {
+            return
+          }
+          const currentFilteredClip = nextClip
+          const currentAudio = currentFilteredClip.clip_audio
+          const seekTime =
+            currentTimeRef.current - currentFilteredClip.clip_start_time
+          if (seekTime < 0) {
+            return
+          }
+          currentAudio?.seek(seekTime)
+          currentAudio?.play()
+          setCurrInlineAC(currentAudio)
+          setPlayedAudioClip(currentFilteredClip.clip_id)
+          setRecentAudioPlayedTime(currentTimeRef.current)
+          const clipAudioPath = currentFilteredClip.clip_audio_path
+          if (clipAudioPath !== playedClipPath) {
+            setCurrentClipIndex(currentClipIndexRef.current + 1)
+            setPlayedClipPath(clipAudioPath)
+            currentAudio?.once('end', () => {
+              setCurrInlineAC(undefined)
+              currentAudio.unload()
+            })
+            const newClip =
+              audioClips[currentClipIndexRef.current + clipStackSize - 1]
+            if (newClip) {
+              newClip.clip_audio = new Howl({
+                src: newClip.clip_audio_path,
+                html5: true,
+              })
+              setClipStack([
+                ...clipStackRef.current.slice(1, clipStackSize),
+                newClip,
+              ])
+            } else {
+              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+            }
+          }
+        }
+        // FIX 1: ADDED THIS 'ELSE IF' BLOCK TO DISCARD SKIPPED INLINE CLIPS
+        else if (currentTimeRef.current > nextClip.clip_end_time) {
+          console.warn('Discarding fully skipped inline clip:', nextClip)
+          // Advance the stack cleanly and do nothing else this tick
+          setCurrentClipIndex(currentClipIndexRef.current + 1)
+          const newStack = clipStackRef.current.slice(1)
+          const newClipToAdd =
+            audioClips[currentClipIndexRef.current + clipStackSize]
+          if (newClipToAdd) {
+            newClipToAdd.clip_audio = new Howl({
+              src: newClipToAdd.clip_audio_path,
+              html5: true,
+            })
+            newStack.push(newClipToAdd)
+          }
+          setClipStack(newStack)
+          return
+        }
+      }
+      // Case for playing extended clips when the player come across their start or end times
+      else {
+        if (
+          clipStackRef.current[0].clip_start_time <=
+            currentTimeRef.current + 0.1 &&
+          clipStackRef.current[0].clip_start_time >=
+            previousTimeRef.current - 0.1
+        ) {
+          const currentFilteredClip = clipStackRef.current[0]
+          setCurrentClipIndex(currentClipIndexRef.current + 1)
+          if (playedAudioClip !== currentFilteredClip.clip_id) {
+            setPlayedAudioClip(currentFilteredClip.clip_id)
+            setRecentAudioPlayedTime(currentTimeRef.current)
+            const clipAudioPath = currentFilteredClip.clip_audio_path
+            if (clipAudioPath !== playedClipPath) {
+              setPlayedClipPath(clipAudioPath)
+              const currentAudio = currentFilteredClip.clip_audio
+              currentEvent?.pauseVideo()
+              if (!currentAudio?.playing()) {
+                currentAudio?.play()
+              }
+              setCurrExtendedAC(currentAudio)
+              currentAudio?.once('end', () => {
+                setCurrExtendedAC(undefined)
+                currentEvent?.playVideo()
+                currentAudio.unload()
+                setCurrentExtACPaused(false)
+              })
+              const newClip =
+                audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+              if (newClip) {
+                newClip.clip_audio = new Howl({
+                  src: newClip.clip_audio_path,
+                  html5: true,
+                })
+                setClipStack([
+                  ...clipStackRef.current.slice(1, clipStackSize),
+                  newClip,
+                ])
+              } else {
+                setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+              }
+            }
+          }
+        }
+      }
+
+      // Check for Skips - This block now only handles discarding missed EXTENDED clips
+      if (
+        clipStackRef.current[0].playback_type === 'extended' &&
+        !currentInlineACRef.current?.playing() &&
+        !currentExtendedACRef.current?.playing() &&
+        clipStackRef.current[0].clip_start_time < currentTimeRef.current
+      ) {
+        console.error(
+          'SKIP DETECTED, Discarding clip:',
+          clipStackRef.current[0],
+        )
+
+        // This is existing "discard" logic
+        setCurrentClipIndex(currentClipIndexRef.current + 1)
+        const newClip = audioClips[currentClipIndexRef.current + clipStackSize]
+        const newStack = clipStackRef.current.slice(1)
+        if (newClip) {
+          newClip.clip_audio = new Howl({
+            src: newClip.clip_audio_path,
+            html5: true,
+          })
+          newStack.push(newClip)
+        }
+        setClipStack(newStack)
+
+        // FIX 2: ADDED THIS RETURN STATEMENT
+        // This stops the function immediately, preventing the cascading failure.
+        return
+      }
     }
-
-    // Update last processed index for optimization
-    updateLastProcessedIndex(updatedCurrentTime)
   }
 
   const findClipsToPlay = (currentTime: number, prevTime: number): Clip[] => {
@@ -1842,7 +1992,8 @@ const Video = () => {
         return
       }
 
-      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
+      //const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
+      const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-lana`
       const response = await axios.post(
         url,
         {
