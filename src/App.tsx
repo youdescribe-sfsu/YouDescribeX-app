@@ -226,9 +226,8 @@ const App = () => {
 
       setUserData(data.result)
       handleRedirect()
-    }
-    //} 
-    catch (error) {
+    } catch (error) {
+      //}
       console.error('Login error:', error)
     }
   }
