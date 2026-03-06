@@ -2084,26 +2084,8 @@ const Video = () => {
     // Close the language selector modal
     setShowLanguageSelector(false)
   }
+
   const DescriptionButtons = () => {
-    const getAiButtonText = () => {
-      if (isAiRequestPending) return translate('Processing...')
-      if (requestAiDescription.requested)
-        return translate('AI Description Requested')
-      if (aiServiceStatus === 'unavailable')
-        return translate('AI Service Unavailable')
-      return translate('Request AI Description')
-    }
-
-    const getAiButtonClass = () => {
-      const baseClass = 'w3-block w3-margin-top ai-request-button'
-      if (isAiRequestPending) return `${baseClass} w3-grey processing`
-      if (aiServiceStatus === 'unavailable')
-        return `${baseClass} w3-grey unavailable`
-      if (requestAiDescription.requested)
-        return `${baseClass} w3-brown requested`
-      return `${baseClass} w3-light-blue`
-    }
-
     if (
       requestAiDescription.status === 'completed' &&
       requestAiDescription.url
@@ -2131,30 +2113,21 @@ const Video = () => {
           onClick={handleAddDescription}
         />
 
-        <Button
-          title={translate('Request AI Descriptions')}
-          ariaLabel="Request AI Descriptions"
-          text={
-            isAiRequestPending ? `⭕ ${getAiButtonText()}` : getAiButtonText()
-          }
-          color={getAiButtonClass()}
-          disabled={
-            isAiRequestPending ||
-            requestAiDescription.requested ||
-            aiServiceStatus === 'unavailable'
-          }
-          onClick={handleRequestAIDescriptions}
-        />
-
-        {showLanguageSelector && (
-          <LanguageSelector
-            show={showLanguageSelector}
-            handleClose={handleLanguageCancel}
-            handleGenerateAIDescriptions={handleLanguageConfirm}
-            languages={languages}
-            showLanguageSelector={showLanguageSelector}
+        <span
+          title={translate(
+            "AI Descriptions are temporarily unavailable. We're upgrading our service — this feature will be back soon!",
+          )}
+          style={{ display: 'block', cursor: 'not-allowed' }}
+        >
+          <Button
+            title=""
+            ariaLabel="Request AI Description — temporarily unavailable"
+            text={translate('Request AI Description')}
+            color="w3-block w3-margin-top w3-grey ai-request-button unavailable"
+            disabled={true}
+            // onClick={() => {}}
           />
-        )}
+        </span>
       </div>
     )
   }

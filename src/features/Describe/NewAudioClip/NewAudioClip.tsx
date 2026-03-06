@@ -44,7 +44,7 @@ const NewAudioClipComponent = ({
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0)
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0)
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0)
-  const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] = useState(0)
+  const [clipStartTimeCentiseconds, setClipStartTimeCentiseconds] = useState(0)
 
   const { status, startRecording, stopRecording, mediaBlobUrl, clearBlobUrl } =
     useReactMediaRecorder({
@@ -87,7 +87,7 @@ const NewAudioClipComponent = ({
     setClipStartTimeHours(parseInt(cardFormat[0]))
     setClipStartTimeMinutes(parseInt(cardFormat[1]))
     setClipStartTimeSeconds(parseInt(cardFormat[2]))
-    setClipStartTimeMilliSeconds(parseInt(cardFormat[3]))
+    setClipStartTimeCentiseconds(parseInt(cardFormat[3]))
     setNewACStartTime(currentTime)
   }
 
@@ -128,7 +128,7 @@ const NewAudioClipComponent = ({
       clipStartTimeHours * 3600 +
       clipStartTimeMinutes * 60 +
       clipStartTimeSeconds +
-      clipStartTimeMilliSeconds / 1000
+      clipStartTimeCentiseconds / 100
     )
   }
 
@@ -245,7 +245,7 @@ const NewAudioClipComponent = ({
                   clipStartTimeHours,
                   clipStartTimeMinutes,
                   clipStartTimeSeconds,
-                  clipStartTimeMilliSeconds,
+                  clipStartTimeCentiseconds,
                 ].map((value, index) => (
                   <React.Fragment key={index}>
                     {index > 0 && <div className="mx-1">:</div>}
@@ -270,7 +270,7 @@ const NewAudioClipComponent = ({
                             setClipStartTimeSeconds(newValue)
                             break
                           case 3:
-                            setClipStartTimeMilliSeconds(newValue)
+                            setClipStartTimeCentiseconds(newValue)
                             break
                         }
                       }}
