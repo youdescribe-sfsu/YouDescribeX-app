@@ -381,6 +381,7 @@ const Video = () => {
             withCredentials: true,
             headers: {
               'Content-Type': 'application/json',
+              Authorization: userDataStore.getState().userId,
             },
           },
         )
