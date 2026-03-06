@@ -593,7 +593,8 @@ const Video = () => {
     )
     if (extendedClip) {
       const testUrl = `${audioClipsUploadsPath(
-        `${extendedClip.file_path.replace(/^\./, '')}/${extendedClip.file_name
+        `${extendedClip.file_path.replace(/^\./, '')}/${
+          extendedClip.file_name
         }`,
       )}`
       console.log('Testing extended clip URL:', testUrl)
@@ -859,9 +860,9 @@ const Video = () => {
       else {
         if (
           clipStackRef.current[0].clip_start_time <=
-          currentTimeRef.current + 0.1 &&
+            currentTimeRef.current + 0.1 &&
           clipStackRef.current[0].clip_start_time >=
-          previousTimeRef.current - 0.1
+            previousTimeRef.current - 0.1
         ) {
           const currentFilteredClip = clipStackRef.current[0]
           setCurrentClipIndex(currentClipIndexRef.current + 1)
@@ -2176,8 +2177,9 @@ const Video = () => {
                 zIndex: 20,
                 height: '28px',
                 backgroundColor: 'red',
-                left: `${(currentTimeRef.current / videoDurationInSeconds) * 100
-                  }%`,
+                left: `${
+                  (currentTimeRef.current / videoDurationInSeconds) * 100
+                }%`,
                 width: '0.2%',
               }}
             />
