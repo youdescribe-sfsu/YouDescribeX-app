@@ -2097,40 +2097,91 @@ const Video = () => {
             title={translate('Add a new description for this video')}
             ariaLabel="Add a new description for this video"
             text={translate('Add Freestyle Description')}
-            color="w3-yellow w3-block"
+            color="w3-yellow w3-block w3-margin-top"
             onClick={handleAddDescription}
           />
         </div>
       )
     }
 
-    return (
-      <div className="description-buttons">
-        <Button
-          title={translate('Add a new description for this video')}
-          ariaLabel="Add a new description for this video"
-          text={translate('Add Freestyle Description')}
-          color="w3-yellow w3-block"
-          onClick={handleAddDescription}
-        />
-
-        <span
-          title={translate(
-            "AI Descriptions are temporarily unavailable. We're upgrading our service — this feature will be back soon!",
-          )}
-          style={{ display: 'block', cursor: 'not-allowed' }}
-        >
+    if (requestAiDescription.status === 'pending') {
+      return (
+        <div className="description-buttons">
           <Button
-            title={translate('Request AI Description')}
-            ariaLabel="Request AI Description"
-            text={translate('Request AI Description')}
+            title={translate('Add a new description for this video')}
+            ariaLabel="Add a new description for this video"
+            text={translate('Add Freestyle Description')}
+            color="w3-yellow w3-block w3-margin-top"
+            onClick={handleAddDescription}
+          />
+          {requestAiDescription.requested ? (
+            <Button
+              title={translate('AI Descriptions requested')}
+              ariaLabel="AI Descriptions requested"
+              text={translate('AI Descriptions requested')}
+              color="w3-brown w3-block w3-margin-top"
+              disabled={true}
+            />
+          ) : (
+            <Button
+              title={translate('Request AI Descriptions')}
+              ariaLabel="Request AI Descriptions"
+              text={translate('Request AI Descriptions')}
+              color="w3-light-blue w3-block w3-margin-top"
+              disabled={requestAiDescription.requested}
+              onClick={handleRequestAIDescriptions}
+            />
+          )}
+          {showLanguageSelector && (
+            <LanguageSelector
+              show={showLanguageSelector}
+              handleClose={handleLanguageCancel}
+              handleGenerateAIDescriptions={handleLanguageConfirm}
+              languages={languages}
+              showLanguageSelector={showLanguageSelector}
+            />
+          )}
+        </div>
+      )
+    }
+
+    if (
+      (requestAiDescription.status === 'notavailable' ||
+        requestAiDescription.status === 'draft') &&
+      !requestAiDescription.requested
+    ) {
+      return (
+        <div className="description-buttons">
+          <Button
+            title={translate('Add a new description for this video')}
+            ariaLabel="Add a new description for this video"
+            text={translate('Add Freestyle Description')}
+            color="w3-yellow w3-block w3-margin-top"
+            onClick={handleAddDescription}
+            disabled={requestAiDescription.requested}
+          />
+          <Button
+            title={translate('Request AI Descriptions')}
+            ariaLabel="Request AI Descriptions"
+            text={translate('Request AI Descriptions')}
             color="w3-light-blue w3-block w3-margin-top"
             disabled={requestAiDescription.requested}
             onClick={handleRequestAIDescriptions}
           />
-        </span>
-      </div>
-    )
+          {showLanguageSelector && (
+            <LanguageSelector
+              show={showLanguageSelector}
+              handleClose={handleLanguageCancel}
+              handleGenerateAIDescriptions={handleLanguageConfirm}
+              languages={languages}
+              showLanguageSelector={showLanguageSelector}
+            />
+          )}
+        </div>
+      )
+    }
+
+    return <></>
   }
 
   return (
