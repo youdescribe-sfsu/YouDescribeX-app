@@ -1,108 +1,30 @@
-/* ===== Navbar — Option 01: Modern Minimal White ===== */
 .navbar {
   padding: 0;
   z-index: 20;
 }
 
-.navbar-bar {
-  background: #ffffff;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  border-bottom: 1px solid #e8e8e8;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+.w3-bar .w3-button {
+  padding: 16px;
 }
 
-/* Logo group: aperture icon  wordmark */
-.navbar-logo-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  flex-shrink: 0;
-  padding-right: 32px;
+.logo {
+  height: 54px;
+  padding: 8px 12px 8px 12px;
 }
 
-.navbar-logo-link:hover {
-  text-decoration: none;
-}
-
-.navbar-logo-img {
-  height: 50px;
-  width: auto;
-  object-fit: contain;
-}
-
-@media screen and (max-width: 992px) {
-  .navbar-logo-img {
-    height: 40px;
-  }
-}
-
-/* Search area */
-.navbar-search-area {
-  flex: 1;
-  max-width: 480px;
-}
-
-/* Nav links — right side (desktop) */
-.navbar-links {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding-left: 24px;
-}
-
-.navbar-links .nav-link-item {
-  color: #4a5568;
-  text-decoration: none;
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: background-color 0.15s, color 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.navbar-links .nav-link-item:hover {
-  background: #f0f4f8;
-  color: #1c3557;
-  text-decoration: none;
-}
-
-.navbar-links .nav-link-item i {
-  font-size: 15px;
-}
-
-.navbar-links .nav-sign-in {
-  padding: 0;
-}
-
-/* Hamburger menu icon for mobile */
-.navbar-hamburger {
-  color: #1c3557;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  transition: background-color 0.15s;
-  margin-left: auto;
-}
-
-.navbar-hamburger:hover {
-  background: #f0f4f8;
-}
-
-/* Sidenav */
 .sidenav {
   background-color: white;
 }
 
-.sidenav .w3-bar-item {
-  color: #1c3557;
+.navbar .w3-right .classic-link {
+  padding: 10px 12px !important;
+  font-size: 15px !important;
+}
+
+.navbar .w3-right .w3-bar-item {
+  padding: 10px 12px;
+}
+
+.navbar .w3-right .classic-link i {
+  font-size: 16px !important;
 }

@@ -1,63 +1,41 @@
 #search-bar {
-  top: 0px;
+  // position: relative;
+  top: 11px;
   padding-left: 0px;
-  position: relative;
-
   @media screen and (min-width: 601px) {
-    padding-left: 0px;
+    padding-left: 20px; /* 40px -> 20px */
   }
-
   input {
     outline: none;
     font-size: 16px;
-    border-radius: 24px 0 0 24px;
+    border-radius: 0px;
     -webkit-appearance: none;
-    width: 140px;
-    height: 40px;
-    border: 2px solid #e0e0e0;
-    padding: 0 14px;
-    font-family: inherit;
-    transition: border-color 0.2s;
-    background: #f8f8f8;
-
-    &:focus {
-      border-color: #1c3557;
-      background: white;
-    }
-
+    -webkit-border-radius: 0px;
+    width: 140px; /* 182px -> 140px */
+    height: 35px;
     @media (min-width: 900px) {
-      width: 140px;
+      /* new */
+      width: 140px; /* new */
     }
     @media (min-width: 1050px) {
-      width: 200px;
+      /* new */
+      width: 200px; /* new */
     }
     @media screen and (min-width: 1200px) {
-      width: 280px;
+      /* 601px -> 1200px */
+      width: 260px; /* 280px -> 260px */
     }
   }
+}
+body {
+  position: relative;
+}
 
-  #button {
-    display: inline-block;
-    button {
-      height: 40px;
-      border-radius: 0 24px 24px 0;
-      background: #1c3557 !important;
-      color: white !important;
-      border: 2px solid #1c3557;
-      border-left: none;
-      padding: 0 18px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background-color 0.15s;
-      &:hover {
-        background: #253f61 !important;
-      }
-    }
-  }
+#search-bar {
+  position: absolute;
 
   .suggestions-dropdown {
-    position: absolute;
+    position: relative;
     top: 100%;
     left: 0;
     width: 100%;
@@ -68,7 +46,6 @@
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
-    border-radius: 0 0 12px 12px;
 
     .suggestion-item {
       padding: 10px;
