@@ -1018,7 +1018,7 @@ const YDXHome = (): React.ReactElement => {
       currentInlineACRef.current.pause()
       currentInlineACRef.current.seek(0)
       currentInlineACRef.current.unload()
-      setCurrExtendedAC(undefined)
+      setCurrInlineAC(undefined)
       // currentEvent?.playVideo()
     }
   }
