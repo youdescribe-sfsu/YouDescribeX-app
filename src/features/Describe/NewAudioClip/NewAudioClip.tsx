@@ -183,6 +183,7 @@ const NewAudioClipComponent = ({
       )
       toast.success(`New Clip Added Successfully!!\n${response.data}`)
       setShowNewACComponent(false)
+      window.dispatchEvent(new Event('ydx:new-clip-saved'))
       setNeedRefresh(true)
       setRecordingDuration(0)
     } catch (error) {

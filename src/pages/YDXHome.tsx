@@ -147,6 +147,7 @@ const YDXHome = (): React.ReactElement => {
   const currentStateRef = useRef(currentState)
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
+  const savedClipRefreshRequestedRef = useRef(false)
 
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -262,8 +263,22 @@ const YDXHome = (): React.ReactElement => {
   }, [currentState])
 
   useEffect(() => {
+    const handleSavedClipRefresh = () => {
+      savedClipRefreshRequestedRef.current = true
+    }
+
+    window.addEventListener('ydx:new-clip-saved', handleSavedClipRefresh)
+
+    return () => {
+      window.removeEventListener('ydx:new-clip-saved', handleSavedClipRefresh)
+    }
+  }, [])
+
+  useEffect(() => {
     if (needRefresh) {
-      fetchAudioDescriptionData(true)
+      const isNewClipAdded = savedClipRefreshRequestedRef.current
+      savedClipRefreshRequestedRef.current = false
+      fetchAudioDescriptionData(isNewClipAdded)
       setNeedRefresh(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -366,6 +381,90 @@ const YDXHome = (): React.ReactElement => {
       })
   }
 
+  const unloadHowls = useCallback((howls: Array<Howl | undefined>) => {
+    const unloadedHowls = new Set<Howl>()
+
+    howls.forEach((howl) => {
+      if (!howl || unloadedHowls.has(howl)) {
+        return
+      }
+
+      unloadedHowls.add(howl)
+      howl.pause()
+      howl.seek(0)
+      howl.unload()
+    })
+  }, [])
+
+  const getClipStackStartIndex = useCallback(
+    (clips: Clip[], targetTime: number) => {
+      const startIndex = clips.findIndex(
+        (clip) =>
+          clip.clip_start_time >= targetTime ||
+          (clip.clip_start_time < targetTime &&
+            clip.clip_end_time > targetTime),
+      )
+
+      return startIndex === -1 ? clips.length : startIndex
+    },
+    [],
+  )
+
+  const primeClipAudio = useCallback((clip: Clip) => {
+    if (clip.clip_audio) {
+      clip.clip_audio.unload()
+      clip.clip_audio = undefined
+    }
+
+    clip.clip_audio = new Howl({
+      src: clip.clip_audio_path,
+      html5: true,
+      preload: true,
+      autoplay: false,
+    })
+    clip.clip_audio.load()
+
+    return clip
+  }, [])
+
+  const buildClipStackForTime = useCallback(
+    (clips: Clip[], targetTime: number, stackSize: number) => {
+      const startIndex = getClipStackStartIndex(clips, targetTime)
+      const clipStackData: Clip[] = []
+
+      for (
+        let i = startIndex;
+        i < Math.min(startIndex + stackSize, clips.length);
+        i++
+      ) {
+        const clip = clips[i]
+
+        if (clip) {
+          clipStackData.push(primeClipAudio(clip))
+        }
+      }
+
+      return { startIndex, clipStackData }
+    },
+    [getClipStackStartIndex, primeClipAudio],
+  )
+
+  const resetPlaybackStateForSavedClipRefresh = useCallback(() => {
+    unloadHowls([
+      ...clipStackRef.current.map((clip) => clip.clip_audio),
+      currentExtendedACRef.current,
+      currentInlineACRef.current,
+    ])
+
+    setCurrExtendedAC(undefined)
+    setCurrInlineAC(undefined)
+    setCurrentExtACPaused(false)
+    setRecentAudioPlayedTime(0.0)
+    setPlayedAudioClip('')
+    setPlayedClipPath('')
+    setPlayedClipsSet(new Set())
+  }, [unloadHowls])
+
   // use axios to get audio descriptions for the videoId (set in fetchUserVideoData()) & userId passed to the url Params
   const fetchAudioDescriptionData = (
     isNewClipAdded = false,
@@ -461,6 +560,24 @@ const YDXHome = (): React.ReactElement => {
           // console.log(audioClipsData)
           // // console.log("Audio Clips", audioClips);
           setNotesData(notesData)
+
+          if (isNewClipAdded) {
+            const nextClipStackSize =
+              audioClipsData.length > 100 ? 10 : clipStackSize
+
+            resetPlaybackStateForSavedClipRefresh()
+
+            const { startIndex, clipStackData } = buildClipStackForTime(
+              audioClipsData,
+              currentTimeRef.current,
+              nextClipStackSize,
+            )
+
+            setCurrentClipIndex(startIndex)
+            setClipStack(clipStackData)
+            return
+          }
+
           const maxStackSize =
             audioClipsData.length > 100
               ? 10
