@@ -183,6 +183,8 @@ const NewAudioClipComponent = ({
       )
       toast.success(`New Clip Added Successfully!!\n${response.data}`)
       setShowNewACComponent(false)
+      // Flag the next refresh as save-triggered so the editor rebuilds from
+      // the current playback position instead of resetting to the start.
       window.dispatchEvent(new Event('ydx:new-clip-saved'))
       setNeedRefresh(true)
       setRecordingDuration(0)

@@ -561,6 +561,8 @@ const YDXHome = (): React.ReactElement => {
           // // console.log("Audio Clips", audioClips);
           setNotesData(notesData)
 
+          // Save-triggered refreshes rebuild the playback window around the
+          // current player time so a newly added clip can play without a seek.
           if (isNewClipAdded) {
             const nextClipStackSize =
               audioClipsData.length > 100 ? 10 : clipStackSize
