@@ -278,7 +278,7 @@ const YDXHome = (): React.ReactElement => {
     if (needRefresh) {
       const isNewClipAdded = savedClipRefreshRequestedRef.current
       savedClipRefreshRequestedRef.current = false
-      fetchAudioDescriptionData(isNewClipAdded)
+      fetchAudioDescriptionData(isNewClipAdded, undefined, true)
       setNeedRefresh(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -469,6 +469,7 @@ const YDXHome = (): React.ReactElement => {
   const fetchAudioDescriptionData = (
     isNewClipAdded = false,
     passedVideoId?: string,
+    shouldRefreshEditToggleList = false,
   ) => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
     const effectiveVideoId = passedVideoId || videoId
@@ -553,7 +554,10 @@ const YDXHome = (): React.ReactElement => {
             }
           })
 
-          if (editComponentToggleList.length === 0 || isNewClipAdded) {
+          if (
+            editComponentToggleList.length === 0 ||
+            shouldRefreshEditToggleList
+          ) {
             setEditComponentToggleList(tempArray)
           }
           setAudioClips([...audioClipsData])
