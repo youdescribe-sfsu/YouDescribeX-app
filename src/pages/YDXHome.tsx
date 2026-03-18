@@ -1109,6 +1109,8 @@ const YDXHome = (): React.ReactElement => {
     setDraggableTime({ x: position.x, y: 0 })
     let progressBarTime = 0.0
     progressBarTime = position.x / unitLength
+    // Keep the visible label in sync with the final drag-stop position before
+    // insert-open snapshots currentTime for a new clip.
     setCurrentTime(progressBarTime)
     currentTimeRef.current = progressBarTime
     currentEventRef.current?.seekTo(progressBarTime, true)

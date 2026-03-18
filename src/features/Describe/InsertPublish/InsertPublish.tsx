@@ -49,6 +49,8 @@ const InsertPublish = ({
 
   const openNewAudioClip = useCallback(
     (isInline: boolean) => {
+      // Snapshot the visible timeline label time at open so the dialog does
+      // not drift if playback state changes while the form is open.
       setInsertClipStartTimeSnapshot(currentTime)
       setShowInlineACComponent(isInline)
       setShowNewACComponent(true)
