@@ -13,7 +13,7 @@ interface Props {
   youtubeVideoId: string
   showInlineACComponent: boolean
   setShowNewACComponent: React.Dispatch<React.SetStateAction<boolean>>
-  currentTime: number
+  initialStartTime: number
   videoLength: number
   audioDescriptionId: string
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
@@ -25,14 +25,13 @@ const NewAudioClipComponent = ({
   youtubeVideoId,
   showInlineACComponent,
   setShowNewACComponent,
-  currentTime,
+  initialStartTime,
   audioDescriptionId,
   setNeedRefresh,
 }: Props) => {
   const [newACTitle, setNewACTitle] = useState('')
   const [newACType, setNewACType] = useState('Visual')
   const [newACDescriptionText, setNewACDescriptionText] = useState('')
-  const [newACStartTime, setNewACStartTime] = useState(currentTime)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingError, setRecordingError] = useState<string | null>(null)
   const [descriptionMethod, setDescriptionMethod] = useState<'text' | 'audio'>(
@@ -58,8 +57,8 @@ const NewAudioClipComponent = ({
     Array.from(tooltipTriggerList).map(
       (tooltipTriggerEl) => new Tooltip(tooltipTriggerEl),
     )
-    handleClipStartTimeInputsRender()
-  }, [currentTime])
+    handleClipStartTimeInputsRender(initialStartTime)
+  }, [initialStartTime])
 
   const updateRecordingDuration = useCallback(() => {
     setRecordingDuration((prevDuration) => prevDuration + 0.1)
@@ -82,13 +81,12 @@ const NewAudioClipComponent = ({
     }
   }, [status, updateRecordingDuration])
 
-  const handleClipStartTimeInputsRender = () => {
-    const cardFormat = convertSecondsToCardFormat(currentTime).split(':')
+  const handleClipStartTimeInputsRender = (startTime: number) => {
+    const cardFormat = convertSecondsToCardFormat(startTime).split(':')
     setClipStartTimeHours(parseInt(cardFormat[0]))
     setClipStartTimeMinutes(parseInt(cardFormat[1]))
     setClipStartTimeSeconds(parseInt(cardFormat[2]))
     setClipStartTimeCentiseconds(parseInt(cardFormat[3]))
-    setNewACStartTime(currentTime)
   }
 
   // Handle Record Ready Set Go - Match EditClip.tsx exactly
@@ -277,9 +275,6 @@ const NewAudioClipComponent = ({
                             break
                         }
                       }}
-                      onBlur={() =>
-                        setNewACStartTime(calculateClipStartTimeinSeconds())
-                      }
                     />
                   </React.Fragment>
                 ))}
