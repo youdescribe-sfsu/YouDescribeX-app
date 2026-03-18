@@ -1109,6 +1109,8 @@ const YDXHome = (): React.ReactElement => {
     setDraggableTime({ x: position.x, y: 0 })
     let progressBarTime = 0.0
     progressBarTime = position.x / unitLength
+    setCurrentTime(progressBarTime)
+    currentTimeRef.current = progressBarTime
     currentEventRef.current?.seekTo(progressBarTime, true)
     const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
     setPreviousTime(currentPlayerTime ?? 0)
