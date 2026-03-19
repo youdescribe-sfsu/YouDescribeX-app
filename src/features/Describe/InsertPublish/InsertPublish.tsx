@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import '@/assets/css/insertPublish.css'
 import '@/assets/css/audioDesc.css'
 import axios from 'axios'
@@ -44,17 +44,28 @@ const InsertPublish = ({
   const [showNewACComponent, setShowNewACComponent] = useState(false)
   const [isModal, setIsModal] = useState(false)
   const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(true)
+  const [insertClipStartTimeSnapshot, setInsertClipStartTimeSnapshot] =
+    useState(currentTime)
+
+  const openNewAudioClip = useCallback(
+    (isInline: boolean) => {
+      // Snapshot the visible timeline label time at open so the dialog does
+      // not drift if playback state changes while the form is open.
+      setInsertClipStartTimeSnapshot(currentTime)
+      setShowInlineACComponent(isInline)
+      setShowNewACComponent(true)
+    },
+    [currentTime],
+  )
 
   const handleClickInsertInline = (e: any) => {
     e.preventDefault()
-    setShowNewACComponent(true)
-    setShowInlineACComponent(true)
+    openNewAudioClip(true)
   }
 
   const handleClickInsertExtended = (e: any) => {
     e.preventDefault()
-    setShowNewACComponent(true)
-    setShowInlineACComponent(false)
+    openNewAudioClip(false)
   }
 
   const handleClickPublish = (e: any) => {
@@ -119,15 +130,13 @@ const InsertPublish = ({
 
   useEffect(() => {
     if (handleClicksFromParent === 'inline') {
-      setShowNewACComponent(true)
-      setShowInlineACComponent(true)
       setHandleClicksFromParent('') // reset it back to empty
+      openNewAudioClip(true)
     } else if (handleClicksFromParent === 'extended') {
-      setShowNewACComponent(true)
-      setShowInlineACComponent(false)
       setHandleClicksFromParent('') // reset it back to empty
+      openNewAudioClip(false)
     }
-  }, [handleClicksFromParent, setHandleClicksFromParent])
+  }, [handleClicksFromParent, openNewAudioClip, setHandleClicksFromParent])
 
   return (
     <React.Fragment>
@@ -142,7 +151,7 @@ const InsertPublish = ({
             youtubeVideoId={youtubeVideoId}
             showInlineACComponent={showInlineACComponent}
             setShowNewACComponent={setShowNewACComponent}
-            currentTime={currentTime}
+            initialStartTime={insertClipStartTimeSnapshot}
             videoLength={videoLength}
             audioDescriptionId={audioDescriptionId}
             setShowSpinner={setShowSpinner}
