@@ -76,8 +76,12 @@ const Video = () => {
   const [youTubeVolume, setYouTubeVolume] = useState(
     parseInt(localStorage.getItem('youTubeVolume') || '100'),
   )
+  const [playbackSpeed, setPlaybackSpeed] = useState(
+    parseFloat(localStorage.getItem('playbackSpeed') || '1'),
+  )
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
+  const playbackSpeedRef = useRef(playbackSpeed)
 
   //
   // YDX STATE VARIABLES
@@ -117,6 +121,8 @@ const Video = () => {
   const currentEventRef = useRef(currentEvent)
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
+  const currInlineACSpeedRef = useRef(1)
+  const currExtendedACSpeedRef = useRef(1)
 
   const [previousYTTime, setPreviousYTTime] = useState(0.0)
 
@@ -214,6 +220,17 @@ const Video = () => {
     youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
+
+  useEffect(() => {
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.rate(playbackSpeed)
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.rate(playbackSpeed)
+    }
+    playbackSpeedRef.current = playbackSpeed
+    localStorage.setItem('playbackSpeed', playbackSpeed.toString())
+  }, [playbackSpeed])
 
   //
   // END OF YDX STATE VARIABLES
@@ -631,6 +648,7 @@ const Video = () => {
                     currentAudio.play()
                     console.log('Extended clip play initiated')
                     currentAudio.volume(descriptionVolumeRef.current / 100)
+                    currentAudio.rate(updatedClip.clip_speed ?? 1)
                   } else {
                     console.log('Extended clip already playing')
                   }
@@ -645,16 +663,19 @@ const Video = () => {
                       currentAudio.play()
                       console.log('Extended clip play initiated after load')
                       currentAudio.volume(descriptionVolumeRef.current / 100)
+                      currentAudio.rate(updatedClip.clip_speed ?? 1)
                     }
                   }, 50)
                 })
               }
 
               setCurrExtendedAC(currentAudio)
+              currExtendedACSpeedRef.current = updatedClip.clip_speed ?? 1
 
               // Event listeners for play and end
               currentAudio?.once('play', () => {
                 currentAudio.volume(descriptionVolumeRef.current / 100)
+                currentAudio.rate(updatedClip.clip_speed ?? 1)
               })
 
               currentAudio?.once('end', () => {
@@ -724,6 +745,7 @@ const Video = () => {
             setTimeout(() => {
               currentAudio.play()
               currentAudio.volume(descriptionVolumeRef.current / 100)
+              currentAudio.rate(updatedClip.clip_speed ?? 1)
             }, 50)
           } else {
             // Wait for audio to load first
@@ -732,11 +754,13 @@ const Video = () => {
               setTimeout(() => {
                 currentAudio.play()
                 currentAudio.volume(descriptionVolumeRef.current / 100)
+                currentAudio.rate(updatedClip.clip_speed ?? 1)
               }, 50)
             })
           }
 
           setCurrInlineAC(currentAudio)
+          currInlineACSpeedRef.current = updatedClip.clip_speed ?? 1
 
           setPlayedAudioClip(updatedClip.clip_id)
           setRecentAudioPlayedTime(currentTimeRef.current)
@@ -749,6 +773,7 @@ const Video = () => {
             // Event listeners for play and end
             currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
+              currentAudio.rate(updatedClip.clip_speed ?? 1)
             })
 
             currentAudio?.once('end', () => {
@@ -851,6 +876,7 @@ const Video = () => {
         }
         if (currInlineAC) {
           // to stop playing -> pause and set time to 0
+          currInlineAC.rate(currInlineACSpeedRef.current)
           currInlineAC.play()
           currInlineAC.on('end', function () {
             setCurrInlineAC(undefined) // setting back to null, as it is played completely.
@@ -1517,6 +1543,8 @@ const Video = () => {
               setDescriptionVolume={setDescriptionVolume}
               youTubeVideoVolume={youTubeVolume}
               setYouTubeVideoVolume={setYouTubeVolume}
+              playbackSpeed={playbackSpeed}
+              setPlaybackSpeed={setPlaybackSpeed}
             />
           </div>
           <div className="classic-container video-timeline" aria-hidden="true">
@@ -1545,7 +1573,6 @@ const Video = () => {
               }}
             />
           </div>
-          <ShareBar videoTitle={videoTitle} />
         </section>
         <section
           id="video-info"
@@ -1671,6 +1698,7 @@ const Video = () => {
             </div>
           </div>
         </section>
+        <ShareBar videoTitle={videoTitle} />
       </main>
     </div>
   )

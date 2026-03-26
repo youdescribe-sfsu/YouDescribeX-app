@@ -10,6 +10,8 @@ interface Props {
   setDescriptionVolume: (value: number) => void
   youTubeVolume: number
   setYouTubeVolume: (value: number) => void
+  playbackSpeed: number
+  setPlaybackSpeed: (value: number) => void
   isPreviewAudioDescription?: boolean
 }
 
@@ -21,6 +23,8 @@ export const Buttons = ({
   setDescriptionVolume,
   youTubeVolume,
   setYouTubeVolume,
+  playbackSpeed,
+  setPlaybackSpeed,
   isPreviewAudioDescription = false,
 }: Props) => {
   return (
@@ -66,6 +70,8 @@ export const Buttons = ({
             setDescriptionVolume={setDescriptionVolume}
             youTubeVideoVolume={youTubeVolume}
             setYouTubeVideoVolume={setYouTubeVolume}
+            playbackSpeed={playbackSpeed}
+            setPlaybackSpeed={setPlaybackSpeed}
           />
         </div>
       </div>

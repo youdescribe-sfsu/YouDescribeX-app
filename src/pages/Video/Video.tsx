@@ -124,8 +124,12 @@ const Video = () => {
   const [youTubeVolume, setYouTubeVolume] = useState(
     parseInt(localStorage.getItem('youTubeVolume') || '100'),
   )
+  const [playbackSpeed, setPlaybackSpeed] = useState(
+    parseFloat(localStorage.getItem('playbackSpeed') || '1'),
+  )
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
+  const playbackSpeedRef = useRef(playbackSpeed)
   const historyTracked = useRef(false)
 
   //
@@ -302,6 +306,17 @@ const Video = () => {
     youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
+
+  useEffect(() => {
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.rate(playbackSpeed)
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.rate(playbackSpeed)
+    }
+    playbackSpeedRef.current = playbackSpeed
+    localStorage.setItem('playbackSpeed', playbackSpeed.toString())
+  }, [playbackSpeed])
 
   useEffect(() => {
     return () => {
@@ -861,8 +876,9 @@ const Video = () => {
 
     let safetyTimeout: NodeJS.Timeout | null = null
 
-    const startSafetyTimeout = (duration: number) => {
-      const timeoutDuration = (duration + 1) * 1000
+    const startSafetyTimeout = (duration: number, speed: number) => {
+      const effectiveDuration = duration / Math.max(speed, 0.1)
+      const timeoutDuration = (effectiveDuration + 1) * 1000
       console.log(
         `Setting safety timeout: ${timeoutDuration}ms for clip ${clip.clip_id}`,
       )
@@ -883,10 +899,11 @@ const Video = () => {
           console.log(`Extended clip audio starting: ${clip.clip_id}`)
           clip.clip_audio.play()
           clip.clip_audio.volume(descriptionVolumeRef.current / 100)
+          clip.clip_audio.rate(playbackSpeedRef.current)
           const actualDuration =
             clip.clip_audio.duration() || clip.clip_duration || 10
           console.log(`Extended clip actual duration: ${actualDuration}s`)
-          startSafetyTimeout(actualDuration)
+          startSafetyTimeout(actualDuration, playbackSpeedRef.current)
         }
       }, 50)
     } else {
@@ -899,10 +916,11 @@ const Video = () => {
             )
             clip.clip_audio.play()
             clip.clip_audio.volume(descriptionVolumeRef.current / 100)
+            clip.clip_audio.rate(playbackSpeedRef.current)
             const actualDuration =
               clip.clip_audio.duration() || clip.clip_duration || 10
             console.log(`Extended clip actual duration: ${actualDuration}s`)
-            startSafetyTimeout(actualDuration)
+            startSafetyTimeout(actualDuration, playbackSpeedRef.current)
           }
         }, 50)
       })
@@ -963,6 +981,7 @@ const Video = () => {
         if (clip.clip_audio && !clip.clip_audio.playing()) {
           clip.clip_audio.play()
           clip.clip_audio.volume(descriptionVolumeRef.current / 100)
+          clip.clip_audio.rate(playbackSpeedRef.current)
         }
       }, 50)
     } else {
@@ -975,6 +994,7 @@ const Video = () => {
           if (clip.clip_audio && !clip.clip_audio.playing()) {
             clip.clip_audio.play()
             clip.clip_audio.volume(descriptionVolumeRef.current / 100)
+            clip.clip_audio.rate(playbackSpeedRef.current)
           }
         }, 50)
       })
@@ -1076,6 +1096,7 @@ const Video = () => {
           setCurrExtendedAC(undefined)
         }
         if (currInlineAC) {
+          currInlineAC.rate(playbackSpeedRef.current)
           currInlineAC.play()
           currInlineAC.on('end', function () {
             setCurrInlineAC(undefined)
@@ -2004,6 +2025,8 @@ const Video = () => {
               setDescriptionVolume={setDescriptionVolume}
               youTubeVideoVolume={youTubeVolume}
               setYouTubeVideoVolume={setYouTubeVolume}
+              playbackSpeed={playbackSpeed}
+              setPlaybackSpeed={setPlaybackSpeed}
             />
           </div>
           <div className="classic-container video-timeline" aria-hidden="true">
@@ -2032,7 +2055,6 @@ const Video = () => {
               }}
             />
           </div>
-          <ShareBar videoTitle={videoTitle} />
         </section>
         <section
           id="video-info"
@@ -2143,6 +2165,7 @@ const Video = () => {
             </div>
           </div>
         </section>
+        <ShareBar videoTitle={videoTitle} />
       </main>
     </div>
   )
