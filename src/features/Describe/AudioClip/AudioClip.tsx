@@ -511,13 +511,19 @@ const AudioClip = ({
               </div>
 
               {/* Per-clip playback speed */}
-              <div className="speed-buttons" role="group" aria-label="Clip playback speed">
+              <div
+                className="speed-buttons"
+                role="group"
+                aria-label="Clip playback speed"
+              >
                 <span className="speed-label">Speed:</span>
-                {SPEED_OPTIONS.map(speed => (
+                {SPEED_OPTIONS.map((speed) => (
                   <button
                     key={speed}
                     type="button"
-                    className={`speed-btn${clipSpeed === speed ? ' active' : ''}`}
+                    className={`speed-btn${
+                      clipSpeed === speed ? ' active' : ''
+                    }`}
                     onClick={() => handleSpeedChange(speed)}
                     aria-pressed={clipSpeed === speed}
                     aria-label={`Set speed to ${speed}x`}

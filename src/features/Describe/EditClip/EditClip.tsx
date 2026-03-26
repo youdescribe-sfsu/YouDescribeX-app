@@ -615,7 +615,9 @@ const EditClip = ({
       if (updatedClip?.clip_audio_path && !isRecorded) {
         adAudio?.pause()
         setIsAdAudioPlaying(false)
-        setAdAudio(new Audio(buildPlayableAudioUrl(updatedClip.clip_audio_path)))
+        setAdAudio(
+          new Audio(buildPlayableAudioUrl(updatedClip.clip_audio_path)),
+        )
       }
     }
   }
