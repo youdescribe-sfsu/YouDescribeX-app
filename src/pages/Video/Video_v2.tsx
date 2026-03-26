@@ -1499,7 +1499,6 @@ const Video = () => {
       <main role="main" className="video-page-main" title="Video page">
         <section id="video-area" className="video-area">
           {/* <ToastContainer /> */}
-          <ShareBar videoTitle={videoTitle} />
           <div id="video" className="video">
             {showSpinner ? <Spinner /> : null}
             <YouTube
@@ -1546,6 +1545,7 @@ const Video = () => {
               }}
             />
           </div>
+          <ShareBar videoTitle={videoTitle} />
         </section>
         <section
           id="video-info"
