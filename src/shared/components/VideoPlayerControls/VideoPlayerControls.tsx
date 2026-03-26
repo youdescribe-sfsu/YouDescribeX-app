@@ -126,12 +126,18 @@ const VideoPlayerControls = ({
             <h6 className="classic-h6">Description Speed</h6>
           </div>
           <div className="col-12">
-            <div className="speed-buttons" role="group" aria-label="Audio description playback speed">
-              {SPEED_OPTIONS.map(speed => (
+            <div
+              className="speed-buttons"
+              role="group"
+              aria-label="Audio description playback speed"
+            >
+              {SPEED_OPTIONS.map((speed) => (
                 <button
                   key={speed}
                   type="button"
-                  className={`speed-btn${playbackSpeed === speed ? ' active' : ''}`}
+                  className={`speed-btn${
+                    playbackSpeed === speed ? ' active' : ''
+                  }`}
                   onClick={() => setPlaybackSpeed(speed)}
                   aria-pressed={playbackSpeed === speed}
                   aria-label={`Set description speed to ${speed}x`}
