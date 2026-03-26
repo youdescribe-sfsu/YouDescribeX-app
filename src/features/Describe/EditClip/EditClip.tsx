@@ -581,6 +581,7 @@ const EditClip = ({
       handleReadySetGo()
     } else {
       // Normal save operation
+      setAdAudio(undefined) // clear stale audio before TTS regeneration
       handleClickSaveClipDescription(clipDescriptionText)
     }
   }

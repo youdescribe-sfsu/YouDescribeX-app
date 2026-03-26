@@ -7,6 +7,24 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 import { Tooltip } from 'bootstrap'
 
+const getActualAudioDuration = (blobUrl: string): Promise<number> => {
+  return new Promise((resolve) => {
+    const tempAudio = new Audio(blobUrl)
+    tempAudio.addEventListener('loadedmetadata', function () {
+      if (tempAudio.duration === Infinity) {
+        tempAudio.currentTime = 1e101
+        tempAudio.ontimeupdate = function () {
+          this.ontimeupdate = () => { return }
+          resolve(Math.round(tempAudio.duration * 1000) / 1000)
+          tempAudio.currentTime = 0
+        }
+      } else {
+        resolve(Math.round(tempAudio.duration * 1000) / 1000)
+      }
+    })
+  })
+}
+
 interface Props {
   setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
   userId: string
@@ -172,7 +190,8 @@ const NewAudioClipComponent = ({
       formData.append('newACDescriptionText', '')
       const audioBlob = await fetch(mediaBlobUrl!).then((r) => r.blob())
       formData.append('file', audioBlob, 'recorded_audio.webm')
-      formData.append('newACDuration', String(recordingDuration))
+      const actualDuration = await getActualAudioDuration(mediaBlobUrl!)
+      formData.append('newACDuration', String(actualDuration))
     }
 
     try {
