@@ -31,6 +31,8 @@ const ShareBar = ({ videoTitle }: Props) => {
     <div
       id="share-bar"
       className="ssk-sticky ssk-left ssk-center ssk-lg share-bar"
+      role="navigation"
+      aria-label="Share this video"
     >
       <a
         href="#"
