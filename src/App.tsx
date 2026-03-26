@@ -215,6 +215,10 @@ const App = () => {
           })
           const data = await response.json()
 
+          if (!response.ok || !data?.result) {
+            throw new Error(data?.message || 'Local development login failed')
+          }
+
           setUserData(data.result)
           handleRedirect()
         }
@@ -223,6 +227,10 @@ const App = () => {
           credentials: 'include',
         })
         const data = await response.json()
+
+        if (!response.ok || !data?.result) {
+          throw new Error(data?.message || 'Login failed')
+        }
 
         setUserData(data.result)
         handleRedirect()
@@ -234,11 +242,15 @@ const App = () => {
 
   // New helper function to set user data
   const setUserData = (result: any) => {
+    if (!result) {
+      throw new Error('No user data returned from login')
+    }
+
     setUserName(result.name)
     setUserId(result._id)
     setUserToken(result.token)
     setUserPicture(result.picture)
-    setUserAdmin(result.admin)
+    setUserAdmin(result.admin ?? result.admin_level ?? 0)
     setSignedIn(true)
     setCookie(result._id, result.token, result.name, result.picture)
   }

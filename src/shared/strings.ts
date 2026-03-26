@@ -5,6 +5,8 @@ const strings = {
     HOME: 'INÍCIO',
     Close: 'Fechar',
     Search: 'Busca',
+    'Search by title, tags, describer name, or YouTube ID':
+      'Busque por titulo, tags, nome do descritor ou ID do YouTube',
     Credits: 'Créditos',
     'Contact Us': 'Contato',
     Support: 'Suporte',
@@ -163,6 +165,8 @@ const strings = {
     HOME: 'HOME',
     Close: 'Close',
     Search: 'Search',
+    'Search by title, tags, describer name, or YouTube ID':
+      'Search by title, tags, describer name, or YouTube ID',
     Credits: 'Credits',
     'Contact Us': 'Contact Us',
     Support: 'Support',
