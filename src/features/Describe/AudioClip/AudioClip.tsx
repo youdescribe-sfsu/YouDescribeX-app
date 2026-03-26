@@ -113,6 +113,21 @@ const AudioClip = ({
   const [clipPlaybackType, setClipPlayBackType] = useState('')
   const [clipTitle, setClipTitle] = useState('')
   const [clipStartTime, setClipStartTime] = useState(0)
+  const [clipSpeed, setClipSpeed] = useState(clip.clip_speed ?? 1)
+  const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2]
+
+  const handleSpeedChange = async (speed: number) => {
+    setClipSpeed(speed)
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-speed/${clipID}`,
+        { speed },
+      )
+    } catch {
+      toast.error('Failed to update speed.')
+      setClipSpeed(clipSpeed)
+    }
+  }
 
   // Toggle variable to show or hide the edit component
   const [showEditComponent, setShowEditComponent] = useState(false)
@@ -286,7 +301,7 @@ const AudioClip = ({
       if (updatedClipDescriptionText !== initialclipDescriptionText) {
         setShowSpinner(true)
 
-        await axios.put(
+        const response = await axios.put(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipID}`,
           {
             userId: userId,
@@ -299,6 +314,7 @@ const AudioClip = ({
 
         setUpdateData(!updateData)
         toast.success('Description saved successfully!')
+        return response.data
       }
 
       // Handle title updates separately
@@ -314,6 +330,8 @@ const AudioClip = ({
           },
         )
       }
+
+      return null
     } catch (err: any) {
       if (err.response) {
         toast.error(err.response.data.message)
@@ -375,10 +393,6 @@ const AudioClip = ({
               <div>
                 <strong>Duration:</strong>{' '}
                 {convertSecondsToCardFormat(clipDuration)}
-              </div>
-              <div className="description-preview">
-                {descriptionDisplay.substring(0, 60)}
-                {descriptionDisplay.length > 60 ? '...' : ''}
               </div>
             </div>
           </div>
@@ -495,6 +509,23 @@ const AudioClip = ({
                   <span className="inline-extended-label">Extended</span>
                 </label>
               </div>
+
+              {/* Per-clip playback speed */}
+              <div className="speed-buttons" role="group" aria-label="Clip playback speed">
+                <span className="speed-label">Speed:</span>
+                {SPEED_OPTIONS.map(speed => (
+                  <button
+                    key={speed}
+                    type="button"
+                    className={`speed-btn${clipSpeed === speed ? ' active' : ''}`}
+                    onClick={() => handleSpeedChange(speed)}
+                    aria-pressed={clipSpeed === speed}
+                    aria-label={`Set speed to ${speed}x`}
+                  >
+                    {speed}x
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -563,6 +594,7 @@ const AudioClip = ({
             handleClickSaveClipDescription={handleClickSaveClipDescription}
             setUndoDeletedClip={setUndoDeletedClip}
             setClipDescText={handleDescriptionChange}
+            clipSpeed={clipSpeed}
           />
         )}
       </div>

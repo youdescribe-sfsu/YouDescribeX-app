@@ -3,11 +3,15 @@ import { ChangeEvent, useMemo, useState } from 'react'
 import Form from 'react-bootstrap/Form'
 import './videoPlayerControls.scss'
 
+const SPEED_OPTIONS = [1, 1.2, 1.5, 2]
+
 interface Props {
   descriptionVolume: number
   setDescriptionVolume: (value: number) => void
   youTubeVideoVolume: number
   setYouTubeVideoVolume: (value: number) => void
+  playbackSpeed?: number
+  setPlaybackSpeed?: (value: number) => void
 }
 
 const VideoPlayerControls = ({
@@ -15,6 +19,8 @@ const VideoPlayerControls = ({
   setDescriptionVolume,
   youTubeVideoVolume,
   setYouTubeVideoVolume,
+  playbackSpeed = 1,
+  setPlaybackSpeed = () => undefined,
 }: Props) => {
   const [descriptionValue, setDescriptionValue] =
     useState<number>(descriptionVolume)
@@ -115,6 +121,25 @@ const VideoPlayerControls = ({
           </div>
           <div className="col-sm-6 col-md-6 col-lg-6">
             <Form.Label className="form-range-label">Video Volume</Form.Label>
+          </div>
+          <div className="col-12">
+            <h6 className="classic-h6">Description Speed</h6>
+          </div>
+          <div className="col-12">
+            <div className="speed-buttons" role="group" aria-label="Audio description playback speed">
+              {SPEED_OPTIONS.map(speed => (
+                <button
+                  key={speed}
+                  type="button"
+                  className={`speed-btn${playbackSpeed === speed ? ' active' : ''}`}
+                  onClick={() => setPlaybackSpeed(speed)}
+                  aria-pressed={playbackSpeed === speed}
+                  aria-label={`Set description speed to ${speed}x`}
+                >
+                  {speed}x
+                </button>
+              ))}
+            </div>
           </div>
           {/* <FullscreenButton playFullscreen={props.playFullscreen} />
       <VideoTimer {...props} /> */}

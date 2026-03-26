@@ -6,6 +6,7 @@ import '@/assets/css/editAudioDesc.css'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 import { Tooltip } from 'bootstrap'
+import getBlobAudioDuration from '@/shared/utils/getBlobAudioDuration'
 
 interface Props {
   setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
@@ -171,8 +172,9 @@ const NewAudioClipComponent = ({
     } else {
       formData.append('newACDescriptionText', '')
       const audioBlob = await fetch(mediaBlobUrl!).then((r) => r.blob())
+      const actualRecordingDuration = await getBlobAudioDuration(mediaBlobUrl!)
       formData.append('file', audioBlob, 'recorded_audio.webm')
-      formData.append('newACDuration', String(recordingDuration))
+      formData.append('newACDuration', String(actualRecordingDuration))
     }
 
     try {

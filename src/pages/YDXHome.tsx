@@ -128,8 +128,12 @@ const YDXHome = (): React.ReactElement => {
   const [youTubeVolume, setYouTubeVolume] = useState(
     parseInt(localStorage.getItem('youTubeVolume') || '100'),
   )
+  const [playbackSpeed, setPlaybackSpeed] = useState(
+    parseFloat(localStorage.getItem('playbackSpeed') || '1'),
+  )
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
+  const playbackSpeedRef = useRef(playbackSpeed)
 
   const clipStackRef = useRef(clipStack)
   const clipIDRef = useRef(playedAudioClip)
@@ -184,6 +188,17 @@ const YDXHome = (): React.ReactElement => {
     youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
+
+  useEffect(() => {
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.rate(playbackSpeed)
+    }
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.rate(playbackSpeed)
+    }
+    playbackSpeedRef.current = playbackSpeed
+    localStorage.setItem('playbackSpeed', playbackSpeed.toString())
+  }, [playbackSpeed])
 
   useEffect(() => {
     if (unitLength > 0 && videoId) {
@@ -673,6 +688,7 @@ const YDXHome = (): React.ReactElement => {
                     currentAudio.play()
                     console.log('Extended clip play initiated')
                     currentAudio.volume(descriptionVolumeRef.current / 100)
+                    currentAudio.rate(playbackSpeedRef.current)
                   } else {
                     console.log('Extended clip already playing')
                   }
@@ -687,6 +703,7 @@ const YDXHome = (): React.ReactElement => {
                       currentAudio.play()
                       console.log('Extended clip play initiated after load')
                       currentAudio.volume(descriptionVolumeRef.current / 100)
+                      currentAudio.rate(playbackSpeedRef.current)
                     }
                   }, 50)
                 })
@@ -697,6 +714,7 @@ const YDXHome = (): React.ReactElement => {
               // Event listeners for play and end
               currentAudio?.once('play', () => {
                 currentAudio.volume(descriptionVolumeRef.current / 100)
+                currentAudio.rate(playbackSpeedRef.current)
               })
 
               currentAudio?.once('end', () => {
@@ -775,6 +793,7 @@ const YDXHome = (): React.ReactElement => {
             setTimeout(() => {
               currentAudio.play()
               currentAudio.volume(descriptionVolumeRef.current / 100)
+              currentAudio.rate(playbackSpeedRef.current)
             }, 50)
           } else {
             // Wait for audio to load first
@@ -783,6 +802,7 @@ const YDXHome = (): React.ReactElement => {
               setTimeout(() => {
                 currentAudio.play()
                 currentAudio.volume(descriptionVolumeRef.current / 100)
+                currentAudio.rate(playbackSpeedRef.current)
               }, 50)
             })
           }
@@ -802,6 +822,7 @@ const YDXHome = (): React.ReactElement => {
             // Event listeners for play and end
             currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
+              currentAudio.rate(playbackSpeedRef.current)
             })
 
             currentAudio?.once('end', () => {
@@ -917,6 +938,7 @@ const YDXHome = (): React.ReactElement => {
         }
         if (currInlineAC) {
           // to stop playing -> pause and set time to 0
+          currInlineAC.rate(playbackSpeedRef.current)
           currInlineAC.play()
           currInlineAC.on('end', function () {
             setCurrInlineAC(undefined) // setting back to null, as it is played completely.
@@ -1097,6 +1119,7 @@ const YDXHome = (): React.ReactElement => {
     if (currExtendedAC) {
       // If an extended clip exists, make it play/pause
       if (isCurrentExtACPaused) {
+        currExtendedAC.rate(playbackSpeedRef.current)
         currExtendedAC.play()
         setCurrentExtACPaused(false)
         setGloballyPaused(false)
@@ -1206,7 +1229,7 @@ const YDXHome = (): React.ReactElement => {
     clipDescriptionType: string | undefined,
   ) => {
     try {
-      await axios.put(
+      const response = await axios.put(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
         {
           userId: user,
@@ -1218,6 +1241,7 @@ const YDXHome = (): React.ReactElement => {
       )
 
       setUpdateData(!updateData)
+      return response.data
     } catch (err: any) {
       if (err.response) {
         toast.error(err.response.data.message) // show toast message
@@ -1225,6 +1249,7 @@ const YDXHome = (): React.ReactElement => {
         console.error(err)
         toast.error('An error occurred. Please try again!!')
       }
+      throw err
     }
   }
 
@@ -1274,6 +1299,8 @@ const YDXHome = (): React.ReactElement => {
             setDescriptionVolume={setDescriptionVolume}
             setYouTubeVolume={setYouTubeVolume}
             youTubeVolume={youTubeVolume}
+            playbackSpeed={playbackSpeed}
+            setPlaybackSpeed={setPlaybackSpeed}
           />
           <Notes
             currentTime={convertSecondsToCardFormat(currentTime)}
@@ -1285,6 +1312,9 @@ const YDXHome = (): React.ReactElement => {
                 handlePlayPause()
               }
             }}
+            userId={user || ''}
+            youtubeVideoId={youtubeVideoId || ''}
+            onClipsImported={() => setNeedRefresh(true)}
           />
         </div>
         <hr className="m-2 ydx-hr" />

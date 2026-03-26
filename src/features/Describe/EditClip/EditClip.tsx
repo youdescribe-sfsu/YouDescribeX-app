@@ -11,6 +11,7 @@ import { YouTubePlayer } from 'youtube-player/dist/types'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
 import padNumber from '@/shared/utils/padNumber'
 import { Tooltip } from 'bootstrap'
+import getBlobAudioDuration from '@/shared/utils/getBlobAudioDuration'
 
 interface Props {
   userId: string
@@ -37,8 +38,11 @@ interface Props {
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
   setUndoDeletedClip: React.Dispatch<React.SetStateAction<boolean>>
   isPreview?: boolean
-  handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
+  handleClickSaveClipDescription: (
+    updatedClipDescriptionText: string,
+  ) => Promise<any>
   setClipDescText: (description: string) => void
+  clipSpeed?: number
 }
 
 const EditClip = ({
@@ -68,6 +72,7 @@ const EditClip = ({
   handleClickSaveClipDescription,
   setUndoDeletedClip,
   setClipDescText,
+  clipSpeed: initialClipSpeed = 1,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
@@ -79,6 +84,8 @@ const EditClip = ({
   const [recordedClipDuration, setRecordedClipDuration] = useState(0.0)
   const [readySetGo, setReadySetGo] = useState('')
   const [isDeleteModal, setIsDeleteModal] = useState(false)
+
+  const clipSpeed = initialClipSpeed
 
   // Audio playback state management
   const [recordedAudio, setRecordedAudio] = useState<HTMLAudioElement>()
@@ -119,6 +126,32 @@ const EditClip = ({
   }, [])
 
   const clipDurationAsTimestamp = convertSecondsToCardFormat(clipDuration)
+
+  const getDescriptionPlaybackSpeed = useCallback(
+    () => parseFloat(localStorage.getItem('playbackSpeed') || '1'),
+    [],
+  )
+
+  const buildPlayableAudioUrl = useCallback((audioPath: string) => {
+    if (!audioPath) {
+      return ''
+    }
+
+    let normalizedPath = audioPath
+    if (audioPath.startsWith('.')) {
+      normalizedPath = audioPath.replace(
+        '.',
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
+      )
+    } else if (audioPath.startsWith('/')) {
+      normalizedPath = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static${audioPath}`
+    } else if (!audioPath.startsWith('http')) {
+      normalizedPath = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static/${audioPath}`
+    }
+
+    const separator = normalizedPath.includes('?') ? '&' : '?'
+    return `${normalizedPath}${separator}t=${Date.now()}`
+  }, [])
 
   const getAudioModeDisplay = (isRecorded: boolean, hasText: boolean) => {
     if (isRecorded) {
@@ -240,37 +273,25 @@ const EditClip = ({
     )
 
     // Setup audio playback when new recording is available
-    if (mediaBlobUrl !== null) {
+    if (mediaBlobUrl) {
       const newAudio = new Audio(mediaBlobUrl)
       setRecordedAudio(newAudio)
+      const recordedBlobUrl = mediaBlobUrl
 
       // Calculate and set recorded audio duration
-      newAudio.addEventListener(
-        'loadedmetadata',
-        function () {
-          if (newAudio.duration === Infinity) {
-            // Handle edge case for some audio formats
-            newAudio.currentTime = 1e101
-            newAudio.ontimeupdate = function () {
-              this.ontimeupdate = () => {
-                return
-              }
-              const browserDuration =
-                Math.round(newAudio.duration * 1000) / 1000
-              setRecordedClipDuration(browserDuration)
-              newAudio.currentTime = 0
-            }
-          } else {
-            const browserDuration = Math.round(newAudio.duration * 1000) / 1000
-            setRecordedClipDuration(browserDuration)
-          }
-        },
-        false,
-      )
+      getBlobAudioDuration(recordedBlobUrl)
+        .then((browserDuration) => {
+          setRecordedClipDuration(browserDuration)
+        })
+        .catch(() => {
+          toast.error('Unable to read recorded audio duration.')
+        })
     }
 
     // Setup existing audio clip playback
-    setAdAudio(new Audio(clipAudioPath))
+    if (clipAudioPath) {
+      setAdAudio(new Audio(clipAudioPath))
+    }
   }, [
     clipAudioPath,
     clipCreatedAt,
@@ -511,6 +532,9 @@ const EditClip = ({
       recordedAudio?.pause()
       setIsRecordedAudioPlaying(false)
     } else {
+      if (recordedAudio) {
+        recordedAudio.playbackRate = clipSpeed
+      }
       recordedAudio?.play()
       setIsRecordedAudioPlaying(true)
       recordedAudio?.addEventListener('ended', function () {
@@ -524,6 +548,9 @@ const EditClip = ({
       adAudio?.pause()
       setIsAdAudioPlaying(false)
     } else {
+      if (adAudio) {
+        adAudio.playbackRate = clipSpeed
+      }
       const audioProm = adAudio?.play()
       if (audioProm !== undefined) {
         audioProm
@@ -566,7 +593,7 @@ const EditClip = ({
     }, 3700)
   }
 
-  const saveClipDescription = (e: any) => {
+  const saveClipDescription = async (e: any) => {
     e.preventDefault()
 
     // Get the current button configuration to determine what action to take
@@ -581,7 +608,15 @@ const EditClip = ({
       handleReadySetGo()
     } else {
       // Normal save operation
-      handleClickSaveClipDescription(clipDescriptionText)
+      const updatedClip = await handleClickSaveClipDescription(
+        clipDescriptionText,
+      )
+
+      if (updatedClip?.clip_audio_path && !isRecorded) {
+        adAudio?.pause()
+        setIsAdAudioPlaying(false)
+        setAdAudio(new Audio(buildPlayableAudioUrl(updatedClip.clip_audio_path)))
+      }
     }
   }
 

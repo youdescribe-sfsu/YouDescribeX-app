@@ -11,6 +11,7 @@ export interface Clip {
   clip_start_time: number
   clip_end_time: number
   clip_sequence_number: number
+  clip_speed: number
   createdAt: string
   description_text?: string
   description_type?: string
@@ -34,6 +35,7 @@ const convertClipObject = (clip: any) => {
     description_type: clip.description_type,
     is_recorded: clip.is_recorded,
     playback_type: clip.playback_type,
+    clip_speed: clip.clip_speed ?? 1,
     updatedAt: clip.updatedAt,
   }
   return newClip
@@ -51,6 +53,7 @@ export const convertClassicClipObject = (clip: any) => {
     clip_start_time: clip.start_time,
     clip_end_time: clip.end_time,
     clip_sequence_number: clip.clip_sequence_number ?? 0,
+    clip_speed: clip.speed ?? 1,
     description_text: clip.description_text,
     description_type: clip.description_type,
     is_recorded: clip.is_recorded,

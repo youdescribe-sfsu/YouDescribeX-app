@@ -141,6 +141,9 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   const [youTubeVolume, setYouTubeVolume] = useState(
     parseInt(localStorage.getItem('youTubeVolume') || '100'),
   )
+  const [playbackSpeed, setPlaybackSpeed] = useState(
+    parseFloat(localStorage.getItem('playbackSpeed') || '1'),
+  )
 
   const [showModal, setShowModal] = useState(false)
 
@@ -148,6 +151,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
+  const playbackSpeedRef = useRef(playbackSpeed)
 
   const clipStackRef = useRef(clipStack)
   const clipIDRef = useRef(playedAudioClip)
@@ -201,6 +205,17 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
+
+  useEffect(() => {
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.rate(playbackSpeed)
+    }
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.rate(playbackSpeed)
+    }
+    playbackSpeedRef.current = playbackSpeed
+    localStorage.setItem('playbackSpeed', playbackSpeed.toString())
+  }, [playbackSpeed])
 
   function reset() {
     setSeconds(0)
@@ -619,6 +634,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
                     currentAudio.play()
                     console.log('Extended clip play initiated')
                     currentAudio.volume(descriptionVolumeRef.current / 100)
+                    currentAudio.rate(playbackSpeedRef.current)
                   } else {
                     console.log('Extended clip already playing')
                   }
@@ -633,6 +649,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
                       currentAudio.play()
                       console.log('Extended clip play initiated after load')
                       currentAudio.volume(descriptionVolumeRef.current / 100)
+                      currentAudio.rate(playbackSpeedRef.current)
                     }
                   }, 50)
                 })
@@ -643,6 +660,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               // Event listeners for play and end
               currentAudio?.once('play', () => {
                 currentAudio.volume(descriptionVolumeRef.current / 100)
+                currentAudio.rate(playbackSpeedRef.current)
               })
 
               currentAudio?.once('end', () => {
@@ -712,6 +730,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             setTimeout(() => {
               currentAudio.play()
               currentAudio.volume(descriptionVolumeRef.current / 100)
+              currentAudio.rate(playbackSpeedRef.current)
             }, 50)
           } else {
             // Wait for audio to load first
@@ -720,6 +739,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               setTimeout(() => {
                 currentAudio.play()
                 currentAudio.volume(descriptionVolumeRef.current / 100)
+                currentAudio.rate(playbackSpeedRef.current)
               }, 50)
             })
           }
@@ -737,6 +757,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             // Event listeners for play and end
             currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
+              currentAudio.rate(playbackSpeedRef.current)
             })
 
             currentAudio?.once('end', () => {
@@ -849,6 +870,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         }
         if (currInlineAC) {
           // to stop playing -> pause and set time to 0
+          currInlineAC.rate(playbackSpeedRef.current)
           currInlineAC.play()
           currInlineAC.on('end', function () {
             setCurrInlineAC(undefined) // setting back to null, as it is played completely.
@@ -1027,6 +1049,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     if (currExtendedAC) {
       // If an extended clip exists, make it play/pause
       if (isCurrentExtACPaused) {
+        currExtendedAC.rate(playbackSpeedRef.current)
         currExtendedAC.play()
         setCurrentExtACPaused(false)
         setGloballyPaused(false)
@@ -1125,6 +1148,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
             setDescriptionVolume={setDescriptionVolume}
             setYouTubeVolume={setYouTubeVolume}
             youTubeVolume={youTubeVolume}
+            playbackSpeed={playbackSpeed}
+            setPlaybackSpeed={setPlaybackSpeed}
           />
           {!isPreviewAudioDescription ? (
             <Notes
@@ -1137,6 +1162,9 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
                   handlePlayPause()
                 }
               }}
+              userId={user || ''}
+              youtubeVideoId={youtubeVideoId || ''}
+              onClipsImported={() => setNeedRefresh(true)}
             />
           ) : (
             <></>

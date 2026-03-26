@@ -7,16 +7,14 @@
   height: 265px;
 }
 .notes-label {
-  margin-bottom: -5px;
+  margin-bottom: 0;
+  padding-bottom: 4px;
 }
 .notes-textarea-div {
   background-color: white;
   width: 400px;
-  height: 232px;
-  overflow-y: scroll;
-}
-.notes-textarea {
-  resize: none;
+  height: 195px;
+  overflow-y: auto;
 }
 .notes-save-btn {
   padding-left: 3px;
