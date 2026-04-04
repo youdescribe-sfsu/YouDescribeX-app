@@ -120,6 +120,7 @@ const YDXHome = (): React.ReactElement => {
   const currentStateRef = useRef(currentState)
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
+  const savedClipRefreshRequestedRef = useRef(false)
 
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -192,8 +193,22 @@ const YDXHome = (): React.ReactElement => {
   useEffect(() => { currentStateRef.current = currentState }, [currentState])
 
   useEffect(() => {
+    const handleSavedClipRefresh = () => {
+      savedClipRefreshRequestedRef.current = true
+    }
+
+    window.addEventListener('ydx:new-clip-saved', handleSavedClipRefresh)
+
+    return () => {
+      window.removeEventListener('ydx:new-clip-saved', handleSavedClipRefresh)
+    }
+  }, [])
+
+  useEffect(() => {
     if (needRefresh) {
-      fetchAudioDescriptionData(true)
+      const isNewClipAdded = savedClipRefreshRequestedRef.current
+      savedClipRefreshRequestedRef.current = false
+      fetchAudioDescriptionData(isNewClipAdded, undefined, true)
       setNeedRefresh(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

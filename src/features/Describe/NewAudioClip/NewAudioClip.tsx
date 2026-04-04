@@ -13,7 +13,7 @@ interface Props {
   youtubeVideoId: string
   showInlineACComponent: boolean
   setShowNewACComponent: React.Dispatch<React.SetStateAction<boolean>>
-  currentTime: number
+  initialStartTime: number
   videoLength: number
   audioDescriptionId: string
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
@@ -25,14 +25,13 @@ const NewAudioClipComponent = ({
   youtubeVideoId,
   showInlineACComponent,
   setShowNewACComponent,
-  currentTime,
+  initialStartTime,
   audioDescriptionId,
   setNeedRefresh,
 }: Props) => {
   const [newACTitle, setNewACTitle] = useState('')
   const [newACType, setNewACType] = useState('Visual')
   const [newACDescriptionText, setNewACDescriptionText] = useState('')
-  const [newACStartTime, setNewACStartTime] = useState(currentTime)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingError, setRecordingError] = useState<string | null>(null)
   const [descriptionMethod, setDescriptionMethod] = useState<'text' | 'audio'>(
@@ -44,7 +43,7 @@ const NewAudioClipComponent = ({
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0)
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0)
   const [clipStartTimeSeconds, setClipStartTimeSeconds] = useState(0)
-  const [clipStartTimeMilliSeconds, setClipStartTimeMilliSeconds] = useState(0)
+  const [clipStartTimeCentiseconds, setClipStartTimeCentiseconds] = useState(0)
 
   const { status, startRecording, stopRecording, mediaBlobUrl, clearBlobUrl } =
     useReactMediaRecorder({
@@ -58,8 +57,8 @@ const NewAudioClipComponent = ({
     Array.from(tooltipTriggerList).map(
       (tooltipTriggerEl) => new Tooltip(tooltipTriggerEl),
     )
-    handleClipStartTimeInputsRender()
-  }, [currentTime])
+    handleClipStartTimeInputsRender(initialStartTime)
+  }, [initialStartTime])
 
   const updateRecordingDuration = useCallback(() => {
     setRecordingDuration((prevDuration) => prevDuration + 0.1)
@@ -82,13 +81,12 @@ const NewAudioClipComponent = ({
     }
   }, [isRecording, updateRecordingDuration])
 
-  const handleClipStartTimeInputsRender = () => {
-    const cardFormat = convertSecondsToCardFormat(currentTime).split(':')
+  const handleClipStartTimeInputsRender = (startTime: number) => {
+    const cardFormat = convertSecondsToCardFormat(startTime).split(':')
     setClipStartTimeHours(parseInt(cardFormat[0]))
     setClipStartTimeMinutes(parseInt(cardFormat[1]))
     setClipStartTimeSeconds(parseInt(cardFormat[2]))
-    setClipStartTimeMilliSeconds(parseInt(cardFormat[3]))
-    setNewACStartTime(currentTime)
+    setClipStartTimeCentiseconds(parseInt(cardFormat[3]))
   }
 
   // Handle Record Ready Set Go - Match EditClip.tsx exactly
@@ -128,7 +126,7 @@ const NewAudioClipComponent = ({
       clipStartTimeHours * 3600 +
       clipStartTimeMinutes * 60 +
       clipStartTimeSeconds +
-      clipStartTimeMilliSeconds / 1000
+      clipStartTimeCentiseconds / 100
     )
   }
 
@@ -183,6 +181,9 @@ const NewAudioClipComponent = ({
       )
       toast.success(`New Clip Added Successfully!!\n${response.data}`)
       setShowNewACComponent(false)
+      // Flag the next refresh as save-triggered so the editor rebuilds from
+      // the current playback position instead of resetting to the start.
+      window.dispatchEvent(new Event('ydx:new-clip-saved'))
       setNeedRefresh(true)
       setRecordingDuration(0)
     } catch (error) {
@@ -245,7 +246,7 @@ const NewAudioClipComponent = ({
                   clipStartTimeHours,
                   clipStartTimeMinutes,
                   clipStartTimeSeconds,
-                  clipStartTimeMilliSeconds,
+                  clipStartTimeCentiseconds,
                 ].map((value, index) => (
                   <React.Fragment key={index}>
                     {index > 0 && <div className="mx-1">:</div>}
@@ -270,13 +271,10 @@ const NewAudioClipComponent = ({
                             setClipStartTimeSeconds(newValue)
                             break
                           case 3:
-                            setClipStartTimeMilliSeconds(newValue)
+                            setClipStartTimeCentiseconds(newValue)
                             break
                         }
                       }}
-                      onBlur={() =>
-                        setNewACStartTime(calculateClipStartTimeinSeconds())
-                      }
                     />
                   </React.Fragment>
                 ))}

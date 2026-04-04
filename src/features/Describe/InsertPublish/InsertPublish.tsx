@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import '@/assets/css/insertPublish.css'
 import '@/assets/css/audioDesc.css'
 import NewAudioClipComponent from '../NewAudioClip/NewAudioClip'
@@ -46,7 +46,7 @@ const InsertPublish = ({
       setShowInlineACComponent(false)
       setHandleClicksFromParent('')
     }
-  }, [handleClicksFromParent, setHandleClicksFromParent])
+  }, [handleClicksFromParent, openNewAudioClip, setHandleClicksFromParent])
 
   return (
     <React.Fragment>
@@ -61,7 +61,7 @@ const InsertPublish = ({
             youtubeVideoId={youtubeVideoId}
             showInlineACComponent={showInlineACComponent}
             setShowNewACComponent={setShowNewACComponent}
-            currentTime={currentTime}
+            initialStartTime={insertClipStartTimeSnapshot}
             videoLength={videoLength}
             audioDescriptionId={audioDescriptionId}
             setShowSpinner={setShowSpinner}
