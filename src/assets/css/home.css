@@ -102,10 +102,10 @@
 }
 
 .audio-desc-component-list {
-  overflow-y: auto;
+  overflow-y: visible;
   overscroll-behavior-y: contain;
-  min-height: 0vh;
-  max-height: 45vh;
+  min-height: 0;
+  max-height: none;
   margin-bottom: 1rem;
 }
 
@@ -125,4 +125,19 @@
 
 .green-border {
   border: 3px solid green;
+}
+/* Hide InsertPublish's own buttons — they're rendered in the nav bar instead */
+.insert-publish-form-only > button {
+  display: none !important;
+}
+/* Prevent AudioClip container from overflowing the page */
+.audio-desc-component-list {
+  overflow: visible;
+  max-width: 100%;
+}
+
+/* Prevent AI Voice container from overflowing */
+.audio-desc-component-list > div {
+  max-width: 100%;
+  box-sizing: border-box;
 }

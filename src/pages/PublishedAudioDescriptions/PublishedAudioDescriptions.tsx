@@ -1253,6 +1253,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               isPreview={isPreviewAudioDescription}
               setUndoDeletedClip={setUndoDeletedClip}
               setUpdatedDescriptions={setUpdatedDescriptions}
+              isPublished={isPublished}
+              enrollInCollabEdit={false}
+              setEnrollInCollabEdit={() => {}}
+              onPublish={() => {}}
             />
           ))}
         </div>

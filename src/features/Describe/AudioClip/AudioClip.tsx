@@ -8,11 +8,8 @@ import { toast } from 'react-toastify'
 import { Clip } from '@/shared/utils/convertClipObject'
 import { YouTubePlayer } from 'youtube-player/dist/types'
 
-// Helper functions for better audio mode communication
 const getDescriptionDisplay = (clip: Clip): string => {
-  if (clip.is_recorded) {
-    return clip.description_text || 'Voice recording'
-  }
+  if (clip.is_recorded) return clip.description_text || 'Voice recording'
   return clip.description_text || 'No description yet'
 }
 
@@ -46,10 +43,7 @@ interface Props {
   setUndoDeletedClip: React.Dispatch<React.SetStateAction<boolean>>
   divWidths: { [key: string]: number }
   handlePlayAudioClip: (startTime: number) => void
-  editComponentToggleList: {
-    clipId: string
-    showEditComponent: boolean
-  }[]
+  editComponentToggleList: { clipId: string; showEditComponent: boolean }[]
   audioDescriptionId: string
   setEditComponentToggleFunc: (clipId: string, value: boolean) => void
   currentEvent: YouTubePlayer | undefined
@@ -60,6 +54,11 @@ interface Props {
   setUpdatedDescriptions: React.Dispatch<
     React.SetStateAction<{ [key: string]: string }>
   >
+  // Publish props passed down from YDXHome → EditClip
+  isPublished: boolean
+  enrollInCollabEdit: boolean
+  setEnrollInCollabEdit: (val: boolean) => void
+  onPublish: (e: any) => void
 }
 
 const AudioClip = ({
@@ -84,15 +83,17 @@ const AudioClip = ({
   isPreview = false,
   setUndoDeletedClip,
   setUpdatedDescriptions,
+  isPublished,
+  enrollInCollabEdit,
+  setEnrollInCollabEdit,
+  onPublish,
 }: Props) => {
-  // Extract audio clip data from props with better organization
   const clipID = clip.clip_id
   const clipSequenceNumber = clip.clip_sequence_number
   const clipDescriptionType = clip.description_type
   const initialClipTitle = clip.clip_title?.startsWith('scene undef')
     ? `scene ${clip.description_type}`
     : clip.clip_title
-
   const initialclipDescriptionText = clip.description_text
   const initialClipPlaybackType = clip.playback_type
   const initialClipStartTime = clip.clip_start_time
@@ -101,45 +102,22 @@ const AudioClip = ({
   const isRecorded = clip.is_recorded
   const clipCreatedAt = clip.createdAt
 
-  // Get audio mode configuration for enhanced UI communication
   const audioModeConfig = getAudioModeConfig(clip)
   const descriptionDisplay = getDescriptionDisplay(clip)
 
   const [clipDescriptionText, setClipDescriptionText] = useState(
     clip.description_text,
   )
-
-  // React State Variables
   const [clipPlaybackType, setClipPlayBackType] = useState('')
   const [clipTitle, setClipTitle] = useState('')
   const [clipStartTime, setClipStartTime] = useState(0)
-
-  // Toggle variable to show or hide the edit component
-  const [showEditComponent, setShowEditComponent] = useState(false)
   const [adDraggableWidth, setAdDraggableWidth] = useState(0.0)
-  const [adDraggablePosition, setAdDraggablePosition] = useState({
-    x: 0,
-    y: 0,
-  })
+  const [adDraggablePosition, setAdDraggablePosition] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
     setClipPlayBackType(initialClipPlaybackType)
     setClipTitle(initialClipTitle ?? '')
-
-    // Logic to show/hide the edit component based on props
-    // This ensures only one edit component is open at a time
-    editComponentToggleList.forEach((item) => {
-      if (item.clipId === clipID) {
-        item.showEditComponent
-          ? setShowEditComponent(true)
-          : setShowEditComponent(false)
-      }
-    })
-
-    // Update the clip start time based on the value from the props
     setClipStartTime(initialClipStartTime)
-
-    // Set draggable position & width based on timeline calculations
     setAdDraggablePosition({ x: initialClipStartTime * unitLength, y: 0 })
     setAdDraggableWidth(clipDuration * unitLength)
   }, [
@@ -152,15 +130,11 @@ const AudioClip = ({
     unitLength,
   ])
 
-  // Dialog Timeline Draggable Functions - Enhanced with better error handling
   const stopADBar = (event: any, position: any) => {
     const adBarTime = position.x / unitLength
     const newClipStartTime = Number(parseFloat(`${adBarTime}`).toFixed(2))
-
-    // Validate positioning bounds
     if (Number(newClipStartTime) >= 0.02 && newClipStartTime < videoLength) {
       if (clipPlaybackType === 'inline') {
-        // For inline clips, ensure they don't extend beyond timeline
         if (newClipStartTime + clipDuration <= videoLength) {
           updateStartTimeNDraggablePosition(newClipStartTime)
         } else {
@@ -169,7 +143,6 @@ const AudioClip = ({
           )
         }
       } else {
-        // For extended clips, just ensure start time is within video bounds
         if (newClipStartTime < videoLength) {
           updateStartTimeNDraggablePosition(newClipStartTime)
         }
@@ -179,13 +152,11 @@ const AudioClip = ({
     }
   }
 
-  // Enhanced Nudge functionality with better UX feedback
   const handleLeftNudgeClick = (e: any) => {
     const newClipStartTime = (parseFloat(`${clipStartTime}`) - 0.25).toFixed(2)
-
     if (Number(newClipStartTime) >= 0.02) {
       updateStartTimeNDraggablePosition(newClipStartTime)
-      toast.success(`Moved clip earlier by 0.25 seconds`)
+      toast.success('Moved clip earlier by 0.25 seconds')
     } else {
       toast.warning('Cannot move clip before 0.02 seconds')
     }
@@ -195,11 +166,10 @@ const AudioClip = ({
     const newClipStartTime = Number(
       (parseFloat(`${clipStartTime}`) + 0.25).toFixed(2),
     )
-
     if (clipPlaybackType === 'inline') {
       if (newClipStartTime + clipDuration <= videoLength) {
         updateStartTimeNDraggablePosition(newClipStartTime)
-        toast.success(`Moved clip later by 0.25 seconds`)
+        toast.success('Moved clip later by 0.25 seconds')
       } else {
         toast.error(
           'Cannot move inline clip beyond timeline. Change to extended mode first.',
@@ -208,7 +178,7 @@ const AudioClip = ({
     } else {
       if (newClipStartTime < videoLength) {
         updateStartTimeNDraggablePosition(newClipStartTime)
-        toast.success(`Moved clip later by 0.25 seconds`)
+        toast.success('Moved clip later by 0.25 seconds')
       } else {
         toast.warning('Cannot move clip beyond video end time')
       }
@@ -217,37 +187,29 @@ const AudioClip = ({
 
   const updateStartTimeNDraggablePosition = (newClipStartTime: any) => {
     setClipStartTime(newClipStartTime)
-    // Update the draggable div position based on new start time
     setAdDraggablePosition({ x: newClipStartTime * unitLength, y: 0 })
     handleClipStartTimeUpdate(newClipStartTime)
   }
 
-  // Handle PUT (update) requests - Enhanced with better error handling
   const handleClipStartTimeUpdate = (updatedClipStartTime: any) => {
     axios
       .put(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-start-time/${clipID}`,
         {
           clipStartTime: updatedClipStartTime,
-          audioDescriptionId: audioDescriptionId,
-          youtubeVideoId: youtubeVideoId,
+          audioDescriptionId,
+          youtubeVideoId,
         },
       )
-      .then((res) => {
-        // Trigger re-render of parent component to fetch updated data
-        setUpdateData(!updateData)
-      })
+      .then(() => setUpdateData(!updateData))
       .catch((err) => {
         console.error('Error updating clip start time:', err)
         toast.error('Failed to update clip timing. Please try again.')
       })
   }
 
-  // Enhanced playback type update with better validation
   const handlePlaybackTypeUpdate = (e: any) => {
     const newPlaybackType = e.target.value
-
-    // Validate inline conversion at timeline boundary
     if (
       clipPlaybackType === 'extended' &&
       newPlaybackType === 'inline' &&
@@ -258,17 +220,13 @@ const AudioClip = ({
       )
       return
     }
-
     setClipPlayBackType(newPlaybackType)
-
     axios
       .put(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-playback-type/${clipID}`,
-        {
-          clipPlaybackType: newPlaybackType,
-        },
+        { clipPlaybackType: newPlaybackType },
       )
-      .then((res) => {
+      .then(() => {
         setUpdateData(!updateData)
         toast.success(`Changed to ${newPlaybackType} mode`)
       })
@@ -282,26 +240,21 @@ const AudioClip = ({
     updatedClipDescriptionText: string,
   ) => {
     try {
-      // Check if the clip description has been updated
       if (updatedClipDescriptionText !== initialclipDescriptionText) {
         setShowSpinner(true)
-
         await axios.put(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipID}`,
           {
-            userId: userId,
-            youtubeVideoId: youtubeVideoId,
+            userId,
+            youtubeVideoId,
             clipDescriptionText: updatedClipDescriptionText,
-            clipDescriptionType: clipDescriptionType,
-            audioDescriptionId: audioDescriptionId,
+            clipDescriptionType,
+            audioDescriptionId,
           },
         )
-
         setUpdateData(!updateData)
         toast.success('Description saved successfully!')
       }
-
-      // Handle title updates separately
       if (clipTitle === '' || clipTitle === null) {
         toast.error('Please enter a valid title')
         setShowSpinner(false)
@@ -309,9 +262,7 @@ const AudioClip = ({
       } else if (clipTitle !== initialClipTitle) {
         await axios.put(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-title/${clipID}`,
-          {
-            adTitle: clipTitle,
-          },
+          { adTitle: clipTitle },
         )
       }
     } catch (err: any) {
@@ -341,9 +292,8 @@ const AudioClip = ({
   return (
     <div id={`audio-clip-card-${clipID}`} className="spacing-component">
       <div className="component">
-        {/* Enhanced header with better visual hierarchy */}
         <div className="audio-clip-header">
-          {/* Clip Information Section */}
+          {/* Clip Information */}
           <div className="clip-info-section">
             <div
               className="ad-title"
@@ -351,17 +301,14 @@ const AudioClip = ({
             >
               Audio Clip {clipSequenceNumber}
             </div>
-
             <input
               type="text"
               className="ad-title-input"
               placeholder="Enter clip title..."
-              disabled={!showEditComponent}
+              disabled={isPreview}
               value={clipTitle}
               onChange={(e) => setClipTitle(e.target.value)}
             />
-
-            {/* Enhanced metadata with audio mode indicator */}
             <div className="clip-metadata">
               <div className="audio-mode-indicator">
                 <i className={`fa ${audioModeConfig.icon}`}></i>
@@ -383,7 +330,7 @@ const AudioClip = ({
             </div>
           </div>
 
-          {/* Nudge Controls Section */}
+          {/* Nudge Controls */}
           <div className="nudge-controls-section">
             <div className="nudge-label">Nudge</div>
             <div className="nudge-btns-div">
@@ -418,7 +365,7 @@ const AudioClip = ({
             </div>
           </div>
 
-          {/* Timeline Section */}
+          {/* Timeline */}
           <div className="timeline-section">
             <div className="component-timeline-div">
               <div className="ad-draggable-div">
@@ -458,7 +405,7 @@ const AudioClip = ({
               </div>
             </div>
 
-            {/* Enhanced playback type controls */}
+            {/* Playback type controls */}
             <div className="playback-type-controls">
               <div className="playback-type-option">
                 <input
@@ -477,7 +424,6 @@ const AudioClip = ({
                   <span className="inline-extended-label">Inline</span>
                 </label>
               </div>
-
               <div className="playback-type-option">
                 <input
                   className="form-check-input"
@@ -497,74 +443,41 @@ const AudioClip = ({
               </div>
             </div>
           </div>
-
-          {/* Expand/Collapse Control */}
-          <div className="expand-collapse-section">
-            {showEditComponent ? (
-              <i
-                className="fa fa-chevron-up"
-                onClick={() => setEditComponentToggleFunc(clipID, false)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    setEditComponentToggleFunc(clipID, false)
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label="Collapse detailed editing"
-                title="Collapse detailed editing"
-              />
-            ) : (
-              <i
-                className="fa fa-chevron-down"
-                onClick={() => setEditComponentToggleFunc(clipID, true)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    setEditComponentToggleFunc(clipID, true)
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label="Expand detailed editing"
-                title="Expand detailed editing"
-              />
-            )}
-          </div>
         </div>
 
-        {/* Enhanced edit component with smooth animation */}
-        {showEditComponent && (
-          <EditClip
-            handleClipStartTimeUpdate={handleClipStartTimeUpdate}
-            userId={userId}
-            youtubeVideoId={youtubeVideoId}
-            clipCreatedAt={clipCreatedAt}
-            clipId={clipID}
-            clipDescriptionType={clipDescriptionType ?? ''}
-            initialClipDescriptionText={initialclipDescriptionText ?? ''}
-            clipPlaybackType={clipPlaybackType}
-            clipStartTime={clipStartTime}
-            clipDuration={clipDuration}
-            isRecorded={isRecorded ?? false}
-            clipAudioPath={clipAudioPath}
-            currentTime={currentTime}
-            updateData={updateData}
-            setUpdateData={setUpdateData}
-            currentEvent={currentEvent}
-            currentState={currentState}
-            videoLength={videoLength}
-            setShowSpinner={setShowSpinner}
-            audioDescriptionId={audioDescriptionId}
-            fetchUserVideoData={fetchUserVideoData}
-            setNeedRefresh={setNeedRefresh}
-            isPreview={isPreview}
-            handleClickSaveClipDescription={handleClickSaveClipDescription}
-            setUndoDeletedClip={setUndoDeletedClip}
-            setClipDescText={handleDescriptionChange}
-          />
-        )}
+        {/* EditClip — always rendered, carries publish props to bottom */}
+        <EditClip
+          handleClipStartTimeUpdate={handleClipStartTimeUpdate}
+          userId={userId}
+          youtubeVideoId={youtubeVideoId}
+          clipCreatedAt={clipCreatedAt}
+          clipId={clipID}
+          clipDescriptionType={clipDescriptionType ?? ''}
+          initialClipDescriptionText={initialclipDescriptionText ?? ''}
+          clipPlaybackType={clipPlaybackType}
+          clipStartTime={clipStartTime}
+          clipDuration={clipDuration}
+          isRecorded={isRecorded ?? false}
+          clipAudioPath={clipAudioPath}
+          currentTime={currentTime}
+          updateData={updateData}
+          setUpdateData={setUpdateData}
+          currentEvent={currentEvent}
+          currentState={currentState}
+          videoLength={videoLength}
+          setShowSpinner={setShowSpinner}
+          audioDescriptionId={audioDescriptionId}
+          fetchUserVideoData={fetchUserVideoData}
+          setNeedRefresh={setNeedRefresh}
+          isPreview={isPreview}
+          handleClickSaveClipDescription={handleClickSaveClipDescription}
+          setUndoDeletedClip={setUndoDeletedClip}
+          setClipDescText={handleDescriptionChange}
+          isPublished={isPublished}
+          enrollInCollabEdit={enrollInCollabEdit}
+          setEnrollInCollabEdit={setEnrollInCollabEdit}
+          onPublish={onPublish}
+        />
       </div>
     </div>
   )

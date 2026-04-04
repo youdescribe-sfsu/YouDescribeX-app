@@ -1293,3 +1293,51 @@
     gap: var(--space-sm);
   }
 }
+/* ── Fix AI Voice container overflowing the AudioClip card ── */
+.edit-component {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ── Bottom row: Play Video | Enroll + Publish on same line ── */
+.bottom-row-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 8px 0;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.enroll-publish-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+/* ── Fix AI Voice container staying inside AudioClip card ── */
+.edit-component {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ── Bottom row: 3-column grid so Play Video is truly centered ── */
+.bottom-row-controls {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 12px 0 8px 0;
+  gap: 12px;
+}
+
+.enroll-publish-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: nowrap;
+}

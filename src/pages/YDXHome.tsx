@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useElapsedTime } from 'use-elapsed-time'
-import {
-  useParams,
-  useNavigate,
-} from 'react-router-dom' /* to use params on the url */
+import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import YouTube, { YouTubePlayer } from 'react-youtube'
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
@@ -13,6 +10,7 @@ import AudioClip from '../features/Describe/AudioClip/AudioClip'
 import Notes from '../features/Describe/Notes/Notes'
 import convertSecondsToCardFormat from '../shared/utils/convertSecondsToCardFormat'
 import InsertPublish from '../features/Describe/InsertPublish/InsertPublish'
+import ClipsNavigator from '../features/Describe/ClipsNavigator/ClipsNavigator'
 import { Buttons } from '../features/Describe/Buttons/Buttons'
 import Spinner from '../shared/components/Spinner/Spinner'
 import { Howl } from 'howler'
@@ -25,11 +23,10 @@ import { Id, toast } from 'react-toastify'
 import Button from 'react-bootstrap/Button'
 
 const YDXHome = (): React.ReactElement => {
-  /* to use params on the url and get userId & youtubeVideoId */
   const { audioDescriptionId, youtubeVideoId } = useParams()
   const participant_id = sessionStorage.getItem('id')
   const navigate = useNavigate()
-  /* Options for YouTube video API */
+
   const opts: Options = {
     height: '265',
     width: '500',
@@ -44,60 +41,45 @@ const YDXHome = (): React.ReactElement => {
       rel: 0,
     },
   }
-  // use a reference for the #draggable-div to get the width and use in calculateDraggableDivWidth()
+
   const divRef1 = useRef<HTMLDivElement>(null)
   const divRef2 = useRef<HTMLDivElement>(null)
   const divRef3 = useRef<HTMLDivElement>(null)
   const [divWidths, setDivWidths] = useState({})
 
   // State Variables
-  const [videoId, setVideoId] = useState('') // retrieved from db, stored to fetch audio_descriptions
-  // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
-  const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
-  const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored to display as a label for the dialog timeline
-  const [draggableDivWidth, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
-  const [currentEvent, setCurrentEvent] = useState<YouTubePlayer>() //stores YouTube video's event
-  const [currentState, setCurrentState] = useState(-1) // stores YouTube video's PLAYING, CUED, PAUSED, UNSTARTED, BUFFERING, ENDED state values
-  const [currentTime, setCurrentTime] = useState(0.0) //stores current running time of the YouTube video
-  const [timer, setTimer] = useState<NodeJS.Timer>() // stores TBD
-  const [unitLength, setUnitLength] = useState(0) // stores unit length based on the video length to maintain colored div's on the timelines
-  const [draggableTime, setDraggableTime] = useState({ x: 0, y: 0 }) // stores the position of the draggable bar on the #draggable-div
-  const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<any[]>([]) // stores dialog-timestamps data for a video from backend db
+  const [videoId, setVideoId] = useState('')
+  const [notesData, setNotesData] = useState('')
+  const [videoLength, setVideoLength] = useState(0)
+  const [draggableDivWidth, setDraggableDivWidth] = useState(0.0)
+  const [currentEvent, setCurrentEvent] = useState<YouTubePlayer>()
+  const [currentState, setCurrentState] = useState(-1)
+  const [currentTime, setCurrentTime] = useState(0.0)
+  const [timer, setTimer] = useState<NodeJS.Timer>()
+  const [unitLength, setUnitLength] = useState(0)
+  const [draggableTime, setDraggableTime] = useState({ x: 0, y: 0 })
+  const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<any[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isPublished, setIsPublished] = useState(false) // holds the published state of the Video & Audio Description
-  const [isCollaborativeVersion, setCollaborativeVersion] = useState(false) // holds the Collaborative Version state of the Video & Audio Description
-  const [audioClips, setAudioClips] = useState<Clip[]>([]) // stores list of Audio Clips data for a video from backend db
+  const [isPublished, setIsPublished] = useState(false)
+  const [isCollaborativeVersion, setCollaborativeVersion] = useState(false)
+  const [audioClips, setAudioClips] = useState<Clip[]>([])
   const audioClipsListRef = useRef<HTMLDivElement>(null)
-  // store current extended & inline Audio Clips to pause/play based on the YT video current state
-  const [currExtendedAC, setCurrExtendedAC] = useState<Howl>() // see onStateChange() - stop extended ac, when Video is played.
-  const [currInlineAC, setCurrInlineAC] = useState<Howl>() // see onStateChange() - stop Inline ac, when Video is paused.
-
-  const [updateData, setUpdateData] = useState(false) // passed to child components to use in the dependency array so that data is fetched again after this variable is modified
-
-  const [recentAudioPlayedTime, setRecentAudioPlayedTime] = useState(0.0) // used to store the time of a recent AD played to stop playing the same Audio twice concurrently - due to an issue found in updateTime() method because it returns the same currentTime twice or more
-  const [playedAudioClip, setPlayedAudioClip] = useState('') // store clipId of the audio clip that is already played.
-  const [playedClipPath, setPlayedClipPath] = useState('') // store clip_audio_path of the audio clip that is already played.
-  const [playedClipsSet, setPlayedClipsSet] = useState<Set<string>>(new Set()) // Set-based tracking for robust duplicate prevention
-  // Spinner div
+  const [currExtendedAC, setCurrExtendedAC] = useState<Howl>()
+  const [currInlineAC, setCurrInlineAC] = useState<Howl>()
+  const [updateData, setUpdateData] = useState(false)
+  const [recentAudioPlayedTime, setRecentAudioPlayedTime] = useState(0.0)
+  const [playedAudioClip, setPlayedAudioClip] = useState('')
+  const [playedClipPath, setPlayedClipPath] = useState('')
+  const [playedClipsSet, setPlayedClipsSet] = useState<Set<string>>(new Set())
   const [showSpinner, setShowSpinner] = useState(false)
   const [undoDeletedClipInfo, setUndoDeletedClip] = useState(false)
-  const [updatedDescriptions, setUpdatedDescriptions] = useState<{
-    [key: string]: string
-  }>({})
-
-  // logic to show/hide the edit component and add it to a list along with clip Id
-  // this hides one edit component when the other is opened
+  const [updatedDescriptions, setUpdatedDescriptions] = useState<{ [key: string]: string }>({})
   const [editComponentToggleList, setEditComponentToggleList] = useState<
     { clipId: string; showEditComponent: boolean }[]
   >([])
-
-  // handle clicks of new Inline & New Extended buttons placed beside Notes
-  // pass as props to ButtonsComponent & InsertPublishComponent'
   const [handleClicksFromParent, setHandleClicksFromParent] = useState('')
-
-  const [isCurrentExtACPaused, setCurrentExtACPaused] = useState(false) // Manages the play/pause state of an extended audio clip
-  const [isGloballyPaused, setGloballyPaused] = useState(true) // Manages the global play/pause state
-
+  const [isCurrentExtACPaused, setCurrentExtACPaused] = useState(false)
+  const [isGloballyPaused, setGloballyPaused] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { elapsedTime } = useElapsedTime({ isPlaying })
@@ -108,20 +90,19 @@ const YDXHome = (): React.ReactElement => {
   )
   const [isActive, setIsActive] = useState(false)
   const [user, setUser] = useState(userDataStore.getState().userId)
-
   const [needRefresh, setNeedRefresh] = useState(false)
-  // const [clipDeleted, setClipDeleted] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [samplingRate, setSamplingRate] = useState(100)
-
-  // Previous time variable - Holds the value of previous time
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [previousTime, setPreviousTime] = useState(0.0)
   const [clipStack, setClipStack] = useState<Clip[]>([])
   const [clipStackSize, setClipStackSize] = useState<number>(5)
   const [currentClipIndex, setCurrentClipIndex] = useState<number>(0)
 
-  // Balancer value for volume controls
+  // ── Single-clip navigation ───────────────────────────────────────────────────
+  const [navClipIndex, setNavClipIndex] = useState(0)
+  const [isClipsListExpanded, setIsClipsListExpanded] = useState(false)
+
   const [descriptionVolume, setDescriptionVolume] = useState(
     parseInt(localStorage.getItem('descriptionVolume') || '50'),
   )
@@ -130,19 +111,11 @@ const YDXHome = (): React.ReactElement => {
   )
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
-
   const clipStackRef = useRef(clipStack)
   const clipIDRef = useRef(playedAudioClip)
-
-  // Time Refs
   const currentTimeRef = useRef(currentTime)
   const previousTimeRef = useRef(previousTime)
-
   const currentClipIndexRef = useRef(currentClipIndex)
-  // const setCurrentClipIndex = useClipIDStore(
-  //   (state) => state.setCurrentClipIndex,
-  // )
-
   const currentEventRef = useRef(currentEvent)
   const currentStateRef = useRef(currentState)
   const currentInlineACRef = useRef(currInlineAC)
@@ -158,29 +131,18 @@ const YDXHome = (): React.ReactElement => {
     previousTimeRef.current = previousTime
   }, [currentTime, previousTime])
 
-  useEffect(() => {
-    clipIDRef.current = playedAudioClip
-  }, [playedAudioClip])
+  useEffect(() => { clipIDRef.current = playedAudioClip }, [playedAudioClip])
+  useEffect(() => { currentClipIndexRef.current = currentClipIndex }, [currentClipIndex])
 
   useEffect(() => {
-    currentClipIndexRef.current = currentClipIndex
-  }, [currentClipIndex])
-
-  useEffect(() => {
-    if (currentInlineACRef.current?.playing()) {
-      currentInlineACRef.current?.volume(descriptionVolume / 100)
-    }
-    if (currentExtendedACRef.current?.playing()) {
-      currentExtendedACRef.current?.volume(descriptionVolume / 100)
-    }
+    if (currentInlineACRef.current?.playing()) currentInlineACRef.current?.volume(descriptionVolume / 100)
+    if (currentExtendedACRef.current?.playing()) currentExtendedACRef.current?.volume(descriptionVolume / 100)
     descriptionVolumeRef.current = descriptionVolume
     localStorage.setItem('descriptionVolume', descriptionVolume.toString())
   }, [descriptionVolume])
 
   useEffect(() => {
-    if (currentEventRef) {
-      currentEventRef.current?.setVolume(youTubeVolume)
-    }
+    if (currentEventRef) currentEventRef.current?.setVolume(youTubeVolume)
     youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
@@ -202,64 +164,32 @@ const YDXHome = (): React.ReactElement => {
   useEffect(() => {
     setUser(userDataStore.getState().userId || '')
     setDivWidths({
-      divRef1:
-        (divRef1.current?.clientWidth ?? 1) / 3 +
-        (divRef1.current?.clientWidth ?? 1) / 3,
+      divRef1: (divRef1.current?.clientWidth ?? 1) / 3 + (divRef1.current?.clientWidth ?? 1) / 3,
       divRef2: (divRef1.current?.clientWidth ?? 1) / 3,
       divRef3: divRef2.current?.clientWidth,
       divRef4: divRef3.current?.clientWidth,
     })
     setShowSpinner(true)
-    // set the toggle list back to empty if we are fetching the data again
-    fetchUserVideoData() // use axios to get audio descriptions for the youtubeVideoId & userId passed to the url Params
-
-    document.addEventListener('keyup', () => {
-      setIsPlaying((prevIsPlaying) => !prevIsPlaying)
-    })
+    fetchUserVideoData()
+    document.addEventListener('keyup', () => { setIsPlaying((prev) => !prev) })
     let interval: NodeJS.Timer | null = null
     if (isActive) {
-      interval = setInterval(() => {
-        setSeconds((seconds) => seconds + 1)
-      }, 1000)
+      interval = setInterval(() => { setSeconds((s) => s + 1) }, 1000)
     } else if (!isActive && seconds !== 0) {
-      if (interval !== null) {
-        clearInterval(interval)
-      }
+      if (interval !== null) clearInterval(interval)
     }
-    return () => {
-      if (interval !== null) {
-        clearInterval(interval)
-      }
-    }
+    return () => { if (interval !== null) clearInterval(interval) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isActive,
-    draggableDivWidth,
-    unitLength,
-    videoId,
-    youtubeVideoId,
-    // changing this state variable, will fetch user data again
-    updateData, // to fetch data whenever updateData state is changed.
-    setEditComponentToggleList,
-  ])
+  }, [isActive, draggableDivWidth, unitLength, videoId, youtubeVideoId, updateData, setEditComponentToggleList])
 
   useEffect(() => {
     localStorage.setItem('Seconds', String(seconds))
     sessionStorage.setItem('User', user || '')
   }, [seconds, user])
 
-  useEffect(() => {
-    clipStackRef.current = clipStack
-    // console.log('New Clip Stack', clipStack)
-  }, [clipStack])
-
-  useEffect(() => {
-    currentEventRef.current = currentEvent
-  }, [currentEvent])
-
-  useEffect(() => {
-    currentStateRef.current = currentState
-  }, [currentState])
+  useEffect(() => { clipStackRef.current = clipStack }, [clipStack])
+  useEffect(() => { currentEventRef.current = currentEvent }, [currentEvent])
+  useEffect(() => { currentStateRef.current = currentState }, [currentState])
 
   useEffect(() => {
     if (needRefresh) {
@@ -270,221 +200,107 @@ const YDXHome = (): React.ReactElement => {
   }, [needRefresh])
 
   useEffect(() => {
-    // console.log(user)
-    // console.log(userDataStore.getState().userId)
-    if (userDataStore.getState().userId !== sessionStorage.getItem('User')) {
-      setSeconds(0)
-    }
+    if (userDataStore.getState().userId !== sessionStorage.getItem('User')) setSeconds(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  // for calculating the draggable-div width of the timeline
+
   const calculateDraggableDivWidth = () => {
-    // remove the left & right margin - leaving about 96% of the total width of the draggable-div
     const currWidth = divRef3?.current?.clientWidth ?? 1
-    // const currWidth = 700;
-    const draggableDivWidth = (96 * currWidth) / 100
-    setDraggableDivWidth(draggableDivWidth)
-    return draggableDivWidth
-    // could add this to change the unit length for every window resize.. commenting this for now
-    // window.addEventListener('resize', () => {
-    //   const newWidth = divRef.current.clientWidth;
-    //   const draggableDivWidth = (96 * newWidth) / 100;
-    //   setDraggableDivWidth(draggableDivWidth);
-    // });
-  }
-  // calculate unit length of the timeline width based on video length
-  const calculateUnitLength = (
-    videoEndTime: number,
-    draggableDivWidth: number,
-  ) => {
-    const unitLength = draggableDivWidth / videoEndTime // let unitlength = 644 / 299;
-    setUnitLength(unitLength)
+    const w = (96 * currWidth) / 100
+    setDraggableDivWidth(w)
+    return w
   }
 
-  // use axios and get dialog timestamps for the Dialog Timeline
+  const calculateUnitLength = (videoEndTime: number, draggableDivWidth: number) => {
+    setUnitLength(draggableDivWidth / videoEndTime)
+  }
+
   const fetchDialogData = () => {
     if (!videoId) return
     axios
-      .get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/dialog-timestamps/get-video-dialog/${videoId}`,
-      )
-      .then((res) => {
-        setShowSpinner(false)
-        const dialogData = res.data
-        return dialogData
-      })
+      .get(`${process.env.REACT_APP_YDX_BACKEND_URL}/api/dialog-timestamps/get-video-dialog/${videoId}`)
+      .then((res) => { setShowSpinner(false); return res.data })
       .then((dialogData) => {
         setShowSpinner(false)
         const updatedDialogData: any[] = []
         dialogData.forEach((dialog: any) => {
-          const x = dialog.dialog_start_time * unitLength
-          const width = dialog.dialog_duration * unitLength
-          const dialog_start_time = {
+          updatedDialogData.push({
             dialog_seq_no: dialog.dialog_sequence_num,
-            // dialog_end_time: dialog.dialog_end_time,
-            controlledPosition: { x: x, y: 0 },
-            width: width,
-          }
-          updatedDialogData.push(dialog_start_time)
+            controlledPosition: { x: dialog.dialog_start_time * unitLength, y: 0 },
+            width: dialog.dialog_duration * unitLength,
+          })
         })
         setVideoDialogTimestamps(updatedDialogData)
       })
-      .catch((err) => {
-        // console.error(err.response.data);
-        console.error('ERROR in fetchDialogData', err)
-
-        setShowSpinner(true)
-      })
+      .catch((err) => { console.error('ERROR in fetchDialogData', err); setShowSpinner(true) })
   }
 
-  // fetch videoId based on the youtubeVideoId which is later used to get audioClips
   const fetchUserVideoData = () => {
     axios
-      .get(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${youtubeVideoId}`,
-      )
+      .get(`${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${youtubeVideoId}`)
       .then((res) => {
         setShowSpinner(false)
-        const video_id = res.data.video_id
-        const video_length = res.data.video_length
-        setVideoLength(video_length)
-        setVideoId(video_id)
-        return { video_id, video_length }
+        setVideoLength(res.data.video_length)
+        setVideoId(res.data.video_id)
+        return { video_id: res.data.video_id, video_length: res.data.video_length }
       })
       .then(({ video_id, video_length }) => {
         setShowSpinner(false)
-        // order of the below function calls is important
         const calculatedWidth = calculateDraggableDivWidth()
         calculateUnitLength(video_length, calculatedWidth)
         fetchDialogData()
         fetchAudioDescriptionData(false, video_id)
       })
-      .catch((err) => {
-        // console.error(err.response.data);
-        console.error('ERROR in fetchUserVideoData', err)
-        setShowSpinner(true)
-      })
+      .catch((err) => { console.error('ERROR in fetchUserVideoData', err); setShowSpinner(true) })
   }
 
-  // use axios to get audio descriptions for the videoId (set in fetchUserVideoData()) & userId passed to the url Params
-  const fetchAudioDescriptionData = (
-    isNewClipAdded = false,
-    passedVideoId?: string,
-  ) => {
-    //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
+  const fetchAudioDescriptionData = (isNewClipAdded = false, passedVideoId?: string) => {
     const effectiveVideoId = passedVideoId || videoId
-    if (
-      effectiveVideoId &&
-      userDataStore.getState().userId &&
-      audioDescriptionId
-    )
+    if (effectiveVideoId && userDataStore.getState().userId && audioDescriptionId)
       axios
         .get(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${effectiveVideoId}&${audioDescriptionId}`,
-          {
-            params: {
-              preview: 'true',
-            },
-            headers: {
-              audiodescription: audioDescriptionId,
-            },
-            withCredentials: true,
-          },
+          { params: { preview: 'true' }, headers: { audiodescription: audioDescriptionId }, withCredentials: true },
         )
-        .then((res) => {
-          setShowSpinner(false)
-          // console.log('Audio Description Data', res.data)
-          // setAudioDescriptionId(res.data.ad_id)
-          setIsPublished(res.data.is_published)
-          return res.data
-        })
+        .then((res) => { setShowSpinner(false); setIsPublished(res.data.is_published); return res.data })
         .then((data) => {
-          console.log({ data })
           setShowSpinner(false)
           setIsPublished(data.is_published)
           setCollaborativeVersion(data.is_collaborative_version)
-          // data is nested - so AudioClips data is in res.data.Audio_Clips
-          const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) =>
-            convertClipObject(clip),
-          )
-          // data is nested - so Notes data is in res.data.Notes
+          const audioClipsData: Clip[] = data.Audio_Clips.map((clip: any) => convertClipObject(clip))
           const notesData = data.Notes[0]
-          // update the audio path for every clip row - the path might change later- TODO: change the server IP
           const tempArray: { clipId: string; showEditComponent: boolean }[] = []
           const date = new Date()
           const ONE_MIN = 60 * 1000
-          if (audioClipsData.length > 100) {
-            setClipStackSize(10)
-          }
+          if (audioClipsData.length > 100) setClipStackSize(10)
           audioClipsData.forEach((clip, i) => {
-            // add a sequence number for every audio clip
-            // console.log(clip)
             clip.clip_sequence_number = i + 1
             if (clip.clip_audio_path.startsWith('.')) {
-              // Handle paths that start with a dot (old format)
-              clip.clip_audio_path = clip.clip_audio_path.replace(
-                '.',
-                `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`,
-              )
+              clip.clip_audio_path = clip.clip_audio_path.replace('.', `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static`)
             } else if (clip.clip_audio_path.startsWith('/')) {
-              // Handle paths that start with a forward slash (new AI format)
               clip.clip_audio_path = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static${clip.clip_audio_path}`
             } else {
-              // Add default case for any other formats
               clip.clip_audio_path = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static/${clip.clip_audio_path}`
             }
-
-            // set the showEditComponent of the new clip to true.. compare time
-            if (
-              date.getTime() - new Date(clip.createdAt).getTime() <=
-              ONE_MIN
-            ) {
-              // show Edit Component
-              tempArray.push({
-                clipId: clip.clip_id,
-                showEditComponent: true,
-              })
-            } else {
-              // logic to show/hide the edit component and add it to a list along with clip Id
-              // this hides one edit component when the other is opened
-              tempArray.push({
-                clipId: clip.clip_id,
-                showEditComponent: false,
-              })
-            }
+            tempArray.push({
+              clipId: clip.clip_id,
+              showEditComponent: date.getTime() - new Date(clip.createdAt).getTime() <= ONE_MIN,
+            })
           })
-
-          if (editComponentToggleList.length === 0 || isNewClipAdded) {
-            setEditComponentToggleList(tempArray)
-          }
+          if (editComponentToggleList.length === 0 || isNewClipAdded) setEditComponentToggleList(tempArray)
           setAudioClips([...audioClipsData])
-          // console.log(audioClipsData)
-          // // console.log("Audio Clips", audioClips);
           setNotesData(notesData)
-          const maxStackSize =
-            audioClipsData.length > 100
-              ? 10
-              : Math.min(audioClipsData.length, 5)
+          const maxStackSize = audioClipsData.length > 100 ? 10 : Math.min(audioClipsData.length, 5)
           const clipStackData = []
           for (let i = 0; i < maxStackSize; i++) {
             const clip = audioClipsData[i]
-            clip.clip_audio = new Howl({
-              src: clip.clip_audio_path,
-              html5: true,
-              preload: true, // Ensure preloading
-              autoplay: false,
-            })
+            clip.clip_audio = new Howl({ src: clip.clip_audio_path, html5: true, preload: true, autoplay: false })
             clip.clip_audio.load()
             clipStackData.push(clip)
           }
           setClipStack(clipStackData)
         })
-        .catch((err) => {
-          // console.error(err.response.data);
-          console.error('ERROR in fetchAudioDescriptionData', err)
-
-          setShowSpinner(true)
-        })
+        .catch((err) => { console.error('ERROR in fetchAudioDescriptionData', err); setShowSpinner(true) })
   }
 
   const toastId = React.useRef<null | Id>(null)
@@ -495,776 +311,291 @@ const YDXHome = (): React.ReactElement => {
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/get-playback-type/${clip.clip_id}`,
         { withCredentials: true },
       )
-
       if (response.data.playback_type !== clip.playback_type) {
-        console.info(
-          `Playback type changed for clip ${clip.clip_id}: ${clip.playback_type} -> ${response.data.playback_type}`,
-        )
-
-        // Update the clip's playback type
         clip.playback_type = response.data.playback_type
-
-        // Also update the clip in the audio clips array to ensure consistency
         const updatedAudioClips = [...audioClips]
-        const clipIndex = updatedAudioClips.findIndex(
-          (c) => c.clip_id === clip.clip_id,
-        )
-        if (clipIndex !== -1) {
-          updatedAudioClips[clipIndex].playback_type =
-            response.data.playback_type
-          setAudioClips(updatedAudioClips)
-        }
+        const idx = updatedAudioClips.findIndex((c) => c.clip_id === clip.clip_id)
+        if (idx !== -1) { updatedAudioClips[idx].playback_type = response.data.playback_type; setAudioClips(updatedAudioClips) }
       }
       return clip
-    } catch (error) {
-      console.error('Error fetching current playback type:', error)
-      return clip
-    }
+    } catch (error) { console.error('Error fetching current playback type:', error); return clip }
   }
 
   const fetchUndoDeletedClipData = async () => {
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/undo-last-deleted`
     try {
       const response = await axios.post(
-        url,
-        {
-          youtubeVideoId: youtubeVideoId,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/undo-last-deleted`,
+        { youtubeVideoId },
+        { withCredentials: true, headers: { 'Content-Type': 'application/json' } },
       )
-      const data = response.data
       setUndoDeletedClip(false)
       setNeedRefresh(true)
-      navigate(`/editor/${data.clip.youtubeId}/${data.clip.audio_description}`)
+      navigate(`/editor/${response.data.clip.youtubeId}/${response.data.clip.audio_description}`)
       toast.success('Successfully retrieved and updated the last deleted clip!')
     } catch (error) {
       if (toastId.current) toast.dismiss(toastId.current)
       toast.error('Something went wrong, please try again later')
-      // console.log(error)
     }
   }
 
-  // function to update currentime state variable & draggable bar time.
-  const updateTime = (
-    time: number,
-    playedAudioClip: string,
-    recentAudioPlayedTime: number,
-    playedClipPath: string,
-  ) => {
+  const updateTime = (time: number, playedAudioClip: string, recentAudioPlayedTime: number, playedClipPath: string) => {
     setCurrentTime(time)
-    // for updating the draggable component position based on current time
     setDraggableTime({ x: unitLength * time, y: 0 })
-    // check if the audio is not played recently. do not play it again.
-    if (recentAudioPlayedTime !== time) {
-      // To Play audio files based on current time
-      playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
-    }
+    if (recentAudioPlayedTime !== time) playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
     setPreviousTime(time)
   }
 
-  // To Play audio files based on current time
-  const playAudioAtCurrentTime = async (
-    updatedCurrentTime: number,
-    playedAudioClip: string,
-    playedClipPath: string,
-  ) => {
-    // playing - use ref to avoid stale closure
+  const playAudioAtCurrentTime = async (updatedCurrentTime: number, playedAudioClip: string, playedClipPath: string) => {
     if (currentStateRef.current === 1) {
-      // If all clips have been played, skip check
-      if (clipStackRef.current.length === 0) {
-        // console.log('No Clips left to play')
-        return
-      }
-      // If a clip is currently playing, skip check
-      if (
-        currentInlineACRef.current?.playing() ||
-        currentExtendedACRef.current?.playing()
-      ) {
-        console.info('A clip is currently playing')
-        return
-      }
+      if (clipStackRef.current.length === 0) return
+      if (currentInlineACRef.current?.playing() || currentExtendedACRef.current?.playing()) return
       try {
-        // Get current clip and check its playback type
-        const currentClip = clipStackRef.current[0]
-        const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
+        const updatedClip = await checkPlaybackTypeBeforePlaying(clipStackRef.current[0])
 
-        // Handle EXTENDED playback first with independent condition
-        if (
-          updatedClip.playback_type === 'extended' &&
-          updatedClip.clip_start_time <= currentTimeRef.current &&
-          currentTimeRef.current - updatedClip.clip_start_time < 1.0
-        ) {
-          // Check if already played using Set
+        if (updatedClip.playback_type === 'extended' && updatedClip.clip_start_time <= currentTimeRef.current && currentTimeRef.current - updatedClip.clip_start_time < 1.0) {
           if (playedClipsSet.has(updatedClip.clip_id)) {
-            console.log(
-              'Extended clip already played (Set check), advancing stack:',
-              updatedClip.clip_id,
-            )
             setCurrentClipIndex(currentClipIndexRef.current + 1)
-            // Remove from stack and add next clip
-            const newClip =
-              audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-            if (newClip) {
-              newClip.clip_audio = new Howl({
-                src: newClip.clip_audio_path,
-                html5: true,
-              })
-              setClipStack([
-                ...clipStackRef.current.slice(1, clipStackSize),
-                newClip,
-              ])
-            } else {
-              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-            }
+            const newClip = audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+            if (newClip) { newClip.clip_audio = new Howl({ src: newClip.clip_audio_path, html5: true }); setClipStack([...clipStackRef.current.slice(1, clipStackSize), newClip]) }
+            else setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
             return
           }
-
-          console.log('EXTENDED CLIP DETECTION TRIGGERED', {
-            clipId: updatedClip.clip_id,
-            clipStartTime: updatedClip.clip_start_time,
-            currentTime: currentTimeRef.current,
-            timeDifference:
-              currentTimeRef.current - updatedClip.clip_start_time,
-          })
-
           setCurrentClipIndex(currentClipIndexRef.current + 1)
-
-          // Mark as played in Set immediately
           setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
-
-          // Play the clip only if it wasn't played recently (legacy check for compatibility)
           if (playedAudioClip !== updatedClip.clip_id) {
             setPlayedAudioClip(updatedClip.clip_id)
             setRecentAudioPlayedTime(currentTimeRef.current)
-            const clipAudioPath = updatedClip.clip_audio_path
-
-            if (clipAudioPath !== playedClipPath) {
-              setPlayedClipPath(clipAudioPath)
-
-              // Play extended clip
+            if (updatedClip.clip_audio_path !== playedClipPath) {
+              setPlayedClipPath(updatedClip.clip_audio_path)
               const currentAudio = updatedClip.clip_audio
-              console.log(
-                'Attempting to pause YouTube video for extended clip:',
-                updatedClip.clip_id,
-              )
               currentEvent?.pauseVideo()
-              console.log(
-                'YouTube player state after pause attempt:',
-                currentEvent?.getPlayerState(),
-              )
-              console.log(
-                'Extended audio load state before play:',
-                currentAudio ? currentAudio.state() : 'audio object is null',
-              )
-
               if (currentAudio?.state() === 'loaded') {
-                setTimeout(() => {
-                  console.log('In timeout before playing extended clip')
-                  if (!currentAudio.playing()) {
-                    console.log(
-                      'Attempting to play extended clip:',
-                      updatedClip.clip_id,
-                    )
-                    currentAudio.play()
-                    console.log('Extended clip play initiated')
-                    currentAudio.volume(descriptionVolumeRef.current / 100)
-                  } else {
-                    console.log('Extended clip already playing')
-                  }
-                }, 50)
+                setTimeout(() => { if (!currentAudio.playing()) { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) } }, 50)
               } else {
-                console.log('Extended audio not loaded, waiting for load event')
-                currentAudio?.once('load', function () {
-                  console.log('Extended audio loaded event fired')
-                  setTimeout(() => {
-                    if (!currentAudio.playing()) {
-                      console.log('Attempting to play extended clip after load')
-                      currentAudio.play()
-                      console.log('Extended clip play initiated after load')
-                      currentAudio.volume(descriptionVolumeRef.current / 100)
-                    }
-                  }, 50)
-                })
+                currentAudio?.once('load', () => { setTimeout(() => { if (!currentAudio.playing()) { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) } }, 50) })
               }
-
               setCurrExtendedAC(currentAudio)
-
-              // Event listeners for play and end
-              currentAudio?.once('play', () => {
-                currentAudio.volume(descriptionVolumeRef.current / 100)
-              })
-
-              currentAudio?.once('end', () => {
-                setCurrExtendedAC(undefined)
-                currentEventRef.current?.playVideo()
-                currentAudio.unload()
-                setCurrentExtACPaused(false)
-              })
-
-              // Load next clip into stack
-              const newClip =
-                audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-
-              if (newClip) {
-                newClip.clip_audio = new Howl({
-                  src: newClip.clip_audio_path,
-                  html5: true,
-                })
-                setClipStack([
-                  ...clipStackRef.current.slice(1, clipStackSize),
-                  newClip,
-                ])
-              } else {
-                setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-              }
+              currentAudio?.once('play', () => { currentAudio.volume(descriptionVolumeRef.current / 100) })
+              currentAudio?.once('end', () => { setCurrExtendedAC(undefined); currentEventRef.current?.playVideo(); currentAudio.unload(); setCurrentExtACPaused(false) })
+              const newClip = audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+              if (newClip) { newClip.clip_audio = new Howl({ src: newClip.clip_audio_path, html5: true }); setClipStack([...clipStackRef.current.slice(1, clipStackSize), newClip]) }
+              else setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
             }
           }
-        }
-        // Handle INLINE playback
-        else if (
+        } else if (
           updatedClip.playback_type === 'inline' &&
-          ((updatedClip.clip_start_time <= currentTimeRef.current &&
-            updatedClip.clip_end_time >= currentTimeRef.current) ||
-            (updatedClip.clip_start_time <= currentTimeRef.current &&
-              updatedClip.clip_start_time >= previousTimeRef.current))
+          ((updatedClip.clip_start_time <= currentTimeRef.current && updatedClip.clip_end_time >= currentTimeRef.current) ||
+            (updatedClip.clip_start_time <= currentTimeRef.current && updatedClip.clip_start_time >= previousTimeRef.current))
         ) {
-          // Check if already played using Set
-          if (playedClipsSet.has(updatedClip.clip_id)) {
-            console.log(
-              'Inline clip already played (Set check), skipping:',
-              updatedClip.clip_id,
-            )
-            return
-          }
-
-          console.warn(
-            'An inline clip is supposed to be playing right now',
-            currentTimeRef.current,
-          )
-
-          // If an Inline Clip is Playing - Return
-          if (currentInlineACRef.current?.playing()) {
-            console.info('An inline clip is already playing')
-            return
-          }
-
-          // If the clip is not playing, play it
-          console.info('Playing clip by Seeking to current time')
-
-          // Play the inline clip
+          if (playedClipsSet.has(updatedClip.clip_id) || currentInlineACRef.current?.playing()) return
           const currentAudio = updatedClip.clip_audio
           const seekTime = currentTimeRef.current - updatedClip.clip_start_time
-
-          // Ensure seek time is within valid range
-          if (seekTime < 0) {
-            console.debug('Seek time is negative, skipping')
-            return
-          }
-
-          console.debug(`Seeking to ${seekTime} seconds`)
-
-          // Check if audio is loaded and play with a small buffer delay
+          if (seekTime < 0) return
           if (currentAudio?.state() === 'loaded') {
             currentAudio.seek(seekTime)
-            // Add small delay before playing to prevent start cutoff
-            setTimeout(() => {
-              currentAudio.play()
-              currentAudio.volume(descriptionVolumeRef.current / 100)
-            }, 50)
+            setTimeout(() => { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) }, 50)
           } else {
-            // Wait for audio to load first
-            currentAudio?.once('load', function () {
-              currentAudio.seek(seekTime)
-              setTimeout(() => {
-                currentAudio.play()
-                currentAudio.volume(descriptionVolumeRef.current / 100)
-              }, 50)
-            })
+            currentAudio?.once('load', () => { currentAudio.seek(seekTime); setTimeout(() => { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) }, 50) })
           }
-
           setCurrInlineAC(currentAudio)
-
-          // Mark as played in Set
           setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
           setPlayedAudioClip(updatedClip.clip_id)
           setRecentAudioPlayedTime(currentTimeRef.current)
           setCurrentClipIndex(currentClipIndexRef.current + 1)
-          const clipAudioPath = updatedClip.clip_audio_path
-
-          if (clipAudioPath !== playedClipPath) {
-            setPlayedClipPath(clipAudioPath)
-
-            // Event listeners for play and end
-            currentAudio?.once('play', () => {
-              currentAudio.volume(descriptionVolumeRef.current / 100)
-            })
-
-            currentAudio?.once('end', () => {
-              setCurrInlineAC(undefined)
-              currentAudio.unload()
-            })
-
-            // Load a new clip and add it to the stack
-            const newClip =
-              audioClips[currentClipIndexRef.current + clipStackSize - 1]
-
-            if (newClip) {
-              newClip.clip_audio = new Howl({
-                src: newClip.clip_audio_path,
-                html5: true,
-              })
-              setClipStack([
-                ...clipStackRef.current.slice(1, clipStackSize),
-                newClip,
-              ])
-            } else {
-              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-            }
+          if (updatedClip.clip_audio_path !== playedClipPath) {
+            setPlayedClipPath(updatedClip.clip_audio_path)
+            currentAudio?.once('play', () => { currentAudio.volume(descriptionVolumeRef.current / 100) })
+            currentAudio?.once('end', () => { setCurrInlineAC(undefined); currentAudio.unload() })
+            const newClip = audioClips[currentClipIndexRef.current + clipStackSize - 1]
+            if (newClip) { newClip.clip_audio = new Howl({ src: newClip.clip_audio_path, html5: true }); setClipStack([...clipStackRef.current.slice(1, clipStackSize), newClip]) }
+            else setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
           }
         }
 
-        // Check for Skips - This usually occurs when an extended clip was overlapped by an inline clip
-        if (
-          updatedClip.playback_type === 'extended' &&
-          !currentInlineACRef.current?.playing() &&
-          !currentExtendedACRef.current?.playing() &&
-          updatedClip.clip_start_time <= currentTimeRef.current &&
-          currentTimeRef.current - updatedClip.clip_start_time >= 1.0 // Only skip if >1s past start
-        ) {
-          // A skip has most likely occurred
-          console.error('SKIP DETECTED - DETAILED', {
-            clipId: updatedClip.clip_id,
-            clipStartTime: updatedClip.clip_start_time,
-            currentTime: currentTimeRef.current,
-            previousTime: previousTimeRef.current,
-            audioState: updatedClip.clip_audio
-              ? updatedClip.clip_audio.state()
-              : 'unknown',
-            audioUrl: updatedClip.clip_audio_path,
-            inlineClipPlaying: !!currentInlineACRef.current?.playing(),
-            extendedClipPlaying: !!currentExtendedACRef.current?.playing(),
-            youtubeState: currentEvent?.getPlayerState(),
-          })
-
-          // Mark as skipped in Set to prevent retries
+        if (updatedClip.playback_type === 'extended' && !currentInlineACRef.current?.playing() && !currentExtendedACRef.current?.playing() && updatedClip.clip_start_time <= currentTimeRef.current && currentTimeRef.current - updatedClip.clip_start_time >= 1.0) {
           setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
-
-          // Increment index to track that this clip was processed
           setCurrentClipIndex(currentClipIndexRef.current + 1)
-
-          // Add a new clip to the stack
-          const newClip =
-            audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-
-          if (newClip) {
-            newClip.clip_audio = new Howl({
-              src: newClip.clip_audio_path,
-              html5: true,
-            })
-            setClipStack([
-              ...clipStackRef.current.slice(1, clipStackSize),
-              newClip,
-            ])
-          } else {
-            setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-          }
+          const newClip = audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+          if (newClip) { newClip.clip_audio = new Howl({ src: newClip.clip_audio_path, html5: true }); setClipStack([...clipStackRef.current.slice(1, clipStackSize), newClip]) }
+          else setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
         }
-      } catch (error) {
-        console.error('Error checking playback type:', error)
-      }
+      } catch (error) { console.error('Error checking playback type:', error) }
     }
   }
 
-  // YouTube Player Functions
   const onStateChange = (event: any) => {
-    const currentTime = event.target.getCurrentTime()
     setCurrentEvent(event.target)
-    setCurrentTime(currentTime)
+    setCurrentTime(event.target.getCurrentTime())
     setCurrentState(event.data)
     switch (event.data) {
-      case 0: // End of the video
-        setGloballyPaused(true)
-        setCurrentClipIndex(0) // Reset current clip index
-
-        setPlayedAudioClip('')
-        setPlayedClipPath('')
-        setPlayedClipsSet(new Set()) // Reset Set tracking
-        setRecentAudioPlayedTime(0.0)
-        setCurrInlineAC(undefined)
-        setCurrExtendedAC(undefined)
-        setIsActive(false) // Ensure the timer is paused
-        clearInterval(timer)
-        console.log('Video ended, states reset')
-        break
-      case 1: // Playing
-        // Case for Extended Audio Clips:
-        // When an extended Audio Clip is playing, YT video is paused
-        // User plays the YT Video. Extended is still played along with the video. Overlapping with Dialogs &/ other audio clips
-        // Work around - add current extended audio clip to a state variable & check if YT state is changed to playing i.e. 1
-        // if yes, stop playing the extended audio clip & set the state back to null
+      case 0:
+        setGloballyPaused(true); setCurrentClipIndex(0); setPlayedAudioClip(''); setPlayedClipPath('')
+        setPlayedClipsSet(new Set()); setRecentAudioPlayedTime(0.0); setCurrInlineAC(undefined)
+        setCurrExtendedAC(undefined); setIsActive(false); clearInterval(timer); break
+      case 1:
         currentEvent?.setVolume(youTubeVolume)
-        if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
-        if (currExtendedAC) {
-          // to stop playing -> pause and set time to 0
-          currExtendedAC.pause()
-          currExtendedAC.seek(0)
-          setCurrExtendedAC(undefined)
-        }
-        if (currInlineAC) {
-          // to stop playing -> pause and set time to 0
-          currInlineAC.play()
-          currInlineAC.on('end', function () {
-            setCurrInlineAC(undefined) // setting back to null, as it is played completely.
-          })
-          // currInlineAC.currentTime = 0;
-          // setCurrInlineAC(null);
-        }
-        setGloballyPaused(false) // reset the play/pause state
-        clearInterval(timer)
-        break
-      case 2: // Paused
-        // Case for Inline Audio Clips:
-        // When an inline Audio Clip is playing along with the Video,
-        // If user pauses the YT video, Inline Clip is still played.
-        // Work around - add current inline audio clip to a state variable & check if YT state is changed to paused i.e. 2
-        // if yes, stop playing the inline audio clip & set the state back to null
-        if (currInlineAC) {
-          // to stop playing -> pause and set time to 0
-          currInlineAC.pause()
-          // currInlineAC.currentTime = 0;
-          // setCurrInlineAC(null);
-        }
-        clearInterval(timer)
-        break
-      case 3: // Buffering
-        // onSeek - Buffering event is also called
-        // so that when user wants to go back and play the same clip again, recentAudioPlayedTime will be reset to 0.
-        setPlayedClipPath('')
-        setPlayedAudioClip('')
-        setPlayedClipsSet(new Set()) // Reset Set tracking
-        setRecentAudioPlayedTime(0.0)
-        clearInterval(timer)
-        setCurrExtendedAC(undefined)
-        setCurrInlineAC(undefined)
-        break
+        if (!isActive) setIsActive(true)
+        if (currExtendedAC) { currExtendedAC.pause(); currExtendedAC.seek(0); setCurrExtendedAC(undefined) }
+        if (currInlineAC) { currInlineAC.play(); currInlineAC.on('end', () => setCurrInlineAC(undefined)) }
+        setGloballyPaused(false); clearInterval(timer); break
+      case 2:
+        if (currInlineAC) currInlineAC.pause()
+        clearInterval(timer); break
+      case 3:
+        setPlayedClipPath(''); setPlayedAudioClip(''); setPlayedClipsSet(new Set())
+        setRecentAudioPlayedTime(0.0); clearInterval(timer); setCurrExtendedAC(undefined); setCurrInlineAC(undefined); break
     }
   }
-  const onReady = (event: any) => {
-    setCurrentEvent(event.target)
-  }
+
+  const onReady = (event: any) => { setCurrentEvent(event.target) }
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
     setCurrentTime(event.target.getCurrentTime())
-    // pass the current time & recentAudioPlayedTime - to avoid playing same clip multiple times
-    setTimer(
-      setInterval(
-        () =>
-          updateTime(
-            event.target.getCurrentTime(),
-            playedAudioClip,
-            recentAudioPlayedTime,
-            playedClipPath,
-          ),
-        samplingRate,
-      ),
-    )
+    setTimer(setInterval(() => updateTime(event.target.getCurrentTime(), playedAudioClip, recentAudioPlayedTime, playedClipPath), samplingRate))
   }
-  const onPause = (event: any) => {
-    event.target.pauseVideo()
+  const onPause = (event: any) => { event.target.pauseVideo() }
+
+  const stopProgressBar = async (event: DraggableEvent, position: DraggableData) => {
+    setDraggableTime({ x: position.x, y: 0 })
+    currentEventRef.current?.seekTo(position.x / unitLength, true)
+    setPreviousTime((await currentEventRef.current?.getCurrentTime()) ?? 0)
   }
 
-  // Dialog Timeline Draggable Functions
-  const stopProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
+  const dragProgressBar = async (event: DraggableEvent, position: DraggableData) => {
     setDraggableTime({ x: position.x, y: 0 })
-    let progressBarTime = 0.0
-    progressBarTime = position.x / unitLength
-    currentEventRef.current?.seekTo(progressBarTime, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setPreviousTime(currentPlayerTime ?? 0)
-  }
-  const dragProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
-    setDraggableTime({ x: position.x, y: 0 })
-    let progressBarTime = 0.0
-    progressBarTime = position.x / unitLength
-    currentEventRef.current?.seekTo(progressBarTime, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setCurrentTime(currentPlayerTime ?? 0)
-    setPreviousTime(currentPlayerTime ?? 0)
-    setRecentAudioPlayedTime(0.0)
-    setPlayedAudioClip('')
-    setPlayedClipPath('')
-    updateClipsDataCallback()
-    if (currentExtendedACRef.current) {
-      // to stop playing -> pause and set time to 0
-      currentExtendedACRef.current.pause()
-      currentExtendedACRef.current.seek(0)
-      currentExtendedACRef.current.unload()
-      setCurrExtendedAC(undefined)
-      // currentEvent?.playVideo()
-    }
-    if (currentInlineACRef.current) {
-      // to stop playing -> pause and set time to 0
-      currentInlineACRef.current.pause()
-      currentInlineACRef.current.seek(0)
-      currentInlineACRef.current.unload()
-      setCurrExtendedAC(undefined)
-      // currentEvent?.playVideo()
-    }
+    currentEventRef.current?.seekTo(position.x / unitLength, true)
+    const t = (await currentEventRef.current?.getCurrentTime()) ?? 0
+    setCurrentTime(t); setPreviousTime(t); setRecentAudioPlayedTime(0.0)
+    setPlayedAudioClip(''); setPlayedClipPath(''); updateClipsDataCallback()
+    if (currentExtendedACRef.current) { currentExtendedACRef.current.pause(); currentExtendedACRef.current.seek(0); currentExtendedACRef.current.unload(); setCurrExtendedAC(undefined) }
+    if (currentInlineACRef.current) { currentInlineACRef.current.pause(); currentInlineACRef.current.seek(0); currentInlineACRef.current.unload(); setCurrExtendedAC(undefined) }
   }
 
   const updateClipStackData = useCallback(() => {
-    // Unload existing Howl objects to prevent audio pool exhaustion
-    clipStackRef.current.forEach((clip) => {
-      if (clip.clip_audio) {
-        clip.clip_audio.unload()
-      }
-    })
-
-    const newClipIndex = audioClips.findIndex(
-      (clip) =>
-        clip.clip_start_time >= currentTimeRef.current ||
-        (clip.clip_start_time < currentTimeRef.current &&
-          clip.clip_end_time > currentTimeRef.current),
+    clipStackRef.current.forEach((clip) => { if (clip.clip_audio) clip.clip_audio.unload() })
+    const newClipIndex = audioClips.findIndex((clip) =>
+      clip.clip_start_time >= currentTimeRef.current ||
+      (clip.clip_start_time < currentTimeRef.current && clip.clip_end_time > currentTimeRef.current),
     )
     setCurrentClipIndex(newClipIndex)
-
-    // slice audio clips from newClipIndex to newClipIndex + 5
     const clipStackData = []
-    // Create Howl objects for each clip
     for (let i = newClipIndex; i < newClipIndex + clipStackSize; i++) {
       const clip = audioClips[i]
-      if (clip) {
-        clip.clip_audio = new Howl({
-          src: clip.clip_audio_path,
-          html5: true,
-          preload: true, // Ensure preloading
-          autoplay: false,
-        })
-        clip.clip_audio.load()
-        clipStackData.push(clip)
-      }
+      if (clip) { clip.clip_audio = new Howl({ src: clip.clip_audio_path, html5: true, preload: true, autoplay: false }); clip.clip_audio.load(); clipStackData.push(clip) }
     }
-    // Update clipStack
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex])
 
-  const updateClipsDataCallback = useMemo(
-    () =>
-      debounce(() => {
-        updateClipStackData()
-      }, 500),
-    [updateClipStackData],
-  )
+  const updateClipsDataCallback = useMemo(() => debounce(() => { updateClipStackData() }, 500), [updateClipStackData])
 
-  // toggle Show Edit Component
-  // logic to show/hide the edit component and add it to a list along with clip Id
-  // this hides one edit component when the other is opened
   const setEditComponentToggleFunc = (clipId: string, value: boolean) => {
     const temp = [...editComponentToggleList]
-    temp.forEach((data) => {
-      if (value) {
-        if (data.clipId === clipId) {
-          data.showEditComponent = value
-        }
-      } else {
-        // else case is used when false is passed to the function. If false, other edit components are not opened.
-        if (data.clipId === clipId) {
-          data.showEditComponent = value
-        }
-      }
-    })
+    temp.forEach((data) => { if (data.clipId === clipId) data.showEditComponent = value })
     setEditComponentToggleList(temp)
   }
 
-  // when "AudioClip <seq no>" is clicked, video is playing from that audio clip start time
   const handlePlayAudioClip = (clipStartTime: number) => {
-    currentEvent?.seekTo(clipStartTime - 0.4, true) // 0.4 is added for some buffering time
-    currentEvent?.playVideo() // if paused, video is played from that audio clip.
+    currentEvent?.seekTo(clipStartTime - 0.4, true)
+    currentEvent?.playVideo()
+  }
+
+  // ── Single-clip navigation handler ──────────────────────────────────────────
+  const handleClipNavigation = (index: number) => {
+    if (index < 0 || index >= audioClips.length) return
+    setNavClipIndex(index)
+    setIsClipsListExpanded(false)
   }
 
   const handlePlayPause = () => {
     if (currExtendedAC) {
-      // If an extended clip exists, make it play/pause
-      if (isCurrentExtACPaused) {
-        currExtendedAC.play()
-        setCurrentExtACPaused(false)
-        setGloballyPaused(false)
-      } else {
-        currExtendedAC.pause()
-        setCurrentExtACPaused(true)
-        setGloballyPaused(true)
-      }
-    } else if (currentState === 1) {
-      // If an extended clip does not exist make the YouTube video play/pause
-      currentEvent?.pauseVideo()
-      setGloballyPaused(true)
-    } else {
-      if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
-      currentEvent?.playVideo()
-      setGloballyPaused(false)
-    }
+      if (isCurrentExtACPaused) { currExtendedAC.play(); setCurrentExtACPaused(false); setGloballyPaused(false) }
+      else { currExtendedAC.pause(); setCurrentExtACPaused(true); setGloballyPaused(true) }
+    } else if (currentState === 1) { currentEvent?.pauseVideo(); setGloballyPaused(true) }
+    else { if (!isActive) setIsActive(true); currentEvent?.playVideo(); setGloballyPaused(false) }
   }
 
   const handleCopyClick = (textToCopy: string) => {
-    navigator.clipboard
-      .writeText(textToCopy)
-      .then(() => {
-        toast.success('Text copied to clipboard!')
-      })
-      .catch((error) => {
-        toast.error('Copy to clipboard failed: ' + error)
-      })
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => toast.success('Text copied to clipboard!'))
+      .catch((error) => toast.error('Copy to clipboard failed: ' + error))
   }
 
+  // ── Unpublish ────────────────────────────────────────────────────────────────
   const handleUnpublishClick = async (audioDescriptionId: string) => {
-    if (!audioDescriptionId) {
-      toast.error('Audio description ID is undefined!')
-      return
-    }
-
+    if (!audioDescriptionId) { toast.error('Audio description ID is undefined!'); return }
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/unpublish-audio-description`,
-        {
-          audioDescriptionId: audioDescriptionId,
-          youtube_id: youtubeVideoId,
-        },
-        {
-          withCredentials: true,
-        },
+        { audioDescriptionId, youtube_id: youtubeVideoId },
+        { withCredentials: true },
       )
-
-      // Handle the response
-      setIsPublished(false) // Update the published state
-      setNeedRefresh(true) // Trigger a refresh if needed
+      setIsPublished(false); setNeedRefresh(true)
       toast.success('Audio description unpublished successfully!')
-    } catch (error) {
-      console.error('Error unpublishing audio description:', error)
-      toast.error('Error unpublishing audio description!')
-    }
+    } catch (error) { console.error('Error unpublishing:', error); toast.error('Error unpublishing audio description!') }
+  }
+
+  // ── Publish ──────────────────────────────────────────────────────────────────
+  const handlePublish = async (e: any) => {
+    if (!audioDescriptionId) { toast.error('Audio description ID is undefined!'); return }
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/publish-audio-description`,
+        { audioDescriptionId, youtube_id: youtubeVideoId, enrollInCollabEdit: isCollaborativeVersion },
+        { withCredentials: true },
+      )
+      setIsPublished(true); setNeedRefresh(true)
+      toast.success('Audio description published successfully!')
+    } catch (error) { console.error('Error publishing:', error); toast.error('Error publishing audio description!') }
   }
 
   const handleSaveAllClips = async () => {
     setShowSpinner(true)
     try {
       for (const clip of audioClips) {
-        const updatedDescription = updatedDescriptions[clip.clip_id]
-        if (updatedDescription) {
-          await handleClickSaveClipDescription(
-            clip.clip_id,
-            updatedDescription,
-            clip.description_type,
-          )
-        }
+        const updated = updatedDescriptions[clip.clip_id]
+        if (updated) await handleClickSaveClipDescription(clip.clip_id, updated, clip.description_type)
       }
-
-      // Calculate contributions after all clips are saved
       try {
-        await axios.post(
-          `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/calculate-contributions`,
-          {
-            audioDescriptionId: audioDescriptionId,
-          },
-          {
-            withCredentials: true,
-          },
-        )
-
+        await axios.post(`${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/calculate-contributions`, { audioDescriptionId }, { withCredentials: true })
         toast.success('Contributions Calculated Successfully!!')
-      } catch (err) {
-        console.error(err)
-        toast.error(
-          'An error occurred while calculating contributions. Please try again!!',
-        )
-      }
-
+      } catch (err) { console.error(err); toast.error('An error occurred while calculating contributions. Please try again!!') }
       toast.success('All Descriptions Saved Successfully!!')
-    } catch (err) {
-      toast.error(
-        'An error occurred while saving all descriptions. Please try again!!',
-      )
-    } finally {
-      setShowSpinner(false)
-    }
+    } catch (err) { toast.error('An error occurred while saving all descriptions. Please try again!!') }
+    finally { setShowSpinner(false) }
   }
 
-  // Function to save a single clip description
-  const handleClickSaveClipDescription = async (
-    clipId: string,
-    updatedClipDescriptionText: string,
-    clipDescriptionType: string | undefined,
-  ) => {
+  const handleClickSaveClipDescription = async (clipId: string, updatedClipDescriptionText: string, clipDescriptionType: string | undefined) => {
     try {
       await axios.put(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
-        {
-          userId: user,
-          youtubeVideoId,
-          clipDescriptionText: updatedClipDescriptionText,
-          clipDescriptionType: clipDescriptionType ?? '',
-          audioDescriptionId,
-        },
+        { userId: user, youtubeVideoId, clipDescriptionText: updatedClipDescriptionText, clipDescriptionType: clipDescriptionType ?? '', audioDescriptionId },
       )
-
       setUpdateData(!updateData)
     } catch (err: any) {
-      if (err.response) {
-        toast.error(err.response.data.message) // show toast message
-      } else {
-        console.error(err)
-        toast.error('An error occurred. Please try again!!')
-      }
+      if (err.response) toast.error(err.response.data.message)
+      else { console.error(err); toast.error('An error occurred. Please try again!!') }
     }
   }
 
-  // Create wrapper functions for each clip that include the clip ID and type
-  const createClipSaveHandler = (
-    clipId: string,
-    clipDescriptionType: string,
-  ) => {
+  const createClipSaveHandler = (clipId: string, clipDescriptionType: string) => {
     return async (updatedClipDescriptionText: string) => {
       try {
-        await handleClickSaveClipDescription(
-          clipId,
-          updatedClipDescriptionText,
-          clipDescriptionType,
-        )
+        await handleClickSaveClipDescription(clipId, updatedClipDescriptionText, clipDescriptionType)
         toast.success('Description Saved Successfully!')
-      } catch (error) {
-        console.error('Error saving clip description:', error)
-        toast.error('Error saving description. Please try again.')
-      }
+      } catch (error) { console.error('Error saving clip description:', error); toast.error('Error saving description. Please try again.') }
     }
   }
 
   return (
     <div className="ydx-body ydx-html">
-      {/* Spinner div - displayed based on showSpinner */}
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
-        {/* Youtube Iframe & Notes Component Container */}
+
+        {/* YouTube + Controls + Notes */}
         <div className="d-flex justify-content-around">
           <div className="text-white">
-            <YouTube
-              className="rounded"
-              videoId={youtubeVideoId}
-              opts={opts}
-              onStateChange={onStateChange}
-              onPlay={onPlay}
-              onPause={onPause}
-              onReady={onReady}
-            />
+            <YouTube className="rounded" videoId={youtubeVideoId} opts={opts}
+              onStateChange={onStateChange} onPlay={onPlay} onPause={onPause} onReady={onReady} />
           </div>
           <Buttons
             setHandleClicksFromParent={setHandleClicksFromParent}
@@ -1280,30 +611,23 @@ const YDXHome = (): React.ReactElement => {
             audioDescriptionId={audioDescriptionId || ''}
             notesData={notesData}
             handleVideoPause={async () => {
-              const currentState = await currentEvent?.getPlayerState()
-              if (currentState === 1) {
-                handlePlayPause()
-              }
+              const s = await currentEvent?.getPlayerState()
+              if (s === 1) handlePlayPause()
             }}
           />
         </div>
         <hr className="m-2 ydx-hr" />
+
         {/* Dialog Timeline */}
         <div className="timeline-section-wrapper">
           <div className="timeline-header">
             <h6 className="timeline-title">
-              Dialog Timeline (
-              {videoLength ? convertSecondsToCardFormat(videoLength) : 'N/A'}):
+              Dialog Timeline ({videoLength ? convertSecondsToCardFormat(videoLength) : 'N/A'}):
             </h6>
             <div className="timeline-actions">
-              <span className="clips-count">
-                Audio Clips Count: {audioClips.length}
-              </span>
+              <span className="clips-count">Audio Clips Count: {audioClips.length}</span>
               {undoDeletedClipInfo && (
-                <Button
-                  className="btn rounded btn-sm text-white bg-warning ydx-button"
-                  onClick={fetchUndoDeletedClipData}
-                >
+                <Button className="btn rounded btn-sm text-white bg-warning ydx-button" onClick={fetchUndoDeletedClipData}>
                   <i className="fa fa-undo" /> Undo Last Deleted
                 </Button>
               )}
@@ -1312,69 +636,27 @@ const YDXHome = (): React.ReactElement => {
           {videoLength && (
             <div className="timeline-container-wrapper" ref={divRef2}>
               <div className="timeline-track-wrapper" ref={divRef3}>
-                {/* Audio Clips Timeline - Consistent with Video.tsx */}
                 {audioClips.map((clip, key) => {
-                  const left = clip.clip_start_time * unitLength
                   const isExtended = clip.playback_type === 'extended'
-
                   return (
-                    <div
-                      key={`audio-${key}`}
-                      className="audio-clip-timeline-segment"
-                      style={{
-                        position: 'absolute',
-                        left: `${left}px`,
-                        width: isExtended
-                          ? '3px'
-                          : `${clip.clip_duration * unitLength}px`,
-                        height: '20px',
-                        backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b',
-                        top: '0px',
-                        zIndex: 3,
-                        borderRadius: '2px',
-                        opacity: 0.8,
-                      }}
-                      title={`${
-                        clip.playback_type
-                      }: ${clip.description_text?.substring(0, 50)}...`}
+                    <div key={`audio-${key}`} className="audio-clip-timeline-segment"
+                      style={{ position: 'absolute', left: `${clip.clip_start_time * unitLength}px`, width: isExtended ? '3px' : `${clip.clip_duration * unitLength}px`, height: '20px', backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b', top: '0px', zIndex: 3, borderRadius: '2px', opacity: 0.8 }}
+                      title={`${clip.playback_type}: ${clip.description_text?.substring(0, 50)}...`}
                     />
                   )
                 })}
-                {/* Dialog Timeline blue & white div's */}
                 {videoDialogTimestamps.map((dialog, key) => (
-                  <Draggable
-                    axis="x"
-                    key={key}
-                    position={dialog.controlledPosition}
-                    bounds="parent"
-                  >
-                    <div
-                      className="dialog-timestamps-div"
-                      style={{
-                        width: dialog.width,
-                        height: '20px',
-                      }}
-                    ></div>
+                  <Draggable axis="x" key={key} position={dialog.controlledPosition} bounds="parent">
+                    <div className="dialog-timestamps-div" style={{ width: dialog.width, height: '20px' }} />
                   </Draggable>
                 ))}
-                {videoLength && ( // Only render if videoLength is present
-                  // ProgressBar
-                  <Draggable
-                    axis="x"
-                    bounds="parent"
-                    defaultPosition={{ x: 0, y: 0 }}
-                    position={draggableTime}
-                    onDrag={(e, data) => {
-                      dragProgressBar(e, data)
-                    }}
-                    onStop={(e, data) => {
-                      stopProgressBar(e, data)
-                    }}
+                {videoLength && (
+                  <Draggable axis="x" bounds="parent" defaultPosition={{ x: 0, y: 0 }} position={draggableTime}
+                    onDrag={(e, data) => { dragProgressBar(e, data) }}
+                    onStop={(e, data) => { stopProgressBar(e, data) }}
                   >
                     <div tabIndex={0} className="progress-bar-div">
-                      <p className="mt-5 text-white progress-bar-time">
-                        {convertSecondsToCardFormat(currentTime)}
-                      </p>
+                      <p className="mt-5 text-white progress-bar-time">{convertSecondsToCardFormat(currentTime)}</p>
                     </div>
                   </Draggable>
                 )}
@@ -1383,48 +665,104 @@ const YDXHome = (): React.ReactElement => {
           )}
         </div>
 
-        {/* <div className="row">
-          <div className="col-3 text-white" ref={divRef1}>
-            <h6 className="dialog-timeline-text text-center fw-bolder">
-              Sampling Rate:
-            </h6>
+        {/* ── Navigation bar (3-column grid for true centering) ───────────────── */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          alignItems: 'center',
+          gap: '8px',
+          margin: '12px 0 8px 0',
+        }}>
+
+          {/* Left: Insert buttons */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {!isPublished && (
+              <>
+                <button
+                  type="button"
+                  className="btn inline-bg text-dark ydx-button"
+                  onClick={() => setHandleClicksFromParent('inline')}
+                >
+                  <i className="fa fa-plus" /> Insert Inline
+                </button>
+                <button
+                  type="button"
+                  className="btn extended-bg text-white ydx-button"
+                  onClick={() => setHandleClicksFromParent('extended')}
+                >
+                  <i className="fa fa-plus" /> Insert Extended
+                </button>
+              </>
+            )}
           </div>
-          <div className="col-3 text-white">
-            <select class="form-select" aria-label="Select Sampling Rate" onChange={(e) => setSamplingRate(e.target.value)} value={samplingRate}>
-              <option value={200}>1/5</option>
-              <option value={100}>1/10</option>
-              <option value={50}>1/20</option>
-              <option value={20}>1/50</option>
-              <option value={10}>1/100</option>
-            </select>
+
+          {/* Center: Currently editing — truly centered via grid */}
+          {audioClips.length > 0 && (
+            <button
+              className="clip-nav-btn-blue"
+              onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              <i className={`fa fa-${isClipsListExpanded ? 'caret-down' : 'caret-right'}`} />
+              {' '}Currently editing: Clip {navClipIndex + 1} - All Clips ({audioClips.length} total)
+            </button>
+          )}
+
+          {/* Right: Previous / Next — aligned to the right */}
+          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+            <button
+              className="clip-nav-btn-blue"
+              style={{ backgroundColor: '#6c757d' }}
+              disabled={navClipIndex === 0}
+              onClick={() => handleClipNavigation(navClipIndex - 1)}
+            >
+              ← Previous
+            </button>
+            <button
+              className="clip-nav-btn-blue"
+              disabled={navClipIndex >= audioClips.length - 1}
+              onClick={() => handleClipNavigation(navClipIndex + 1)}
+            >
+              Next →
+            </button>
           </div>
-        </div> */}
-        {/* Map Audio Clips Component */}
+        </div>
+
+        {/* InsertPublish — form only, buttons hidden via CSS */}
         {!isPublished && (
-          <InsertPublish
-            handleClicksFromParent={handleClicksFromParent}
-            setHandleClicksFromParent={setHandleClicksFromParent}
-            userId={user || ''}
-            setShowSpinner={setShowSpinner}
-            youtubeVideoId={youtubeVideoId || ''}
-            currentTime={currentTime}
-            videoLength={videoLength}
-            audioDescriptionId={audioDescriptionId || ''}
-            seconds={seconds}
-            reset={reset}
-            participantId={participant_id || ''}
-            setNeedRefresh={setNeedRefresh}
-          />
+          <div className="insert-publish-form-only">
+            <InsertPublish
+              handleClicksFromParent={handleClicksFromParent}
+              setHandleClicksFromParent={setHandleClicksFromParent}
+              userId={user || ''}
+              setShowSpinner={setShowSpinner}
+              youtubeVideoId={youtubeVideoId || ''}
+              currentTime={currentTime}
+              videoLength={videoLength}
+              audioDescriptionId={audioDescriptionId || ''}
+              seconds={seconds}
+              reset={reset}
+              participantId={participant_id || ''}
+              setNeedRefresh={setNeedRefresh}
+            />
+          </div>
         )}
-        <div
-          className="audio-desc-component-list"
-          id="audio-list"
-          ref={audioClipsListRef}
-        >
-          {audioClips.map((clip, key) => (
+
+        {/* ClipsNavigator — collapsible clip list */}
+        <ClipsNavigator
+          clips={audioClips}
+          currentIndex={navClipIndex}
+          onSelectClip={handleClipNavigation}
+          isExpanded={isClipsListExpanded}
+          setIsExpanded={setIsClipsListExpanded}
+        />
+
+        {/* Single clip view */}
+        <div className="audio-desc-component-list" id="audio-list" ref={audioClipsListRef} style={{ overflow: 'visible' }}>
+          {audioClips[navClipIndex] && (
             <AudioClip
-              key={key}
-              clip={clip}
+              key={audioClips[navClipIndex].clip_id}
+              clip={audioClips[navClipIndex]}
               userId={user || ''}
               audioDescriptionId={audioDescriptionId || ''}
               youtubeVideoId={youtubeVideoId || ''}
@@ -1444,62 +782,37 @@ const YDXHome = (): React.ReactElement => {
               setNeedRefresh={setNeedRefresh}
               setUndoDeletedClip={setUndoDeletedClip}
               setUpdatedDescriptions={setUpdatedDescriptions}
+              isPublished={isPublished}
+              enrollInCollabEdit={isCollaborativeVersion}
+              setEnrollInCollabEdit={setCollaborativeVersion}
+              onPublish={handlePublish}
             />
-          ))}
+          )}
         </div>
 
+        {/* Save All (published) */}
         {isPublished && (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              marginBottom: '20px',
-              marginRight: '20px',
-            }}
-          >
-            <button
-              className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
-              onClick={handleSaveAllClips}
-            >
-              <i className="fa fa-save" /> {'   '}
-              Save All
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px', marginRight: '20px' }}>
+            <button className="btn publish-bg text-white ydx-button ml-auto cursor-pointer" onClick={handleSaveAllClips}>
+              <i className="fa fa-save" /> {'   '}Save All
             </button>
           </div>
         )}
+
+        {/* Unpublish + Copy Link (published) */}
         {isPublished && (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              marginBottom: '20px',
-              marginRight: '20px',
-            }}
-          >
-            <button
-              className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
-              style={{ marginRight: '10px' }}
-              onClick={() => {
-                handleUnpublishClick(audioDescriptionId!)
-              }}
-            >
-              <i className="fa fa-times" /> {'   '}
-              Unpublish
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px', marginRight: '20px' }}>
+            <button className="btn publish-bg text-white ydx-button ml-auto cursor-pointer" style={{ marginRight: '10px' }}
+              onClick={() => handleUnpublishClick(audioDescriptionId!)}>
+              <i className="fa fa-times" /> {'   '}Unpublish
             </button>
-            <button
-              className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
-              onClick={() => {
-                handleCopyClick(`
-          ${window.location.origin}/video/${youtubeVideoId}?
-          ad=${audioDescriptionId}`)
-              }}
-            >
-              <i className="fa fa-copy" /> {'   '}
-              Copy Published Link
+            <button className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
+              onClick={() => handleCopyClick(`${window.location.origin}/video/${youtubeVideoId}?ad=${audioDescriptionId}`)}>
+              <i className="fa fa-copy" /> {'   '}Copy Published Link
             </button>
           </div>
         )}
+
       </div>
     </div>
   )

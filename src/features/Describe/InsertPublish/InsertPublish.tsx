@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import '@/assets/css/insertPublish.css'
 import '@/assets/css/audioDesc.css'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
 import NewAudioClipComponent from '../NewAudioClip/NewAudioClip'
-import ModalComponent from '../../../shared/components/Modal/Modal'
-import { toast } from 'react-toastify'
 import { userDataStore } from '@/App'
 
 interface Props {
@@ -37,103 +33,26 @@ const InsertPublish = ({
   participantId,
   setNeedRefresh,
 }: Props) => {
-  // destructuring props
-  // props which handles clicks of New Inline and New Extended buttons from Button Component
-  const navigate = useNavigate()
   const [showInlineACComponent, setShowInlineACComponent] = useState(false)
   const [showNewACComponent, setShowNewACComponent] = useState(false)
-  const [isModal, setIsModal] = useState(false)
-  const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(true)
-
-  const handleClickInsertInline = (e: any) => {
-    e.preventDefault()
-    setShowNewACComponent(true)
-    setShowInlineACComponent(true)
-  }
-
-  const handleClickInsertExtended = (e: any) => {
-    e.preventDefault()
-    setShowNewACComponent(true)
-    setShowInlineACComponent(false)
-  }
-
-  const handleClickPublish = (e: any) => {
-    axios
-      .post(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/add-timedata-to-db/addtimedata`,
-        {
-          participant_id: participantId,
-          time: seconds,
-        },
-      )
-      .then(function (response) {
-        reset()
-      })
-      .catch(function (error) {
-        console.error(error)
-      })
-  }
-
-  const handlePublish = async (e: any, checkbox: boolean | undefined) => {
-    // console.log('publish')
-
-    axios
-      .post(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/calculate-contributions`,
-        {
-          audioDescriptionId: audioDescriptionId,
-        },
-        {
-          withCredentials: true,
-        },
-      )
-      .then(function (response) {
-        console.log(response)
-      })
-      .catch(function (error) {
-        console.error(error)
-        toast.error('Error calculate contribution!')
-      })
-    axios
-      .post(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/publish-audio-description`,
-        {
-          audioDescriptionId,
-          youtube_id: youtubeVideoId,
-          enrolled_in_collaborative_editing: enrollInCollabEdit,
-        },
-        {
-          withCredentials: true,
-        },
-      )
-      .then(function (response) {
-        setNeedRefresh(true)
-        toast.success('Audio description published successfully!')
-        window.location.href = `${window.location.origin}/video/${youtubeVideoId}?ad=${audioDescriptionId}`
-      })
-      .catch(function (error) {
-        console.error(error)
-        toast.error('Error publishing audio description!')
-      })
-  }
 
   useEffect(() => {
     if (handleClicksFromParent === 'inline') {
       setShowNewACComponent(true)
       setShowInlineACComponent(true)
-      setHandleClicksFromParent('') // reset it back to empty
+      setHandleClicksFromParent('')
     } else if (handleClicksFromParent === 'extended') {
       setShowNewACComponent(true)
       setShowInlineACComponent(false)
-      setHandleClicksFromParent('') // reset it back to empty
+      setHandleClicksFromParent('')
     }
   }, [handleClicksFromParent, setHandleClicksFromParent])
 
   return (
     <React.Fragment>
-      <hr />
-      {showNewACComponent ? (
+      {showNewACComponent && (
         <>
+          <hr />
           <h5 className="text-white">
             Insert {showInlineACComponent ? 'Inline' : 'Extended'} Audio Clip
           </h5>
@@ -149,62 +68,7 @@ const InsertPublish = ({
             setNeedRefresh={setNeedRefresh}
           />
         </>
-      ) : null}
-
-      <div className="d-flex justify-content-between my-3">
-        <div>
-          <button
-            type="button"
-            className="btn inline-bg text-dark ydx-button"
-            onClick={handleClickInsertInline}
-          >
-            <i className="fa fa-plus" /> {'   '}
-            Insert Inline
-          </button>
-          <button
-            type="button"
-            className="btn mx-5 extended-bg text-white ydx-button"
-            onClick={handleClickInsertExtended}
-          >
-            <i className="fa fa-plus" /> {'   '}
-            Insert Extended
-          </button>
-        </div>
-        <div className="mx-4 d-flex align-items-center">
-          <input
-            type="checkbox"
-            checked={enrollInCollabEdit}
-            onChange={(e) => setEnrollInCollabEdit(e.target.checked)}
-            id="collabEditCheckbox"
-            className="form-check-input me-2"
-          />
-          <label
-            htmlFor="collabEditCheckbox"
-            className="form-check-label text-white me-3"
-          >
-            Enroll in Collaborative Editing
-          </label>
-          <button
-            type="button"
-            className="btn publish-bg text-white ydx-button"
-            data-bs-toggle="modal"
-            data-bs-target="#publishModal"
-            onClick={() => setIsModal(true)}
-          >
-            <i className="fa fa-upload" /> {'   '}
-            Publish
-          </button>
-        </div>
-      </div>
-      {/* Publish Modal Confirmation Modal - opens when user hits Publish button and asks for a confirmation */}
-      <ModalComponent
-        id="publishModal"
-        title="Publish"
-        text="Are you sure you want to publish this audio description?"
-        modalTask={handlePublish}
-        show={isModal}
-        handleClose={() => setIsModal(false)}
-      />
+      )}
     </React.Fragment>
   )
 }
