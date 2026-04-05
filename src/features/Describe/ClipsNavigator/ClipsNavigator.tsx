@@ -27,7 +27,9 @@ const ClipsNavigator = ({
           {clips.map((clip, index) => (
             <div
               key={clip.clip_id}
-              className={`clip-summary-item ${index === currentIndex ? 'active' : ''}`}
+              className={`clip-summary-item ${
+                index === currentIndex ? 'active' : ''
+              }`}
               onClick={() => {
                 onSelectClip(index)
                 setIsExpanded(false)
@@ -50,7 +52,9 @@ const ClipsNavigator = ({
                 </div>
                 <div className="clip-description-preview">
                   {clip.description_text?.substring(0, 80) || 'No description'}
-                  {clip.description_text && clip.description_text.length > 80 ? '...' : ''}
+                  {clip.description_text && clip.description_text.length > 80
+                    ? '...'
+                    : ''}
                 </div>
               </div>
             </div>
