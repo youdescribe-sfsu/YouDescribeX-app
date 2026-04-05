@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import '@/assets/css/insertPublish.css'
 import '@/assets/css/audioDesc.css'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 import NewAudioClipComponent from '../NewAudioClip/NewAudioClip'
+import ModalComponent from '../../../shared/components/Modal/Modal'
+import { toast } from 'react-toastify'
 import { userDataStore } from '@/App'
 
 interface Props {
@@ -33,26 +37,65 @@ const InsertPublish = ({
   participantId,
   setNeedRefresh,
 }: Props) => {
+  const navigate = useNavigate()
   const [showInlineACComponent, setShowInlineACComponent] = useState(false)
   const [showNewACComponent, setShowNewACComponent] = useState(false)
+  const [isModal, setIsModal] = useState(false)
+  const [insertClipStartTimeSnapshot, setInsertClipStartTimeSnapshot] =
+    useState(currentTime)
+
+  const openNewAudioClip = useCallback(
+    (isInline: boolean) => {
+      // Snapshot the visible timeline label time at open so the dialog does
+      // not drift if playback state changes while the form is open.
+      setInsertClipStartTimeSnapshot(currentTime)
+      setShowInlineACComponent(isInline)
+      setShowNewACComponent(true)
+    },
+    [currentTime],
+  )
+
+  const handleClickInsertInline = (e: any) => {
+    e.preventDefault()
+    openNewAudioClip(true)
+  }
+
+  const handleClickInsertExtended = (e: any) => {
+    e.preventDefault()
+    openNewAudioClip(false)
+  }
+
+  const handleClickPublish = (e: any) => {
+    axios
+      .post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/add-timedata-to-db/addtimedata`,
+        {
+          participant_id: participantId,
+          time: seconds,
+        },
+      )
+      .then(function (response) {
+        reset()
+      })
+      .catch(function (error) {
+        console.error(error)
+      })
+  }
 
   useEffect(() => {
     if (handleClicksFromParent === 'inline') {
-      setShowNewACComponent(true)
-      setShowInlineACComponent(true)
       setHandleClicksFromParent('')
+      openNewAudioClip(true)
     } else if (handleClicksFromParent === 'extended') {
-      setShowNewACComponent(true)
-      setShowInlineACComponent(false)
       setHandleClicksFromParent('')
+      openNewAudioClip(false)
     }
   }, [handleClicksFromParent, openNewAudioClip, setHandleClicksFromParent])
 
   return (
     <React.Fragment>
-      {showNewACComponent && (
+      {showNewACComponent ? (
         <>
-          <hr />
           <h5 className="text-white">
             Insert {showInlineACComponent ? 'Inline' : 'Extended'} Audio Clip
           </h5>
@@ -68,7 +111,8 @@ const InsertPublish = ({
             setNeedRefresh={setNeedRefresh}
           />
         </>
-      )}
+      ) : null}
+
     </React.Fragment>
   )
 }

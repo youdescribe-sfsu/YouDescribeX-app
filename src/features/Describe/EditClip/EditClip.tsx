@@ -39,11 +39,11 @@ interface Props {
   isPreview?: boolean
   handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
   setClipDescText: (description: string) => void
-  // Publish props — rendered at bottom of this component
+  // Publish props
   isPublished: boolean
   enrollInCollabEdit: boolean
   setEnrollInCollabEdit: (val: boolean) => void
-  onPublish: (e: any) => void
+  onPublish: (e: any, checkbox?: boolean) => void
 }
 
 const EditClip = ({
@@ -145,9 +145,8 @@ const EditClip = ({
   }
 
   const getDescriptionPlaceholder = (isRecorded: boolean) => {
-    if (isRecorded) {
+    if (isRecorded)
       return 'Add a text transcript of your recording for better accessibility (optional but recommended)...'
-    }
     return 'Describe what you see in this scene. Be specific about actions, expressions, and visual details...'
   }
 
@@ -214,11 +213,7 @@ const EditClip = ({
     setClipDescriptionText(initialClipDescriptionText ?? '')
     handleClipStartTimeInputsRender()
     handleClipEndTimeInputsRender()
-    setIsYoutubeVideoPlaying(
-      currentState === -1 || currentState === 0 || currentState === 2
-        ? false
-        : currentState === 1,
-    )
+    setIsYoutubeVideoPlaying(currentState === 1)
     if (mediaBlobUrl !== null) {
       const newAudio = new Audio(mediaBlobUrl)
       setRecordedAudio(newAudio)
@@ -285,23 +280,17 @@ const EditClip = ({
   }, [status])
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
-    if (status === 'recording') {
-      interval = setInterval(updateRecordingDuration, 100)
-    }
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [status, updateRecordingDuration])
-
-  useEffect(() => {
-    if (recordedClipDuration > 0 && clipDuration > 0) {
+    if (
+      recordedClipDuration > 0 &&
+      clipDuration > 0 &&
+      !isIntegratedRecordingMode
+    ) {
       const difference = Math.abs(recordedClipDuration - clipDuration)
       if (difference > 0.1) {
         setRecordedClipDuration(clipDuration)
       }
     }
-  }, [recordedClipDuration, clipDuration])
+  }, [recordedClipDuration, clipDuration, isIntegratedRecordingMode])
 
   const handleClipStartTimeInputsRender = () => {
     const cardFormat = convertSecondsToCardFormat(clipStartTime).split(':')
@@ -320,14 +309,18 @@ const EditClip = ({
     setClipDurationMilliSeconds(parseInt(cardFormat[3]))
   }
 
-  const handleOnChangeClipStartTimeHours = (e: any) =>
+  const handleOnChangeClipStartTimeHours = (e: any) => {
     setClipStartTimeHours(Number(e.target.value))
-  const handleOnChangeClipStartTimeMinutes = (e: any) =>
+  }
+  const handleOnChangeClipStartTimeMinutes = (e: any) => {
     setClipStartTimeMinutes(Number(e.target.value))
-  const handleOnChangeClipStartTimeSeconds = (e: any) =>
+  }
+  const handleOnChangeClipStartTimeSeconds = (e: any) => {
     setClipStartTimeSeconds(Number(e.target.value))
-  const handleOnChangeClipStartTimeMilliSeconds = (e: any) =>
-    setClipStartTimeMilliSeconds(Number(e.target.value))
+  }
+  const handleOnChangeClipStartTimeCentiseconds = (e: any) => {
+    setClipStartTimeCentiseconds(Number(e.target.value))
+  }
 
   const handleBlurClipStartTimeHours = (e: any) => {
     let tempStartTimeHours = clipStartTimeHours
@@ -401,8 +394,8 @@ const EditClip = ({
     handleClipEndTimeInputsRender()
   }
 
-  const handleBlurClipStartTimeMilliSeconds = (e: any) => {
-    let tempStartTimeMilliSeconds = clipStartTimeMilliSeconds
+  const handleBlurClipStartTimeCentiseconds = (e: any) => {
+    let tempStartTimeCentiseconds = clipStartTimeCentiseconds
     if (e.target.value.length === 1) {
       setClipStartTimeCentiseconds(Number(e.target.value + '0'))
       tempStartTimeCentiseconds = Number(e.target.value + '0')
@@ -427,7 +420,7 @@ const EditClip = ({
     minutes: number,
     seconds: number,
   ) => {
-    const calculatedSeconds = +milliseconds / 1000 + +minutes * 60 + +seconds
+    const calculatedSeconds = +milliseconds / 100 + +minutes * 60 + +seconds
     if (clipPlaybackType === 'inline') {
       if (calculatedSeconds + clipDuration <= videoLength) {
         handleClipStartTimeUpdate(calculatedSeconds)
@@ -474,9 +467,9 @@ const EditClip = ({
               setIsAdAudioPlaying(false)
             })
           })
-          .catch(() =>
-            toast.error('Cannot play audio. Please try again later.'),
-          )
+          .catch(() => {
+            toast.error('Cannot play audio. Please try again later.')
+          })
       }
     }
   }
@@ -494,9 +487,13 @@ const EditClip = ({
   const handleReadySetGo = (): void => {
     const countdown = ['3', '2', '1', 'GO!', 'start']
     countdown.forEach((val, i) => {
-      setTimeout(() => setReadySetGo(val), 1000 * i)
+      setTimeout(() => {
+        setReadySetGo(val)
+      }, 1000 * i)
     })
-    setTimeout(() => startRecording(), 3700)
+    setTimeout(() => {
+      startRecording()
+    }, 3700)
   }
 
   const saveClipDescription = (e: any) => {
@@ -510,6 +507,9 @@ const EditClip = ({
     }
   }
 
+  const handleToggleTextAreaForRecording = () => {
+    setShowTextAreaForRecording(!showTextAreaForRecording)
+  }
   const shouldShowTextArea = !isRecorded
 
   const handleStartIntegratedRecording = () => {
@@ -623,7 +623,6 @@ const EditClip = ({
 
   return (
     <div className="edit-component" ref={ref} id={clipId}>
-      {/* Audio Mode Header */}
       <div className="audio-mode-header">
         <div className="audio-mode-badge">
           <i className={`fa ${audioModeConfig.icon} audio-mode-icon`}></i>
@@ -634,7 +633,6 @@ const EditClip = ({
         </div>
       </div>
 
-      {/* Primary Content Section */}
       <div className="primary-content-section">
         <div className="description-editing-area">
           <div className="section-header">
@@ -666,7 +664,6 @@ const EditClip = ({
             </div>
           )}
 
-          {/* Integrated Recording Interface */}
           {isIntegratedRecordingMode && (
             <div className="integrated-recording-interface">
               {isPreparingToRecord ? (
@@ -779,7 +776,6 @@ const EditClip = ({
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="primary-actions">
             {!isRecorded && !isPreview && !isIntegratedRecordingMode && (
               <button
@@ -815,7 +811,7 @@ const EditClip = ({
                     }
                     disabled={isPreview || buttonConfig.disabled}
                   >
-                    <i className={`fa ${buttonConfig.icon}`} />
+                    <i className={`fa ${buttonConfig.icon}`} />{' '}
                     {buttonConfig.label}
                   </button>
                 )
@@ -892,7 +888,6 @@ const EditClip = ({
           </div>
         </div>
 
-        {/* Timing Controls */}
         <div className="timing-controls-section">
           <div className="section-header">
             <h6 className="section-title">Timing Controls</h6>
@@ -1029,21 +1024,25 @@ const EditClip = ({
           </div>
         </div>
       </div>
-{/* ── Play Video + Enroll + Publish — 3-column grid row ── */}
-{!isPreview && !isIntegratedRecordingMode && (
-        <div className="bottom-row-controls">
 
-          {/* Left: spacer */}
+      {/* ── Bottom row: Play Video | Enroll + Publish ── */}
+      {!isPreview && !isIntegratedRecordingMode && (
+        <div className="bottom-row-controls">
+          {/* Left spacer */}
           <div />
 
           {/* Center: Play Video with Description */}
           <button
             className={`ydx-button ${
-              isYoutubeVideoPlaying ? 'ydx-button--secondary' : 'ydx-button--primary'
+              isYoutubeVideoPlaying
+                ? 'ydx-button--secondary'
+                : 'ydx-button--primary'
             } video-control-btn`}
             onClick={handlePlayPauseYouTubeVideo}
           >
-            <i className={`fa ${isYoutubeVideoPlaying ? 'fa-pause' : 'fa-play'}`} />
+            <i
+              className={`fa ${isYoutubeVideoPlaying ? 'fa-pause' : 'fa-play'}`}
+            />
             {isYoutubeVideoPlaying ? 'Pause' : 'Play'} Video with Description
           </button>
 
@@ -1080,7 +1079,9 @@ const EditClip = ({
                 handleClose={() => setIsPublishModal(false)}
               />
             </div>
-          ) : <div />}
+          ) : (
+            <div />
+          )}
         </div>
       )}
 
@@ -1096,4 +1097,5 @@ const EditClip = ({
     </div>
   )
 }
+
 export default EditClip

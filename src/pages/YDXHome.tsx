@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useElapsedTime } from 'use-elapsed-time'
-import { useParams, useNavigate } from 'react-router-dom'
+import {
+  useParams,
+  useNavigate,
+} from 'react-router-dom'
 import axios from 'axios'
 import YouTube, { YouTubePlayer } from 'react-youtube'
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
@@ -73,7 +76,9 @@ const YDXHome = (): React.ReactElement => {
   const [playedClipsSet, setPlayedClipsSet] = useState<Set<string>>(new Set())
   const [showSpinner, setShowSpinner] = useState(false)
   const [undoDeletedClipInfo, setUndoDeletedClip] = useState(false)
-  const [updatedDescriptions, setUpdatedDescriptions] = useState<{ [key: string]: string }>({})
+  const [updatedDescriptions, setUpdatedDescriptions] = useState<{
+    [key: string]: string
+  }>({})
   const [editComponentToggleList, setEditComponentToggleList] = useState<
     { clipId: string; showEditComponent: boolean }[]
   >([])
@@ -102,6 +107,9 @@ const YDXHome = (): React.ReactElement => {
   // ── Single-clip navigation ───────────────────────────────────────────────────
   const [navClipIndex, setNavClipIndex] = useState(0)
   const [isClipsListExpanded, setIsClipsListExpanded] = useState(false)
+
+  // ── Publish state ────────────────────────────────────────────────────────────
+  const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(true)
 
   const [descriptionVolume, setDescriptionVolume] = useState(
     parseInt(localStorage.getItem('descriptionVolume') || '50'),
@@ -136,14 +144,20 @@ const YDXHome = (): React.ReactElement => {
   useEffect(() => { currentClipIndexRef.current = currentClipIndex }, [currentClipIndex])
 
   useEffect(() => {
-    if (currentInlineACRef.current?.playing()) currentInlineACRef.current?.volume(descriptionVolume / 100)
-    if (currentExtendedACRef.current?.playing()) currentExtendedACRef.current?.volume(descriptionVolume / 100)
+    if (currentInlineACRef.current?.playing()) {
+      currentInlineACRef.current?.volume(descriptionVolume / 100)
+    }
+    if (currentExtendedACRef.current?.playing()) {
+      currentExtendedACRef.current?.volume(descriptionVolume / 100)
+    }
     descriptionVolumeRef.current = descriptionVolume
     localStorage.setItem('descriptionVolume', descriptionVolume.toString())
   }, [descriptionVolume])
 
   useEffect(() => {
-    if (currentEventRef) currentEventRef.current?.setVolume(youTubeVolume)
+    if (currentEventRef) {
+      currentEventRef.current?.setVolume(youTubeVolume)
+    }
     youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
@@ -165,23 +179,30 @@ const YDXHome = (): React.ReactElement => {
   useEffect(() => {
     setUser(userDataStore.getState().userId || '')
     setDivWidths({
-      divRef1: (divRef1.current?.clientWidth ?? 1) / 3 + (divRef1.current?.clientWidth ?? 1) / 3,
+      divRef1:
+        (divRef1.current?.clientWidth ?? 1) / 3 +
+        (divRef1.current?.clientWidth ?? 1) / 3,
       divRef2: (divRef1.current?.clientWidth ?? 1) / 3,
       divRef3: divRef2.current?.clientWidth,
       divRef4: divRef3.current?.clientWidth,
     })
     setShowSpinner(true)
     fetchUserVideoData()
-    document.addEventListener('keyup', () => { setIsPlaying((prev) => !prev) })
+    document.addEventListener('keyup', () => {
+      setIsPlaying((prevIsPlaying) => !prevIsPlaying)
+    })
     let interval: NodeJS.Timer | null = null
     if (isActive) {
-      interval = setInterval(() => { setSeconds((s) => s + 1) }, 1000)
+      interval = setInterval(() => { setSeconds((seconds) => seconds + 1) }, 1000)
     } else if (!isActive && seconds !== 0) {
       if (interval !== null) clearInterval(interval)
     }
     return () => { if (interval !== null) clearInterval(interval) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, draggableDivWidth, unitLength, videoId, youtubeVideoId, updateData, setEditComponentToggleList])
+  }, [
+    isActive, draggableDivWidth, unitLength, videoId, youtubeVideoId,
+    updateData, setEditComponentToggleList,
+  ])
 
   useEffect(() => {
     localStorage.setItem('Seconds', String(seconds))
@@ -215,19 +236,22 @@ const YDXHome = (): React.ReactElement => {
   }, [needRefresh])
 
   useEffect(() => {
-    if (userDataStore.getState().userId !== sessionStorage.getItem('User')) setSeconds(0)
+    if (userDataStore.getState().userId !== sessionStorage.getItem('User')) {
+      setSeconds(0)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const calculateDraggableDivWidth = () => {
     const currWidth = divRef3?.current?.clientWidth ?? 1
-    const w = (96 * currWidth) / 100
-    setDraggableDivWidth(w)
-    return w
+    const draggableDivWidth = (96 * currWidth) / 100
+    setDraggableDivWidth(draggableDivWidth)
+    return draggableDivWidth
   }
 
   const calculateUnitLength = (videoEndTime: number, draggableDivWidth: number) => {
-    setUnitLength(draggableDivWidth / videoEndTime)
+    const unitLength = draggableDivWidth / videoEndTime
+    setUnitLength(unitLength)
   }
 
   const fetchDialogData = () => {
@@ -255,9 +279,11 @@ const YDXHome = (): React.ReactElement => {
       .get(`${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${youtubeVideoId}`)
       .then((res) => {
         setShowSpinner(false)
-        setVideoLength(res.data.video_length)
-        setVideoId(res.data.video_id)
-        return { video_id: res.data.video_id, video_length: res.data.video_length }
+        const video_id = res.data.video_id
+        const video_length = res.data.video_length
+        setVideoLength(video_length)
+        setVideoId(video_id)
+        return { video_id, video_length }
       })
       .then(({ video_id, video_length }) => {
         setShowSpinner(false)
@@ -269,13 +295,76 @@ const YDXHome = (): React.ReactElement => {
       .catch((err) => { console.error('ERROR in fetchUserVideoData', err); setShowSpinner(true) })
   }
 
-  const fetchAudioDescriptionData = (isNewClipAdded = false, passedVideoId?: string) => {
+  const unloadHowls = useCallback((howls: Array<Howl | undefined>) => {
+    const unloadedHowls = new Set<Howl>()
+    howls.forEach((howl) => {
+      if (!howl || unloadedHowls.has(howl)) return
+      unloadedHowls.add(howl)
+      howl.pause()
+      howl.seek(0)
+      howl.unload()
+    })
+  }, [])
+
+  const getClipStackStartIndex = useCallback((clips: Clip[], targetTime: number) => {
+    const startIndex = clips.findIndex(
+      (clip) =>
+        clip.clip_start_time >= targetTime ||
+        (clip.clip_start_time < targetTime && clip.clip_end_time > targetTime),
+    )
+    return startIndex === -1 ? clips.length : startIndex
+  }, [])
+
+  const primeClipAudio = useCallback((clip: Clip) => {
+    if (clip.clip_audio) { clip.clip_audio.unload(); clip.clip_audio = undefined }
+    clip.clip_audio = new Howl({ src: clip.clip_audio_path, html5: true, preload: true, autoplay: false })
+    clip.clip_audio.load()
+    return clip
+  }, [])
+
+  const buildClipStackForTime = useCallback(
+    (clips: Clip[], targetTime: number, stackSize: number) => {
+      const startIndex = getClipStackStartIndex(clips, targetTime)
+      const clipStackData: Clip[] = []
+      for (let i = startIndex; i < Math.min(startIndex + stackSize, clips.length); i++) {
+        const clip = clips[i]
+        if (clip) clipStackData.push(primeClipAudio(clip))
+      }
+      return { startIndex, clipStackData }
+    },
+    [getClipStackStartIndex, primeClipAudio],
+  )
+
+  const resetPlaybackStateForSavedClipRefresh = useCallback(() => {
+    unloadHowls([
+      ...clipStackRef.current.map((clip) => clip.clip_audio),
+      currentExtendedACRef.current,
+      currentInlineACRef.current,
+    ])
+    setCurrExtendedAC(undefined)
+    setCurrInlineAC(undefined)
+    setCurrentExtACPaused(false)
+    setRecentAudioPlayedTime(0.0)
+    setPlayedAudioClip('')
+    setPlayedClipPath('')
+    setPlayedClipsSet(new Set())
+  }, [unloadHowls])
+
+  const fetchAudioDescriptionData = (
+    isNewClipAdded = false,
+    passedVideoId?: string,
+    shouldRefreshEditToggleList = false,
+  ) => {
     const effectiveVideoId = passedVideoId || videoId
     if (effectiveVideoId && userDataStore.getState().userId && audioDescriptionId)
       axios
         .get(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-user-ad/${effectiveVideoId}&${audioDescriptionId}`,
-          { params: { preview: 'true' }, headers: { audiodescription: audioDescriptionId }, withCredentials: true },
+          {
+            params: { preview: 'true' },
+            headers: { audiodescription: audioDescriptionId },
+            withCredentials: true,
+          },
         )
         .then((res) => { setShowSpinner(false); setIsPublished(res.data.is_published); return res.data })
         .then((data) => {
@@ -288,6 +377,7 @@ const YDXHome = (): React.ReactElement => {
           const date = new Date()
           const ONE_MIN = 60 * 1000
           if (audioClipsData.length > 100) setClipStackSize(10)
+
           audioClipsData.forEach((clip, i) => {
             clip.clip_sequence_number = i + 1
             if (clip.clip_audio_path.startsWith('.')) {
@@ -297,14 +387,30 @@ const YDXHome = (): React.ReactElement => {
             } else {
               clip.clip_audio_path = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static/${clip.clip_audio_path}`
             }
-            tempArray.push({
-              clipId: clip.clip_id,
-              showEditComponent: date.getTime() - new Date(clip.createdAt).getTime() <= ONE_MIN,
-            })
+            if (date.getTime() - new Date(clip.createdAt).getTime() <= ONE_MIN) {
+              tempArray.push({ clipId: clip.clip_id, showEditComponent: true })
+            } else {
+              tempArray.push({ clipId: clip.clip_id, showEditComponent: false })
+            }
           })
-          if (editComponentToggleList.length === 0 || isNewClipAdded) setEditComponentToggleList(tempArray)
+
+          if (editComponentToggleList.length === 0 || shouldRefreshEditToggleList) {
+            setEditComponentToggleList(tempArray)
+          }
           setAudioClips([...audioClipsData])
           setNotesData(notesData)
+
+          if (isNewClipAdded) {
+            const nextClipStackSize = audioClipsData.length > 100 ? 10 : clipStackSize
+            resetPlaybackStateForSavedClipRefresh()
+            const { startIndex, clipStackData } = buildClipStackForTime(
+              audioClipsData, currentTimeRef.current, nextClipStackSize,
+            )
+            setCurrentClipIndex(startIndex)
+            setClipStack(clipStackData)
+            return
+          }
+
           const maxStackSize = audioClipsData.length > 100 ? 10 : Math.min(audioClipsData.length, 5)
           const clipStackData = []
           for (let i = 0; i < maxStackSize; i++) {
@@ -327,25 +433,30 @@ const YDXHome = (): React.ReactElement => {
         { withCredentials: true },
       )
       if (response.data.playback_type !== clip.playback_type) {
+        console.info(`Playback type changed for clip ${clip.clip_id}: ${clip.playback_type} -> ${response.data.playback_type}`)
         clip.playback_type = response.data.playback_type
         const updatedAudioClips = [...audioClips]
-        const idx = updatedAudioClips.findIndex((c) => c.clip_id === clip.clip_id)
-        if (idx !== -1) { updatedAudioClips[idx].playback_type = response.data.playback_type; setAudioClips(updatedAudioClips) }
+        const clipIndex = updatedAudioClips.findIndex((c) => c.clip_id === clip.clip_id)
+        if (clipIndex !== -1) {
+          updatedAudioClips[clipIndex].playback_type = response.data.playback_type
+          setAudioClips(updatedAudioClips)
+        }
       }
       return clip
-    } catch (error) { console.error('Error fetching current playback type:', error); return clip }
+    } catch (error) {
+      console.error('Error fetching current playback type:', error)
+      return clip
+    }
   }
 
   const fetchUndoDeletedClipData = async () => {
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/undo-last-deleted`
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/undo-last-deleted`,
-        { youtubeVideoId },
-        { withCredentials: true, headers: { 'Content-Type': 'application/json' } },
-      )
+      const response = await axios.post(url, { youtubeVideoId }, { withCredentials: true, headers: { 'Content-Type': 'application/json' } })
+      const data = response.data
       setUndoDeletedClip(false)
       setNeedRefresh(true)
-      navigate(`/editor/${response.data.clip.youtubeId}/${response.data.clip.audio_description}`)
+      navigate(`/editor/${data.clip.youtubeId}/${data.clip.audio_description}`)
       toast.success('Successfully retrieved and updated the last deleted clip!')
     } catch (error) {
       if (toastId.current) toast.dismiss(toastId.current)
@@ -363,11 +474,19 @@ const YDXHome = (): React.ReactElement => {
   const playAudioAtCurrentTime = async (updatedCurrentTime: number, playedAudioClip: string, playedClipPath: string) => {
     if (currentStateRef.current === 1) {
       if (clipStackRef.current.length === 0) return
-      if (currentInlineACRef.current?.playing() || currentExtendedACRef.current?.playing()) return
+      if (currentInlineACRef.current?.playing() || currentExtendedACRef.current?.playing()) {
+        console.info('A clip is currently playing')
+        return
+      }
       try {
-        const updatedClip = await checkPlaybackTypeBeforePlaying(clipStackRef.current[0])
+        const currentClip = clipStackRef.current[0]
+        const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
 
-        if (updatedClip.playback_type === 'extended' && updatedClip.clip_start_time <= currentTimeRef.current && currentTimeRef.current - updatedClip.clip_start_time < 1.0) {
+        if (
+          updatedClip.playback_type === 'extended' &&
+          updatedClip.clip_start_time <= currentTimeRef.current &&
+          currentTimeRef.current - updatedClip.clip_start_time < 1.0
+        ) {
           if (playedClipsSet.has(updatedClip.clip_id)) {
             setCurrentClipIndex(currentClipIndexRef.current + 1)
             const newClip = audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
@@ -387,7 +506,7 @@ const YDXHome = (): React.ReactElement => {
               if (currentAudio?.state() === 'loaded') {
                 setTimeout(() => { if (!currentAudio.playing()) { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) } }, 50)
               } else {
-                currentAudio?.once('load', () => { setTimeout(() => { if (!currentAudio.playing()) { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) } }, 50) })
+                currentAudio?.once('load', function () { setTimeout(() => { if (!currentAudio.playing()) { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) } }, 50) })
               }
               setCurrExtendedAC(currentAudio)
               currentAudio?.once('play', () => { currentAudio.volume(descriptionVolumeRef.current / 100) })
@@ -402,7 +521,8 @@ const YDXHome = (): React.ReactElement => {
           ((updatedClip.clip_start_time <= currentTimeRef.current && updatedClip.clip_end_time >= currentTimeRef.current) ||
             (updatedClip.clip_start_time <= currentTimeRef.current && updatedClip.clip_start_time >= previousTimeRef.current))
         ) {
-          if (playedClipsSet.has(updatedClip.clip_id) || currentInlineACRef.current?.playing()) return
+          if (playedClipsSet.has(updatedClip.clip_id)) return
+          if (currentInlineACRef.current?.playing()) return
           const currentAudio = updatedClip.clip_audio
           const seekTime = currentTimeRef.current - updatedClip.clip_start_time
           if (seekTime < 0) return
@@ -410,7 +530,7 @@ const YDXHome = (): React.ReactElement => {
             currentAudio.seek(seekTime)
             setTimeout(() => { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) }, 50)
           } else {
-            currentAudio?.once('load', () => { currentAudio.seek(seekTime); setTimeout(() => { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) }, 50) })
+            currentAudio?.once('load', function () { currentAudio.seek(seekTime); setTimeout(() => { currentAudio.play(); currentAudio.volume(descriptionVolumeRef.current / 100) }, 50) })
           }
           setCurrInlineAC(currentAudio)
           setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
@@ -427,7 +547,13 @@ const YDXHome = (): React.ReactElement => {
           }
         }
 
-        if (updatedClip.playback_type === 'extended' && !currentInlineACRef.current?.playing() && !currentExtendedACRef.current?.playing() && updatedClip.clip_start_time <= currentTimeRef.current && currentTimeRef.current - updatedClip.clip_start_time >= 1.0) {
+        if (
+          updatedClip.playback_type === 'extended' &&
+          !currentInlineACRef.current?.playing() &&
+          !currentExtendedACRef.current?.playing() &&
+          updatedClip.clip_start_time <= currentTimeRef.current &&
+          currentTimeRef.current - updatedClip.clip_start_time >= 1.0
+        ) {
           setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
           setCurrentClipIndex(currentClipIndexRef.current + 1)
           const newClip = audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
@@ -439,8 +565,9 @@ const YDXHome = (): React.ReactElement => {
   }
 
   const onStateChange = (event: any) => {
+    const currentTime = event.target.getCurrentTime()
     setCurrentEvent(event.target)
-    setCurrentTime(event.target.getCurrentTime())
+    setCurrentTime(currentTime)
     setCurrentState(event.data)
     switch (event.data) {
       case 0:
@@ -451,7 +578,7 @@ const YDXHome = (): React.ReactElement => {
         currentEvent?.setVolume(youTubeVolume)
         if (!isActive) setIsActive(true)
         if (currExtendedAC) { currExtendedAC.pause(); currExtendedAC.seek(0); setCurrExtendedAC(undefined) }
-        if (currInlineAC) { currInlineAC.play(); currInlineAC.on('end', () => setCurrInlineAC(undefined)) }
+        if (currInlineAC) { currInlineAC.play(); currInlineAC.on('end', function () { setCurrInlineAC(undefined) }) }
         setGloballyPaused(false); clearInterval(timer); break
       case 2:
         if (currInlineAC) currInlineAC.pause()
@@ -463,49 +590,68 @@ const YDXHome = (): React.ReactElement => {
   }
 
   const onReady = (event: any) => { setCurrentEvent(event.target) }
+
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
     setCurrentTime(event.target.getCurrentTime())
     setTimer(setInterval(() => updateTime(event.target.getCurrentTime(), playedAudioClip, recentAudioPlayedTime, playedClipPath), samplingRate))
   }
+
   const onPause = (event: any) => { event.target.pauseVideo() }
 
   const stopProgressBar = async (event: DraggableEvent, position: DraggableData) => {
     setDraggableTime({ x: position.x, y: 0 })
-    currentEventRef.current?.seekTo(position.x / unitLength, true)
-    setPreviousTime((await currentEventRef.current?.getCurrentTime()) ?? 0)
+    const progressBarTime = position.x / unitLength
+    setCurrentTime(progressBarTime)
+    currentTimeRef.current = progressBarTime
+    currentEventRef.current?.seekTo(progressBarTime, true)
+    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
+    setPreviousTime(currentPlayerTime ?? 0)
   }
 
   const dragProgressBar = async (event: DraggableEvent, position: DraggableData) => {
     setDraggableTime({ x: position.x, y: 0 })
     currentEventRef.current?.seekTo(position.x / unitLength, true)
-    const t = (await currentEventRef.current?.getCurrentTime()) ?? 0
-    setCurrentTime(t); setPreviousTime(t); setRecentAudioPlayedTime(0.0)
-    setPlayedAudioClip(''); setPlayedClipPath(''); updateClipsDataCallback()
+    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
+    setCurrentTime(currentPlayerTime ?? 0)
+    setPreviousTime(currentPlayerTime ?? 0)
+    setRecentAudioPlayedTime(0.0); setPlayedAudioClip(''); setPlayedClipPath('')
+    updateClipsDataCallback()
     if (currentExtendedACRef.current) { currentExtendedACRef.current.pause(); currentExtendedACRef.current.seek(0); currentExtendedACRef.current.unload(); setCurrExtendedAC(undefined) }
-    if (currentInlineACRef.current) { currentInlineACRef.current.pause(); currentInlineACRef.current.seek(0); currentInlineACRef.current.unload(); setCurrExtendedAC(undefined) }
+    if (currentInlineACRef.current) { currentInlineACRef.current.pause(); currentInlineACRef.current.seek(0); currentInlineACRef.current.unload(); setCurrInlineAC(undefined) }
   }
 
   const updateClipStackData = useCallback(() => {
     clipStackRef.current.forEach((clip) => { if (clip.clip_audio) clip.clip_audio.unload() })
-    const newClipIndex = audioClips.findIndex((clip) =>
-      clip.clip_start_time >= currentTimeRef.current ||
-      (clip.clip_start_time < currentTimeRef.current && clip.clip_end_time > currentTimeRef.current),
+    const newClipIndex = audioClips.findIndex(
+      (clip) =>
+        clip.clip_start_time >= currentTimeRef.current ||
+        (clip.clip_start_time < currentTimeRef.current && clip.clip_end_time > currentTimeRef.current),
     )
     setCurrentClipIndex(newClipIndex)
     const clipStackData = []
     for (let i = newClipIndex; i < newClipIndex + clipStackSize; i++) {
       const clip = audioClips[i]
-      if (clip) { clip.clip_audio = new Howl({ src: clip.clip_audio_path, html5: true, preload: true, autoplay: false }); clip.clip_audio.load(); clipStackData.push(clip) }
+      if (clip) {
+        clip.clip_audio = new Howl({ src: clip.clip_audio_path, html5: true, preload: true, autoplay: false })
+        clip.clip_audio.load()
+        clipStackData.push(clip)
+      }
     }
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex])
 
-  const updateClipsDataCallback = useMemo(() => debounce(() => { updateClipStackData() }, 500), [updateClipStackData])
+  const updateClipsDataCallback = useMemo(
+    () => debounce(() => { updateClipStackData() }, 500),
+    [updateClipStackData],
+  )
 
   const setEditComponentToggleFunc = (clipId: string, value: boolean) => {
     const temp = [...editComponentToggleList]
-    temp.forEach((data) => { if (data.clipId === clipId) data.showEditComponent = value })
+    temp.forEach((data) => {
+      if (value) { if (data.clipId === clipId) data.showEditComponent = value }
+      else { if (data.clipId === clipId) data.showEditComponent = value }
+    })
     setEditComponentToggleList(temp)
   }
 
@@ -514,7 +660,7 @@ const YDXHome = (): React.ReactElement => {
     currentEvent?.playVideo()
   }
 
-  // ── Single-clip navigation handler ──────────────────────────────────────────
+  // ── Single-clip navigation ───────────────────────────────────────────────────
   const handleClipNavigation = (index: number) => {
     if (index < 0 || index >= audioClips.length) return
     setNavClipIndex(index)
@@ -531,13 +677,39 @@ const YDXHome = (): React.ReactElement => {
 
   const handleCopyClick = (textToCopy: string) => {
     navigator.clipboard.writeText(textToCopy)
-      .then(() => toast.success('Text copied to clipboard!'))
-      .catch((error) => toast.error('Copy to clipboard failed: ' + error))
+      .then(() => { toast.success('Text copied to clipboard!') })
+      .catch((error) => { toast.error('Copy to clipboard failed: ' + error) })
+  }
+
+  // ── Publish ──────────────────────────────────────────────────────────────────
+  const handlePublish = async (e: any, checkbox?: boolean) => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/calculate-contributions`,
+        { audioDescriptionId },
+        { withCredentials: true },
+      )
+    } catch (err) {
+      console.error(err)
+      toast.error('Error calculating contribution!')
+    }
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/publish-audio-description`,
+        { audioDescriptionId, youtube_id: youtubeVideoId, enrolled_in_collaborative_editing: enrollInCollabEdit },
+        { withCredentials: true },
+      )
+      setNeedRefresh(true)
+      toast.success('Audio description published successfully!')
+      window.location.href = `${window.location.origin}/video/${youtubeVideoId}?ad=${audioDescriptionId}`
+    } catch (error) {
+      console.error(error)
+      toast.error('Error publishing audio description!')
+    }
   }
 
   // ── Unpublish ────────────────────────────────────────────────────────────────
-  const handleUnpublishClick = async (audioDescriptionId: string) => {
-    if (!audioDescriptionId) { toast.error('Audio description ID is undefined!'); return }
+  const handleUnpublishClick = async (audioDescriptionId: string) => {    if (!audioDescriptionId) { toast.error('Audio description ID is undefined!'); return }
     try {
       await axios.post(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/unpublish-audio-description`,
@@ -546,29 +718,15 @@ const YDXHome = (): React.ReactElement => {
       )
       setIsPublished(false); setNeedRefresh(true)
       toast.success('Audio description unpublished successfully!')
-    } catch (error) { console.error('Error unpublishing:', error); toast.error('Error unpublishing audio description!') }
-  }
-
-  // ── Publish ──────────────────────────────────────────────────────────────────
-  const handlePublish = async (e: any) => {
-    if (!audioDescriptionId) { toast.error('Audio description ID is undefined!'); return }
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/publish-audio-description`,
-        { audioDescriptionId, youtube_id: youtubeVideoId, enrollInCollabEdit: isCollaborativeVersion },
-        { withCredentials: true },
-      )
-      setIsPublished(true); setNeedRefresh(true)
-      toast.success('Audio description published successfully!')
-    } catch (error) { console.error('Error publishing:', error); toast.error('Error publishing audio description!') }
+    } catch (error) { console.error('Error unpublishing audio description:', error); toast.error('Error unpublishing audio description!') }
   }
 
   const handleSaveAllClips = async () => {
     setShowSpinner(true)
     try {
       for (const clip of audioClips) {
-        const updated = updatedDescriptions[clip.clip_id]
-        if (updated) await handleClickSaveClipDescription(clip.clip_id, updated, clip.description_type)
+        const updatedDescription = updatedDescriptions[clip.clip_id]
+        if (updatedDescription) await handleClickSaveClipDescription(clip.clip_id, updatedDescription, clip.description_type)
       }
       try {
         await axios.post(`${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/calculate-contributions`, { audioDescriptionId }, { withCredentials: true })
@@ -605,7 +763,6 @@ const YDXHome = (): React.ReactElement => {
     <div className="ydx-body ydx-html">
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
-
         {/* YouTube + Controls + Notes */}
         <div className="d-flex justify-content-around">
           <div className="text-white">
@@ -626,8 +783,8 @@ const YDXHome = (): React.ReactElement => {
             audioDescriptionId={audioDescriptionId || ''}
             notesData={notesData}
             handleVideoPause={async () => {
-              const s = await currentEvent?.getPlayerState()
-              if (s === 1) handlePlayPause()
+              const currentState = await currentEvent?.getPlayerState()
+              if (currentState === 1) handlePlayPause()
             }}
           />
         </div>
@@ -652,10 +809,11 @@ const YDXHome = (): React.ReactElement => {
             <div className="timeline-container-wrapper" ref={divRef2}>
               <div className="timeline-track-wrapper" ref={divRef3}>
                 {audioClips.map((clip, key) => {
+                  const left = clip.clip_start_time * unitLength
                   const isExtended = clip.playback_type === 'extended'
                   return (
                     <div key={`audio-${key}`} className="audio-clip-timeline-segment"
-                      style={{ position: 'absolute', left: `${clip.clip_start_time * unitLength}px`, width: isExtended ? '3px' : `${clip.clip_duration * unitLength}px`, height: '20px', backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b', top: '0px', zIndex: 3, borderRadius: '2px', opacity: 0.8 }}
+                      style={{ position: 'absolute', left: `${left}px`, width: isExtended ? '3px' : `${clip.clip_duration * unitLength}px`, height: '20px', backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b', top: '0px', zIndex: 3, borderRadius: '2px', opacity: 0.8 }}
                       title={`${clip.playback_type}: ${clip.description_text?.substring(0, 50)}...`}
                     />
                   )
@@ -680,15 +838,14 @@ const YDXHome = (): React.ReactElement => {
           )}
         </div>
 
-        {/* ── Navigation bar (3-column grid for true centering) ───────────────── */}
+        {/* ── Navigation bar: 3-column grid ── */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr auto 1fr',
           alignItems: 'center',
           gap: '8px',
-          margin: '12px 0 8px 0',
+          margin: '8px 0',
         }}>
-
           {/* Left: Insert buttons */}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {!isPublished && (
@@ -711,7 +868,7 @@ const YDXHome = (): React.ReactElement => {
             )}
           </div>
 
-          {/* Center: Currently editing — truly centered via grid */}
+          {/* Center: Currently editing */}
           {audioClips.length > 0 && (
             <button
               className="clip-nav-btn-blue"
@@ -723,7 +880,7 @@ const YDXHome = (): React.ReactElement => {
             </button>
           )}
 
-          {/* Right: Previous / Next — aligned to the right */}
+          {/* Right: Previous / Next */}
           <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
             <button
               className="clip-nav-btn-blue"
@@ -743,27 +900,25 @@ const YDXHome = (): React.ReactElement => {
           </div>
         </div>
 
-        {/* InsertPublish — form only, buttons hidden via CSS */}
+        {/* InsertPublish — handles snapshot logic + NewAudioClip form only */}
         {!isPublished && (
-          <div className="insert-publish-form-only">
-            <InsertPublish
-              handleClicksFromParent={handleClicksFromParent}
-              setHandleClicksFromParent={setHandleClicksFromParent}
-              userId={user || ''}
-              setShowSpinner={setShowSpinner}
-              youtubeVideoId={youtubeVideoId || ''}
-              currentTime={currentTime}
-              videoLength={videoLength}
-              audioDescriptionId={audioDescriptionId || ''}
-              seconds={seconds}
-              reset={reset}
-              participantId={participant_id || ''}
-              setNeedRefresh={setNeedRefresh}
-            />
-          </div>
+          <InsertPublish
+            handleClicksFromParent={handleClicksFromParent}
+            setHandleClicksFromParent={setHandleClicksFromParent}
+            userId={user || ''}
+            setShowSpinner={setShowSpinner}
+            youtubeVideoId={youtubeVideoId || ''}
+            currentTime={currentTime}
+            videoLength={videoLength}
+            audioDescriptionId={audioDescriptionId || ''}
+            seconds={seconds}
+            reset={reset}
+            participantId={participant_id || ''}
+            setNeedRefresh={setNeedRefresh}
+          />
         )}
 
-        {/* ClipsNavigator — collapsible clip list */}
+        {/* ClipsNavigator dropdown */}
         <ClipsNavigator
           clips={audioClips}
           currentIndex={navClipIndex}
@@ -773,7 +928,7 @@ const YDXHome = (): React.ReactElement => {
         />
 
         {/* Single clip view */}
-        <div className="audio-desc-component-list" id="audio-list" ref={audioClipsListRef} style={{ overflow: 'visible' }}>
+        <div className="audio-desc-component-list" id="audio-list" ref={audioClipsListRef}>
           {audioClips[navClipIndex] && (
             <AudioClip
               key={audioClips[navClipIndex].clip_id}
@@ -798,8 +953,8 @@ const YDXHome = (): React.ReactElement => {
               setUndoDeletedClip={setUndoDeletedClip}
               setUpdatedDescriptions={setUpdatedDescriptions}
               isPublished={isPublished}
-              enrollInCollabEdit={isCollaborativeVersion}
-              setEnrollInCollabEdit={setCollaborativeVersion}
+              enrollInCollabEdit={enrollInCollabEdit}
+              setEnrollInCollabEdit={setEnrollInCollabEdit}
               onPublish={handlePublish}
             />
           )}
@@ -807,7 +962,7 @@ const YDXHome = (): React.ReactElement => {
 
         {/* Save All (published) */}
         {isPublished && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px', marginRight: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '20px', marginRight: '20px' }}>
             <button className="btn publish-bg text-white ydx-button ml-auto cursor-pointer" onClick={handleSaveAllClips}>
               <i className="fa fa-save" /> {'   '}Save All
             </button>
@@ -816,18 +971,17 @@ const YDXHome = (): React.ReactElement => {
 
         {/* Unpublish + Copy Link (published) */}
         {isPublished && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px', marginRight: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '20px', marginRight: '20px' }}>
             <button className="btn publish-bg text-white ydx-button ml-auto cursor-pointer" style={{ marginRight: '10px' }}
-              onClick={() => handleUnpublishClick(audioDescriptionId!)}>
+              onClick={() => { handleUnpublishClick(audioDescriptionId!) }}>
               <i className="fa fa-times" /> {'   '}Unpublish
             </button>
             <button className="btn publish-bg text-white ydx-button ml-auto cursor-pointer"
-              onClick={() => handleCopyClick(`${window.location.origin}/video/${youtubeVideoId}?ad=${audioDescriptionId}`)}>
+              onClick={() => { handleCopyClick(`${window.location.origin}/video/${youtubeVideoId}?ad=${audioDescriptionId}`) }}>
               <i className="fa fa-copy" /> {'   '}Copy Published Link
             </button>
           </div>
         )}
-
       </div>
     </div>
   )

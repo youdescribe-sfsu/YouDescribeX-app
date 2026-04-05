@@ -54,11 +54,11 @@ interface Props {
   setUpdatedDescriptions: React.Dispatch<
     React.SetStateAction<{ [key: string]: string }>
   >
-  // Publish props passed down from YDXHome → EditClip
+  // Publish props passed down to EditClip
   isPublished: boolean
   enrollInCollabEdit: boolean
   setEnrollInCollabEdit: (val: boolean) => void
-  onPublish: (e: any) => void
+  onPublish: (e: any, checkbox?: boolean) => void
 }
 
 const AudioClip = ({
@@ -94,6 +94,7 @@ const AudioClip = ({
   const initialClipTitle = clip.clip_title?.startsWith('scene undef')
     ? `scene ${clip.description_type}`
     : clip.clip_title
+
   const initialclipDescriptionText = clip.description_text
   const initialClipPlaybackType = clip.playback_type
   const initialClipStartTime = clip.clip_start_time
@@ -111,12 +112,20 @@ const AudioClip = ({
   const [clipPlaybackType, setClipPlayBackType] = useState('')
   const [clipTitle, setClipTitle] = useState('')
   const [clipStartTime, setClipStartTime] = useState(0)
+  const [showEditComponent, setShowEditComponent] = useState(false)
   const [adDraggableWidth, setAdDraggableWidth] = useState(0.0)
   const [adDraggablePosition, setAdDraggablePosition] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
     setClipPlayBackType(initialClipPlaybackType)
     setClipTitle(initialClipTitle ?? '')
+    editComponentToggleList.forEach((item) => {
+      if (item.clipId === clipID) {
+        item.showEditComponent
+          ? setShowEditComponent(true)
+          : setShowEditComponent(false)
+      }
+    })
     setClipStartTime(initialClipStartTime)
     setAdDraggablePosition({ x: initialClipStartTime * unitLength, y: 0 })
     setAdDraggableWidth(clipDuration * unitLength)
@@ -143,9 +152,8 @@ const AudioClip = ({
           )
         }
       } else {
-        if (newClipStartTime < videoLength) {
+        if (newClipStartTime < videoLength)
           updateStartTimeNDraggablePosition(newClipStartTime)
-        }
       }
     } else {
       toast.error('Audio Clip must be positioned within the video timeline.')
@@ -156,7 +164,7 @@ const AudioClip = ({
     const newClipStartTime = (parseFloat(`${clipStartTime}`) - 0.25).toFixed(2)
     if (Number(newClipStartTime) >= 0.02) {
       updateStartTimeNDraggablePosition(newClipStartTime)
-      toast.success('Moved clip earlier by 0.25 seconds')
+      toast.success(`Moved clip earlier by 0.25 seconds`)
     } else {
       toast.warning('Cannot move clip before 0.02 seconds')
     }
@@ -169,7 +177,7 @@ const AudioClip = ({
     if (clipPlaybackType === 'inline') {
       if (newClipStartTime + clipDuration <= videoLength) {
         updateStartTimeNDraggablePosition(newClipStartTime)
-        toast.success('Moved clip later by 0.25 seconds')
+        toast.success(`Moved clip later by 0.25 seconds`)
       } else {
         toast.error(
           'Cannot move inline clip beyond timeline. Change to extended mode first.',
@@ -178,7 +186,7 @@ const AudioClip = ({
     } else {
       if (newClipStartTime < videoLength) {
         updateStartTimeNDraggablePosition(newClipStartTime)
-        toast.success('Moved clip later by 0.25 seconds')
+        toast.success(`Moved clip later by 0.25 seconds`)
       } else {
         toast.warning('Cannot move clip beyond video end time')
       }
@@ -201,7 +209,9 @@ const AudioClip = ({
           youtubeVideoId,
         },
       )
-      .then(() => setUpdateData(!updateData))
+      .then(() => {
+        setUpdateData(!updateData)
+      })
       .catch((err) => {
         console.error('Error updating clip start time:', err)
         toast.error('Failed to update clip timing. Please try again.')
@@ -266,9 +276,8 @@ const AudioClip = ({
         )
       }
     } catch (err: any) {
-      if (err.response) {
-        toast.error(err.response.data.message)
-      } else {
+      if (err.response) toast.error(err.response.data.message)
+      else {
         console.error('Error saving clip:', err)
         toast.error('An error occurred. Please try again!')
       }
@@ -293,7 +302,7 @@ const AudioClip = ({
     <div id={`audio-clip-card-${clipID}`} className="spacing-component">
       <div className="component">
         <div className="audio-clip-header">
-          {/* Clip Information */}
+          {/* Clip Information Section */}
           <div className="clip-info-section">
             <div
               className="ad-title"
@@ -305,7 +314,7 @@ const AudioClip = ({
               type="text"
               className="ad-title-input"
               placeholder="Enter clip title..."
-              disabled={isPreview}
+              disabled={!showEditComponent}
               value={clipTitle}
               onChange={(e) => setClipTitle(e.target.value)}
             />
@@ -365,7 +374,7 @@ const AudioClip = ({
             </div>
           </div>
 
-          {/* Timeline */}
+          {/* Timeline Section */}
           <div className="timeline-section">
             <div className="component-timeline-div">
               <div className="ad-draggable-div">
@@ -404,8 +413,6 @@ const AudioClip = ({
                 </Draggable>
               </div>
             </div>
-
-            {/* Playback type controls */}
             <div className="playback-type-controls">
               <div className="playback-type-option">
                 <input
@@ -443,41 +450,77 @@ const AudioClip = ({
               </div>
             </div>
           </div>
+
+          {/* Expand/Collapse */}
+          <div className="expand-collapse-section">
+            {showEditComponent ? (
+              <i
+                className="fa fa-chevron-up"
+                onClick={() => setEditComponentToggleFunc(clipID, false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setEditComponentToggleFunc(clipID, false)
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label="Collapse detailed editing"
+                title="Collapse detailed editing"
+              />
+            ) : (
+              <i
+                className="fa fa-chevron-down"
+                onClick={() => setEditComponentToggleFunc(clipID, true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setEditComponentToggleFunc(clipID, true)
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label="Expand detailed editing"
+                title="Expand detailed editing"
+              />
+            )}
+          </div>
         </div>
 
-        {/* EditClip — always rendered, carries publish props to bottom */}
-        <EditClip
-          handleClipStartTimeUpdate={handleClipStartTimeUpdate}
-          userId={userId}
-          youtubeVideoId={youtubeVideoId}
-          clipCreatedAt={clipCreatedAt}
-          clipId={clipID}
-          clipDescriptionType={clipDescriptionType ?? ''}
-          initialClipDescriptionText={initialclipDescriptionText ?? ''}
-          clipPlaybackType={clipPlaybackType}
-          clipStartTime={clipStartTime}
-          clipDuration={clipDuration}
-          isRecorded={isRecorded ?? false}
-          clipAudioPath={clipAudioPath}
-          currentTime={currentTime}
-          updateData={updateData}
-          setUpdateData={setUpdateData}
-          currentEvent={currentEvent}
-          currentState={currentState}
-          videoLength={videoLength}
-          setShowSpinner={setShowSpinner}
-          audioDescriptionId={audioDescriptionId}
-          fetchUserVideoData={fetchUserVideoData}
-          setNeedRefresh={setNeedRefresh}
-          isPreview={isPreview}
-          handleClickSaveClipDescription={handleClickSaveClipDescription}
-          setUndoDeletedClip={setUndoDeletedClip}
-          setClipDescText={handleDescriptionChange}
-          isPublished={isPublished}
-          enrollInCollabEdit={enrollInCollabEdit}
-          setEnrollInCollabEdit={setEnrollInCollabEdit}
-          onPublish={onPublish}
-        />
+        {showEditComponent && (
+          <EditClip
+            handleClipStartTimeUpdate={handleClipStartTimeUpdate}
+            userId={userId}
+            youtubeVideoId={youtubeVideoId}
+            clipCreatedAt={clipCreatedAt}
+            clipId={clipID}
+            clipDescriptionType={clipDescriptionType ?? ''}
+            initialClipDescriptionText={initialclipDescriptionText ?? ''}
+            clipPlaybackType={clipPlaybackType}
+            clipStartTime={clipStartTime}
+            clipDuration={clipDuration}
+            isRecorded={isRecorded ?? false}
+            clipAudioPath={clipAudioPath}
+            currentTime={currentTime}
+            updateData={updateData}
+            setUpdateData={setUpdateData}
+            currentEvent={currentEvent}
+            currentState={currentState}
+            videoLength={videoLength}
+            setShowSpinner={setShowSpinner}
+            audioDescriptionId={audioDescriptionId}
+            fetchUserVideoData={fetchUserVideoData}
+            setNeedRefresh={setNeedRefresh}
+            isPreview={isPreview}
+            handleClickSaveClipDescription={handleClickSaveClipDescription}
+            setUndoDeletedClip={setUndoDeletedClip}
+            setClipDescText={handleDescriptionChange}
+            isPublished={isPublished}
+            enrollInCollabEdit={enrollInCollabEdit}
+            setEnrollInCollabEdit={setEnrollInCollabEdit}
+            onPublish={onPublish}
+          />
+        )}
       </div>
     </div>
   )
