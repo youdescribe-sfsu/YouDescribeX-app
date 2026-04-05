@@ -763,9 +763,9 @@ const Video = () => {
   // function to update currentime state variable & draggable bar time.
   const updateTime = (time: number) => {
     const prevTime = currentTimeRef.current // Capture BEFORE update
+    setPreviousTime(prevTime) // Store the ACTUAL previous time, not current
     setCurrentTime(time)
     playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
-    setPreviousTime(time)
   }
 
   const playAudioAtCurrentTime = async (
@@ -859,32 +859,133 @@ const Video = () => {
       }
       // Case for playing extended clips when the player come across their start or end times
       else {
-        if (
-          clipStackRef.current[0].clip_start_time <=
-            currentTimeRef.current + 0.1 &&
-          clipStackRef.current[0].clip_start_time >=
-            previousTimeRef.current - 0.1
-        ) {
+        // Use updatedCurrentTime (the actual current time passed as parameter)
+        // and previousTimeRef for a proper detection window
+        const extClipStart = clipStackRef.current[0].clip_start_time
+        const isTimeToPlayExtended =
+          (extClipStart <= updatedCurrentTime + 0.25 &&
+            extClipStart >= previousTimeRef.current - 0.1) ||
+          (extClipStart <= updatedCurrentTime &&
+            extClipStart >= currentTimeRef.current - 0.1)
+
+        if (isTimeToPlayExtended) {
           const currentFilteredClip = clipStackRef.current[0]
-          setCurrentClipIndex(currentClipIndexRef.current + 1)
           if (playedAudioClip !== currentFilteredClip.clip_id) {
             setPlayedAudioClip(currentFilteredClip.clip_id)
-            setRecentAudioPlayedTime(currentTimeRef.current)
+            setRecentAudioPlayedTime(updatedCurrentTime)
             const clipAudioPath = currentFilteredClip.clip_audio_path
             if (clipAudioPath !== playedClipPath) {
               setPlayedClipPath(clipAudioPath)
               const currentAudio = currentFilteredClip.clip_audio
               currentEvent?.pauseVideo()
-              if (!currentAudio?.playing()) {
-                currentAudio?.play()
-              }
-              setCurrExtendedAC(currentAudio)
-              currentAudio?.once('end', () => {
+
+              // Helper to resume video on failure or completion
+              const resumeVideo = () => {
                 setCurrExtendedAC(undefined)
-                currentEvent?.playVideo()
-                currentAudio.unload()
+                currentEventRef.current?.playVideo()
                 setCurrentExtACPaused(false)
-              })
+              }
+
+              if (currentAudio) {
+                // Safety timeout: if audio never plays or ends, resume video
+                const safetyTimeout = setTimeout(() => {
+                  console.warn(
+                    'Extended clip safety timeout - resuming video:',
+                    currentFilteredClip.clip_id,
+                  )
+                  if (!currentAudio.playing()) {
+                    resumeVideo()
+                    currentAudio.unload()
+                  }
+                }, (currentFilteredClip.clip_duration + 3) * 1000)
+
+                // Set up event handlers BEFORE playing
+                currentAudio.once('end', () => {
+                  console.log(
+                    'Extended clip audio ended:',
+                    currentFilteredClip.clip_id,
+                  )
+                  clearTimeout(safetyTimeout)
+                  resumeVideo()
+                  currentAudio.unload()
+                })
+                currentAudio.once('loaderror', () => {
+                  console.error(
+                    'Extended clip audio failed to load:',
+                    currentFilteredClip.clip_id,
+                  )
+                  clearTimeout(safetyTimeout)
+                  resumeVideo()
+                })
+                currentAudio.once('playerror', () => {
+                  console.error(
+                    'Extended clip audio failed to play:',
+                    currentFilteredClip.clip_id,
+                  )
+                  // Howler recommends calling play() again for locked audio contexts
+                  currentAudio.once('unlock', () => {
+                    currentAudio.play()
+                  })
+                  // Safety: resume after 3s if unlock never fires
+                  setTimeout(() => {
+                    if (!currentAudio.playing()) {
+                      clearTimeout(safetyTimeout)
+                      resumeVideo()
+                    }
+                  }, 3000)
+                })
+
+                setCurrExtendedAC(currentAudio)
+                // Also update the ref immediately so skip detection won't fire
+                currentExtendedACRef.current = currentAudio
+
+                const audioState = currentAudio.state()
+                console.log(
+                  'Extended clip play attempt - state:',
+                  audioState,
+                  'clip:',
+                  currentFilteredClip.clip_id,
+                  'src:',
+                  currentFilteredClip.clip_audio_path,
+                )
+
+                if (audioState === 'loaded') {
+                  currentAudio.volume(descriptionVolumeRef.current / 100)
+                  currentAudio.play()
+                  console.log(
+                    'Extended clip audio play() called (loaded):',
+                    currentFilteredClip.clip_id,
+                  )
+                } else {
+                  // Audio not loaded yet - wait for it
+                  console.log(
+                    'Extended clip audio not loaded yet, waiting...',
+                    currentFilteredClip.clip_id,
+                  )
+                  currentAudio.once('load', () => {
+                    console.log(
+                      'Extended clip audio now loaded, playing:',
+                      currentFilteredClip.clip_id,
+                    )
+                    currentAudio.volume(descriptionVolumeRef.current / 100)
+                    currentAudio.play()
+                  })
+                  // Trigger load if not already loading
+                  if (audioState === 'unloaded') {
+                    currentAudio.load()
+                  }
+                }
+              } else {
+                // No audio object - resume video immediately
+                console.error(
+                  'Extended clip has no audio object:',
+                  currentFilteredClip.clip_id,
+                )
+                resumeVideo()
+              }
+
+              // Advance the clip stack
+              setCurrentClipIndex(currentClipIndexRef.current + 1)
               const newClip =
                 audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
               if (newClip) {
@@ -901,22 +1002,24 @@ const Video = () => {
               }
             }
           }
+          // Return after handling extended clip to prevent skip detection below
+          return
         }
       }
 
-      // Check for Skips - This block now only handles discarding missed EXTENDED clips
+      // Check for Skips - discard missed EXTENDED clips that were never played
       if (
+        clipStackRef.current.length > 0 &&
         clipStackRef.current[0].playback_type === 'extended' &&
         !currentInlineACRef.current?.playing() &&
         !currentExtendedACRef.current?.playing() &&
-        clipStackRef.current[0].clip_start_time < currentTimeRef.current
+        clipStackRef.current[0].clip_start_time < updatedCurrentTime - 0.5
       ) {
         console.error(
           'SKIP DETECTED, Discarding clip:',
           clipStackRef.current[0],
         )
 
-        // This is existing "discard" logic
         setCurrentClipIndex(currentClipIndexRef.current + 1)
         const newClip = audioClips[currentClipIndexRef.current + clipStackSize]
         const newStack = clipStackRef.current.slice(1)
@@ -928,9 +1031,6 @@ const Video = () => {
           newStack.push(newClip)
         }
         setClipStack(newStack)
-
-        // FIX 2: ADDED THIS RETURN STATEMENT
-        // This stops the function immediately, preventing the cascading failure.
         return
       }
     }
@@ -1238,17 +1338,20 @@ const Video = () => {
 
       case 2: {
         // Paused
-        // Enhanced seek detection
-        const timeDiff = Math.abs(currentTime - previousYTTime)
-        if (timeDiff > 0.5) {
-          console.info(`Seek detected while paused: ${timeDiff.toFixed(2)}s`)
-          setPreviousYTTime(currentTime)
-          updateClipStackData()
+        // Skip seek detection if we paused the video for an extended clip —
+        // otherwise updateClipStackData() unloads the Howl that's playing
+        if (!currExtendedAC && !currentExtendedACRef.current) {
+          const timeDiff = Math.abs(currentTime - previousYTTime)
+          if (timeDiff > 0.5) {
+            console.info(`Seek detected while paused: ${timeDiff.toFixed(2)}s`)
+            setPreviousYTTime(currentTime)
+            updateClipStackData()
 
-          // Reset playback tracking
-          setRecentAudioPlayedTime(0.0)
-          setPlayedAudioClip('')
-          setPlayedClipPath('')
+            // Reset playback tracking
+            setRecentAudioPlayedTime(0.0)
+            setPlayedAudioClip('')
+            setPlayedClipPath('')
+          }
         }
 
         // Case for Inline Audio Clips:
