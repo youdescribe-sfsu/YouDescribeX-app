@@ -1255,8 +1255,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
               setUpdatedDescriptions={setUpdatedDescriptions}
               isPublished={isPublished}
               enrollInCollabEdit={false}
-              setEnrollInCollabEdit={(_val) => {}}
-              onPublish={(_e) => {}}
+              setEnrollInCollabEdit={() => undefined}
+              onPublish={() => undefined}
             />
           ))}
         </div>
