@@ -349,23 +349,25 @@ const MockEditorPage = ({ tutorialMode, uiState = {} }: Props) => {
             </button>
           </div>
           <div className="mx-4 d-flex align-items-center">
-            <div
-              data-tutorial="collab-checkbox"
-              className="d-inline-flex align-items-center"
-            >
-              <input
-                type="checkbox"
-                id="mock-collab"
-                className="form-check-input me-2"
-                data-tutorial="collab-checkbox-input"
-                disabled
-              />
-              <label
-                htmlFor="mock-collab"
-                className="form-check-label text-white me-3"
+            <div className="me-3">
+              <div
+                data-tutorial="collab-checkbox"
+                className="d-inline-flex align-items-center"
               >
-                Enroll in Collaborative Editing
-              </label>
+                <input
+                  type="checkbox"
+                  id="mock-collab"
+                  className="form-check-input me-2"
+                  data-tutorial="collab-checkbox-input"
+                  disabled
+                />
+                <label
+                  htmlFor="mock-collab"
+                  className="form-check-label text-white"
+                >
+                  Enroll in Collaborative Editing
+                </label>
+              </div>
             </div>
             <button
               type="button"
