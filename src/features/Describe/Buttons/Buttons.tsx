@@ -11,6 +11,8 @@ interface Props {
   youTubeVolume: number
   setYouTubeVolume: (value: number) => void
   isPreviewAudioDescription?: boolean
+  playPauseDataTutorial?: string
+  audioDuckingDataTutorial?: string
 }
 
 export const Buttons = ({
@@ -22,6 +24,8 @@ export const Buttons = ({
   youTubeVolume,
   setYouTubeVolume,
   isPreviewAudioDescription = false,
+  playPauseDataTutorial,
+  audioDuckingDataTutorial,
 }: Props) => {
   return (
     <div className="d-flex justify-content-evenly flex-column text-center p-4">
@@ -55,12 +59,16 @@ export const Buttons = ({
             type="button"
             className="btn btn-sm play-pause-bg text-white ydx-button"
             onClick={() => handlePlayPause()}
+            data-tutorial={playPauseDataTutorial}
           >
             <i className="fa fa-play"></i> <i className="fa fa-pause"></i>{' '}
             <span className="ydx-button-lable">Play / Pause</span>
           </button>
         </div>
-        <div className="col-12 text-white">
+        <div
+          className="col-12 text-white"
+          data-tutorial={audioDuckingDataTutorial}
+        >
           <VideoPlayerControls
             descriptionVolume={descriptionVolume}
             setDescriptionVolume={setDescriptionVolume}

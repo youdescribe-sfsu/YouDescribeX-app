@@ -1,0 +1,419 @@
+$tutorial-overlay-z-index: 10000;
+$tutorial-tooltip-z-index: 10001;
+$tutorial-float-z-index: 9000;
+
+$tutorial-light-bg: white;
+$tutorial-shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.3);
+$tutorial-visibility-transition: opacity 0.2s ease-out, visibility 0.2s;
+
+$tutorial-flow-gradient: linear-gradient(270deg, #1c3557, #4a90e2, #1c3557);
+$tutorial-flow-shadow-soft: 0 4px 12px rgba(74, 144, 226, 0.2);
+$tutorial-flow-shadow-strong: 0 4px 15px rgba(74, 144, 226, 0.3);
+
+$tutorial-hover-brightness: brightness(1.15);
+$tutorial-focus-indigo: #3f51b5;
+$tutorial-focus-white: #fff;
+
+@mixin tutorial-flow-background {
+  background: $tutorial-flow-gradient;
+  background-size: 400% 400%;
+  animation: liquidFlow 6s ease infinite;
+  color: white;
+  border: none;
+}
+
+@mixin tutorial-flow-transition {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.3s ease;
+}
+
+.tutorial-overlay-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: $tutorial-overlay-z-index;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tutorial-mask-svg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: $tutorial-overlay-z-index;
+  pointer-events: none;
+
+  rect {
+    pointer-events: none;
+  }
+}
+
+.tutorial-tooltip {
+  z-index: $tutorial-tooltip-z-index;
+  background: $tutorial-light-bg;
+  border-radius: 8px;
+  max-width: 340px;
+  min-width: 260px;
+  box-shadow: $tutorial-shadow-elevated;
+  pointer-events: auto;
+  position: fixed;
+  transition: $tutorial-visibility-transition;
+}
+
+.tutorial-tooltip--centered {
+  position: relative;
+  z-index: $tutorial-tooltip-z-index;
+  background: $tutorial-light-bg;
+  border-radius: 8px;
+  padding: 30px;
+  max-width: 440px;
+  min-width: 300px;
+  box-shadow: $tutorial-shadow-elevated;
+  text-align: center;
+  transition: $tutorial-visibility-transition;
+}
+
+.tutorial-tooltip--centered--intro {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.tutorial-tooltip__inner {
+  position: relative;
+  opacity: 0;
+  padding: 20px;
+
+  &.is-visible {
+    animation: tooltipSettle 0.7s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+  }
+}
+
+.tutorial-tooltip--centered .tutorial-tooltip__inner {
+  padding: 0;
+}
+
+.tutorial-mock-button {
+  opacity: 1;
+  cursor: default;
+}
+
+.tutorial-tooltip__title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.tutorial-tooltip__content {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+  color: #555;
+}
+
+.tutorial-tooltip__actions {
+  display: flex;
+  justify-content: center;
+  /* Center all action buttons globally */
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.tutorial-tooltip__actions--spaced {
+  justify-content: space-between;
+}
+
+.tutorial-tooltip__back-btn {
+  background: linear-gradient(270deg, #cfd8dc, #e0e7eb, #cfd8dc);
+  border: 1px solid #b0bec5;
+  border-radius: 4px;
+  padding: 8px 20px;
+  font-size: 14px;
+  color: #455a64;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    background: #eceff1;
+    color: #263238;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.tutorial-tooltip__next-btn {
+  @include tutorial-flow-background;
+  border-radius: 4px;
+  padding: 8px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: $tutorial-flow-shadow-soft;
+  @include tutorial-flow-transition;
+
+  &:hover {
+    transform: scale(1.05);
+    filter: $tutorial-hover-brightness;
+    box-shadow: 0 0 15px rgba(74, 144, 226, 0.5);
+  }
+}
+
+.tutorial-tooltip__skip-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  white-space: nowrap;
+  opacity: 0.7;
+  z-index: 10;
+  @include tutorial-flow-transition;
+
+  &:hover {
+    color: #333;
+    opacity: 1;
+    text-decoration: underline;
+  }
+}
+
+.tutorial-tooltip__choices {
+  display: flex;
+  flex-direction: row;
+  /* Strictly side-by-side */
+  flex-wrap: nowrap;
+  /* No wrapping */
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.tutorial-tooltip__choice-btn {
+  @include tutorial-flow-background;
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
+  /* Split width equally */
+  min-width: 0;
+  /* Allow shrinking below content if needed */
+  text-align: center;
+  box-shadow: $tutorial-flow-shadow-soft;
+  @include tutorial-flow-transition;
+
+  &:hover {
+    transform: scale(1.02);
+    filter: $tutorial-hover-brightness;
+    box-shadow: 0 0 15px rgba(74, 144, 226, 0.4);
+  }
+}
+
+.tutorial-tooltip__step-count {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 12px;
+}
+
+.tutorial-tooltip__click-hint {
+  font-size: 12px;
+  color: #3f51b5;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.tutorial-clip-full-view {
+  max-height: none;
+  overflow-y: visible;
+}
+
+.tutorial-saved-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  background-color: #5a6268;
+  border: 1px solid #6c757d;
+  border-radius: 6px;
+  cursor: default;
+}
+
+.primary-content-section.tutorial-clip-layout {
+  gap: var(--space-sm);
+}
+
+.component[data-tutorial='clip-controls'] .primary-actions .ydx-button,
+.component[data-tutorial='clip-controls']
+  .primary-actions
+  .tutorial-saved-status,
+.component[data-tutorial='clip-controls'] .video-sync-controls .ydx-button {
+  color: #fff;
+}
+
+.component[data-tutorial='clip-controls'] .primary-actions .ydx-button i,
+.component[data-tutorial='clip-controls']
+  .primary-actions
+  .tutorial-saved-status
+  i,
+.component[data-tutorial='clip-controls'] .video-sync-controls .ydx-button i {
+  color: #fff;
+}
+
+@keyframes tooltipSettle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tutorial-page-container {
+  min-height: 100vh;
+  background-color: var(--background-primary);
+}
+
+.tutorial-page-container .ydx-body .container {
+  background-color: transparent;
+}
+
+.tutorial-page-container .ydx-body .home-container {
+  background-color: var(--background-primary);
+  border-color: var(--background-secondary);
+}
+
+.tutorial-page-container:has(.ydx-body) {
+  background-color: var(--background-primary);
+}
+
+/* Keep shape consistency in tutorial without overriding shared app colors */
+.tutorial-page-container .inline-extended-radio {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+}
+
+.tutorial-page-container .playback-type-option {
+  gap: 8px;
+}
+
+.tutorial-page-container .form-check-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Keep tutorial collab checkbox visually aligned with real enabled styling */
+.tutorial-page-container
+  [data-tutorial='collab-checkbox']
+  .form-check-input:disabled {
+  opacity: 1;
+}
+
+.tutorial-page-container
+  [data-tutorial='collab-checkbox']
+  .form-check-input:disabled
+  ~ .form-check-label {
+  opacity: 1;
+}
+
+.tutorial-float-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: $tutorial-float-z-index;
+  @include tutorial-flow-background;
+  border-radius: 28px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: $tutorial-flow-shadow-strong;
+  @include tutorial-flow-transition;
+
+  &:hover {
+    transform: scale(1.1);
+    filter: $tutorial-hover-brightness;
+    box-shadow: 0 0 20px rgba(74, 144, 226, 0.6);
+  }
+}
+
+@keyframes liquidFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.tutorial-tooltip__next-btn:focus-visible,
+.tutorial-tooltip__back-btn:focus-visible,
+.tutorial-tooltip__skip-btn:focus-visible,
+.tutorial-tooltip__choice-btn:focus-visible {
+  outline: 2px solid $tutorial-focus-indigo;
+  outline-offset: 2px;
+}
+
+.tutorial-float-btn:focus-visible {
+  outline: 2px solid $tutorial-focus-white;
+  outline-offset: 2px;
+}
+
+.tutorial-spotlight-outline {
+  filter: drop-shadow(0 0 4px rgba(255, 213, 79, 0.9))
+    drop-shadow(0 0 8px rgba(255, 213, 79, 0.7))
+    drop-shadow(0 0 16px rgba(255, 213, 79, 0.5));
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Tutorial overrides using shared design tokens */
+.tutorial-page-container {
+  .component {
+    background-color: var(--background-secondary);
+  }
+
+  .description-textarea {
+    background-color: var(--background-primary);
+    color: var(--text-primary);
+  }
+}
