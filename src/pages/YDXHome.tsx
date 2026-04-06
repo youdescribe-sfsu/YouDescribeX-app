@@ -1269,8 +1269,8 @@ const YDXHome = (): React.ReactElement => {
               </>
             )}
           </div>
-
           {/* Center: Currently editing */}
+          {audioClips.length > 0 && (
             <button
               className="clip-nav-btn-blue"
               onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
