@@ -126,6 +126,7 @@ const YDXHome = (): React.ReactElement => {
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
   const savedClipRefreshRequestedRef = useRef(false)
+  const selectedClipIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -469,7 +470,6 @@ const YDXHome = (): React.ReactElement => {
           }
           setAudioClips([...audioClipsData])
           setNotesData(notesData)
-
           if (isNewClipAdded) {
             const nextClipStackSize =
               audioClipsData.length > 100 ? 10 : clipStackSize
@@ -481,7 +481,18 @@ const YDXHome = (): React.ReactElement => {
             )
             setCurrentClipIndex(startIndex)
             setClipStack(clipStackData)
+            // Navigate to newly saved clip
+            const newClipIndex = audioClipsData.length - 1
+            setNavClipIndex(newClipIndex)
+            selectedClipIdRef.current = audioClipsData[newClipIndex]?.clip_id ?? null
             return
+          }
+          // After normal refresh, restore selection by clip_id
+          if (selectedClipIdRef.current) {
+            const restoredIndex = audioClipsData.findIndex(
+              (c) => c.clip_id === selectedClipIdRef.current,
+            )
+            if (restoredIndex !== -1) setNavClipIndex(restoredIndex)
           }
 
           const maxStackSize =
@@ -920,10 +931,22 @@ const YDXHome = (): React.ReactElement => {
 
   // ── Single-clip navigation ───────────────────────────────────────────────────
   const handleClipNavigation = (index: number) => {
-    if (index < 0 || index >= audioClips.length) return
-    setNavClipIndex(index)
+    if (audioClips.length === 0) return
+    const clamped = Math.max(0, Math.min(index, audioClips.length - 1))
+    setNavClipIndex(clamped)
+    selectedClipIdRef.current = audioClips[clamped]?.clip_id ?? null
     setIsClipsListExpanded(false)
   }
+
+  // Clamp navClipIndex when audioClips changes (e.g. after delete)
+  useEffect(() => {
+    if (audioClips.length === 0) return
+    setNavClipIndex((prev) => {
+      const clamped = Math.min(prev, audioClips.length - 1)
+      selectedClipIdRef.current = audioClips[clamped]?.clip_id ?? null
+      return clamped
+    })
+  }, [audioClips])
 
   const handlePlayPause = () => {
     if (currExtendedAC) {
@@ -1248,11 +1271,14 @@ const YDXHome = (): React.ReactElement => {
           </div>
 
           {/* Center: Currently editing */}
-          {audioClips.length > 0 && (
             <button
               className="clip-nav-btn-blue"
               onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
               style={{ whiteSpace: 'nowrap' }}
+              aria-label={`Currently editing clip ${navClipIndex + 1} of ${audioClips.length}. Click to ${
+                isClipsListExpanded ? 'collapse' : 'expand'
+              } clip list`}
+              aria-expanded={isClipsListExpanded}
             >
               <i
                 className={`fa fa-${
@@ -1267,12 +1293,12 @@ const YDXHome = (): React.ReactElement => {
           {/* Right: Previous / Next */}
           <div
             style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}
-          >
             <button
               className="clip-nav-btn-blue"
               style={{ backgroundColor: '#6c757d' }}
               disabled={navClipIndex === 0}
               onClick={() => handleClipNavigation(navClipIndex - 1)}
+              aria-label="Go to previous clip"
             >
               ← Previous
             </button>
@@ -1280,6 +1306,7 @@ const YDXHome = (): React.ReactElement => {
               className="clip-nav-btn-blue"
               disabled={navClipIndex >= audioClips.length - 1}
               onClick={() => handleClipNavigation(navClipIndex + 1)}
+              aria-label="Go to next clip"
             >
               Next →
             </button>
