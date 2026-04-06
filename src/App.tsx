@@ -48,6 +48,8 @@ import ReactGA4 from 'react-ga4'
 import { createBrowserHistory } from 'history'
 import PublishedAudioDescriptions from './pages/PublishedAudioDescriptions/PublishedAudioDescriptions'
 import Contact from './pages/Contact/Contact'
+import TutorialPage from './features/Tutorial/TutorialPage'
+import FloatingHelpButton from './features/Tutorial/FloatingHelpButton'
 
 const history = createBrowserHistory()
 //const trackingId = "UA-171142756-3"; //live site key
@@ -364,6 +366,7 @@ const App = () => {
           <Route path="/support/embed_tutorial" element={<EmbedTutorial />} />
           <Route path="/support/viewers" element={<Viewers />} />
           <Route path="/support/privacy" element={<Privacy />} />
+          <Route path="/tutorial" element={<TutorialPage />} />
           <Route
             path="/support/system-upgrade-warning"
             element={<SystemUpgradeWarning />}
@@ -389,6 +392,7 @@ const App = () => {
         theme="colored"
       />
       {!isEmbedRoute && <Footer />}
+      {!isEmbedRoute && <FloatingHelpButton />}
     </>
   )
 }
