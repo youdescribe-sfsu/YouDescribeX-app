@@ -484,7 +484,8 @@ const YDXHome = (): React.ReactElement => {
             // Navigate to newly saved clip
             const newClipIndex = audioClipsData.length - 1
             setNavClipIndex(newClipIndex)
-            selectedClipIdRef.current = audioClipsData[newClipIndex]?.clip_id ?? null
+            selectedClipIdRef.current =
+              audioClipsData[newClipIndex]?.clip_id ?? null
             return
           }
           // After normal refresh, restore selection by clip_id
@@ -1275,7 +1276,9 @@ const YDXHome = (): React.ReactElement => {
               className="clip-nav-btn-blue"
               onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
               style={{ whiteSpace: 'nowrap' }}
-              aria-label={`Currently editing clip ${navClipIndex + 1} of ${audioClips.length}. Click to ${
+              aria-label={`Currently editing clip ${navClipIndex + 1} of ${
+                audioClips.length
+              }. Click to ${
                 isClipsListExpanded ? 'collapse' : 'expand'
               } clip list`}
               aria-expanded={isClipsListExpanded}
@@ -1290,9 +1293,9 @@ const YDXHome = (): React.ReactElement => {
             </button>
           )}
 
-          {/* Right: Previous / Next */}
           <div
             style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}
+          >
             <button
               className="clip-nav-btn-blue"
               style={{ backgroundColor: '#6c757d' }}
