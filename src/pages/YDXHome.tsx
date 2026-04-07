@@ -1002,7 +1002,8 @@ const YDXHome = (): React.ReactElement => {
         if (currInlineAC) {
           // to stop playing -> pause and set time to 0
           currInlineAC.play()
-          currInlineAC.once('end', function () { // <-- 1. CHANGE 'on' TO 'once'
+          currInlineAC.once('end', function () {
+            // <-- 1. CHANGE 'on' TO 'once'
             setCurrInlineAC(undefined) // setting back to null, as it is played completely.
           })
           // currInlineAC.currentTime = 0;
