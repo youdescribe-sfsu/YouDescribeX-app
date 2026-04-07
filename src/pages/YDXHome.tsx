@@ -704,6 +704,7 @@ const YDXHome = (): React.ReactElement => {
     }
   }
   // To Play audio files based on current time
+  // To Play audio files based on current time
   const playAudioAtCurrentTime = async (
     updatedCurrentTime: number,
     playedAudioClip: string,
@@ -723,9 +724,6 @@ const YDXHome = (): React.ReactElement => {
 
     const currentClip = clipStackRef.current[0]
 
-    // Check if playback type has changed on the server
-    const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
-
     // --- HELPER: UI UPDATER ---
     const updateUIForClip = (clipId: string) => {
       const prevelement = document.querySelectorAll('.green-border')
@@ -734,22 +732,25 @@ const YDXHome = (): React.ReactElement => {
     }
 
     // --- CASE A: INLINE CLIPS ---
-    if (updatedClip.playback_type === 'inline') {
+    if (currentClip.playback_type === 'inline') {
       const isTimeToPlay =
-        (updatedClip.clip_start_time <= currentTimeRef.current &&
-          updatedClip.clip_end_time >= currentTimeRef.current) ||
-        (updatedClip.clip_start_time <= currentTimeRef.current &&
-          updatedClip.clip_start_time >= previousTimeRef.current)
+        (currentClip.clip_start_time <= currentTimeRef.current &&
+          currentClip.clip_end_time >= currentTimeRef.current) ||
+        (currentClip.clip_start_time <= currentTimeRef.current &&
+          currentClip.clip_start_time >= previousTimeRef.current)
 
       if (isTimeToPlay) {
         // Check if already played using Set
-        if (playedClipsSet.has(updatedClip.clip_id)) {
+        if (playedClipsSet.has(currentClip.clip_id)) {
           console.log(
             'Inline clip already played (Set check), skipping:',
-            updatedClip.clip_id,
+            currentClip.clip_id,
           )
           return
         }
+
+        // Only check server playback type when we're about to play
+        const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
 
         const currentAudio = updatedClip.clip_audio
         const seekTime = currentTimeRef.current - updatedClip.clip_start_time
@@ -780,12 +781,12 @@ const YDXHome = (): React.ReactElement => {
         setPlayedAudioClip(updatedClip.clip_id)
         setRecentAudioPlayedTime(currentTimeRef.current)
 
+        // UI Effect - always scroll when playing
+        updateUIForClip(updatedClip.clip_id)
+
         if (updatedClip.clip_audio_path !== playedClipPath) {
           setCurrentClipIndex(currentClipIndexRef.current + 1)
           setPlayedClipPath(updatedClip.clip_audio_path)
-
-          // UI Effect
-          updateUIForClip(updatedClip.clip_id)
 
           currentAudio?.once('play', () => {
             currentAudio.volume(descriptionVolumeRef.current / 100)
@@ -814,9 +815,9 @@ const YDXHome = (): React.ReactElement => {
         }
       }
       // Fix: Discard skipped inline clips
-      else if (currentTimeRef.current > updatedClip.clip_end_time) {
+      else if (currentTimeRef.current > currentClip.clip_end_time) {
         // Mark as skipped in Set
-        setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
+        setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
         setCurrentClipIndex(currentClipIndexRef.current + 1)
         const newStack = clipStackRef.current.slice(1)
         const nextClipToAdd =
@@ -834,17 +835,17 @@ const YDXHome = (): React.ReactElement => {
     }
 
     // --- CASE B: EXTENDED CLIPS ---
-    else if (updatedClip.playback_type === 'extended') {
+    else if (currentClip.playback_type === 'extended') {
       const isExactStart =
-        updatedClip.clip_start_time <= currentTimeRef.current + 0.1 &&
-        updatedClip.clip_start_time >= previousTimeRef.current - 0.1
+        currentClip.clip_start_time <= currentTimeRef.current + 0.1 &&
+        currentClip.clip_start_time >= previousTimeRef.current - 0.1
 
       if (isExactStart) {
         // Check if already played using Set
-        if (playedClipsSet.has(updatedClip.clip_id)) {
+        if (playedClipsSet.has(currentClip.clip_id)) {
           console.log(
             'Extended clip already played (Set check), advancing stack:',
-            updatedClip.clip_id,
+            currentClip.clip_id,
           )
           setCurrentClipIndex(currentClipIndexRef.current + 1)
           const newClip =
@@ -864,6 +865,9 @@ const YDXHome = (): React.ReactElement => {
           return
         }
 
+        // Only check server playback type when we're about to play
+        const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
+
         setCurrentClipIndex(currentClipIndexRef.current + 1)
 
         // Mark as played in Set immediately
@@ -872,6 +876,9 @@ const YDXHome = (): React.ReactElement => {
         if (playedAudioClip !== updatedClip.clip_id) {
           setPlayedAudioClip(updatedClip.clip_id)
           setRecentAudioPlayedTime(currentTimeRef.current)
+
+          // UI Effect - always scroll when playing
+          updateUIForClip(updatedClip.clip_id)
 
           if (updatedClip.clip_audio_path !== playedClipPath) {
             setPlayedClipPath(updatedClip.clip_audio_path)
@@ -899,9 +906,6 @@ const YDXHome = (): React.ReactElement => {
             }
 
             setCurrExtendedAC(currentAudio)
-
-            // UI Effect
-            updateUIForClip(updatedClip.clip_id)
 
             currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
@@ -936,16 +940,16 @@ const YDXHome = (): React.ReactElement => {
 
     // --- CASE C: GLOBAL SKIP DETECTION (EXTENDED) ---
     if (
-      updatedClip.playback_type === 'extended' &&
+      currentClip.playback_type === 'extended' &&
       !currentInlineACRef.current?.playing() &&
       !currentExtendedACRef.current?.playing() &&
-      updatedClip.clip_start_time < currentTimeRef.current &&
-      currentTimeRef.current - updatedClip.clip_start_time >= 1.0
+      currentClip.clip_start_time < currentTimeRef.current &&
+      currentTimeRef.current - currentClip.clip_start_time >= 1.0
     ) {
-      console.warn('Discarding skipped extended clip:', updatedClip.clip_id)
+      console.warn('Discarding skipped extended clip:', currentClip.clip_id)
 
       // Mark as skipped in Set to prevent retries
-      setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
+      setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
       setCurrentClipIndex(currentClipIndexRef.current + 1)
       const newStack = clipStackRef.current.slice(1)
       const newClip = audioClips[currentClipIndexRef.current + clipStackSize]
@@ -960,7 +964,6 @@ const YDXHome = (): React.ReactElement => {
       return
     }
   }
-
   // YouTube Player Functions
   const onStateChange = (event: any) => {
     const currentTime = event.target.getCurrentTime()
