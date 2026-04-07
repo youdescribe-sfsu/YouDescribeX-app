@@ -1094,7 +1094,6 @@ const YDXHome = (): React.ReactElement => {
 
     // --> ADD THIS: Flush the memory cache when you stop dragging
     setPlayedClipsSet(new Set())
-
   }
   const dragProgressBar = async (
     event: DraggableEvent,
@@ -1201,7 +1200,7 @@ const YDXHome = (): React.ReactElement => {
   const handlePlayAudioClip = (clipStartTime: number) => {
     // --> ADD THIS: Flush the memory cache when clicking a clip to jump
     setPlayedClipsSet(new Set())
-    
+
     currentEvent?.seekTo(clipStartTime - 0.4, true) // 0.4 is added for some buffering time
     currentEvent?.playVideo() // if paused, video is played from that audio clip.
   }
