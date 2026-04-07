@@ -1002,14 +1002,14 @@ const YDXHome = (): React.ReactElement => {
         if (currInlineAC) {
           // to stop playing -> pause and set time to 0
           currInlineAC.play()
-          currInlineAC.on('end', function () {
+          currInlineAC.once('end', function () { // <-- 1. CHANGE 'on' TO 'once'
             setCurrInlineAC(undefined) // setting back to null, as it is played completely.
           })
           // currInlineAC.currentTime = 0;
           // setCurrInlineAC(null);
         }
         setGloballyPaused(false) // reset the play/pause state
-        clearInterval(timer)
+        //clearInterval(timer) // <-- 2. DELETE clearInterval(timer) completely
         break
       case 2: // Paused
         // Case for Inline Audio Clips:
