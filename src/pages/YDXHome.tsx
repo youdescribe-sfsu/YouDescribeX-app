@@ -973,69 +973,58 @@ const YDXHome = (): React.ReactElement => {
     switch (event.data) {
       case 0: // End of the video
         setGloballyPaused(true)
-        setCurrentClipIndex(0) // Reset current clip index
-
+        setCurrentClipIndex(0)
         setPlayedAudioClip('')
         setPlayedClipPath('')
-        setPlayedClipsSet(new Set()) // Reset Set tracking
+        setPlayedClipsSet(new Set())
         setRecentAudioPlayedTime(0.0)
         setCurrInlineAC(undefined)
         setCurrExtendedAC(undefined)
-        setIsActive(false) // Ensure the timer is paused
-        clearInterval(timer)
+        setIsActive(false)
+        // Safely clear the exact live timer
+        setTimer((prev) => {
+          if (prev) clearInterval(prev)
+          return undefined
+        })
         console.log('Video ended, states reset')
         break
       case 1: // Playing
-        // Case for Extended Audio Clips:
-        // When an extended Audio Clip is playing, YT video is paused
-        // User plays the YT Video. Extended is still played along with the video. Overlapping with Dialogs &/ other audio clips
-        // Work around - add current extended audio clip to a state variable & check if YT state is changed to playing i.e. 1
-        // if yes, stop playing the extended audio clip & set the state back to null
         currentEvent?.setVolume(youTubeVolume)
-        if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
-        if (currExtendedAC) {
-          // to stop playing -> pause and set time to 0
-          currExtendedAC.pause()
-          currExtendedAC.seek(0)
+        if (!isActive) setIsActive(true)
+        if (currentExtendedACRef.current) {
+          currentExtendedACRef.current.pause()
+          currentExtendedACRef.current.seek(0)
           setCurrExtendedAC(undefined)
         }
-        if (currInlineAC) {
-          // to stop playing -> pause and set time to 0
-          currInlineAC.play()
-          currInlineAC.once('end', function () {
-            // <-- 1. CHANGE 'on' TO 'once'
-            setCurrInlineAC(undefined) // setting back to null, as it is played completely.
-          })
-          // currInlineAC.currentTime = 0;
-          // setCurrInlineAC(null);
+        // Force the live Ref to play, bypassing stale state
+        if (currentInlineACRef.current) {
+          currentInlineACRef.current.play()
         }
-        setGloballyPaused(false) // reset the play/pause state
-        //clearInterval(timer) // <-- 2. DELETE clearInterval(timer) completely
+        setGloballyPaused(false)
         break
       case 2: // Paused
-        // Case for Inline Audio Clips:
-        // When an inline Audio Clip is playing along with the Video,
-        // If user pauses the YT video, Inline Clip is still played.
-        // Work around - add current inline audio clip to a state variable & check if YT state is changed to paused i.e. 2
-        // if yes, stop playing the inline audio clip & set the state back to null
-        if (currInlineAC) {
-          // to stop playing -> pause and set time to 0
-          currInlineAC.pause()
-          // currInlineAC.currentTime = 0;
-          // setCurrInlineAC(null);
+        // Force the live Ref to pause
+        if (currentInlineACRef.current) {
+          currentInlineACRef.current.pause()
         }
-        clearInterval(timer)
+        // Safely clear the exact live timer
+        setTimer((prev) => {
+          if (prev) clearInterval(prev)
+          return undefined
+        })
         break
       case 3: // Buffering
-        // onSeek - Buffering event is also called
-        // so that when user wants to go back and play the same clip again, recentAudioPlayedTime will be reset to 0.
         setPlayedClipPath('')
         setPlayedAudioClip('')
-        setPlayedClipsSet(new Set()) // Reset Set tracking
+        setPlayedClipsSet(new Set())
         setRecentAudioPlayedTime(0.0)
-        clearInterval(timer)
         setCurrExtendedAC(undefined)
         setCurrInlineAC(undefined)
+        // Safely clear the exact live timer
+        setTimer((prev) => {
+          if (prev) clearInterval(prev)
+          return undefined
+        })
         break
     }
   }
@@ -1045,19 +1034,22 @@ const YDXHome = (): React.ReactElement => {
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
     setCurrentTime(event.target.getCurrentTime())
-    // pass the current time & recentAudioPlayedTime - to avoid playing same clip multiple times
-    setTimer(
-      setInterval(
+
+    // Use the functional state update to guarantee we clear the old timer
+    // before starting a new one, preventing interval leaks.
+    setTimer((prevTimer) => {
+      if (prevTimer) clearInterval(prevTimer)
+      return setInterval(
         () =>
           updateTime(
             event.target.getCurrentTime(),
-            playedAudioClip,
+            clipIDRef.current, // Use Ref to get the live clip ID
             recentAudioPlayedTime,
             playedClipPath,
           ),
         samplingRate,
-      ),
-    )
+      )
+    })
   }
   const onPause = (event: any) => {
     event.target.pauseVideo()
