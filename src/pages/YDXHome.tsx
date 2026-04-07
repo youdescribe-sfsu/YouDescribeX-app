@@ -1035,13 +1035,13 @@ const YDXHome = (): React.ReactElement => {
         break
 
       case 3: // Buffering
-        setPlayedClipPath('')
-        setPlayedAudioClip('')
-        setPlayedClipsSet(new Set())
-        setRecentAudioPlayedTime(0.0)
-        setCurrExtendedAC(undefined)
-        setCurrInlineAC(undefined)
-        // Safely clear the exact live timer
+        // YouTube flashes State 3 when resuming.
+        // Pause audio if it's playing, but DO NOT delete the clips or reset the sets here!
+        if (inlineAC && inlineAC.playing()) {
+          inlineAC.pause()
+        }
+
+        // Safely clear the exact live timer so the timeline doesn't drift
         setTimer((prev) => {
           if (prev) clearInterval(prev)
           return undefined
