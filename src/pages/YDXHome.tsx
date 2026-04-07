@@ -970,6 +970,11 @@ const YDXHome = (): React.ReactElement => {
     setCurrentEvent(event.target)
     setCurrentTime(currentTime)
     setCurrentState(event.data)
+
+    // Grab the live, un-frozen audio objects right away
+    const inlineAC = currentInlineACRef.current
+    const extendedAC = currentExtendedACRef.current
+
     switch (event.data) {
       case 0: // End of the video
         setGloballyPaused(true)
@@ -988,24 +993,39 @@ const YDXHome = (): React.ReactElement => {
         })
         console.log('Video ended, states reset')
         break
+
       case 1: // Playing
         currentEvent?.setVolume(youTubeVolume)
         if (!isActive) setIsActive(true)
-        if (currentExtendedACRef.current) {
-          currentExtendedACRef.current.pause()
-          currentExtendedACRef.current.seek(0)
-          setCurrExtendedAC(undefined)
+
+        // Handle Extended Audio
+        if (extendedAC) {
+          if (isCurrentExtACPaused) {
+            extendedAC.play()
+            currentEvent?.pauseVideo()
+            setCurrentExtACPaused(false)
+            setGloballyPaused(false)
+          } else {
+            extendedAC.pause()
+            extendedAC.seek(0)
+            setCurrExtendedAC(undefined)
+          }
         }
-        // Force the live Ref to play, bypassing stale state
-        if (currentInlineACRef.current) {
-          currentInlineACRef.current.play()
+
+        // Handle Inline Audio Resuming (Bypassing Stale State)
+        if (inlineAC) {
+          if (!inlineAC.playing()) {
+            inlineAC.play()
+            inlineAC.volume(descriptionVolumeRef.current / 100)
+          }
         }
         setGloballyPaused(false)
         break
+
       case 2: // Paused
         // Force the live Ref to pause
-        if (currentInlineACRef.current) {
-          currentInlineACRef.current.pause()
+        if (inlineAC) {
+          inlineAC.pause()
         }
         // Safely clear the exact live timer
         setTimer((prev) => {
@@ -1013,6 +1033,7 @@ const YDXHome = (): React.ReactElement => {
           return undefined
         })
         break
+
       case 3: // Buffering
         setPlayedClipPath('')
         setPlayedAudioClip('')
