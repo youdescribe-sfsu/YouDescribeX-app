@@ -1061,6 +1061,10 @@ const YDXHome = (): React.ReactElement => {
     setNavClipIndex(clamped)
     selectedClipIdRef.current = audioClips[clamped]?.clip_id ?? null
     setIsClipsListExpanded(false)
+    const clipTime = audioClips[clamped]?.clip_start_time
+    if (clipTime !== undefined) {
+      currentEvent?.seekTo(clipTime, true)
+    }
   }
 
   // Clamp navClipIndex when audioClips changes (e.g. after delete)

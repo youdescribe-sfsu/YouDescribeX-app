@@ -197,6 +197,7 @@ const AudioClip = ({
     setClipStartTime(newClipStartTime)
     setAdDraggablePosition({ x: newClipStartTime * unitLength, y: 0 })
     handleClipStartTimeUpdate(newClipStartTime)
+    currentEvent?.seekTo(Number(newClipStartTime), true)
   }
 
   const handleClipStartTimeUpdate = (updatedClipStartTime: any) => {
