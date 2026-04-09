@@ -1721,6 +1721,11 @@ const YDXHome = (): React.ReactElement => {
             currentTime={convertSecondsToCardFormat(currentTime)}
             audioDescriptionId={audioDescriptionId || ''}
             notesData={notesData}
+            userId={user || ''}
+            youtubeVideoId={youtubeVideoId || ''}
+            existingClips={audioClips}
+            setShowSpinner={setShowSpinner}
+            onClipsImported={() => setNeedRefresh(true)}
             handleVideoPause={async () => {
               const currentState = await currentEvent?.getPlayerState()
               if (currentState === 1) {

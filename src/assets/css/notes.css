@@ -4,19 +4,28 @@
   background-color: rgb(80, 80, 80);
   border: rgb(122, 121, 121) 1px solid;
   width: 420px;
-  height: 265px;
+  min-height: 265px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
 }
 .notes-label {
   margin-bottom: -5px;
 }
+.notes-summary {
+  color: #d5d5d5;
+  font-size: 12px;
+}
 .notes-textarea-div {
   background-color: white;
   width: 400px;
-  height: 232px;
+  min-height: 160px;
+  height: 160px;
   overflow-y: scroll;
 }
 .notes-textarea {
   resize: none;
+  min-height: 160px;
 }
 .notes-save-btn {
   padding-left: 3px;
@@ -28,4 +37,108 @@
 /* primary color */
 .primary-btn-color {
   background-color: var(--primary-color);
+}
+
+.notes-import-panel {
+  margin: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.notes-import-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.notes-import-subtitle {
+  font-size: 11px;
+  color: #d0d0d0;
+  font-weight: 400;
+  text-align: right;
+}
+
+.notes-import-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notes-empty-state {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #d0d0d0;
+  padding: 8px 4px;
+}
+
+.notes-import-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.notes-import-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notes-import-time {
+  color: #ffd24a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.notes-import-text {
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.notes-import-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notes-import-btn {
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.notes-import-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.notes-import-btn.inline {
+  background: #ffd24a;
+  color: #1f1f1f;
+}
+
+.notes-import-btn.extended {
+  background: #ff4de3;
+  color: #fff;
+}
+
+.notes-import-btn.is-imported {
+  background: #4caf50;
+  color: #fff;
 }
