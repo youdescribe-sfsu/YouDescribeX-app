@@ -79,9 +79,9 @@ const Notes = ({
     }
   }
   // for focus event of Notes Textarea -> if the notes is empty, timestamp is inserted
-  const handleTextAreaFocus = (e: any) => {
+  const handleTextAreaFocus = () => {
     const tempNoteValue = noteValue
-    if (noteValue === '') {
+    if (!noteValue) {
       setNoteValue(tempNoteValue + currentTime + ' - ')
       handleNoteAutoSave(tempNoteValue + currentTime + ' - ')
     }
@@ -131,7 +131,7 @@ const Notes = ({
   )
 
   const parsedNotes = useMemo<ParsedNote[]>(() => {
-    return noteValue
+    return String(noteValue || '')
       .split(/\r?\n/)
       .map((line, index) => {
         const trimmedLine = line.trim()
@@ -220,7 +220,7 @@ const Notes = ({
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleNoteHighlight = () => {
-    const noteList = noteValue.split(/\r?\n/)
+    const noteList = String(noteValue || '').split(/\r?\n/)
     const tempNoteDetails: any[] = []
     noteList.forEach((note, key) => {
       if (note.slice(0, 8).match(/\d{2}:\d{2}:\d{2}/)) {
@@ -238,10 +238,14 @@ const Notes = ({
 
   useEffect(() => {
     // If there is an notes entry in db
-    if (notesData !== undefined) {
+    if (
+      notesData &&
+      typeof notesData === 'object' &&
+      'notes_text' in notesData
+    ) {
       // inserting notes_text into the note value
-      setNoteValue(notesData.notes_text)
-      setNoteId(notesData.notes_id)
+      setNoteValue(String(notesData.notes_text || ''))
+      setNoteId(String(notesData.notes_id || ''))
     } else {
       // else insert empty strings - somehow, useState('') is not working
       setNoteValue('')
