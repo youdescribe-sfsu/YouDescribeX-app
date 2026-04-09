@@ -15,6 +15,7 @@ import convertSecondsToCardFormat from '../shared/utils/convertSecondsToCardForm
 import InsertPublish from '../features/Describe/InsertPublish/InsertPublish'
 import { Buttons } from '../features/Describe/Buttons/Buttons'
 import Spinner from '../shared/components/Spinner/Spinner'
+import useCanonicalVideoDuration from '../shared/hooks/useCanonicalVideoDuration'
 import { Howl } from 'howler'
 import { debounce } from 'debounce'
 import { useMemo } from 'react'
@@ -54,8 +55,8 @@ const YDXHome = (): React.ReactElement => {
   const [videoId, setVideoId] = useState('') // retrieved from db, stored to fetch audio_descriptions
   // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
   const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
-  const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored to display as a label for the dialog timeline
-  const [draggableDivWidth, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
+  const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored as a fallback if canonical YouTube metadata is unavailable
+  const [, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
   const [currentEvent, setCurrentEvent] = useState<YouTubePlayer>() //stores YouTube video's event
   const [currentState, setCurrentState] = useState(-1) // stores YouTube video's PLAYING, CUED, PAUSED, UNSTARTED, BUFFERING, ENDED state values
   const [currentTime, setCurrentTime] = useState(0.0) //stores current running time of the YouTube video
@@ -148,6 +149,17 @@ const YDXHome = (): React.ReactElement => {
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
   const savedClipRefreshRequestedRef = useRef(false)
+  const initialUpdateDataRef = useRef(true)
+  const canonicalVideoDuration = useCanonicalVideoDuration(
+    youtubeVideoId,
+    videoLength,
+  )
+  const resolvedVideoLength = canonicalVideoDuration.durationSeconds
+  const hasResolvedVideoLength =
+    canonicalVideoDuration.status === 'resolved' && resolvedVideoLength > 0
+  const videoLengthForChildren = hasResolvedVideoLength
+    ? resolvedVideoLength
+    : videoLength
 
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -187,6 +199,16 @@ const YDXHome = (): React.ReactElement => {
   }, [youTubeVolume, currentEventRef])
 
   useEffect(() => {
+    if (hasResolvedVideoLength) {
+      const calculatedWidth = calculateDraggableDivWidth()
+      calculateUnitLength(resolvedVideoLength, calculatedWidth)
+      return
+    }
+
+    setUnitLength(0)
+  }, [hasResolvedVideoLength, resolvedVideoLength])
+
+  useEffect(() => {
     if (unitLength > 0 && videoId) {
       setShowSpinner(true)
       fetchDialogData()
@@ -211,13 +233,24 @@ const YDXHome = (): React.ReactElement => {
       divRef4: divRef3.current?.clientWidth,
     })
     setShowSpinner(true)
-    // set the toggle list back to empty if we are fetching the data again
-    fetchUserVideoData() // use axios to get audio descriptions for the youtubeVideoId & userId passed to the url Params
+    fetchUserVideoData()
+  }, [youtubeVideoId])
 
-    document.addEventListener('keyup', () => {
+  useEffect(() => {
+    const handleKeyUp = () => {
       setIsPlaying((prevIsPlaying) => !prevIsPlaying)
-    })
+    }
+
+    document.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      document.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
+  useEffect(() => {
     let interval: NodeJS.Timer | null = null
+
     if (isActive) {
       interval = setInterval(() => {
         setSeconds((seconds) => seconds + 1)
@@ -232,17 +265,7 @@ const YDXHome = (): React.ReactElement => {
         clearInterval(interval)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isActive,
-    draggableDivWidth,
-    unitLength,
-    videoId,
-    youtubeVideoId,
-    // changing this state variable, will fetch user data again
-    updateData, // to fetch data whenever updateData state is changed.
-    setEditComponentToggleList,
-  ])
+  }, [isActive, seconds])
 
   useEffect(() => {
     localStorage.setItem('Seconds', String(seconds))
@@ -285,6 +308,19 @@ const YDXHome = (): React.ReactElement => {
   }, [needRefresh])
 
   useEffect(() => {
+    if (initialUpdateDataRef.current) {
+      initialUpdateDataRef.current = false
+      return
+    }
+
+    if (videoId) {
+      setShowSpinner(true)
+      fetchAudioDescriptionData(false, videoId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateData])
+
+  useEffect(() => {
     // console.log(user)
     // console.log(userDataStore.getState().userId)
     if (userDataStore.getState().userId !== sessionStorage.getItem('User')) {
@@ -295,7 +331,7 @@ const YDXHome = (): React.ReactElement => {
   // for calculating the draggable-div width of the timeline
   const calculateDraggableDivWidth = () => {
     // remove the left & right margin - leaving about 96% of the total width of the draggable-div
-    const currWidth = divRef3?.current?.clientWidth ?? 1
+    const currWidth = divRef3?.current?.clientWidth || 1
     // const currWidth = 700;
     const draggableDivWidth = (96 * currWidth) / 100
     setDraggableDivWidth(draggableDivWidth)
@@ -354,6 +390,8 @@ const YDXHome = (): React.ReactElement => {
 
   // fetch videoId based on the youtubeVideoId which is later used to get audioClips
   const fetchUserVideoData = () => {
+    if (!youtubeVideoId) return
+
     axios
       .get(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${youtubeVideoId}`,
@@ -364,15 +402,6 @@ const YDXHome = (): React.ReactElement => {
         const video_length = res.data.video_length
         setVideoLength(video_length)
         setVideoId(video_id)
-        return { video_id, video_length }
-      })
-      .then(({ video_id, video_length }) => {
-        setShowSpinner(false)
-        // order of the below function calls is important
-        const calculatedWidth = calculateDraggableDivWidth()
-        calculateUnitLength(video_length, calculatedWidth)
-        fetchDialogData()
-        fetchAudioDescriptionData(false, video_id)
       })
       .catch((err) => {
         // console.error(err.response.data);
@@ -1401,27 +1430,28 @@ const YDXHome = (): React.ReactElement => {
         </div>
         <hr className="m-2 ydx-hr" />
         {/* Dialog Timeline */}
-        <div className="timeline-section-wrapper">
-          <div className="timeline-header">
-            <h6 className="timeline-title">
-              Dialog Timeline (
-              {videoLength ? convertSecondsToCardFormat(videoLength) : 'N/A'}):
-            </h6>
-            <div className="timeline-actions">
-              <span className="clips-count">
-                Audio Clips Count: {audioClips.length}
-              </span>
-              {undoDeletedClipInfo && (
-                <Button
-                  className="btn rounded btn-sm text-white bg-warning ydx-button"
-                  onClick={fetchUndoDeletedClipData}
-                >
-                  <i className="fa fa-undo" /> Undo Last Deleted
-                </Button>
-              )}
+        {hasResolvedVideoLength && (
+          <div className="timeline-section-wrapper">
+            <div className="timeline-header">
+              <h6 className="timeline-title">
+                Dialog Timeline (
+                {convertSecondsToCardFormat(resolvedVideoLength)}
+                ):
+              </h6>
+              <div className="timeline-actions">
+                <span className="clips-count">
+                  Audio Clips Count: {audioClips.length}
+                </span>
+                {undoDeletedClipInfo && (
+                  <Button
+                    className="btn rounded btn-sm text-white bg-warning ydx-button"
+                    onClick={fetchUndoDeletedClipData}
+                  >
+                    <i className="fa fa-undo" /> Undo Last Deleted
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-          {videoLength && (
             <div className="timeline-container-wrapper" ref={divRef2}>
               <div className="timeline-track-wrapper" ref={divRef3}>
                 {/* Audio Clips Timeline - Consistent with Video.tsx */}
@@ -1469,7 +1499,7 @@ const YDXHome = (): React.ReactElement => {
                     ></div>
                   </Draggable>
                 ))}
-                {videoLength && ( // Only render if videoLength is present
+                {unitLength > 0 && (
                   // ProgressBar
                   <Draggable
                     axis="x"
@@ -1492,8 +1522,8 @@ const YDXHome = (): React.ReactElement => {
                 )}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* <div className="row">
           <div className="col-3 text-white" ref={divRef1}>
@@ -1512,7 +1542,7 @@ const YDXHome = (): React.ReactElement => {
           </div>
         </div> */}
         {/* Map Audio Clips Component */}
-        {!isPublished && (
+        {!isPublished && hasResolvedVideoLength && (
           <InsertPublish
             handleClicksFromParent={handleClicksFromParent}
             setHandleClicksFromParent={setHandleClicksFromParent}
@@ -1520,7 +1550,7 @@ const YDXHome = (): React.ReactElement => {
             setShowSpinner={setShowSpinner}
             youtubeVideoId={youtubeVideoId || ''}
             currentTime={currentTime}
-            videoLength={videoLength}
+            videoLength={videoLengthForChildren}
             audioDescriptionId={audioDescriptionId || ''}
             seconds={seconds}
             reset={reset}
@@ -1546,7 +1576,7 @@ const YDXHome = (): React.ReactElement => {
               currentState={currentState}
               updateData={updateData}
               setUpdateData={setUpdateData}
-              videoLength={videoLength}
+              videoLength={videoLengthForChildren}
               setShowSpinner={setShowSpinner}
               editComponentToggleList={editComponentToggleList}
               setEditComponentToggleFunc={setEditComponentToggleFunc}
