@@ -5,6 +5,7 @@ import '@/assets/css/editAudioDesc.css'
 import '@/assets/css/notes.css'
 import { debounce } from 'debounce'
 import { Clip } from '@/shared/utils/convertClipObject'
+import Modal from 'react-bootstrap/Modal'
 
 interface Props {
   currentTime: string
@@ -69,6 +70,8 @@ const Notes = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [noteDetails, setNoteDetails] = useState<any[]>([]) // to store Notes Details
   const [importingKey, setImportingKey] = useState('')
+  const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([])
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
 
   // for focus event of Notes Textarea -> if the notes is empty, timestamp is inserted
   const handleTextAreaFocus = () => {
@@ -179,13 +182,23 @@ const Notes = ({
       `${playbackType}:${note.seconds.toFixed(2)}:${normalizeText(note.text)}`,
     )
 
-  const handleImportNote = async (
+  const importSingleNote = async (
     note: ParsedNote,
     playbackType: 'inline' | 'extended',
+    options?: {
+      silent?: boolean
+      skipExisting?: boolean
+    },
   ) => {
     if (!audioDescriptionId || !youtubeVideoId || !userId) {
       toast.error('Missing editor context for note import.')
-      return
+      return { imported: false, skipped: false }
+    }
+
+    const skipExisting = options?.skipExisting ?? false
+
+    if (skipExisting && isImported(note, playbackType)) {
+      return { imported: false, skipped: true }
     }
 
     const formData = new FormData()
@@ -208,15 +221,30 @@ const Notes = ({
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } },
       )
-      toast.success(`Imported note as ${playbackType} clip`)
-      window.dispatchEvent(new Event('ydx:new-clip-saved'))
-      onClipsImported?.()
+      if (!options?.silent) {
+        toast.success(`Exported note to ${playbackType}`)
+      }
+      return { imported: true, skipped: false }
     } catch (error) {
       console.error(error)
-      toast.error(`Failed to import note as ${playbackType} clip.`)
+      if (!options?.silent) {
+        toast.error(`Failed to export note to ${playbackType}.`)
+      }
+      return { imported: false, skipped: false }
     } finally {
       setImportingKey('')
       setShowSpinner?.(false)
+    }
+  }
+
+  const handleImportNote = async (
+    note: ParsedNote,
+    playbackType: 'inline' | 'extended',
+  ) => {
+    const result = await importSingleNote(note, playbackType)
+    if (result.imported) {
+      window.dispatchEvent(new Event('ydx:new-clip-saved'))
+      onClipsImported?.()
     }
   }
 
@@ -255,22 +283,88 @@ const Notes = ({
     }
   }, [notesData])
 
-  const canImportNotes =
-    !!audioDescriptionId && !!youtubeVideoId && !!userId && !!onClipsImported
+  useEffect(() => {
+    setSelectedNoteIds((prev) =>
+      prev.filter((noteId) => parsedNotes.some((note) => note.id === noteId)),
+    )
+  }, [parsedNotes])
+
+  const hasEditorContext = !!audioDescriptionId && !!youtubeVideoId && !!userId
+
+  const allSelected =
+    parsedNotes.length > 0 && selectedNoteIds.length === parsedNotes.length
+
+  const toggleNoteSelection = (noteId: string) => {
+    setSelectedNoteIds((prev) =>
+      prev.includes(noteId)
+        ? prev.filter((currentId) => currentId !== noteId)
+        : [...prev, noteId],
+    )
+  }
+
+  const selectAllNotes = () => {
+    setSelectedNoteIds(parsedNotes.map((note) => note.id))
+  }
+
+  const clearSelectedNotes = () => {
+    setSelectedNoteIds([])
+  }
+
+  const batchExportNotes = async (
+    notesToExport: ParsedNote[],
+    playbackType: 'inline' | 'extended',
+  ) => {
+    if (notesToExport.length === 0) {
+      toast.info('Select at least one note to export.')
+      return
+    }
+
+    setShowSpinner?.(true)
+    let importedCount = 0
+    let skippedCount = 0
+
+    for (const note of notesToExport) {
+      const result = await importSingleNote(note, playbackType, {
+        silent: true,
+        skipExisting: true,
+      })
+      if (result.imported) importedCount += 1
+      if (result.skipped) skippedCount += 1
+    }
+
+    setShowSpinner?.(false)
+
+    if (importedCount > 0) {
+      window.dispatchEvent(new Event('ydx:new-clip-saved'))
+      onClipsImported?.()
+    }
+
+    if (importedCount > 0 || skippedCount > 0) {
+      toast.success(
+        `${importedCount} exported to ${playbackType}${
+          skippedCount > 0 ? `, ${skippedCount} skipped` : ''
+        }`,
+      )
+    } else {
+      toast.info(`No notes were exported to ${playbackType}.`)
+    }
+  }
+
+  const selectedNotes = parsedNotes.filter((note) =>
+    selectedNoteIds.includes(note.id),
+  )
 
   return (
     <div className="notes-bg rounded">
-      <div className="d-flex justify-content-between align-items-center pt-1 px-3 notes-label">
-        <h6 className="text-white">Notes:</h6>
-        <span className="notes-summary">
-          {parsedNotes.length} reusable{' '}
-          {parsedNotes.length === 1 ? 'entry' : 'entries'}
-        </span>
+      <div className="notes-label">
+        <div className="notes-header-copy">
+          <h6 className="text-white mb-0">Notes:</h6>
+          <span className="notes-header-helper">
+            One line = one note. Press Enter for a new timestamp.
+          </span>
+        </div>
       </div>
-      <div className="notes-helper-copy">
-        One line = one note. Press Enter to start a new timestamped note.
-      </div>
-      <div className="mx-auto my-auto notes-textarea-div align-items-center border rounded">
+      <div className="mx-auto notes-textarea-div align-items-center border rounded">
         <textarea
           className="form-control border rounded notes-textarea"
           rows={9}
@@ -283,79 +377,175 @@ const Notes = ({
           value={noteValue}
         ></textarea>
       </div>
-      <div className="notes-import-panel">
-        <div className="notes-import-header">
-          <span>Convert Notes to Clips</span>
-          <span className="notes-import-subtitle">
-            Review saved notes and turn each one into inline or extended audio
-          </span>
-        </div>
-        <div className="notes-import-list">
-          {parsedNotes.length === 0 ? (
-            <div className="notes-empty-state">
-              Add timestamped notes first, then you can import them into clips
-              here.
+      <div className="notes-export-trigger-row">
+        <button
+          type="button"
+          className="notes-import-btn compact"
+          disabled={parsedNotes.length === 0}
+          onClick={() => setIsExportModalOpen(true)}
+        >
+          Export Notes
+        </button>
+      </div>
+      <Modal
+        show={isExportModalOpen}
+        onHide={() => setIsExportModalOpen(false)}
+        centered
+        dialogClassName="notes-export-modal"
+      >
+        <div className="modal-content notes-export-modal-content">
+          <div className="modal-header notes-export-modal-header">
+            <div>
+              <h4 className="modal-title">Export Notes as Clips</h4>
+              <div className="notes-export-modal-subtitle">
+                Review saved notes, select them, and export to inline or
+                extended clips.
+              </div>
             </div>
-          ) : !canImportNotes ? (
-            <div className="notes-empty-state">
-              Notes are available here, but note-to-clip import is only enabled
-              in the editor view.
-            </div>
-          ) : (
-            parsedNotes.map((note) => {
-              const inlineImported = isImported(note, 'inline')
-              const extendedImported = isImported(note, 'extended')
-
-              return (
-                <div className="notes-import-row" key={note.id}>
-                  <div className="notes-import-copy">
-                    <div className="notes-import-time">{note.timeLabel}</div>
-                    <div className="notes-import-text">{note.text}</div>
+            <button
+              type="button"
+              className="btn-close ydx-button"
+              onClick={() => setIsExportModalOpen(false)}
+            ></button>
+          </div>
+          <div className="modal-body notes-export-modal-body">
+            {parsedNotes.length === 0 ? (
+              <div className="notes-empty-state">
+                Add timestamped notes first, then export them from here.
+              </div>
+            ) : (
+              <>
+                {!hasEditorContext && (
+                  <div className="notes-empty-state">
+                    Export actions are unavailable until the editor context is
+                    fully loaded.
                   </div>
-                  <div className="notes-import-status-row">
-                    <span
-                      className={`notes-status-badge ${
-                        inlineImported ? 'is-added' : 'is-pending'
-                      }`}
+                )}
+                <div className="notes-export-toolbar">
+                  <div className="notes-export-toolbar-left">
+                    <button
+                      type="button"
+                      className="notes-toolbar-link"
+                      onClick={
+                        allSelected ? clearSelectedNotes : selectAllNotes
+                      }
                     >
-                      Inline {inlineImported ? 'added' : 'not added'}
-                    </span>
-                    <span
-                      className={`notes-status-badge ${
-                        extendedImported ? 'is-added' : 'is-pending'
-                      }`}
+                      {allSelected ? 'Clear all' : 'Select all'}
+                    </button>
+                    <button
+                      type="button"
+                      className="notes-toolbar-link"
+                      onClick={clearSelectedNotes}
+                      disabled={selectedNoteIds.length === 0}
                     >
-                      Extended {extendedImported ? 'added' : 'not added'}
+                      Clear
+                    </button>
+                    <span className="notes-selected-count">
+                      {selectedNoteIds.length} selected
                     </span>
-                  </div>
-                  <div className="notes-import-actions">
-                    {!inlineImported && (
-                      <button
-                        type="button"
-                        className="notes-import-btn inline"
-                        disabled={importingKey === `${note.id}-inline`}
-                        onClick={() => handleImportNote(note, 'inline')}
-                      >
-                        Add Inline
-                      </button>
-                    )}
-                    {!extendedImported && (
-                      <button
-                        type="button"
-                        className="notes-import-btn extended"
-                        disabled={importingKey === `${note.id}-extended`}
-                        onClick={() => handleImportNote(note, 'extended')}
-                      >
-                        Add Extended
-                      </button>
-                    )}
                   </div>
                 </div>
-              )
-            })
+                <div className="notes-import-list modal-list">
+                  {parsedNotes.map((note) => {
+                    const inlineImported = isImported(note, 'inline')
+                    const extendedImported = isImported(note, 'extended')
+
+                    return (
+                      <div className="notes-import-row" key={note.id}>
+                        <div className="notes-import-main-row">
+                          <label className="notes-select-control">
+                            <input
+                              type="checkbox"
+                              checked={selectedNoteIds.includes(note.id)}
+                              onChange={() => toggleNoteSelection(note.id)}
+                            />
+                          </label>
+                          <div className="notes-import-copy">
+                            <div className="notes-import-time">
+                              {note.timeLabel}
+                            </div>
+                            <div className="notes-import-text">{note.text}</div>
+                            <div className="notes-import-mini-badges">
+                              {inlineImported && (
+                                <span className="notes-status-badge is-added compact">
+                                  Inline exported
+                                </span>
+                              )}
+                              {extendedImported && (
+                                <span className="notes-status-badge is-added compact">
+                                  Extended exported
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="notes-import-actions">
+                            <button
+                              type="button"
+                              className={`notes-import-btn inline ${
+                                inlineImported ? 'is-disabled' : ''
+                              }`}
+                              disabled={
+                                !hasEditorContext ||
+                                inlineImported ||
+                                importingKey === `${note.id}-inline`
+                              }
+                              onClick={() => handleImportNote(note, 'inline')}
+                            >
+                              {inlineImported
+                                ? 'Inline Exported'
+                                : 'Export Inline'}
+                            </button>
+                            <button
+                              type="button"
+                              className={`notes-import-btn extended ${
+                                extendedImported ? 'is-disabled' : ''
+                              }`}
+                              disabled={
+                                !hasEditorContext ||
+                                extendedImported ||
+                                importingKey === `${note.id}-extended`
+                              }
+                              onClick={() => handleImportNote(note, 'extended')}
+                            >
+                              {extendedImported
+                                ? 'Extended Exported'
+                                : 'Export Extended'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+          {parsedNotes.length > 0 && (
+            <div className="modal-footer notes-export-modal-footer">
+              <button
+                type="button"
+                className="notes-import-btn inline"
+                disabled={selectedNotes.length === 0 || !hasEditorContext}
+                onClick={async () => {
+                  await batchExportNotes(selectedNotes, 'inline')
+                }}
+              >
+                Export Selected to Inline
+              </button>
+              <button
+                type="button"
+                className="notes-import-btn extended"
+                disabled={selectedNotes.length === 0 || !hasEditorContext}
+                onClick={async () => {
+                  await batchExportNotes(selectedNotes, 'extended')
+                }}
+              >
+                Export Selected to Extended
+              </button>
+            </div>
           )}
         </div>
-      </div>
+      </Modal>
     </div>
   )
 }

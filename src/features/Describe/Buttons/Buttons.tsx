@@ -28,7 +28,7 @@ export const Buttons = ({
   audioDuckingDataTutorial,
 }: Props) => {
   return (
-    <div className="d-flex justify-content-evenly flex-column text-center p-4">
+    <div className="d-flex justify-content-evenly flex-column text-center p-4 ydx-controls-panel">
       <div className="row justify-content-center gx-3 gy-4">
         <div className="col-6 d-flex justify-content-center">
           {isPreviewAudioDescription ? (

@@ -33,6 +33,33 @@
   background-color: #ffffff;
 }
 
+.ydx-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: nowrap;
+}
+
+.ydx-controls-panel {
+  flex: 0 0 280px;
+  width: 280px;
+  max-width: 280px;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+@media (max-width: 1480px) {
+  .ydx-top-row {
+    flex-wrap: wrap;
+  }
+
+  .ydx-controls-panel {
+    flex: 1 1 320px;
+    max-width: 100%;
+  }
+}
+
 /* Timeline Section Redesign - Balanced Version */
 .timeline-section-wrapper {
   margin-bottom: 2rem;

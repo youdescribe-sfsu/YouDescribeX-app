@@ -1696,7 +1696,7 @@ const YDXHome = (): React.ReactElement => {
       {showSpinner ? <Spinner /> : <></>}
       <div className="container home-container">
         {/* Youtube Iframe & Notes Component Container */}
-        <div className="d-flex justify-content-around">
+        <div className="ydx-top-row">
           <div className="text-white">
             <YouTube
               className="rounded"
