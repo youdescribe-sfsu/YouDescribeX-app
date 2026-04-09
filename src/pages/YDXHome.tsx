@@ -99,6 +99,7 @@ const YDXHome = (): React.ReactElement => {
   const [playedAudioClip, setPlayedAudioClip] = useState('') // store clipId of the audio clip that is already played.
   const [playedClipPath, setPlayedClipPath] = useState('') // store clip_audio_path of the audio clip that is already played.
   const [playedClipsSet, setPlayedClipsSet] = useState<Set<string>>(new Set()) // Set-based tracking for robust duplicate prevention
+  const playedClipsRef = useRef<Set<string>>(new Set())
   // Spinner div
   const [showSpinner, setShowSpinner] = useState(false)
   const [undoDeletedClipInfo, setUndoDeletedClip] = useState(false)
@@ -149,8 +150,12 @@ const YDXHome = (): React.ReactElement => {
   const [youTubeVolume, setYouTubeVolume] = useState(
     parseInt(localStorage.getItem('youTubeVolume') || '100'),
   )
+  const [playbackSpeed, setPlaybackSpeed] = useState(
+    parseFloat(localStorage.getItem('playbackSpeed') || '1'),
+  )
   const descriptionVolumeRef = useRef(descriptionVolume)
   const youTubeVolumeRef = useRef(youTubeVolume)
+  const playbackSpeedRef = useRef(playbackSpeed)
 
   const clipStackRef = useRef(clipStack)
   const clipIDRef = useRef(playedAudioClip)
@@ -198,6 +203,10 @@ const YDXHome = (): React.ReactElement => {
   }, [currentTime, previousTime])
 
   useEffect(() => {
+    playedClipsRef.current = playedClipsSet
+  }, [playedClipsSet])
+
+  useEffect(() => {
     clipIDRef.current = playedAudioClip
   }, [playedAudioClip])
 
@@ -229,7 +238,18 @@ const YDXHome = (): React.ReactElement => {
   }, [youTubeVolume, currentEventRef])
 
   useEffect(() => {
-    if (videoId) {
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.rate(playbackSpeed)
+    }
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.rate(playbackSpeed)
+    }
+    playbackSpeedRef.current = playbackSpeed
+    localStorage.setItem('playbackSpeed', playbackSpeed.toString())
+  }, [playbackSpeed])
+
+  useEffect(() => {
+    if (unitLength > 0 && videoId) {
       setShowSpinner(true)
       fetchDialogData()
       setShowSpinner(true)
@@ -569,6 +589,7 @@ const YDXHome = (): React.ReactElement => {
     setRecentAudioPlayedTime(0.0)
     setPlayedAudioClip('')
     setPlayedClipPath('')
+    playedClipsRef.current = new Set()
     setPlayedClipsSet(new Set())
   }, [unloadHowls])
 
@@ -857,7 +878,7 @@ const YDXHome = (): React.ReactElement => {
 
       if (isTimeToPlay) {
         // Check if already played using Set
-        if (playedClipsSet.has(currentClip.clip_id)) {
+        if (playedClipsRef.current.has(currentClip.clip_id)) {
           console.log(
             'Inline clip already played (Set check), skipping:',
             currentClip.clip_id,
@@ -899,6 +920,7 @@ const YDXHome = (): React.ReactElement => {
         setCurrInlineAC(currentAudio)
 
         // Mark as played in Set
+        playedClipsRef.current.add(updatedClip.clip_id)
         setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
         setPlayedAudioClip(updatedClip.clip_id)
         setRecentAudioPlayedTime(currentTimeRef.current)
@@ -939,6 +961,7 @@ const YDXHome = (): React.ReactElement => {
       // Fix: Discard skipped inline clips
       else if (currentTimeRef.current > currentClip.clip_end_time) {
         // Mark as skipped in Set
+        playedClipsRef.current.add(currentClip.clip_id)
         setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
         setCurrentClipIndex(currentClipIndexRef.current + 1)
         const newStack = clipStackRef.current.slice(1)
@@ -964,7 +987,7 @@ const YDXHome = (): React.ReactElement => {
 
       if (isExactStart) {
         // Check if already played using Set
-        if (playedClipsSet.has(currentClip.clip_id)) {
+        if (playedClipsRef.current.has(currentClip.clip_id)) {
           console.log(
             'Extended clip already played (Set check), advancing stack:',
             currentClip.clip_id,
@@ -987,62 +1010,194 @@ const YDXHome = (): React.ReactElement => {
           return
         }
 
-        // Only check server playback type when we're about to play
-        const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
+        try {
+          // Only check server playback type when we're about to play
+          const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
 
-        setCurrentClipIndex(currentClipIndexRef.current + 1)
+          if (
+            updatedClip.playback_type === 'inline' &&
+            ((updatedClip.clip_start_time <= currentTimeRef.current &&
+              updatedClip.clip_end_time >= currentTimeRef.current) ||
+              (updatedClip.clip_start_time <= currentTimeRef.current &&
+                updatedClip.clip_start_time >= previousTimeRef.current))
+          ) {
+            if (playedClipsRef.current.has(updatedClip.clip_id)) {
+              console.log(
+                'Inline clip already played (Set check), skipping:',
+                updatedClip.clip_id,
+              )
+              return
+            }
 
-        // Mark as played in Set immediately
-        setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
+            if (currentInlineACRef.current?.playing()) {
+              console.info('An inline clip is already playing')
+              return
+            }
 
-        if (playedAudioClip !== updatedClip.clip_id) {
-          setPlayedAudioClip(updatedClip.clip_id)
-          setRecentAudioPlayedTime(currentTimeRef.current)
-
-          // UI Effect - always scroll when playing
-          updateUIForClip(updatedClip.clip_id)
-
-          if (updatedClip.clip_audio_path !== playedClipPath) {
-            setPlayedClipPath(updatedClip.clip_audio_path)
             const currentAudio = updatedClip.clip_audio
+            const seekTime =
+              currentTimeRef.current - updatedClip.clip_start_time
 
-            // Pause Video for Extended Content
-            currentEvent?.pauseVideo()
+            if (seekTime < 0) {
+              console.debug('Seek time is negative, skipping')
+              return
+            }
 
             if (currentAudio?.state() === 'loaded') {
+              currentAudio.seek(seekTime)
               setTimeout(() => {
-                if (!currentAudio.playing()) {
-                  currentAudio.play()
-                  currentAudio.volume(descriptionVolumeRef.current / 100)
-                }
+                currentAudio.play()
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+                currentAudio.rate(playbackSpeedRef.current)
               }, 50)
             } else {
               currentAudio?.once('load', function () {
+                currentAudio.seek(seekTime)
+                setTimeout(() => {
+                  currentAudio.play()
+                  currentAudio.volume(descriptionVolumeRef.current / 100)
+                  currentAudio.rate(playbackSpeedRef.current)
+                }, 50)
+              })
+            }
+
+            setCurrInlineAC(currentAudio)
+            playedClipsRef.current.add(updatedClip.clip_id)
+            setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
+            setPlayedAudioClip(updatedClip.clip_id)
+            setRecentAudioPlayedTime(currentTimeRef.current)
+            setCurrentClipIndex(currentClipIndexRef.current + 1)
+
+            if (updatedClip.clip_audio_path !== playedClipPath) {
+              setPlayedClipPath(updatedClip.clip_audio_path)
+
+              currentAudio?.once('play', () => {
+                currentAudio.volume(descriptionVolumeRef.current / 100)
+                currentAudio.rate(playbackSpeedRef.current)
+              })
+
+              currentAudio?.once('end', () => {
+                setCurrInlineAC(undefined)
+                currentAudio.unload()
+              })
+
+              const newClip =
+                audioClips[currentClipIndexRef.current + clipStackSize - 1]
+              if (newClip) {
+                newClip.clip_audio = new Howl({
+                  src: newClip.clip_audio_path,
+                  html5: true,
+                })
+                setClipStack([
+                  ...clipStackRef.current.slice(1, clipStackSize),
+                  newClip,
+                ])
+              } else {
+                setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+              }
+            }
+
+            return
+          }
+
+          setCurrentClipIndex(currentClipIndexRef.current + 1)
+
+          // Mark as played in Set immediately
+          playedClipsRef.current.add(updatedClip.clip_id)
+          setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
+
+          if (playedAudioClip !== updatedClip.clip_id) {
+            setPlayedAudioClip(updatedClip.clip_id)
+            setRecentAudioPlayedTime(currentTimeRef.current)
+
+            // UI Effect - always scroll when playing
+            updateUIForClip(updatedClip.clip_id)
+
+            if (updatedClip.clip_audio_path !== playedClipPath) {
+              setPlayedClipPath(updatedClip.clip_audio_path)
+              const currentAudio = updatedClip.clip_audio
+
+              // Pause Video for Extended Content
+              currentEvent?.pauseVideo()
+
+              if (currentAudio?.state() === 'loaded') {
                 setTimeout(() => {
                   if (!currentAudio.playing()) {
                     currentAudio.play()
                     currentAudio.volume(descriptionVolumeRef.current / 100)
                   }
                 }, 50)
+              } else {
+                currentAudio?.once('load', function () {
+                  setTimeout(() => {
+                    if (!currentAudio.playing()) {
+                      currentAudio.play()
+                      currentAudio.volume(descriptionVolumeRef.current / 100)
+                    }
+                  }, 50)
+                })
+              }
+
+              setCurrExtendedAC(currentAudio)
+
+              currentAudio?.once('play', () => {
+                currentAudio.volume(descriptionVolumeRef.current / 100)
               })
+
+              currentAudio?.once('end', () => {
+                setCurrExtendedAC(undefined)
+                currentEventRef.current?.playVideo()
+                currentAudio.unload()
+                setCurrentExtACPaused(false)
+              })
+
+              // Advance Stack
+              const newClip =
+                audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+              if (newClip) {
+                newClip.clip_audio = new Howl({
+                  src: newClip.clip_audio_path,
+                  html5: true,
+                })
+                setClipStack([
+                  ...clipStackRef.current.slice(1, clipStackSize),
+                  newClip,
+                ])
+              } else {
+                setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
+              }
             }
+          }
 
-            setCurrExtendedAC(currentAudio)
-
-            currentAudio?.once('play', () => {
-              currentAudio.volume(descriptionVolumeRef.current / 100)
+          // Check for Skips - This usually occurs when an extended clip was overlapped by an inline clip
+          if (
+            updatedClip.playback_type === 'extended' &&
+            !currentInlineACRef.current?.playing() &&
+            !currentExtendedACRef.current?.playing() &&
+            updatedClip.clip_start_time <= currentTimeRef.current &&
+            currentTimeRef.current - updatedClip.clip_start_time >= 1.0
+          ) {
+            console.error('SKIP DETECTED - DETAILED', {
+              clipId: updatedClip.clip_id,
+              clipStartTime: updatedClip.clip_start_time,
+              currentTime: currentTimeRef.current,
+              previousTime: previousTimeRef.current,
+              audioState: updatedClip.clip_audio
+                ? updatedClip.clip_audio.state()
+                : 'unknown',
+              audioUrl: updatedClip.clip_audio_path,
+              inlineClipPlaying: !!currentInlineACRef.current?.playing(),
+              extendedClipPlaying: !!currentExtendedACRef.current?.playing(),
+              youtubeState: currentEvent?.getPlayerState(),
             })
 
-            currentAudio?.once('end', () => {
-              setCurrExtendedAC(undefined)
-              currentEventRef.current?.playVideo()
-              currentAudio.unload()
-              setCurrentExtACPaused(false)
-            })
+            playedClipsRef.current.add(updatedClip.clip_id)
+            setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
+            setCurrentClipIndex(currentClipIndexRef.current + 1)
 
-            // Advance Stack
             const newClip =
               audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+
             if (newClip) {
               newClip.clip_audio = new Howl({
                 src: newClip.clip_audio_path,
@@ -1056,6 +1211,8 @@ const YDXHome = (): React.ReactElement => {
               setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
             }
           }
+        } catch (error) {
+          console.error('Error checking playback type:', error)
         }
       }
     }
@@ -1071,6 +1228,7 @@ const YDXHome = (): React.ReactElement => {
       console.warn('Discarding skipped extended clip:', currentClip.clip_id)
 
       // Mark as skipped in Set to prevent retries
+      playedClipsRef.current.add(currentClip.clip_id)
       setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
       setCurrentClipIndex(currentClipIndexRef.current + 1)
       const newStack = clipStackRef.current.slice(1)
@@ -1108,6 +1266,7 @@ const YDXHome = (): React.ReactElement => {
         setCurrentClipIndex(0)
         setPlayedAudioClip('')
         setPlayedClipPath('')
+        playedClipsRef.current = new Set()
         setPlayedClipsSet(new Set())
         setRecentAudioPlayedTime(0.0)
         setCurrInlineAC(undefined)
@@ -1142,19 +1301,17 @@ const YDXHome = (): React.ReactElement => {
             currentEvent?.pauseVideo()
             setCurrentExtACPaused(false)
             setGloballyPaused(false)
-          } else {
-            extendedAC.pause()
-            extendedAC.seek(0)
-            setCurrExtendedAC(undefined)
           }
         }
 
-        // Handle Inline Audio Resuming (Bypassing Stale State)
-        if (inlineAC) {
-          if (!inlineAC.playing()) {
-            inlineAC.play()
-            inlineAC.volume(descriptionVolumeRef.current / 100)
-          }
+        // Handle Inline Audio Resuming using the live ref so playback stays in sync.
+        if (inlineAC && !inlineAC.playing()) {
+          inlineAC.rate(playbackSpeedRef.current)
+          inlineAC.play()
+          inlineAC.volume(descriptionVolumeRef.current / 100)
+          inlineAC.once('end', function () {
+            setCurrInlineAC(undefined)
+          })
         }
         setGloballyPaused(false)
         break
@@ -1276,6 +1433,7 @@ const YDXHome = (): React.ReactElement => {
     const syncedTime = syncTimelineTime(progressBarTime)
     setPreviousTime(syncedTime)
     //Flush the memory cache when you stop dragging
+    playedClipsRef.current = new Set()
     setPlayedClipsSet(new Set())
 
     stopScrubAudio()
@@ -1361,6 +1519,7 @@ const YDXHome = (): React.ReactElement => {
   // when "AudioClip <seq no>" is clicked, video is playing from that audio clip start time
   const handlePlayAudioClip = (clipStartTime: number) => {
     // --> ADD THIS: Flush the memory cache when clicking a clip to jump
+    playedClipsRef.current = new Set()
     setPlayedClipsSet(new Set())
     isTimelineScrubbingRef.current = false
     suppressResumeAfterScrubRef.current = false
@@ -1375,6 +1534,7 @@ const YDXHome = (): React.ReactElement => {
       if (isCurrentExtACPaused) {
         isTimelineScrubbingRef.current = false
         suppressResumeAfterScrubRef.current = false
+        currExtendedAC.rate(playbackSpeedRef.current)
         currExtendedAC.play()
         setCurrentExtACPaused(false)
         setGloballyPaused(false)
@@ -1486,7 +1646,7 @@ const YDXHome = (): React.ReactElement => {
     clipDescriptionType: string | undefined,
   ) => {
     try {
-      await axios.put(
+      const response = await axios.put(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipId}`,
         {
           userId: user,
@@ -1498,6 +1658,7 @@ const YDXHome = (): React.ReactElement => {
       )
 
       setUpdateData(!updateData)
+      return response.data
     } catch (err: any) {
       if (err.response) {
         toast.error(err.response.data.message) // show toast message
@@ -1505,6 +1666,7 @@ const YDXHome = (): React.ReactElement => {
         console.error(err)
         toast.error('An error occurred. Please try again!!')
       }
+      throw err
     }
   }
 

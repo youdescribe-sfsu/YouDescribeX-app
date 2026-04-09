@@ -151,7 +151,7 @@ const Search = () => {
                 const publishedAt = new Date(item.snippet.publishedAt)
                 const now = Date.now()
                 const time = convertTimeToCardFormat(
-                  Number(now - publishedAt.getMilliseconds()),
+                  Number(now - publishedAt.getTime()),
                 )
 
                 videosAlreadyOnYD.push(
@@ -255,9 +255,7 @@ const Search = () => {
       // let describer;
 
       const now = Date.now()
-      const time = convertTimeToCardFormat(
-        Number(now - publishedAt.getMilliseconds()),
-      )
+      const time = convertTimeToCardFormat(Number(now - publishedAt.getTime()))
 
       videoNotOnYD.push(
         <div className="col-sm-6 col-md-4 col-lg-3" key={i}>

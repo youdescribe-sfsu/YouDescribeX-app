@@ -6,6 +6,16 @@ interface Response {
   type: string
 }
 
+const safeParseJson = (payload: string | null) => {
+  if (!payload) return null
+
+  try {
+    return JSON.parse(payload)
+  } catch {
+    return null
+  }
+}
+
 const ourFetch = (
   url: string,
   JSONparsing = true,
@@ -35,12 +45,32 @@ const ourFetch = (
     req.onload = () => {
       if (req.status === 200) {
         if (JSONparsing) {
-          resolve(JSON.parse(req.response))
+          const parsedResponse = safeParseJson(req.response)
+          if (parsedResponse === null) {
+            reject({
+              code: req.status,
+              status: req.status,
+              type: req.getResponseHeader('content-type') || 'unknown',
+              message: 'Invalid JSON response from server',
+              result: req.response,
+            })
+            return
+          }
+          resolve(parsedResponse)
         } else {
           resolve(req.response)
         }
       } else {
-        reject(JSON.parse(req.response))
+        const parsedError = safeParseJson(req.response)
+        reject(
+          parsedError || {
+            code: req.status,
+            status: req.status,
+            type: req.getResponseHeader('content-type') || 'unknown',
+            message: req.statusText || 'Request failed',
+            result: req.response,
+          },
+        )
       }
     }
 

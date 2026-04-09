@@ -81,6 +81,7 @@ const MockEditorPage = ({ tutorialMode, uiState = {} }: Props) => {
   const [youTubeVolume, setYouTubeVolume] = React.useState(
     DEFAULT_YOUTUBE_VOLUME,
   )
+  const [playbackSpeed, setPlaybackSpeed] = React.useState(1)
 
   const showClipForm = uiState.showClipForm
   const showSavedClip = uiState.showSavedClip

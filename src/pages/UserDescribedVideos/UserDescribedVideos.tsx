@@ -21,22 +21,21 @@ const UserDescribedVideos = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [currentPageAI, setCurrentPageAI] = useState(1)
   const [currentPageDraft, setCurrentPageDraft] = useState(1)
-  const [LoadMoreVideos, setLoadMoreVideos] = useState<boolean>(false)
-  const [LoadMoreAIVideos, setLoadMoreAIVideos] = useState<boolean>(false)
-  const [LoadMoreDraftVideos, setLoadMoreDraftVideos] = useState<boolean>(false)
-  // Initialize these to false instead of true
+  const [loadMoreVideos, setLoadMoreVideos] = useState(false)
+  const [loadMoreAIVideos, setLoadMoreAIVideos] = useState(false)
+  const [loadMoreDraftVideos, setLoadMoreDraftVideos] = useState(false)
   const [showLoadMoreButton, setShowLoadMoreButton] = useState(false)
   const [showLoadMoreAIButton, setShowLoadMoreAIButton] = useState(false)
   const [showLoadMoreDraftButton, setShowLoadMoreDraftButton] = useState(false)
   const { userId } = useParams()
 
-  // Function to track video views in localStorage
+  type VideoListType = 'described' | 'ai' | 'draft'
+
   const handleView = (videoId: string): void => {
     const recentViews: Record<string, number> = JSON.parse(
       localStorage.getItem('recentViews') || '{}',
     )
 
-    // Update the view timestamp for the given video ID
     recentViews[videoId] = Date.now()
     localStorage.setItem('recentViews', JSON.stringify(recentViews))
   }
@@ -60,7 +59,6 @@ const UserDescribedVideos = () => {
   const normalizeApiResponse = (
     responseData: any,
   ): { videos: any[]; total: number } => {
-    // If response is an array (first endpoint case), take the first item
     if (Array.isArray(responseData)) {
       return {
         videos: responseData[0]?.videos || [],
@@ -68,110 +66,51 @@ const UserDescribedVideos = () => {
       }
     }
 
-    // Otherwise, it's already in the desired object format (second and third endpoints)
     return {
       videos: responseData?.videos || [],
       total: responseData?.total || 0,
     }
   }
 
-  const getUserVideos = async (
-    url: string,
-    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
-    page: number,
-  ) => {
-    try {
-      // Step 1: Get video IDs from our backend (keep this part)
-      const response = await axios.get(url, {
-        params: { paginate: 'false', page },
-        withCredentials: true,
-      })
-
-      const normalizedData = normalizeApiResponse(response.data)
-
-      const videosArray = normalizedData.videos
-      const totalVideos = normalizedData.total
-
-      // If no videos, update state and hide spinner and load more button
-      if (!videosArray || videosArray.length === 0) {
-        setStateFunction([])
-
-        // Hide the appropriate "Load more" button based on which function is being called
-        if (setStateFunction === setVideos) {
-          setShowLoadMoreButton(false)
-        } else if (setStateFunction === setAIVideos) {
-          setShowLoadMoreAIButton(false)
-        } else if (setStateFunction === setVideosDraft) {
-          setShowLoadMoreDraftButton(false)
-        }
-
-        setShowSpinner(false)
-        return
-      }
-
-      // Extract required IDs
-      const youTubeVideoIds = videosArray.map(
-        (video: { youtube_video_id: any }) => video.youtube_video_id,
-      )
-      const youDescribeVideosIds = videosArray.map(
-        (video: { video_id: any }) => video.video_id,
-      )
-      const audioDescriptionIds = videosArray.map(
-        (video: { audio_description_id: any }) => video.audio_description_id,
-      )
-
-      // Step 2: Replace YouTube API call with YouTubeService
-      const videoDetails = await YouTubeService.getVideoDetails(youTubeVideoIds)
-
-      // Create compatible format for parseResponseData
-      const youTubeVideosArray = { items: videoDetails }
-
-      // Process the response (existing method)
-      parseResponseData(
-        youTubeVideosArray,
-        youDescribeVideosIds,
-        audioDescriptionIds,
-        setStateFunction,
-        totalVideos,
-        page,
-      )
-    } catch (error) {
-      console.error('Error fetching videos:', error)
-
-      // In case of error, hide the appropriate load more button
-      if (setStateFunction === setVideos) {
-        setShowLoadMoreButton(false)
-      } else if (setStateFunction === setAIVideos) {
-        setShowLoadMoreAIButton(false)
-      } else if (setStateFunction === setVideosDraft) {
-        setShowLoadMoreDraftButton(false)
-      }
-
-      setShowSpinner(false)
+  const getStateSetter = (listType: VideoListType) => {
+    switch (listType) {
+      case 'described':
+        return setVideos
+      case 'ai':
+        return setAIVideos
+      default:
+        return setVideosDraft
     }
   }
 
-  const parseResponseData = (
-    youTubeVideosArray: any,
-    youDescribeVideosIds: string[],
-    audioDescriptionIds: string[],
-    setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
-    totalVideos: number,
-    page: number,
+  const setLoadMoreButtonVisibility = (
+    listType: VideoListType,
+    visible: boolean,
   ) => {
-    const videoComponents = []
-    // Determine which collection of videos we're working with
-    const existingVideos =
-      setStateFunction === setVideos
-        ? videos
-        : setStateFunction === setAIVideos
-        ? videosAI
-        : videosDraft
+    if (listType === 'described') {
+      setShowLoadMoreButton(visible)
+    } else if (listType === 'ai') {
+      setShowLoadMoreAIButton(visible)
+    } else {
+      setShowLoadMoreDraftButton(visible)
+    }
+  }
 
-    for (let i = 0; i < youTubeVideosArray.items.length; i += 1) {
-      const item = youTubeVideosArray.items[i]
-      const youDescribeVideoId = youDescribeVideosIds[i]
-      const audioDescriptionId = audioDescriptionIds[i]
+  const stopLoadMoreSpinner = (listType: VideoListType) => {
+    if (listType === 'described') {
+      setLoadMoreVideos(false)
+    } else if (listType === 'ai') {
+      setLoadMoreAIVideos(false)
+    } else {
+      setLoadMoreDraftVideos(false)
+    }
+  }
+
+  const buildVideoCards = (
+    videoDetails: any[],
+    audioDescriptionIds: string[],
+  ) => {
+    return videoDetails.map((item) => {
       const youTubeId = item.id
       const thumbnail = item.snippet.thumbnails.medium
       const duration = convertSecondsToCardFormat(
@@ -180,11 +119,11 @@ const UserDescribedVideos = () => {
       const title = item.snippet.title
       const author = item.snippet.channelTitle
       const views = convertViewsToCardFormat(Number(item.statistics.viewCount))
-      const publishedAt = new Date(item.snippet.publishedAt).getMilliseconds()
-      const now = Date.now()
-      const time = convertTimeToCardFormat(Number(now - publishedAt))
+      const publishedAt = new Date(item.snippet.publishedAt).getTime()
+      const time = convertTimeToCardFormat(Date.now() - publishedAt)
+      const audioDescriptionId = audioDescriptionIds[videoDetails.indexOf(item)]
 
-      videoComponents.push(
+      return (
         <div className="col-sm-6 col-md-4 col-lg-3" key={youTubeId}>
           <VideoCard
             key={youTubeId}
@@ -199,53 +138,75 @@ const UserDescribedVideos = () => {
             buttons="edit"
             onClick={() => onVideoClick(youTubeId)}
           />
-        </div>,
+        </div>
       )
+    })
+  }
+
+  const getUserVideos = async (
+    url: string,
+    listType: VideoListType,
+    page: number,
+  ) => {
+    try {
+      const response = await axios.get(url, {
+        params: { paginate: 'false', page },
+        withCredentials: true,
+      })
+
+      const normalizedData = normalizeApiResponse(response.data)
+      const videosArray = normalizedData.videos
+      const totalVideos = normalizedData.total
+      const setStateFunction = getStateSetter(listType)
+
+      if (!videosArray || videosArray.length === 0) {
+        if (page === 1) {
+          setStateFunction([])
+        }
+        setLoadMoreButtonVisibility(listType, false)
+        stopLoadMoreSpinner(listType)
+        setShowSpinner(false)
+        return
+      }
+
+      const youTubeVideoIds = videosArray.map(
+        (video: { youtube_video_id: string }) => video.youtube_video_id,
+      )
+      const audioDescriptionIds = videosArray.map(
+        (video: { audio_description_id: string }) => video.audio_description_id,
+      )
+
+      const videoDetails = await YouTubeService.getVideoDetails(youTubeVideoIds)
+      const videoComponents = buildVideoCards(videoDetails, audioDescriptionIds)
+
+      setStateFunction((previousVideos) =>
+        page === 1 ? videoComponents : [...previousVideos, ...videoComponents],
+      )
+
+      setLoadMoreButtonVisibility(listType, totalVideos > page * 20)
+      stopLoadMoreSpinner(listType)
+      setShowSpinner(false)
+    } catch (error) {
+      console.error('Error fetching videos:', error)
+      setLoadMoreButtonVisibility(listType, false)
+      stopLoadMoreSpinner(listType)
+      setShowSpinner(false)
     }
-
-    const updatedVideos = [...existingVideos, ...videoComponents]
-
-    // Determine which state setter to use based on which category we're processing
-    const loadMoreFlag =
-      setStateFunction === setVideos
-        ? setShowLoadMoreButton
-        : setStateFunction === setAIVideos
-        ? setShowLoadMoreAIButton
-        : setShowLoadMoreDraftButton
-
-    // Show "Load more" button only if there are more videos to load
-    const currentTotal = updatedVideos.length
-    loadMoreFlag(totalVideos > currentTotal)
-
-    const loadMoreSpinnerFlag =
-      setStateFunction === setVideos
-        ? setLoadMoreVideos
-        : setStateFunction === setAIVideos
-        ? setLoadMoreAIVideos
-        : setLoadMoreDraftVideos
-    loadMoreSpinnerFlag(false)
-
-    setShowSpinner(false)
-
-    setStateFunction(updatedVideos)
   }
 
   const loadMoreResults = () => {
     setLoadMoreVideos(true)
-    setCurrentPage(currentPage + 1)
-    getUserVideos(myDescribedVideosUrl, setVideos, currentPage + 1)
+    setCurrentPage((previousPage) => previousPage + 1)
   }
 
   const loadMoreResultsAI = () => {
     setLoadMoreAIVideos(true)
-    setCurrentPageAI(currentPageAI + 1)
-    getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI + 1)
+    setCurrentPageAI((previousPage) => previousPage + 1)
   }
 
   const loadMoreResultsDraft = () => {
     setLoadMoreDraftVideos(true)
-    setCurrentPageDraft(currentPageDraft + 1)
-    getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft + 1)
+    setCurrentPageDraft((previousPage) => previousPage + 1)
   }
 
   const YDLoadMoreButton = showLoadMoreButton ? (
@@ -286,19 +247,19 @@ const UserDescribedVideos = () => {
 
   useEffect(() => {
     if (userId) {
-      getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
+      getUserVideos(myDescribedVideosUrl, 'described', currentPage)
     }
   }, [userId, currentPage])
 
   useEffect(() => {
     if (userId) {
-      getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft)
+      getUserVideos(myDraftVideosUrl, 'draft', currentPageDraft)
     }
   }, [userId, currentPageDraft])
 
   useEffect(() => {
     if (userId) {
-      getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI)
+      getUserVideos(aiRequestedVideosUrl, 'ai', currentPageAI)
     }
   }, [userId, currentPageAI])
 
@@ -323,71 +284,71 @@ const UserDescribedVideos = () => {
         </main>
       </div>
     )
-  } else {
-    return (
-      <div id="user-videos-page" title="User described videos page">
-        <main>
-          <section>
-            <header className="w3-container w3-indigo">
-              <h2 className="classic-h2">{translate('MY DESCRIBED VIDEOS')}</h2>
-            </header>
-
-            {showSpinner ? <Spinner /> : null}
-
-            {videos.length === 0 && !showSpinner && (
-              <div className="no-videos-message">
-                <i className="fas fa-video-slash no-videos-icon"></i>
-                <p className="no-videos-text">
-                  {translate('No videos to display')}
-                </p>
-              </div>
-            )}
-            <div className="w3-row classic-container row">{videos}</div>
-
-            {YDLoadMoreButton}
-          </section>
-          <section>
-            <header className="w3-container w3-indigo">
-              <h2 className="classic-h2">{translate('MY DRAFT VIDEOS')}</h2>
-            </header>
-
-            {showSpinner ? <Spinner /> : null}
-
-            {videosDraft.length === 0 && !showSpinner && (
-              <div className="no-videos-message">
-                <i className="fas fa-video-slash no-videos-icon"></i>
-                <p className="no-videos-text">
-                  {translate('No draft videos to display')}
-                </p>
-              </div>
-            )}
-            <div className="w3-row classic-container row">{videosDraft}</div>
-
-            {YDLoadMoreButtonDraft}
-          </section>
-          <section>
-            <header className="w3-container w3-indigo">
-              <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
-            </header>
-
-            {showSpinner ? <Spinner /> : null}
-
-            {videosAI.length === 0 && !showSpinner && (
-              <div className="no-videos-message">
-                <i className="fas fa-video-slash no-videos-icon"></i>
-                <p className="no-videos-text">
-                  {translate('No AI requested videos to display')}
-                </p>
-              </div>
-            )}
-            <div className="w3-row classic-container row">{videosAI}</div>
-
-            {YDLoadMoreButtonAI}
-          </section>
-        </main>
-      </div>
-    )
   }
+
+  return (
+    <div id="user-videos-page" title="User described videos page">
+      <main>
+        <section>
+          <header className="w3-container w3-indigo">
+            <h2 className="classic-h2">{translate('MY DESCRIBED VIDEOS')}</h2>
+          </header>
+
+          {showSpinner ? <Spinner /> : null}
+
+          {videos.length === 0 && !showSpinner && (
+            <div className="no-videos-message">
+              <i className="fas fa-video-slash no-videos-icon"></i>
+              <p className="no-videos-text">
+                {translate('No videos to display')}
+              </p>
+            </div>
+          )}
+          <div className="w3-row classic-container row">{videos}</div>
+
+          {YDLoadMoreButton}
+        </section>
+        <section>
+          <header className="w3-container w3-indigo">
+            <h2 className="classic-h2">{translate('MY DRAFT VIDEOS')}</h2>
+          </header>
+
+          {showSpinner ? <Spinner /> : null}
+
+          {videosDraft.length === 0 && !showSpinner && (
+            <div className="no-videos-message">
+              <i className="fas fa-video-slash no-videos-icon"></i>
+              <p className="no-videos-text">
+                {translate('No draft videos to display')}
+              </p>
+            </div>
+          )}
+          <div className="w3-row classic-container row">{videosDraft}</div>
+
+          {YDLoadMoreButtonDraft}
+        </section>
+        <section>
+          <header className="w3-container w3-indigo">
+            <h2 className="classic-h2">{translate('AI REQUESTED VIDEOS')}</h2>
+          </header>
+
+          {showSpinner ? <Spinner /> : null}
+
+          {videosAI.length === 0 && !showSpinner && (
+            <div className="no-videos-message">
+              <i className="fas fa-video-slash no-videos-icon"></i>
+              <p className="no-videos-text">
+                {translate('No AI requested videos to display')}
+              </p>
+            </div>
+          )}
+          <div className="w3-row classic-container row">{videosAI}</div>
+
+          {YDLoadMoreButtonAI}
+        </section>
+      </main>
+    </div>
+  )
 }
 
 export default UserDescribedVideos
