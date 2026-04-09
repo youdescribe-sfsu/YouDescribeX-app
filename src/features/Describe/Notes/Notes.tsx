@@ -50,6 +50,8 @@ const buildClipTitle = (noteText: string) => {
   return trimmed.length > 40 ? `${trimmed.slice(0, 37)}...` : trimmed
 }
 
+const buildTimestampPrefix = (timeLabel: string) => `${timeLabel} - `
+
 const Notes = ({
   currentTime,
   audioDescriptionId,
@@ -68,45 +70,45 @@ const Notes = ({
   const [noteDetails, setNoteDetails] = useState<any[]>([]) // to store Notes Details
   const [importingKey, setImportingKey] = useState('')
 
-  // this function handles keyUp event in the Notes textarea -> whenever an enter key is hit,
-  // a timestamp is inserted in the Notes
-  const handleNewNoteLine = (e: any) => {
-    const tempNoteValue = noteValue
-    const keycode = e.keyCode ? e.keyCode : e.which
-    if (keycode === parseInt('13')) {
-      setNoteValue(tempNoteValue + currentTime + ' - ')
-      handleNoteAutoSave(tempNoteValue + currentTime + ' - ')
-    }
-  }
   // for focus event of Notes Textarea -> if the notes is empty, timestamp is inserted
   const handleTextAreaFocus = () => {
-    const tempNoteValue = noteValue
     if (!noteValue) {
-      setNoteValue(tempNoteValue + currentTime + ' - ')
-      handleNoteAutoSave(tempNoteValue + currentTime + ' - ')
+      const nextValue = buildTimestampPrefix(currentTime)
+      setNoteValue(nextValue)
+      handleNoteAutoSave(nextValue)
     }
-    // TODO: what if notes is not empty
   }
 
   const handleNoteChange = (e: any) => {
-    let updatedNoteValue = ''
     handleVideoPause()
-    if (noteValue === '') {
-      // insert current time if all notes is cleared and didn't lose focus
-      updatedNoteValue = currentTime + ' - ' + e.target.value
-    } else if (noteValue.split('').reverse().join('').indexOf('\n') === 0) {
-      // After a new line/enter, if user clears the time and enters note directly
-      // e.nativeEvent.data will have the key entered - adding currentime before that
-      if (e.nativeEvent.data !== null) {
-        updatedNoteValue = noteValue + currentTime + ' - ' + e.nativeEvent.data
-      } else {
-        updatedNoteValue = e.target.value
-      }
-    } else {
-      updatedNoteValue = e.target.value
-    }
+    const updatedNoteValue = e.target.value
     setNoteValue(updatedNoteValue)
     debouncedHandleNoteAutoSave(updatedNoteValue)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== 'Enter') return
+
+    e.preventDefault()
+
+    const textarea = e.currentTarget
+    const selectionStart = textarea.selectionStart
+    const selectionEnd = textarea.selectionEnd
+    const currentText = String(noteValue || '')
+    const timestampPrefix = buildTimestampPrefix(currentTime)
+    const insertedValue =
+      currentText.slice(0, selectionStart) +
+      `\n${timestampPrefix}` +
+      currentText.slice(selectionEnd)
+
+    setNoteValue(insertedValue)
+    debouncedHandleNoteAutoSave(insertedValue)
+
+    window.requestAnimationFrame(() => {
+      const nextCursorPosition = selectionStart + 1 + timestampPrefix.length
+      textarea.selectionStart = nextCursorPosition
+      textarea.selectionEnd = nextCursorPosition
+    })
   }
 
   const handleNoteAutoSave = (currentNoteValue: any) => {
@@ -265,6 +267,9 @@ const Notes = ({
           {parsedNotes.length === 1 ? 'entry' : 'entries'}
         </span>
       </div>
+      <div className="notes-helper-copy">
+        One line = one note. Press Enter to start a new timestamped note.
+      </div>
       <div className="mx-auto my-auto notes-textarea-div align-items-center border rounded">
         <textarea
           className="form-control border rounded notes-textarea"
@@ -273,16 +278,16 @@ const Notes = ({
           name="notes"
           placeholder="Start taking your Notes.."
           onFocus={handleTextAreaFocus}
-          onKeyUp={handleNewNoteLine}
+          onKeyDown={handleKeyDown}
           onChange={handleNoteChange}
           value={noteValue}
         ></textarea>
       </div>
       <div className="notes-import-panel">
         <div className="notes-import-header">
-          <span>Saved Notes Timeline</span>
+          <span>Convert Notes to Clips</span>
           <span className="notes-import-subtitle">
-            Import any saved note as inline or extended
+            Review saved notes and turn each one into inline or extended audio
           </span>
         </div>
         <div className="notes-import-list">
@@ -307,32 +312,43 @@ const Notes = ({
                     <div className="notes-import-time">{note.timeLabel}</div>
                     <div className="notes-import-text">{note.text}</div>
                   </div>
+                  <div className="notes-import-status-row">
+                    <span
+                      className={`notes-status-badge ${
+                        inlineImported ? 'is-added' : 'is-pending'
+                      }`}
+                    >
+                      Inline {inlineImported ? 'added' : 'not added'}
+                    </span>
+                    <span
+                      className={`notes-status-badge ${
+                        extendedImported ? 'is-added' : 'is-pending'
+                      }`}
+                    >
+                      Extended {extendedImported ? 'added' : 'not added'}
+                    </span>
+                  </div>
                   <div className="notes-import-actions">
-                    <button
-                      type="button"
-                      className={`notes-import-btn inline ${
-                        inlineImported ? 'is-imported' : ''
-                      }`}
-                      disabled={
-                        inlineImported || importingKey === `${note.id}-inline`
-                      }
-                      onClick={() => handleImportNote(note, 'inline')}
-                    >
-                      {inlineImported ? 'Inline Added' : 'Import Inline'}
-                    </button>
-                    <button
-                      type="button"
-                      className={`notes-import-btn extended ${
-                        extendedImported ? 'is-imported' : ''
-                      }`}
-                      disabled={
-                        extendedImported ||
-                        importingKey === `${note.id}-extended`
-                      }
-                      onClick={() => handleImportNote(note, 'extended')}
-                    >
-                      {extendedImported ? 'Extended Added' : 'Import Extended'}
-                    </button>
+                    {!inlineImported && (
+                      <button
+                        type="button"
+                        className="notes-import-btn inline"
+                        disabled={importingKey === `${note.id}-inline`}
+                        onClick={() => handleImportNote(note, 'inline')}
+                      >
+                        Add Inline
+                      </button>
+                    )}
+                    {!extendedImported && (
+                      <button
+                        type="button"
+                        className="notes-import-btn extended"
+                        disabled={importingKey === `${note.id}-extended`}
+                        onClick={() => handleImportNote(note, 'extended')}
+                      >
+                        Add Extended
+                      </button>
+                    )}
                   </div>
                 </div>
               )

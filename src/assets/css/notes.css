@@ -16,6 +16,12 @@
   color: #d5d5d5;
   font-size: 12px;
 }
+.notes-helper-copy {
+  color: #d0d0d0;
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 0 12px 8px;
+}
 .notes-textarea-div {
   background-color: white;
   width: 400px;
@@ -108,9 +114,35 @@
   word-break: break-word;
 }
 
+.notes-import-status-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.notes-status-badge {
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.notes-status-badge.is-added {
+  background: rgba(76, 175, 80, 0.18);
+  color: #9df0a0;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.notes-status-badge.is-pending {
+  background: rgba(255, 255, 255, 0.08);
+  color: #d9d9d9;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
 .notes-import-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .notes-import-btn {
@@ -135,10 +167,5 @@
 
 .notes-import-btn.extended {
   background: #ff4de3;
-  color: #fff;
-}
-
-.notes-import-btn.is-imported {
-  background: #4caf50;
   color: #fff;
 }
