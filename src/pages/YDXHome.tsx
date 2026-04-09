@@ -56,6 +56,9 @@ const YDXHome = (): React.ReactElement => {
   // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
   const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
   const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored as a fallback if canonical YouTube metadata is unavailable
+  const [videoLengthYoutubeVideoId, setVideoLengthYoutubeVideoId] = useState<
+    string | undefined
+  >()
   const [, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
   const [currentEvent, setCurrentEvent] = useState<YouTubePlayer>() //stores YouTube video's event
   const [currentState, setCurrentState] = useState(-1) // stores YouTube video's PLAYING, CUED, PAUSED, UNSTARTED, BUFFERING, ENDED state values
@@ -150,16 +153,18 @@ const YDXHome = (): React.ReactElement => {
   const currentExtendedACRef = useRef(currExtendedAC)
   const savedClipRefreshRequestedRef = useRef(false)
   const initialUpdateDataRef = useRef(true)
+  const matchingBackendVideoLength =
+    videoLengthYoutubeVideoId === youtubeVideoId ? videoLength : 0
   const canonicalVideoDuration = useCanonicalVideoDuration(
     youtubeVideoId,
-    videoLength,
+    matchingBackendVideoLength,
   )
   const resolvedVideoLength = canonicalVideoDuration.durationSeconds
   const hasResolvedVideoLength =
     canonicalVideoDuration.status === 'resolved' && resolvedVideoLength > 0
   const videoLengthForChildren = hasResolvedVideoLength
     ? resolvedVideoLength
-    : videoLength
+    : matchingBackendVideoLength
 
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -401,6 +406,7 @@ const YDXHome = (): React.ReactElement => {
         const video_id = res.data.video_id
         const video_length = res.data.video_length
         setVideoLength(video_length)
+        setVideoLengthYoutubeVideoId(youtubeVideoId)
         setVideoId(video_id)
       })
       .catch((err) => {
