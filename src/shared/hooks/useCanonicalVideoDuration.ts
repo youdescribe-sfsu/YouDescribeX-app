@@ -12,19 +12,29 @@ export interface CanonicalVideoDurationState {
   status: CanonicalVideoDurationStatus
 }
 
+interface InternalCanonicalVideoDurationState
+  extends CanonicalVideoDurationState {
+  youtubeVideoId?: string
+}
+
 const BACKEND_FALLBACK_TIMEOUT_MS = 750
-const INITIAL_DURATION_STATE: CanonicalVideoDurationState = {
+const createInitialDurationState = (
+  youtubeVideoId?: string,
+): InternalCanonicalVideoDurationState => ({
   durationSeconds: 0,
   source: 'none',
-  status: 'loading',
-}
+  status: youtubeVideoId ? 'loading' : 'error',
+  youtubeVideoId,
+})
 
 const useCanonicalVideoDuration = (
   youtubeVideoId?: string,
   backendFallbackSeconds?: number,
 ): CanonicalVideoDurationState => {
   const [resolutionState, setResolutionState] =
-    useState<CanonicalVideoDurationState>(INITIAL_DURATION_STATE)
+    useState<InternalCanonicalVideoDurationState>(
+      createInitialDurationState(youtubeVideoId),
+    )
   const requestIdRef = useRef(0)
   const latestBackendFallbackRef = useRef(backendFallbackSeconds ?? 0)
   const requestStateRef = useRef<{
@@ -44,7 +54,11 @@ const useCanonicalVideoDuration = (
   }, [backendFallbackSeconds])
 
   const commitBackendResolution = useCallback(
-    (requestId: number, durationSeconds: number) => {
+    (
+      requestId: number,
+      durationSeconds: number,
+      resolvedYoutubeVideoId?: string,
+    ) => {
       const requestState = requestStateRef.current
 
       if (
@@ -61,29 +75,34 @@ const useCanonicalVideoDuration = (
         durationSeconds,
         source: 'backend',
         status: 'resolved',
+        youtubeVideoId: resolvedYoutubeVideoId,
       })
     },
     [],
   )
 
-  const commitErrorResolution = useCallback((requestId: number) => {
-    const requestState = requestStateRef.current
+  const commitErrorResolution = useCallback(
+    (requestId: number, resolvedYoutubeVideoId?: string) => {
+      const requestState = requestStateRef.current
 
-    if (
-      requestState.requestId !== requestId ||
-      requestState.finalization === 'youtube' ||
-      requestState.finalization === 'backend'
-    ) {
-      return
-    }
+      if (
+        requestState.requestId !== requestId ||
+        requestState.finalization === 'youtube' ||
+        requestState.finalization === 'backend'
+      ) {
+        return
+      }
 
-    requestState.finalization = 'error'
-    setResolutionState({
-      durationSeconds: 0,
-      source: 'none',
-      status: 'error',
-    })
-  }, [])
+      requestState.finalization = 'error'
+      setResolutionState({
+        durationSeconds: 0,
+        source: 'none',
+        status: 'error',
+        youtubeVideoId: resolvedYoutubeVideoId,
+      })
+    },
+    [],
+  )
 
   useEffect(() => {
     const backendFallback = latestBackendFallbackRef.current
@@ -101,6 +120,7 @@ const useCanonicalVideoDuration = (
           durationSeconds: backendFallback,
           source: 'backend',
           status: 'resolved',
+          youtubeVideoId,
         })
         return
       }
@@ -109,6 +129,7 @@ const useCanonicalVideoDuration = (
         durationSeconds: 0,
         source: 'none',
         status: 'error',
+        youtubeVideoId,
       })
       return
     }
@@ -121,7 +142,7 @@ const useCanonicalVideoDuration = (
       requestId,
       youtubeSettledWithoutUsableDuration: false,
     }
-    setResolutionState(INITIAL_DURATION_STATE)
+    setResolutionState(createInitialDurationState(youtubeVideoId))
 
     const timeoutId = window.setTimeout(() => {
       if (isCancelled || requestStateRef.current.requestId !== requestId) {
@@ -132,7 +153,11 @@ const useCanonicalVideoDuration = (
 
       const latestBackendFallback = latestBackendFallbackRef.current
       if (latestBackendFallback > 0) {
-        commitBackendResolution(requestId, latestBackendFallback)
+        commitBackendResolution(
+          requestId,
+          latestBackendFallback,
+          youtubeVideoId,
+        )
       }
     }, BACKEND_FALLBACK_TIMEOUT_MS)
 
@@ -167,6 +192,7 @@ const useCanonicalVideoDuration = (
             durationSeconds: youtubeDuration,
             source: 'youtube',
             status: 'resolved',
+            youtubeVideoId,
           })
           return
         }
@@ -176,11 +202,15 @@ const useCanonicalVideoDuration = (
 
         const latestBackendFallback = latestBackendFallbackRef.current
         if (latestBackendFallback > 0) {
-          commitBackendResolution(requestId, latestBackendFallback)
+          commitBackendResolution(
+            requestId,
+            latestBackendFallback,
+            youtubeVideoId,
+          )
           return
         }
 
-        commitErrorResolution(requestId)
+        commitErrorResolution(requestId, youtubeVideoId)
       } catch {
         if (isCancelled || requestStateRef.current.requestId !== requestId) {
           return
@@ -191,11 +221,15 @@ const useCanonicalVideoDuration = (
 
         const latestBackendFallback = latestBackendFallbackRef.current
         if (latestBackendFallback > 0) {
-          commitBackendResolution(requestId, latestBackendFallback)
+          commitBackendResolution(
+            requestId,
+            latestBackendFallback,
+            youtubeVideoId,
+          )
           return
         }
 
-        commitErrorResolution(requestId)
+        commitErrorResolution(requestId, youtubeVideoId)
       }
     }
 
@@ -221,11 +255,25 @@ const useCanonicalVideoDuration = (
       commitBackendResolution(
         requestState.requestId,
         backendFallbackSeconds ?? 0,
+        youtubeVideoId,
       )
     }
-  }, [backendFallbackSeconds, commitBackendResolution])
+  }, [backendFallbackSeconds, commitBackendResolution, youtubeVideoId])
 
-  return resolutionState
+  if (resolutionState.youtubeVideoId !== youtubeVideoId) {
+    const initialState = createInitialDurationState(youtubeVideoId)
+    return {
+      durationSeconds: initialState.durationSeconds,
+      source: initialState.source,
+      status: initialState.status,
+    }
+  }
+
+  return {
+    durationSeconds: resolutionState.durationSeconds,
+    source: resolutionState.source,
+    status: resolutionState.status,
+  }
 }
 
 export default useCanonicalVideoDuration
