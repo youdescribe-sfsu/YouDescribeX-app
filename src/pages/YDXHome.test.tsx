@@ -199,6 +199,21 @@ describe('YDXHome refresh alignment', () => {
         })
       }
 
+      if (url.includes('/api/youtube-proxy/videos?id=youtube-1')) {
+        return Promise.resolve({
+          data: {
+            items: [
+              {
+                id: 'youtube-1',
+                contentDetails: {
+                  duration: 'PT2M',
+                },
+              },
+            ],
+          },
+        })
+      }
+
       if (url.includes('/api/dialog-timestamps/get-video-dialog/')) {
         return Promise.resolve({
           data: [],
@@ -236,7 +251,6 @@ describe('YDXHome refresh alignment', () => {
   it('rebuilds edit toggles on a non-save refresh from a clip row', async () => {
     queueAudioDescriptionResponses(
       makeAudioDescriptionResponse([makeClip()]),
-      makeAudioDescriptionResponse([makeClip()]),
       makeAudioDescriptionResponse([
         makeClip(),
         makeClip({
@@ -270,7 +284,6 @@ describe('YDXHome refresh alignment', () => {
 
   it('rebuilds edit toggles after undo restores clips through the non-save refresh path', async () => {
     queueAudioDescriptionResponses(
-      makeAudioDescriptionResponse([makeClip()]),
       makeAudioDescriptionResponse([makeClip()]),
       makeAudioDescriptionResponse([]),
       makeAudioDescriptionResponse([

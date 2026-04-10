@@ -190,6 +190,21 @@ describe('YDXHome PR2 insert-time behavior', () => {
         })
       }
 
+      if (url.includes('/api/youtube-proxy/videos?id=youtube-1')) {
+        return Promise.resolve({
+          data: {
+            items: [
+              {
+                id: 'youtube-1',
+                contentDetails: {
+                  duration: 'PT2M',
+                },
+              },
+            ],
+          },
+        })
+      }
+
       if (url.includes('/api/dialog-timestamps/get-video-dialog/')) {
         return Promise.resolve({
           data: [],
