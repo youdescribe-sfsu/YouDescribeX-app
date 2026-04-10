@@ -1,5 +1,5 @@
 import React from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import axios from 'axios'
 import YDXHome from './YDXHome'
 
@@ -8,6 +8,31 @@ jest.mock('axios')
 const mockNavigate = jest.fn()
 const mockedAxios = axios as jest.Mocked<typeof axios>
 const audioDescriptionResponses: any[] = []
+let mockTimelineTrackWidth = 100
+let mockPlayerCurrentTime = 0
+let mockYouTubePlayer:
+  | {
+      getCurrentTime: jest.Mock<number, []>
+      setVolume: jest.Mock<void, [number]>
+      pauseVideo: jest.Mock<void, []>
+      playVideo: jest.Mock<void, []>
+      seekTo: jest.Mock<void, [number, boolean | undefined]>
+      getPlayerState: jest.Mock<number, []>
+    }
+  | undefined
+const originalClientWidth = Object.getOwnPropertyDescriptor(
+  HTMLElement.prototype,
+  'clientWidth',
+)
+
+const mockCreateYouTubePlayer = () => ({
+  getCurrentTime: jest.fn(() => mockPlayerCurrentTime),
+  setVolume: jest.fn(),
+  pauseVideo: jest.fn(),
+  playVideo: jest.fn(),
+  seekTo: jest.fn(),
+  getPlayerState: jest.fn(() => 1),
+})
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -42,13 +67,40 @@ jest.mock('debounce', () => ({
 
 jest.mock('react-youtube', () => ({
   __esModule: true,
-  default: () => <div data-testid="youtube-player" />,
+  default: ({ onPlay }: { onPlay?: (event: { target: unknown }) => void }) => {
+    mockYouTubePlayer = mockCreateYouTubePlayer()
+
+    return (
+      <div data-testid="youtube-player">
+        <button
+          type="button"
+          data-testid="youtube-play"
+          onClick={() => onPlay?.({ target: mockYouTubePlayer })}
+        >
+          Play
+        </button>
+      </div>
+    )
+  },
 }))
 
 jest.mock('react-draggable', () => ({
   __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
+  default: ({
+    children,
+    onStop,
+    position,
+  }: {
+    children: React.ReactNode
+    onStop?: (event: unknown, data: { x: number; y: number }) => void
+    position?: { x: number; y: number }
+  }) => (
+    <div
+      data-testid={onStop ? 'master-timeline-draggable' : undefined}
+      data-x={position?.x ?? ''}
+    >
+      {children}
+    </div>
   ),
 }))
 
@@ -183,11 +235,15 @@ const queueAudioDescriptionResponses = (...responses: any[]) => {
 describe('YDXHome refresh alignment', () => {
   beforeEach(() => {
     audioDescriptionResponses.length = 0
+    mockTimelineTrackWidth = 100
+    mockPlayerCurrentTime = 0
+    mockYouTubePlayer = undefined
     mockedAxios.get.mockReset()
     mockedAxios.post.mockReset()
     mockNavigate.mockReset()
     localStorage.clear()
     sessionStorage.clear()
+    jest.useRealTimers()
 
     mockedAxios.get.mockImplementation((url) => {
       if (url.includes('/api/videos/get-by-youtubeVideo/')) {
@@ -246,6 +302,36 @@ describe('YDXHome refresh alignment', () => {
         },
       },
     })
+
+    Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
+      configurable: true,
+      get() {
+        const element = this as HTMLElement
+
+        if (
+          element.classList.contains('timeline-track-wrapper') ||
+          element.id === 'draggable-div'
+        ) {
+          return mockTimelineTrackWidth
+        }
+
+        if (element.classList.contains('progress-bar-div')) {
+          return 2
+        }
+
+        return 1
+      },
+    })
+  })
+
+  afterAll(() => {
+    if (originalClientWidth) {
+      Object.defineProperty(
+        HTMLElement.prototype,
+        'clientWidth',
+        originalClientWidth,
+      )
+    }
   })
 
   it('rebuilds edit toggles on a non-save refresh from a clip row', async () => {
@@ -318,5 +404,76 @@ describe('YDXHome refresh alignment', () => {
         'true',
       )
     })
+  })
+
+  it('clamps playback-driven time updates to the canonical duration and max playhead position', async () => {
+    jest.useFakeTimers()
+    mockPlayerCurrentTime = 130
+    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
+
+    render(<YDXHome />)
+
+    await screen.findByTestId('insert-publish')
+
+    fireEvent.click(screen.getByTestId('youtube-play'))
+
+    act(() => {
+      jest.advanceTimersByTime(100)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('00:02:00:00')).toBeInTheDocument()
+    })
+
+    await waitFor(() => {
+      expect(
+        Number(
+          screen
+            .getByTestId('master-timeline-draggable')
+            .getAttribute('data-x'),
+        ),
+      ).toBeCloseTo(98, 5)
+    })
+  })
+
+  it('reprojects the playhead inside the timeline when the track width shrinks', async () => {
+    jest.useFakeTimers()
+    mockPlayerCurrentTime = 120
+    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
+
+    render(<YDXHome />)
+
+    await screen.findByTestId('insert-publish')
+
+    fireEvent.click(screen.getByTestId('youtube-play'))
+
+    act(() => {
+      jest.advanceTimersByTime(100)
+    })
+
+    await waitFor(() => {
+      expect(
+        Number(
+          screen
+            .getByTestId('master-timeline-draggable')
+            .getAttribute('data-x'),
+        ),
+      ).toBeCloseTo(98, 5)
+    })
+
+    mockTimelineTrackWidth = 50
+    fireEvent(window, new Event('resize'))
+
+    await waitFor(() => {
+      expect(
+        Number(
+          screen
+            .getByTestId('master-timeline-draggable')
+            .getAttribute('data-x'),
+        ),
+      ).toBeCloseTo(48, 5)
+    })
+
+    expect(screen.getByText('00:02:00:00')).toBeInTheDocument()
   })
 })

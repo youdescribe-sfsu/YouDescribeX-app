@@ -1,24 +1,38 @@
 import React from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import axios from 'axios'
-import YDXHome from './YDXHome'
+import PublishedAudioDescriptions from './PublishedAudioDescriptions'
 
 jest.mock('axios')
 
 const mockedAxios = axios as jest.Mocked<typeof axios>
 const mockNavigate = jest.fn()
-const audioDescriptionResponses: any[] = []
 let mockTimelineTrackWidth = 100
 let mockTimelineStopX = 0.1
-let mockTimelineDragX = 0.1
+let mockPlayerCurrentTime = 0
+let mockYouTubePlayer:
+  | {
+      getCurrentTime: jest.Mock<number, []>
+      setVolume: jest.Mock<void, [number]>
+      pauseVideo: jest.Mock<void, []>
+      playVideo: jest.Mock<void, []>
+      seekTo: jest.Mock<void, [number, boolean | undefined]>
+      getPlayerState: jest.Mock<number, []>
+    }
+  | undefined
 const originalClientWidth = Object.getOwnPropertyDescriptor(
   HTMLElement.prototype,
   'clientWidth',
 )
 
-jest.mock('@/assets/css/insertPublish.css', () => ({}), { virtual: true })
-jest.mock('@/assets/css/audioDesc.css', () => ({}), { virtual: true })
-jest.mock('@/assets/css/editAudioDesc.css', () => ({}), { virtual: true })
+const mockCreateYouTubePlayer = () => ({
+  getCurrentTime: jest.fn(() => mockPlayerCurrentTime),
+  setVolume: jest.fn(),
+  pauseVideo: jest.fn(),
+  playVideo: jest.fn(),
+  seekTo: jest.fn(),
+  getPlayerState: jest.fn(() => 1),
+})
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -26,6 +40,9 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({
     audioDescriptionId: 'ad-1',
     youtubeVideoId: 'youtube-1',
+  }),
+  useLocation: () => ({
+    pathname: '/audio-description/preview/youtube-1/ad-1',
   }),
 }))
 
@@ -53,7 +70,21 @@ jest.mock('debounce', () => ({
 
 jest.mock('react-youtube', () => ({
   __esModule: true,
-  default: () => <div data-testid="youtube-player" />,
+  default: ({ onPlay }: { onPlay?: (event: { target: unknown }) => void }) => {
+    mockYouTubePlayer = mockCreateYouTubePlayer()
+
+    return (
+      <div data-testid="youtube-player">
+        <button
+          type="button"
+          data-testid="youtube-play"
+          onClick={() => onPlay?.({ target: mockYouTubePlayer })}
+        >
+          Play
+        </button>
+      </div>
+    )
+  },
 }))
 
 jest.mock('react-draggable', () => ({
@@ -77,7 +108,7 @@ jest.mock('react-draggable', () => ({
         <button
           type="button"
           data-testid="master-timeline-drag"
-          onClick={() => onDrag({}, { x: mockTimelineDragX, y: 0 })}
+          onClick={() => onDrag({}, { x: mockTimelineStopX, y: 0 })}
         >
           Trigger drag
         </button>
@@ -96,29 +127,38 @@ jest.mock('react-draggable', () => ({
   ),
 }))
 
-jest.mock('../features/Describe/Buttons/Buttons', () => ({
+jest.mock('../../features/Describe/Buttons/Buttons', () => ({
   Buttons: () => <div data-testid="buttons" />,
 }))
 
-jest.mock('../features/Describe/Notes/Notes', () => ({
+jest.mock('../../features/Describe/Notes/Notes', () => ({
   __esModule: true,
   default: () => <div data-testid="notes" />,
 }))
 
-jest.mock('../features/Describe/AudioClip/AudioClip', () => ({
+jest.mock('../../features/Describe/InsertPublish/InsertPublish', () => ({
+  __esModule: true,
+  default: () => <div data-testid="insert-publish" />,
+}))
+
+jest.mock('../../features/Describe/AudioClip/AudioClip', () => ({
   __esModule: true,
   default: () => null,
 }))
 
-jest.mock('../shared/components/Spinner/Spinner', () => ({
+jest.mock('../../shared/components/Spinner/Spinner', () => ({
   __esModule: true,
   default: () => <div data-testid="spinner" />,
 }))
 
-jest.mock('../shared/components/Modal/Modal', () => ({
-  __esModule: true,
-  default: () => <div data-testid="publish-modal" />,
-}))
+jest.mock(
+  '@/shared/components/Modal/Modal',
+  () => ({
+    __esModule: true,
+    default: () => <div data-testid="publish-modal" />,
+  }),
+  { virtual: true },
+)
 
 jest.mock('react-bootstrap/Button', () => ({
   __esModule: true,
@@ -138,20 +178,6 @@ jest.mock('react-toastify', () => ({
     error: jest.fn(),
     dismiss: jest.fn(),
   },
-}))
-
-jest.mock('bootstrap', () => ({
-  Tooltip: jest.fn(),
-}))
-
-jest.mock('react-media-recorder', () => ({
-  useReactMediaRecorder: () => ({
-    status: 'idle',
-    startRecording: jest.fn(),
-    stopRecording: jest.fn(),
-    mediaBlobUrl: null,
-    clearBlobUrl: jest.fn(),
-  }),
 }))
 
 jest.mock('howler', () => {
@@ -176,31 +202,21 @@ jest.mock('howler', () => {
 const makeAudioDescriptionResponse = (clips: any[]) => ({
   Audio_Clips: clips,
   Notes: ['Notes'],
-  is_collaborative_version: false,
   is_published: false,
 })
 
-const queueAudioDescriptionResponses = (...responses: any[]) => {
-  audioDescriptionResponses.length = 0
-  audioDescriptionResponses.push(...responses)
-}
-
-const readStartTimeInputs = () =>
-  screen
-    .getAllByRole('spinbutton')
-    .map((input) => Number((input as HTMLInputElement).value))
-
-describe('YDXHome PR2 insert-time behavior', () => {
+describe('PublishedAudioDescriptions master timeline clamping', () => {
   beforeEach(() => {
-    audioDescriptionResponses.length = 0
     mockTimelineTrackWidth = 100
-    mockTimelineStopX = 10.208333333333334
-    mockTimelineDragX = 10.208333333333334
+    mockTimelineStopX = 0.1
+    mockPlayerCurrentTime = 0
+    mockYouTubePlayer = undefined
     mockedAxios.get.mockReset()
     mockedAxios.post.mockReset()
     mockNavigate.mockReset()
     localStorage.clear()
     sessionStorage.clear()
+    jest.useRealTimers()
 
     mockedAxios.get.mockImplementation((url) => {
       if (url.includes('/api/videos/get-by-youtubeVideo/')) {
@@ -233,25 +249,14 @@ describe('YDXHome PR2 insert-time behavior', () => {
         })
       }
 
-      if (url.includes('/api/audio-descriptions/get-user-ad/')) {
-        const nextResponse =
-          audioDescriptionResponses.length > 1
-            ? audioDescriptionResponses.shift()
-            : audioDescriptionResponses[0]
-
-        if (!nextResponse) {
-          throw new Error(`Missing audio description response for ${url}`)
-        }
-
+      if (url.includes('/api/audio-descriptions/get-audio-description/ad-1')) {
         return Promise.resolve({
-          data: nextResponse,
+          data: makeAudioDescriptionResponse([]),
         })
       }
 
       throw new Error(`Unexpected axios.get URL: ${url}`)
     })
-
-    mockedAxios.post.mockResolvedValue({ data: 'saved' })
 
     Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
       configurable: true,
@@ -284,31 +289,12 @@ describe('YDXHome PR2 insert-time behavior', () => {
     }
   })
 
-  it('syncs the drag-stop time before insert-open snapshots the master timeline value', async () => {
-    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
-
-    render(<YDXHome />)
-
-    await screen.findByRole('button', { name: /insert inline/i })
-
-    fireEvent.click(screen.getByTestId('master-timeline-stop'))
-
-    await waitFor(() => {
-      expect(screen.getByText('00:00:12:50')).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: /insert inline/i }))
-
-    expect(readStartTimeInputs()).toEqual([0, 0, 12, 50])
-  })
-
-  it('clamps a right-edge drag stop to the canonical duration before insert-open snapshots it', async () => {
+  it('clamps a right-edge drag stop to the canonical duration', async () => {
     mockTimelineStopX = 120
-    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
 
-    render(<YDXHome />)
+    render(<PublishedAudioDescriptions />)
 
-    await screen.findByRole('button', { name: /insert inline/i })
+    await screen.findByTestId('master-timeline-stop')
 
     fireEvent.click(screen.getByTestId('master-timeline-stop'))
 
@@ -316,8 +302,79 @@ describe('YDXHome PR2 insert-time behavior', () => {
       expect(screen.getByText('00:02:00:00')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /insert inline/i }))
+    expect(
+      Number(
+        screen.getByTestId('master-timeline-draggable').getAttribute('data-x'),
+      ),
+    ).toBeCloseTo(98, 5)
+  })
 
-    expect(readStartTimeInputs()).toEqual([0, 2, 0, 0])
+  it('clamps playback-driven time updates to the canonical duration and max playhead position', async () => {
+    jest.useFakeTimers()
+    mockPlayerCurrentTime = 130
+
+    render(<PublishedAudioDescriptions />)
+
+    await screen.findByTestId('youtube-play')
+
+    fireEvent.click(screen.getByTestId('youtube-play'))
+
+    act(() => {
+      jest.advanceTimersByTime(100)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('00:02:00:00')).toBeInTheDocument()
+    })
+
+    await waitFor(() => {
+      expect(
+        Number(
+          screen
+            .getByTestId('master-timeline-draggable')
+            .getAttribute('data-x'),
+        ),
+      ).toBeCloseTo(98, 5)
+    })
+  })
+
+  it('reprojects the playhead inside the timeline when the track width shrinks', async () => {
+    jest.useFakeTimers()
+    mockPlayerCurrentTime = 120
+
+    render(<PublishedAudioDescriptions />)
+
+    await screen.findByTestId('youtube-play')
+
+    fireEvent.click(screen.getByTestId('youtube-play'))
+
+    act(() => {
+      jest.advanceTimersByTime(100)
+    })
+
+    await waitFor(() => {
+      expect(
+        Number(
+          screen
+            .getByTestId('master-timeline-draggable')
+            .getAttribute('data-x'),
+        ),
+      ).toBeCloseTo(98, 5)
+    })
+
+    mockTimelineTrackWidth = 50
+    fireEvent(window, new Event('resize'))
+
+    await waitFor(() => {
+      expect(
+        Number(
+          screen
+            .getByTestId('master-timeline-draggable')
+            .getAttribute('data-x'),
+        ),
+      ).toBeCloseTo(48, 5)
+    })
+
+    expect(screen.getByText('00:02:00:00')).toBeInTheDocument()
   })
 })

@@ -20,10 +20,26 @@ import { Howl } from 'howler'
 import { debounce } from 'debounce'
 import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
+import {
+  buildTimelineMetrics,
+  clampTimelineTime,
+  clampTimelineX,
+  timeToTimelineX,
+  timelineXToTime,
+  TimelineMetrics,
+} from '../shared/utils/timelineBounds'
 import { Options } from 'youtube-player/dist/types'
 import { userDataStore } from '@/App'
 import { Id, toast } from 'react-toastify'
 import Button from 'react-bootstrap/Button'
+
+type DialogTimestamp = {
+  dialog_seq_no: number
+  dialog_start_time: number
+  dialog_duration: number
+}
+
+const DEFAULT_PLAYHEAD_WIDTH_PX = 2
 
 const YDXHome = (): React.ReactElement => {
   /* to use params on the url and get userId & youtubeVideoId */
@@ -49,6 +65,7 @@ const YDXHome = (): React.ReactElement => {
   const divRef1 = useRef<HTMLDivElement>(null)
   const divRef2 = useRef<HTMLDivElement>(null)
   const divRef3 = useRef<HTMLDivElement>(null)
+  const playheadRef = useRef<HTMLDivElement>(null)
   const [divWidths, setDivWidths] = useState({})
 
   // State Variables
@@ -58,14 +75,17 @@ const YDXHome = (): React.ReactElement => {
   const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored as a fallback if canonical YouTube metadata is unavailable
   const [backendFallbackYoutubeVideoId, setBackendFallbackYoutubeVideoId] =
     useState<string | undefined>()
-  const [, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
   const [currentEvent, setCurrentEvent] = useState<YouTubePlayer>() //stores YouTube video's event
   const [currentState, setCurrentState] = useState(-1) // stores YouTube video's PLAYING, CUED, PAUSED, UNSTARTED, BUFFERING, ENDED state values
   const [currentTime, setCurrentTime] = useState(0.0) //stores current running time of the YouTube video
   const [timer, setTimer] = useState<NodeJS.Timer>() // stores TBD
   const [unitLength, setUnitLength] = useState(0) // stores unit length based on the video length to maintain colored div's on the timelines
   const [draggableTime, setDraggableTime] = useState({ x: 0, y: 0 }) // stores the position of the draggable bar on the #draggable-div
-  const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<any[]>([]) // stores dialog-timestamps data for a video from backend db
+  const [timelineMetrics, setTimelineMetrics] =
+    useState<TimelineMetrics | null>(null)
+  const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<
+    DialogTimestamp[]
+  >([]) // stores dialog-timestamps data for a video from backend db
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPublished, setIsPublished] = useState(false) // holds the published state of the Video & Audio Description
   const [isCollaborativeVersion, setCollaborativeVersion] = useState(false) // holds the Collaborative Version state of the Video & Audio Description
@@ -150,6 +170,7 @@ const YDXHome = (): React.ReactElement => {
   const currentStateRef = useRef(currentState)
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
+  const timelineMetricsRef = useRef<TimelineMetrics | null>(null)
   const savedClipRefreshRequestedRef = useRef(false)
   const initialUpdateDataRef = useRef(true)
   const backendFallbackDurationSeconds =
@@ -181,6 +202,10 @@ const YDXHome = (): React.ReactElement => {
   }, [currentClipIndex])
 
   useEffect(() => {
+    timelineMetricsRef.current = timelineMetrics
+  }, [timelineMetrics])
+
+  useEffect(() => {
     if (currentInlineACRef.current?.playing()) {
       currentInlineACRef.current?.volume(descriptionVolume / 100)
     }
@@ -200,24 +225,14 @@ const YDXHome = (): React.ReactElement => {
   }, [youTubeVolume, currentEventRef])
 
   useEffect(() => {
-    if (hasCanonicalDuration) {
-      const calculatedWidth = calculateDraggableDivWidth()
-      calculateUnitLength(canonicalDurationSeconds, calculatedWidth)
-      return
-    }
-
-    setUnitLength(0)
-  }, [canonicalDurationSeconds, hasCanonicalDuration])
-
-  useEffect(() => {
-    if (unitLength > 0 && videoId) {
+    if (videoId) {
       setShowSpinner(true)
       fetchDialogData()
       setShowSpinner(true)
       fetchAudioDescriptionData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitLength, videoId])
+  }, [videoId])
 
   function reset() {
     setSeconds(0)
@@ -331,29 +346,89 @@ const YDXHome = (): React.ReactElement => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  // for calculating the draggable-div width of the timeline
-  const calculateDraggableDivWidth = () => {
-    // remove the left & right margin - leaving about 96% of the total width of the draggable-div
-    const currWidth = divRef3?.current?.clientWidth || 1
-    // const currWidth = 700;
-    const draggableDivWidth = (96 * currWidth) / 100
-    setDraggableDivWidth(draggableDivWidth)
-    return draggableDivWidth
-    // could add this to change the unit length for every window resize.. commenting this for now
-    // window.addEventListener('resize', () => {
-    //   const newWidth = divRef.current.clientWidth;
-    //   const draggableDivWidth = (96 * newWidth) / 100;
-    //   setDraggableDivWidth(draggableDivWidth);
-    // });
-  }
-  // calculate unit length of the timeline width based on video length
-  const calculateUnitLength = (
-    videoEndTime: number,
-    draggableDivWidth: number,
-  ) => {
-    const unitLength = draggableDivWidth / videoEndTime // let unitlength = 644 / 299;
-    setUnitLength(unitLength)
-  }
+
+  const syncTimelineTime = useCallback(
+    (time: number) => {
+      const durationSeconds =
+        timelineMetricsRef.current?.durationSeconds || canonicalDurationSeconds
+      const clampedTime = clampTimelineTime(time, durationSeconds)
+
+      setCurrentTime(clampedTime)
+      currentTimeRef.current = clampedTime
+
+      if (timelineMetricsRef.current) {
+        setDraggableTime({
+          x: timeToTimelineX(clampedTime, timelineMetricsRef.current),
+          y: 0,
+        })
+      }
+
+      return clampedTime
+    },
+    [canonicalDurationSeconds],
+  )
+
+  const measureTimelineMetrics = useCallback(() => {
+    if (!hasCanonicalDuration) {
+      timelineMetricsRef.current = null
+      setTimelineMetrics(null)
+      setUnitLength(0)
+      setDraggableTime({ x: 0, y: 0 })
+      return
+    }
+
+    const nextMetrics = buildTimelineMetrics(
+      divRef3.current?.clientWidth || 0,
+      playheadRef.current?.clientWidth || DEFAULT_PLAYHEAD_WIDTH_PX,
+      canonicalDurationSeconds,
+    )
+    const nextUnitLength =
+      nextMetrics.durationSeconds > 0
+        ? nextMetrics.maxX / nextMetrics.durationSeconds
+        : 0
+    const clampedTime = clampTimelineTime(
+      currentTimeRef.current,
+      canonicalDurationSeconds,
+    )
+
+    timelineMetricsRef.current = nextMetrics
+    setTimelineMetrics(nextMetrics)
+    setUnitLength(nextUnitLength)
+    setCurrentTime(clampedTime)
+    currentTimeRef.current = clampedTime
+    setDraggableTime({
+      x: timeToTimelineX(clampedTime, nextMetrics),
+      y: 0,
+    })
+  }, [canonicalDurationSeconds, hasCanonicalDuration])
+
+  useEffect(() => {
+    measureTimelineMetrics()
+
+    if (!hasCanonicalDuration) {
+      return
+    }
+
+    const handleResize = () => {
+      measureTimelineMetrics()
+    }
+
+    let resizeObserver: ResizeObserver | undefined
+
+    if (typeof ResizeObserver !== 'undefined' && divRef3.current) {
+      resizeObserver = new ResizeObserver(() => {
+        measureTimelineMetrics()
+      })
+      resizeObserver.observe(divRef3.current)
+    } else {
+      window.addEventListener('resize', handleResize)
+    }
+
+    return () => {
+      resizeObserver?.disconnect()
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [hasCanonicalDuration, measureTimelineMetrics])
 
   // use axios and get dialog timestamps for the Dialog Timeline
   const fetchDialogData = () => {
@@ -369,18 +444,13 @@ const YDXHome = (): React.ReactElement => {
       })
       .then((dialogData) => {
         setShowSpinner(false)
-        const updatedDialogData: any[] = []
-        dialogData.forEach((dialog: any) => {
-          const x = dialog.dialog_start_time * unitLength
-          const width = dialog.dialog_duration * unitLength
-          const dialog_start_time = {
+        const updatedDialogData: DialogTimestamp[] = dialogData.map(
+          (dialog: any) => ({
             dialog_seq_no: dialog.dialog_sequence_num,
-            // dialog_end_time: dialog.dialog_end_time,
-            controlledPosition: { x: x, y: 0 },
-            width: width,
-          }
-          updatedDialogData.push(dialog_start_time)
-        })
+            dialog_start_time: dialog.dialog_start_time,
+            dialog_duration: dialog.dialog_duration,
+          }),
+        )
         setVideoDialogTimestamps(updatedDialogData)
       })
       .catch((err) => {
@@ -712,15 +782,13 @@ const YDXHome = (): React.ReactElement => {
     recentAudioPlayedTime: number,
     playedClipPath: string,
   ) => {
-    setCurrentTime(time)
-    // for updating the draggable component position based on current time
-    setDraggableTime({ x: unitLength * time, y: 0 })
+    const syncedTime = syncTimelineTime(time)
     // check if the audio is not played recently. do not play it again.
-    if (recentAudioPlayedTime !== time) {
+    if (recentAudioPlayedTime !== syncedTime) {
       // To Play audio files based on current time
-      playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
+      playAudioAtCurrentTime(syncedTime, playedAudioClip, playedClipPath)
     }
-    setPreviousTime(time)
+    setPreviousTime(syncedTime)
   }
   // Scroll to and highlight the currently playing audio clip card
   const scrollToAudioClipCard = (clipId: string) => {
@@ -999,8 +1067,9 @@ const YDXHome = (): React.ReactElement => {
   }
   // YouTube Player Functions
   const onStateChange = (event: any) => {
-    const currentTime = event.target.getCurrentTime()
+    const currentTime = syncTimelineTime(event.target.getCurrentTime())
     setCurrentEvent(event.target)
+    currentEventRef.current = event.target
     setCurrentTime(currentTime)
     setCurrentState(event.data)
 
@@ -1084,10 +1153,13 @@ const YDXHome = (): React.ReactElement => {
   }
   const onReady = (event: any) => {
     setCurrentEvent(event.target)
+    currentEventRef.current = event.target
   }
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
-    setCurrentTime(event.target.getCurrentTime())
+    currentEventRef.current = event.target
+    const currentTime = syncTimelineTime(event.target.getCurrentTime())
+    setPreviousTime(currentTime)
 
     // Use the functional state update to guarantee we clear the old timer
     // before starting a new one, preventing interval leaks.
@@ -1114,16 +1186,26 @@ const YDXHome = (): React.ReactElement => {
     event: DraggableEvent,
     position: DraggableData,
   ) => {
-    setDraggableTime({ x: position.x, y: 0 })
-    let progressBarTime = 0.0
-    progressBarTime = position.x / unitLength
+    if (!timelineMetricsRef.current) {
+      return
+    }
+
+    const clampedX = clampTimelineX(position.x, timelineMetricsRef.current.maxX)
+    const progressBarTime = timelineXToTime(
+      clampedX,
+      timelineMetricsRef.current,
+    )
     // Keep the visible label in sync with the final drag-stop position before
     // insert-open snapshots currentTime for a new clip.
-    setCurrentTime(progressBarTime)
-    currentTimeRef.current = progressBarTime
-    currentEventRef.current?.seekTo(progressBarTime, true)
+    const syncedTime = syncTimelineTime(progressBarTime)
+    currentEventRef.current?.seekTo(syncedTime, true)
     const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setPreviousTime(currentPlayerTime ?? 0)
+    setPreviousTime(
+      clampTimelineTime(
+        currentPlayerTime ?? syncedTime,
+        timelineMetricsRef.current.durationSeconds,
+      ),
+    )
 
     // --> ADD THIS: Flush the memory cache when you stop dragging
     setPlayedClipsSet(new Set())
@@ -1132,13 +1214,20 @@ const YDXHome = (): React.ReactElement => {
     event: DraggableEvent,
     position: DraggableData,
   ) => {
-    setDraggableTime({ x: position.x, y: 0 })
-    let progressBarTime = 0.0
-    progressBarTime = position.x / unitLength
+    if (!timelineMetricsRef.current) {
+      return
+    }
+
+    const clampedX = clampTimelineX(position.x, timelineMetricsRef.current.maxX)
+    const progressBarTime = timelineXToTime(
+      clampedX,
+      timelineMetricsRef.current,
+    )
+    syncTimelineTime(progressBarTime)
     currentEventRef.current?.seekTo(progressBarTime, true)
     const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setCurrentTime(currentPlayerTime ?? 0)
-    setPreviousTime(currentPlayerTime ?? 0)
+    const syncedTime = syncTimelineTime(currentPlayerTime ?? progressBarTime)
+    setPreviousTime(syncedTime)
     setRecentAudioPlayedTime(0.0)
     setPlayedAudioClip('')
     setPlayedClipPath('')
@@ -1460,7 +1549,12 @@ const YDXHome = (): React.ReactElement => {
               <div className="timeline-track-wrapper" ref={divRef3}>
                 {/* Audio Clips Timeline - Consistent with Video.tsx */}
                 {audioClips.map((clip, key) => {
-                  const left = clip.clip_start_time * unitLength
+                  const left = timelineMetrics
+                    ? timeToTimelineX(clip.clip_start_time, timelineMetrics)
+                    : 0
+                  const width = timelineMetrics
+                    ? timeToTimelineX(clip.clip_duration, timelineMetrics)
+                    : 0
                   const isExtended = clip.playback_type === 'extended'
 
                   return (
@@ -1470,9 +1564,7 @@ const YDXHome = (): React.ReactElement => {
                       style={{
                         position: 'absolute',
                         left: `${left}px`,
-                        width: isExtended
-                          ? '3px'
-                          : `${clip.clip_duration * unitLength}px`,
+                        width: isExtended ? '3px' : `${width}px`,
                         height: '20px',
                         backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b',
                         top: '0px',
@@ -1487,23 +1579,38 @@ const YDXHome = (): React.ReactElement => {
                   )
                 })}
                 {/* Dialog Timeline blue & white div's */}
-                {videoDialogTimestamps.map((dialog, key) => (
-                  <Draggable
-                    axis="x"
-                    key={key}
-                    position={dialog.controlledPosition}
-                    bounds="parent"
-                  >
-                    <div
-                      className="dialog-timestamps-div"
-                      style={{
-                        width: dialog.width,
-                        height: '20px',
-                      }}
-                    ></div>
-                  </Draggable>
-                ))}
-                {unitLength > 0 && (
+                {videoDialogTimestamps.map((dialog, key) => {
+                  const position = timelineMetrics
+                    ? {
+                        x: timeToTimelineX(
+                          dialog.dialog_start_time,
+                          timelineMetrics,
+                        ),
+                        y: 0,
+                      }
+                    : { x: 0, y: 0 }
+                  const width = timelineMetrics
+                    ? timeToTimelineX(dialog.dialog_duration, timelineMetrics)
+                    : 0
+
+                  return (
+                    <Draggable
+                      axis="x"
+                      key={key}
+                      position={position}
+                      bounds="parent"
+                    >
+                      <div
+                        className="dialog-timestamps-div"
+                        style={{
+                          width,
+                          height: '20px',
+                        }}
+                      ></div>
+                    </Draggable>
+                  )
+                })}
+                {timelineMetrics && unitLength > 0 && (
                   // ProgressBar
                   <Draggable
                     axis="x"
@@ -1517,7 +1624,11 @@ const YDXHome = (): React.ReactElement => {
                       stopProgressBar(e, data)
                     }}
                   >
-                    <div tabIndex={0} className="progress-bar-div">
+                    <div
+                      ref={playheadRef}
+                      tabIndex={0}
+                      className="progress-bar-div"
+                    >
                       <p className="mt-5 text-white progress-bar-time">
                         {convertSecondsToCardFormat(currentTime)}
                       </p>
