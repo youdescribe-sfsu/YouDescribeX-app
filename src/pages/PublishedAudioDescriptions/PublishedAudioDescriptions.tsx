@@ -232,6 +232,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
       setShowSpinner(true)
       fetchAudioDescriptionData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unitLength, videoId])
 
   function reset() {
@@ -251,6 +252,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     })
     setShowSpinner(true)
     fetchUserVideoData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [youtubeVideoId])
 
   useEffect(() => {
