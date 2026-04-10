@@ -20,17 +20,17 @@ const createCanonicalDurationState = (
   youtubeVideoId?: string,
   backendFallbackSeconds?: number,
 ): InternalCanonicalVideoDurationState => ({
-  durationSeconds: !youtubeVideoId && (backendFallbackSeconds ?? 0) > 0
-    ? backendFallbackSeconds ?? 0
-    : 0,
-  source: !youtubeVideoId && (backendFallbackSeconds ?? 0) > 0
-    ? 'backend'
-    : 'none',
+  durationSeconds:
+    !youtubeVideoId && (backendFallbackSeconds ?? 0) > 0
+      ? backendFallbackSeconds ?? 0
+      : 0,
+  source:
+    !youtubeVideoId && (backendFallbackSeconds ?? 0) > 0 ? 'backend' : 'none',
   status: youtubeVideoId
     ? 'loading'
     : (backendFallbackSeconds ?? 0) > 0
-      ? 'resolved'
-      : 'error',
+    ? 'resolved'
+    : 'error',
   youtubeVideoId,
 })
 

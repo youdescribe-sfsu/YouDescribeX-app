@@ -72,9 +72,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
   const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored as a fallback if canonical YouTube metadata is unavailable
   const [backendFallbackYoutubeVideoId, setBackendFallbackYoutubeVideoId] =
-    useState<
-    string | undefined
-    >()
+    useState<string | undefined>()
   const [, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
   const [currentEvent, setCurrentEvent] = useState<YouTubePlayer>() //stores YouTube video's event
   const [currentState, setCurrentState] = useState(-1) // stores YouTube video's PLAYING, CUED, PAUSED, UNSTARTED, BUFFERING, ENDED state values
