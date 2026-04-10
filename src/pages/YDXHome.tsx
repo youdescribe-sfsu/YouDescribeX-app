@@ -56,7 +56,7 @@ const YDXHome = (): React.ReactElement => {
   // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
   const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
   const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored as a fallback if canonical YouTube metadata is unavailable
-  const [videoLengthYoutubeVideoId, setVideoLengthYoutubeVideoId] = useState<
+  const [backendFallbackYoutubeVideoId, setBackendFallbackYoutubeVideoId] = useState<
     string | undefined
   >()
   const [, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
@@ -153,18 +153,15 @@ const YDXHome = (): React.ReactElement => {
   const currentExtendedACRef = useRef(currExtendedAC)
   const savedClipRefreshRequestedRef = useRef(false)
   const initialUpdateDataRef = useRef(true)
-  const matchingBackendVideoLength =
-    videoLengthYoutubeVideoId === youtubeVideoId ? videoLength : 0
+  const backendFallbackDurationSeconds =
+    backendFallbackYoutubeVideoId === youtubeVideoId ? videoLength : 0
   const canonicalVideoDuration = useCanonicalVideoDuration(
     youtubeVideoId,
-    matchingBackendVideoLength,
+    backendFallbackDurationSeconds,
   )
-  const resolvedVideoLength = canonicalVideoDuration.durationSeconds
-  const hasResolvedVideoLength =
-    canonicalVideoDuration.status === 'resolved' && resolvedVideoLength > 0
-  const videoLengthForChildren = hasResolvedVideoLength
-    ? resolvedVideoLength
-    : matchingBackendVideoLength
+  const canonicalDurationSeconds = canonicalVideoDuration.durationSeconds
+  const hasCanonicalDuration =
+    canonicalVideoDuration.status === 'resolved' && canonicalDurationSeconds > 0
 
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -204,14 +201,14 @@ const YDXHome = (): React.ReactElement => {
   }, [youTubeVolume, currentEventRef])
 
   useEffect(() => {
-    if (hasResolvedVideoLength) {
+    if (hasCanonicalDuration) {
       const calculatedWidth = calculateDraggableDivWidth()
-      calculateUnitLength(resolvedVideoLength, calculatedWidth)
+      calculateUnitLength(canonicalDurationSeconds, calculatedWidth)
       return
     }
 
     setUnitLength(0)
-  }, [hasResolvedVideoLength, resolvedVideoLength])
+  }, [canonicalDurationSeconds, hasCanonicalDuration])
 
   useEffect(() => {
     if (unitLength > 0 && videoId) {
@@ -406,7 +403,7 @@ const YDXHome = (): React.ReactElement => {
         const video_id = res.data.video_id
         const video_length = res.data.video_length
         setVideoLength(video_length)
-        setVideoLengthYoutubeVideoId(youtubeVideoId)
+        setBackendFallbackYoutubeVideoId(youtubeVideoId)
         setVideoId(video_id)
       })
       .catch((err) => {
@@ -1436,12 +1433,12 @@ const YDXHome = (): React.ReactElement => {
         </div>
         <hr className="m-2 ydx-hr" />
         {/* Dialog Timeline */}
-        {hasResolvedVideoLength && (
+        {hasCanonicalDuration && (
           <div className="timeline-section-wrapper">
             <div className="timeline-header">
               <h6 className="timeline-title">
                 Dialog Timeline (
-                {convertSecondsToCardFormat(resolvedVideoLength)}
+                {convertSecondsToCardFormat(canonicalDurationSeconds)}
                 ):
               </h6>
               <div className="timeline-actions">
@@ -1548,7 +1545,7 @@ const YDXHome = (): React.ReactElement => {
           </div>
         </div> */}
         {/* Map Audio Clips Component */}
-        {!isPublished && hasResolvedVideoLength && (
+        {!isPublished && hasCanonicalDuration && (
           <InsertPublish
             handleClicksFromParent={handleClicksFromParent}
             setHandleClicksFromParent={setHandleClicksFromParent}
@@ -1556,7 +1553,7 @@ const YDXHome = (): React.ReactElement => {
             setShowSpinner={setShowSpinner}
             youtubeVideoId={youtubeVideoId || ''}
             currentTime={currentTime}
-            videoLength={videoLengthForChildren}
+            videoLength={canonicalDurationSeconds}
             audioDescriptionId={audioDescriptionId || ''}
             seconds={seconds}
             reset={reset}
@@ -1569,31 +1566,33 @@ const YDXHome = (): React.ReactElement => {
           id="audio-list"
           ref={audioClipsListRef}
         >
-          {audioClips.map((clip, key) => (
-            <AudioClip
-              key={key}
-              clip={clip}
-              userId={user || ''}
-              audioDescriptionId={audioDescriptionId || ''}
-              youtubeVideoId={youtubeVideoId || ''}
-              unitLength={unitLength}
-              currentTime={currentTime}
-              currentEvent={currentEvent}
-              currentState={currentState}
-              updateData={updateData}
-              setUpdateData={setUpdateData}
-              videoLength={videoLengthForChildren}
-              setShowSpinner={setShowSpinner}
-              editComponentToggleList={editComponentToggleList}
-              setEditComponentToggleFunc={setEditComponentToggleFunc}
-              divWidths={divWidths}
-              handlePlayAudioClip={handlePlayAudioClip}
-              fetchUserVideoData={fetchUserVideoData}
-              setNeedRefresh={setNeedRefresh}
-              setUndoDeletedClip={setUndoDeletedClip}
-              setUpdatedDescriptions={setUpdatedDescriptions}
-            />
-          ))}
+          {/* Wait for the canonical duration before rendering clip editors so stale backend lengths cannot shape clip state during route changes. */}
+          {hasCanonicalDuration &&
+            audioClips.map((clip, key) => (
+              <AudioClip
+                key={key}
+                clip={clip}
+                userId={user || ''}
+                audioDescriptionId={audioDescriptionId || ''}
+                youtubeVideoId={youtubeVideoId || ''}
+                unitLength={unitLength}
+                currentTime={currentTime}
+                currentEvent={currentEvent}
+                currentState={currentState}
+                updateData={updateData}
+                setUpdateData={setUpdateData}
+                videoLength={canonicalDurationSeconds}
+                setShowSpinner={setShowSpinner}
+                editComponentToggleList={editComponentToggleList}
+                setEditComponentToggleFunc={setEditComponentToggleFunc}
+                divWidths={divWidths}
+                handlePlayAudioClip={handlePlayAudioClip}
+                fetchUserVideoData={fetchUserVideoData}
+                setNeedRefresh={setNeedRefresh}
+                setUndoDeletedClip={setUndoDeletedClip}
+                setUpdatedDescriptions={setUpdatedDescriptions}
+              />
+            ))}
         </div>
 
         {isPublished && (
