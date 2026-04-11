@@ -1053,7 +1053,7 @@
 }
 
 .modern-duration-display {
-  background: linear-gradient(135deg, var(--primary-color), #4960df);
+  background: linear-gradient(135deg, var(--primary-color), #1c3557);
   border-radius: var(--radius-lg);
   padding: var(--space-sm);
   text-align: center;
