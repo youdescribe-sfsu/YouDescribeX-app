@@ -172,6 +172,10 @@ const YDXHome = (): React.ReactElement => {
   const currentExtendedACRef = useRef(currExtendedAC)
   const timelineMetricsRef = useRef<TimelineMetrics | null>(null)
   const savedClipRefreshRequestedRef = useRef(false)
+  //Yue's fix
+  const hasValidAudioDescriptionId =
+    !!audioDescriptionId && audioDescriptionId !== 'undefined'
+
   const initialUpdateDataRef = useRef(true)
   const backendFallbackDurationSeconds =
     backendFallbackYoutubeVideoId === youtubeVideoId ? videoLength : 0
@@ -576,10 +580,17 @@ const YDXHome = (): React.ReactElement => {
   ) => {
     //  this API fetches the audioDescription and all related AudioClips based on the UserID & VideoID
     const effectiveVideoId = passedVideoId || videoId
+    if (audioDescriptionId === 'undefined') {
+      console.error(
+        'Skipping fetchAudioDescriptionData because audioDescriptionId is the string "undefined"',
+      )
+      setShowSpinner(false)
+      return
+    }
     if (
       effectiveVideoId &&
       userDataStore.getState().userId &&
-      audioDescriptionId
+      hasValidAudioDescriptionId
     )
       axios
         .get(
