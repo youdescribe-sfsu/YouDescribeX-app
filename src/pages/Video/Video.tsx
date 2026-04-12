@@ -1300,6 +1300,7 @@ const Video = () => {
 
       case 1: {
         // Playing
+        clearInterval(timer)
         // Enhanced seek detection
         const timeDiff = Math.abs(currentTime - previousYTTime)
         if (timeDiff > 0.5) {
@@ -1328,19 +1329,33 @@ const Video = () => {
             }, samplingRate),
           )
         }
+        // THE RESUME & SYNC FIX ---
+        if (currInlineAC) {
+          // Find the data for the clip that was playing
+          const activeClip = audioClips.find(
+            (c) => c.clip_id === playedAudioClip,
+          )
+
+          if (activeClip) {
+            const syncPos = currentTime - activeClip.clip_start_time
+
+            // Only seek if we're actually inside the clip (prevents the "didn't resume" bug)
+            if (syncPos >= 0 && syncPos < activeClip.clip_duration) {
+              currInlineAC.seek(syncPos)
+            }
+          }
+          // Now play
+          currInlineAC.play()
+          currInlineAC.once('end', function () {
+            setCurrInlineAC(undefined)
+          })
+        }
 
         if (currExtendedAC) {
           currExtendedAC.pause()
           currExtendedAC.seek(0)
           setCurrExtendedAC(undefined)
         }
-        if (currInlineAC) {
-          currInlineAC.play()
-          currInlineAC.on('end', function () {
-            setCurrInlineAC(undefined)
-          })
-        }
-        clearInterval(timer)
         break
       }
 
