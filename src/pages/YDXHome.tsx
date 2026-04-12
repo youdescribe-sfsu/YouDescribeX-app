@@ -868,21 +868,27 @@ const YDXHome = (): React.ReactElement => {
         const seekTime = currentTimeRef.current - updatedClip.clip_start_time
 
         if (seekTime < 0) return
+        // FIX 1: Helper to handle the "Play" logic safely without echos
+        const executePlay = (audioObj: any, seek: number) => {
+          // If it's already playing, don't start it again (prevents echo)
+          if (audioObj.playing()) return
 
-        // Logic: Seek and Play with Volume Sync
+          // Stop any ghost instances and set state before playing
+          audioObj.stop()
+          audioObj.seek(seek)
+          audioObj.volume(descriptionVolumeRef.current / 100)
+          audioObj.play()
+        }
+
+        // FIX 2: Removed the 50ms setTimeout
+        // The delay was causing the audio to start AFTER the next logic loop ran,
+        // causing double-triggering.
         if (currentAudio?.state() === 'loaded') {
-          currentAudio.seek(seekTime)
-          setTimeout(() => {
-            currentAudio.play()
-            currentAudio.volume(descriptionVolumeRef.current / 100)
-          }, 50)
+          executePlay(currentAudio, seekTime)
         } else {
-          currentAudio?.once('load', function () {
-            currentAudio.seek(seekTime)
-            setTimeout(() => {
-              currentAudio.play()
-              currentAudio.volume(descriptionVolumeRef.current / 100)
-            }, 50)
+          // Clear old listeners with .off() before adding a new one
+          currentAudio?.off('load').once('load', () => {
+            executePlay(currentAudio, seekTime)
           })
         }
 
@@ -1217,9 +1223,22 @@ const YDXHome = (): React.ReactElement => {
         timelineMetricsRef.current.durationSeconds,
       ),
     )
-
-    // --> ADD THIS: Flush the memory cache when you stop dragging
+    //Flush the memory cache when you stop dragging
     setPlayedClipsSet(new Set())
+
+    // Force-stop any audio that was playing while you dragged
+    // This prevents the "Echo" or "Ghost Audio" from the old position
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.stop()
+      setCurrInlineAC(undefined)
+    }
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.stop()
+      setCurrExtendedAC(undefined)
+    }
+
+    // Now that dragging is DONE, refresh the clips for this spot
+    updateClipStackData()
   }
   const dragProgressBar = async (
     event: DraggableEvent,
@@ -1234,35 +1253,15 @@ const YDXHome = (): React.ReactElement => {
       clampedX,
       timelineMetricsRef.current,
     )
-    syncTimelineTime(progressBarTime)
-    currentEventRef.current?.seekTo(progressBarTime, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    const syncedTime = syncTimelineTime(currentPlayerTime ?? progressBarTime)
-    setPreviousTime(syncedTime)
+    // JUST update the local time state so the UI moves smoothly.
+    // DO NOT call seekTo() or updateClipsDataCallback() here.
+    const syncedTime = syncTimelineTime(progressBarTime)
+    setCurrentTime(syncedTime)
+
+    // We keep these reset so audio doesn't trigger WHILE dragging
     setRecentAudioPlayedTime(0.0)
     setPlayedAudioClip('')
     setPlayedClipPath('')
-
-    // --> ADD THIS: Flush the memory cache when dragging
-    setPlayedClipsSet(new Set())
-
-    updateClipsDataCallback()
-    if (currentExtendedACRef.current) {
-      // to stop playing -> pause and set time to 0
-      currentExtendedACRef.current.pause()
-      currentExtendedACRef.current.seek(0)
-      currentExtendedACRef.current.unload()
-      setCurrExtendedAC(undefined)
-      // currentEvent?.playVideo()
-    }
-    if (currentInlineACRef.current) {
-      // to stop playing -> pause and set time to 0
-      currentInlineACRef.current.pause()
-      currentInlineACRef.current.seek(0)
-      currentInlineACRef.current.unload()
-      setCurrInlineAC(undefined)
-      // currentEvent?.playVideo()
-    }
   }
 
   const updateClipStackData = useCallback(() => {
@@ -1289,7 +1288,7 @@ const YDXHome = (): React.ReactElement => {
       if (clip) {
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
-          html5: true,
+          html5: false, // FIX: Use Web Audio API for better sync/reliability
           preload: true, // Ensure preloading
           autoplay: false,
         })

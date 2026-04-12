@@ -475,6 +475,10 @@ const AudioClip = ({
                   className="inline-extended-radio inline-bg"
                   style={{
                     width: '110px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '40px',
                   }}
                 >
                   <span className="inline-extended-label">Inline</span>
@@ -496,6 +500,9 @@ const AudioClip = ({
                   className="inline-extended-radio extended-bg"
                   style={{
                     width: '110px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   <span className="inline-extended-label">Extended</span>
