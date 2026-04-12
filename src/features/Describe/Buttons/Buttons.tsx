@@ -34,7 +34,7 @@ export const Buttons = ({
           {isPreviewAudioDescription ? (
             <button
               type="button"
-              className="btn btn-lg inline-bg text-dark ydx-button ydx-button--lg w-100"
+              className="btn btn-lg inline-bg text-dark ydx-button ydx-button--lg"
               style={{ width: '150px' }}
               onClick={() => setHandleClicksFromParent('inline')}
             >
@@ -47,7 +47,7 @@ export const Buttons = ({
           {isPreviewAudioDescription ? (
             <button
               type="button"
-              className="btn btn-lg extended-bg text-white ydx-button ydx-button--lg w-100"
+              className="btn btn-lg extended-bg text-white ydx-button ydx-button--lg"
               style={{ width: '150px' }}
               onClick={() => setHandleClicksFromParent('extended')}
             >
