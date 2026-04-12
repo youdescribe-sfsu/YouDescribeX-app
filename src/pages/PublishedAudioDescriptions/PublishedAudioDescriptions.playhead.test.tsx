@@ -64,6 +64,15 @@ jest.mock('use-elapsed-time', () => ({
   }),
 }))
 
+jest.mock('../../shared/hooks/useCanonicalVideoDuration', () => ({
+  __esModule: true,
+  default: () => ({
+    durationSeconds: 120,
+    source: 'youtube',
+    status: 'resolved',
+  }),
+}))
+
 jest.mock('debounce', () => ({
   debounce: (fn: (...args: any[]) => unknown) => fn,
 }))
@@ -71,7 +80,9 @@ jest.mock('debounce', () => ({
 jest.mock('react-youtube', () => ({
   __esModule: true,
   default: ({ onPlay }: { onPlay?: (event: { target: unknown }) => void }) => {
-    mockYouTubePlayer = mockCreateYouTubePlayer()
+    if (!mockYouTubePlayer) {
+      mockYouTubePlayer = mockCreateYouTubePlayer()
+    }
 
     return (
       <div data-testid="youtube-player">
@@ -92,11 +103,13 @@ jest.mock('react-draggable', () => ({
   default: ({
     children,
     onDrag,
+    onStart,
     onStop,
     position,
   }: {
     children: React.ReactNode
     onDrag?: (event: unknown, data: { x: number; y: number }) => void
+    onStart?: (event: unknown, data: { x: number; y: number }) => void
     onStop?: (event: unknown, data: { x: number; y: number }) => void
     position?: { x: number; y: number }
   }) => (
@@ -104,6 +117,15 @@ jest.mock('react-draggable', () => ({
       data-testid={onStop ? 'master-timeline-draggable' : undefined}
       data-x={position?.x ?? ''}
     >
+      {onStart ? (
+        <button
+          type="button"
+          data-testid="master-timeline-start"
+          onClick={() => onStart({}, { x: mockTimelineStopX, y: 0 })}
+        >
+          Trigger drag start
+        </button>
+      ) : null}
       {onDrag ? (
         <button
           type="button"
@@ -128,7 +150,15 @@ jest.mock('react-draggable', () => ({
 }))
 
 jest.mock('../../features/Describe/Buttons/Buttons', () => ({
-  Buttons: () => <div data-testid="buttons" />,
+  Buttons: ({ handlePlayPause }: { handlePlayPause: () => void }) => (
+    <button
+      type="button"
+      data-testid="editor-play-pause"
+      onClick={() => handlePlayPause()}
+    >
+      Play Pause
+    </button>
+  ),
 }))
 
 jest.mock('../../features/Describe/Notes/Notes', () => ({
@@ -376,5 +406,46 @@ describe('PublishedAudioDescriptions master timeline clamping', () => {
     })
 
     expect(screen.getByText('00:02:00:00')).toBeInTheDocument()
+  })
+
+  it('pauses on playhead grab, keeps the seek paused, and only resumes on explicit play', async () => {
+    mockTimelineStopX = 30
+
+    render(<PublishedAudioDescriptions />)
+
+    await screen.findByTestId('youtube-play')
+    fireEvent(window, new Event('resize'))
+    await screen.findByTestId('master-timeline-stop', undefined, {
+      timeout: 3000,
+    })
+
+    fireEvent.click(screen.getByTestId('youtube-play'))
+    fireEvent.click(screen.getByTestId('master-timeline-start'))
+
+    expect(mockYouTubePlayer?.pauseVideo).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(screen.getByTestId('master-timeline-drag'))
+
+    expect(mockYouTubePlayer?.seekTo).not.toHaveBeenCalled()
+    expect(
+      Number(
+        screen.getByTestId('master-timeline-draggable').getAttribute('data-x'),
+      ),
+    ).toBeCloseTo(30, 5)
+
+    fireEvent.click(screen.getByTestId('master-timeline-stop'))
+
+    await waitFor(() => {
+      expect(mockYouTubePlayer?.seekTo).toHaveBeenCalledTimes(1)
+    })
+
+    fireEvent.click(screen.getByTestId('youtube-play'))
+
+    expect(mockYouTubePlayer?.pauseVideo).toHaveBeenCalledTimes(2)
+
+    fireEvent.click(screen.getByTestId('editor-play-pause'))
+    fireEvent.click(screen.getByTestId('youtube-play'))
+
+    expect(mockYouTubePlayer?.pauseVideo).toHaveBeenCalledTimes(2)
   })
 })

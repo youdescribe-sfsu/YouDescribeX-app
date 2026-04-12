@@ -6,7 +6,7 @@ import {
 } from 'react-router-dom' /* to use params on the url */
 import axios from 'axios'
 import YouTube, { YouTubePlayer } from 'react-youtube'
-import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
+import Draggable, { DraggableData } from 'react-draggable'
 import '../assets/css/home.css'
 import '../assets/css/timer.css'
 import AudioClip from '../features/Describe/AudioClip/AudioClip'
@@ -17,8 +17,6 @@ import { Buttons } from '../features/Describe/Buttons/Buttons'
 import Spinner from '../shared/components/Spinner/Spinner'
 import useCanonicalVideoDuration from '../shared/hooks/useCanonicalVideoDuration'
 import { Howl } from 'howler'
-import { debounce } from 'debounce'
-import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
 import {
   buildTimelineMetrics,
@@ -172,6 +170,8 @@ const YDXHome = (): React.ReactElement => {
   const currentExtendedACRef = useRef(currExtendedAC)
   const timelineMetricsRef = useRef<TimelineMetrics | null>(null)
   const savedClipRefreshRequestedRef = useRef(false)
+  const isTimelineScrubbingRef = useRef(false)
+  const suppressResumeAfterScrubRef = useRef(false)
   //Yue's fix
   const hasValidAudioDescriptionId =
     !!audioDescriptionId && audioDescriptionId !== 'undefined'
@@ -793,6 +793,10 @@ const YDXHome = (): React.ReactElement => {
     recentAudioPlayedTime: number,
     playedClipPath: string,
   ) => {
+    if (isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current) {
+      return
+    }
+
     const syncedTime = syncTimelineTime(time)
     // check if the audio is not played recently. do not play it again.
     if (recentAudioPlayedTime !== syncedTime) {
@@ -1084,7 +1088,11 @@ const YDXHome = (): React.ReactElement => {
   }
   // YouTube Player Functions
   const onStateChange = (event: any) => {
-    const currentTime = syncTimelineTime(event.target.getCurrentTime())
+    const shouldKeepScrubbedTime =
+      isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current
+    const currentTime = shouldKeepScrubbedTime
+      ? currentTimeRef.current
+      : syncTimelineTime(event.target.getCurrentTime())
     setCurrentEvent(event.target)
     currentEventRef.current = event.target
     setCurrentTime(currentTime)
@@ -1114,6 +1122,16 @@ const YDXHome = (): React.ReactElement => {
         break
 
       case 1: // Playing
+        if (suppressResumeAfterScrubRef.current) {
+          event.target.pauseVideo()
+          setGloballyPaused(true)
+          setTimer((prev) => {
+            if (prev) clearInterval(prev)
+            return undefined
+          })
+          break
+        }
+
         currentEvent?.setVolume(youTubeVolume)
         if (!isActive) setIsActive(true)
 
@@ -1146,6 +1164,9 @@ const YDXHome = (): React.ReactElement => {
         if (inlineAC) {
           inlineAC.pause()
         }
+        if (suppressResumeAfterScrubRef.current) {
+          setGloballyPaused(true)
+        }
         // Safely clear the exact live timer
         setTimer((prev) => {
           if (prev) clearInterval(prev)
@@ -1175,6 +1196,13 @@ const YDXHome = (): React.ReactElement => {
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
     currentEventRef.current = event.target
+
+    if (suppressResumeAfterScrubRef.current) {
+      event.target.pauseVideo()
+      setGloballyPaused(true)
+      return
+    }
+
     const currentTime = syncTimelineTime(event.target.getCurrentTime())
     setPreviousTime(currentTime)
 
@@ -1198,11 +1226,42 @@ const YDXHome = (): React.ReactElement => {
     event.target.pauseVideo()
   }
 
+  const clearPlaybackTimer = () => {
+    setTimer((prev) => {
+      if (prev) clearInterval(prev)
+      return undefined
+    })
+  }
+
+  const stopScrubAudio = () => {
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.stop()
+      setCurrInlineAC(undefined)
+    }
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.stop()
+      setCurrExtendedAC(undefined)
+    }
+  }
+
+  const resetScrubPlaybackTracking = () => {
+    setRecentAudioPlayedTime(0.0)
+    setPlayedAudioClip('')
+    setPlayedClipPath('')
+  }
+
+  const startProgressBar = () => {
+    isTimelineScrubbingRef.current = true
+    suppressResumeAfterScrubRef.current = true
+    clearPlaybackTimer()
+    currentEventRef.current?.pauseVideo()
+    setGloballyPaused(true)
+    stopScrubAudio()
+    resetScrubPlaybackTracking()
+  }
+
   // Dialog Timeline Draggable Functions
-  const stopProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
+  const stopProgressBar = (position: DraggableData) => {
     if (!timelineMetricsRef.current) {
       return
     }
@@ -1215,35 +1274,16 @@ const YDXHome = (): React.ReactElement => {
     // Keep the visible label in sync with the final drag-stop position before
     // insert-open snapshots currentTime for a new clip.
     const syncedTime = syncTimelineTime(progressBarTime)
-    currentEventRef.current?.seekTo(syncedTime, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setPreviousTime(
-      clampTimelineTime(
-        currentPlayerTime ?? syncedTime,
-        timelineMetricsRef.current.durationSeconds,
-      ),
-    )
+    setPreviousTime(syncedTime)
     //Flush the memory cache when you stop dragging
     setPlayedClipsSet(new Set())
 
-    // Force-stop any audio that was playing while you dragged
-    // This prevents the "Echo" or "Ghost Audio" from the old position
-    if (currentInlineACRef.current) {
-      currentInlineACRef.current.stop()
-      setCurrInlineAC(undefined)
-    }
-    if (currentExtendedACRef.current) {
-      currentExtendedACRef.current.stop()
-      setCurrExtendedAC(undefined)
-    }
-
-    // Now that dragging is DONE, refresh the clips for this spot
+    stopScrubAudio()
     updateClipStackData()
+    isTimelineScrubbingRef.current = false
+    currentEventRef.current?.seekTo(syncedTime, true)
   }
-  const dragProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
+  const dragProgressBar = (position: DraggableData) => {
     if (!timelineMetricsRef.current) {
       return
     }
@@ -1254,14 +1294,12 @@ const YDXHome = (): React.ReactElement => {
       timelineMetricsRef.current,
     )
     // JUST update the local time state so the UI moves smoothly.
-    // DO NOT call seekTo() or updateClipsDataCallback() here.
+    // DO NOT call seekTo() here.
     const syncedTime = syncTimelineTime(progressBarTime)
     setCurrentTime(syncedTime)
 
     // We keep these reset so audio doesn't trigger WHILE dragging
-    setRecentAudioPlayedTime(0.0)
-    setPlayedAudioClip('')
-    setPlayedClipPath('')
+    resetScrubPlaybackTracking()
   }
 
   const updateClipStackData = useCallback(() => {
@@ -1300,14 +1338,6 @@ const YDXHome = (): React.ReactElement => {
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex])
 
-  const updateClipsDataCallback = useMemo(
-    () =>
-      debounce(() => {
-        updateClipStackData()
-      }, 500),
-    [updateClipStackData],
-  )
-
   // toggle Show Edit Component
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
@@ -1332,6 +1362,8 @@ const YDXHome = (): React.ReactElement => {
   const handlePlayAudioClip = (clipStartTime: number) => {
     // --> ADD THIS: Flush the memory cache when clicking a clip to jump
     setPlayedClipsSet(new Set())
+    isTimelineScrubbingRef.current = false
+    suppressResumeAfterScrubRef.current = false
 
     currentEvent?.seekTo(clipStartTime - 0.4, true) // 0.4 is added for some buffering time
     currentEvent?.playVideo() // if paused, video is played from that audio clip.
@@ -1341,6 +1373,8 @@ const YDXHome = (): React.ReactElement => {
     if (currExtendedAC) {
       // If an extended clip exists, make it play/pause
       if (isCurrentExtACPaused) {
+        isTimelineScrubbingRef.current = false
+        suppressResumeAfterScrubRef.current = false
         currExtendedAC.play()
         setCurrentExtACPaused(false)
         setGloballyPaused(false)
@@ -1354,6 +1388,8 @@ const YDXHome = (): React.ReactElement => {
       currentEvent?.pauseVideo()
       setGloballyPaused(true)
     } else {
+      isTimelineScrubbingRef.current = false
+      suppressResumeAfterScrubRef.current = false
       if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
       currentEvent?.playVideo()
       setGloballyPaused(false)
@@ -1629,11 +1665,12 @@ const YDXHome = (): React.ReactElement => {
                     bounds="parent"
                     defaultPosition={{ x: 0, y: 0 }}
                     position={draggableTime}
-                    onDrag={(e, data) => {
-                      dragProgressBar(e, data)
+                    onStart={startProgressBar}
+                    onDrag={(_, data) => {
+                      dragProgressBar(data)
                     }}
-                    onStop={(e, data) => {
-                      stopProgressBar(e, data)
+                    onStop={(_, data) => {
+                      stopProgressBar(data)
                     }}
                   >
                     <div

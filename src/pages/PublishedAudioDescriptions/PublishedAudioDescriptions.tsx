@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom' /* to use params on the url */
 import axios from 'axios'
 import YouTube, { YouTubePlayer } from 'react-youtube'
-import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
+import Draggable, { DraggableData } from 'react-draggable'
 import '../../assets/css/home.css'
 import '../../assets/css/timer.css'
 import AudioClip from '../../features/Describe/AudioClip/AudioClip'
@@ -19,7 +19,6 @@ import { Buttons } from '../../features/Describe/Buttons/Buttons'
 import Spinner from '../../shared/components/Spinner/Spinner'
 import useCanonicalVideoDuration from '../../shared/hooks/useCanonicalVideoDuration'
 import { Howl } from 'howler'
-import { debounce } from 'debounce'
 import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../../shared/utils/convertClipObject'
 import {
@@ -185,9 +184,12 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   // )
 
   const currentEventRef = useRef(currentEvent)
+  const currentStateRef = useRef(currentState)
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
   const timelineMetricsRef = useRef<TimelineMetrics | null>(null)
+  const isTimelineScrubbingRef = useRef(false)
+  const suppressResumeAfterScrubRef = useRef(false)
   const initialUpdateDataRef = useRef(true)
   const backendFallbackDurationSeconds =
     backendFallbackYoutubeVideoId === youtubeVideoId ? videoLength : 0
@@ -314,6 +316,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   useEffect(() => {
     currentEventRef.current = currentEvent
   }, [currentEvent])
+
+  useEffect(() => {
+    currentStateRef.current = currentState
+  }, [currentState])
 
   useEffect(() => {
     if (needRefresh) {
@@ -599,6 +605,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     recentAudioPlayedTime: number,
     playedClipPath: string,
   ) => {
+    if (isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current) {
+      return
+    }
+
     const syncedTime = syncTimelineTime(time)
     // check if the audio is not played recently. do not play it again.
     if (recentAudioPlayedTime !== syncedTime) {
@@ -658,7 +668,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     playedClipPath: string,
   ) => {
     // playing
-    if (currentState === 1) {
+    if (currentStateRef.current === 1) {
       // If all clips have been played, skip check
       if (clipStackRef.current.length === 0) {
         // console.log('No Clips left to play')
@@ -934,7 +944,11 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   // YouTube Player Functions
   const onStateChange = (event: any) => {
-    const currentTime = syncTimelineTime(event.target.getCurrentTime())
+    const shouldKeepScrubbedTime =
+      isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current
+    const currentTime = shouldKeepScrubbedTime
+      ? currentTimeRef.current
+      : syncTimelineTime(event.target.getCurrentTime())
     setCurrentEvent(event.target)
     currentEventRef.current = event.target
     setCurrentTime(currentTime)
@@ -945,6 +959,13 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         // event.target.seekTo(0);
         break
       case 1: // Playing
+        if (suppressResumeAfterScrubRef.current) {
+          event.target.pauseVideo()
+          setGloballyPaused(true)
+          clearPlaybackTimer()
+          break
+        }
+
         // Case for Extended Audio Clips:
         // When an extended Audio Clip is playing, YT video is paused
         // User plays the YT Video. Extended is still played along with the video. Overlapping with Dialogs &/ other audio clips
@@ -982,7 +1003,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           // currInlineAC.currentTime = 0;
           // setCurrInlineAC(null);
         }
-        clearInterval(timer)
+        if (suppressResumeAfterScrubRef.current) {
+          setGloballyPaused(true)
+        }
+        clearPlaybackTimer()
         break
       case 3: // Buffering
         // onSeek - Buffering event is also called
@@ -990,12 +1014,12 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         setPlayedClipPath('')
         setPlayedAudioClip('')
         setRecentAudioPlayedTime(0.0)
-        clearInterval(timer)
+        clearPlaybackTimer()
         setCurrExtendedAC(undefined)
         setCurrInlineAC(undefined)
         break
       default: // All other states
-        clearInterval(timer)
+        clearPlaybackTimer()
         break
     }
   }
@@ -1006,6 +1030,13 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
     currentEventRef.current = event.target
+
+    if (suppressResumeAfterScrubRef.current) {
+      event.target.pauseVideo()
+      setGloballyPaused(true)
+      return
+    }
+
     const currentTime = syncTimelineTime(event.target.getCurrentTime())
     setPreviousTime(currentTime)
     // pass the current time & recentAudioPlayedTime - to avoid playing same clip multiple times
@@ -1026,11 +1057,42 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     event.target.pauseVideo()
   }
 
+  const clearPlaybackTimer = () => {
+    setTimer((prev) => {
+      if (prev) clearInterval(prev)
+      return undefined
+    })
+  }
+
+  const stopScrubAudio = () => {
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.stop()
+      setCurrInlineAC(undefined)
+    }
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.stop()
+      setCurrExtendedAC(undefined)
+    }
+  }
+
+  const resetScrubPlaybackTracking = () => {
+    setRecentAudioPlayedTime(0.0)
+    setPlayedAudioClip('')
+    setPlayedClipPath('')
+  }
+
+  const startProgressBar = () => {
+    isTimelineScrubbingRef.current = true
+    suppressResumeAfterScrubRef.current = true
+    clearPlaybackTimer()
+    currentEventRef.current?.pauseVideo()
+    setGloballyPaused(true)
+    stopScrubAudio()
+    resetScrubPlaybackTracking()
+  }
+
   // Dialog Timeline Draggable Functions
-  const stopProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
+  const stopProgressBar = (position: DraggableData) => {
     if (!timelineMetricsRef.current) {
       return
     }
@@ -1041,19 +1103,13 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
       timelineMetricsRef.current,
     )
     const syncedTime = syncTimelineTime(progressBarTime)
+    setPreviousTime(syncedTime)
+    stopScrubAudio()
+    updateClipStackData()
+    isTimelineScrubbingRef.current = false
     currentEventRef.current?.seekTo(syncedTime, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setPreviousTime(
-      clampTimelineTime(
-        currentPlayerTime ?? syncedTime,
-        timelineMetricsRef.current.durationSeconds,
-      ),
-    )
   }
-  const dragProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
+  const dragProgressBar = (position: DraggableData) => {
     if (!timelineMetricsRef.current) {
       return
     }
@@ -1063,31 +1119,9 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
       clampedX,
       timelineMetricsRef.current,
     )
-    syncTimelineTime(progressBarTime)
-    currentEventRef.current?.seekTo(progressBarTime, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    const syncedTime = syncTimelineTime(currentPlayerTime ?? progressBarTime)
-    setPreviousTime(syncedTime)
-    setRecentAudioPlayedTime(0.0)
-    setPlayedAudioClip('')
-    setPlayedClipPath('')
-    updateClipsDataCallback()
-    if (currentExtendedACRef.current) {
-      // to stop playing -> pause and set time to 0
-      currentExtendedACRef.current.pause()
-      currentExtendedACRef.current.seek(0)
-      currentExtendedACRef.current.unload()
-      setCurrExtendedAC(undefined)
-      // currentEvent?.playVideo()
-    }
-    if (currentInlineACRef.current) {
-      // to stop playing -> pause and set time to 0
-      currentInlineACRef.current.pause()
-      currentInlineACRef.current.seek(0)
-      currentInlineACRef.current.unload()
-      setCurrInlineAC(undefined)
-      // currentEvent?.playVideo()
-    }
+    const syncedTime = syncTimelineTime(progressBarTime)
+    setCurrentTime(syncedTime)
+    resetScrubPlaybackTracking()
   }
 
   const updateClipStackData = useCallback(() => {
@@ -1122,14 +1156,6 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex])
 
-  const updateClipsDataCallback = useMemo(
-    () =>
-      debounce(() => {
-        updateClipStackData()
-      }, 500),
-    [updateClipStackData],
-  )
-
   // toggle Show Edit Component
   // logic to show/hide the edit component and add it to a list along with clip Id
   // this hides one edit component when the other is opened
@@ -1152,6 +1178,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   // when "AudioClip <seq no>" is clicked, video is playing from that audio clip start time
   const handlePlayAudioClip = (clipStartTime: number) => {
+    isTimelineScrubbingRef.current = false
+    suppressResumeAfterScrubRef.current = false
     currentEvent?.seekTo(clipStartTime - 0.4, true) // 0.4 is added for some buffering time
     currentEvent?.playVideo() // if paused, video is played from that audio clip.
   }
@@ -1160,6 +1188,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     if (currExtendedAC) {
       // If an extended clip exists, make it play/pause
       if (isCurrentExtACPaused) {
+        isTimelineScrubbingRef.current = false
+        suppressResumeAfterScrubRef.current = false
         currExtendedAC.play()
         setCurrentExtACPaused(false)
         setGloballyPaused(false)
@@ -1173,6 +1203,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
       currentEvent?.pauseVideo()
       setGloballyPaused(true)
     } else {
+      isTimelineScrubbingRef.current = false
+      suppressResumeAfterScrubRef.current = false
       if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
       currentEvent?.playVideo()
       setGloballyPaused(false)
@@ -1329,11 +1361,12 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
                       bounds="parent"
                       defaultPosition={{ x: 0, y: 0 }}
                       position={draggableTime}
-                      onDrag={(e, data) => {
-                        dragProgressBar(e, data)
+                      onStart={startProgressBar}
+                      onDrag={(_, data) => {
+                        dragProgressBar(data)
                       }}
-                      onStop={(e, data) => {
-                        stopProgressBar(e, data)
+                      onStop={(_, data) => {
+                        stopProgressBar(data)
                       }}
                     >
                       <div
