@@ -30,7 +30,7 @@ export const Buttons = ({
   return (
     <div className="d-flex justify-content-evenly flex-column text-center p-4">
       <div className="row justify-content-center gx-3 gy-4">
-        <div className="col-6">
+        <div className="col-6 d-grid">
           {isPreviewAudioDescription ? (
             <button
               type="button"
@@ -42,7 +42,7 @@ export const Buttons = ({
             </button>
           ) : null}
         </div>
-        <div className="col-6">
+        <div className="col-6 d-grid">
           {isPreviewAudioDescription ? (
             <button
               type="button"

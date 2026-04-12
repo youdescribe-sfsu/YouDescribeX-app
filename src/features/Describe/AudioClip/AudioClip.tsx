@@ -459,8 +459,12 @@ const AudioClip = ({
             </div>
 
             {/* Enhanced playback type controls */}
-            <div className="playback-type-controls">
-              <div className="playback-type-option">
+            <div className="playback-type-controls d-flex w-100">
+              {' '}
+              {/* Added d-flex and w-100 */}
+              <div className="playback-type-option flex-fill">
+                {' '}
+                {/* Added flex-fill to take equal space */}
                 <input
                   className="form-check-input"
                   type="radio"
@@ -469,16 +473,18 @@ const AudioClip = ({
                   value="inline"
                   checked={clipPlaybackType === 'inline'}
                   onChange={handlePlaybackTypeUpdate}
+                  style={{ display: 'none' }} // Usually hidden in this UI style
                 />
                 <label
                   htmlFor={`inline-${clipID}`}
-                  className="inline-extended-radio inline-bg"
+                  className="inline-extended-radio inline-bg w-100 text-center" // Added w-100 and centering
                 >
                   <span className="inline-extended-label">Inline</span>
                 </label>
               </div>
-
-              <div className="playback-type-option">
+              <div className="playback-type-option flex-fill">
+                {' '}
+                {/* Added flex-fill to take equal space */}
                 <input
                   className="form-check-input"
                   type="radio"
@@ -487,10 +493,11 @@ const AudioClip = ({
                   value="extended"
                   checked={clipPlaybackType === 'extended'}
                   onChange={handlePlaybackTypeUpdate}
+                  style={{ display: 'none' }}
                 />
                 <label
                   htmlFor={`extended-${clipID}`}
-                  className="inline-extended-radio extended-bg"
+                  className="inline-extended-radio extended-bg w-100 text-center" // Added w-100 and centering
                 >
                   <span className="inline-extended-label">Extended</span>
                 </label>

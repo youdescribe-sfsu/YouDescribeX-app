@@ -1577,7 +1577,7 @@ const YDXHome = (): React.ReactElement => {
                         left: `${left}px`,
                         width: isExtended ? '3px' : `${width}px`,
                         height: '20px',
-                        backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b',
+                        backgroundColor: isExtended ? 'var(--extended-color)' : 'var(--inline-color)',
                         top: '0px',
                         zIndex: 3,
                         borderRadius: '2px',

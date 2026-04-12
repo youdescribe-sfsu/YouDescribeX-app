@@ -24,7 +24,7 @@
 :root {
   /* Color System - Organized by purpose and with better naming */
   --primary-color: #1c3557;
-  --extended-color: #ff42f1;
+  --extended-color: #d43cc9;
   --inline-color: #febe12;
   --success-color: #42a98b;
   --inactive-color: #cdcdcd;
@@ -264,4 +264,30 @@
   border-color: #389e7c !important;
   transform: translateY(-1px) !important;
   box-shadow: var(--shadow-lg) !important;
+}
+
+.playback-type-controls {
+  display: flex;
+  gap: 10px; /* Adds a little space between the two buttons */
+  width: 100%;
+}
+
+.playback-type-option {
+  flex: 1; /* This is the "magic" line that makes both 50% width */
+}
+
+.inline-extended-radio {
+  display: block; /* Allows width to apply */
+  width: 100%;
+  padding: 10px 0; /* Vertical padding only */
+  cursor: pointer;
+  text-align: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* Optional: Add a visual change when checked if you're hiding the actual radio circle */
+input[type="radio"]:checked + .inline-extended-radio {
+  filter: brightness(0.9);
+  outline: 2px solid #000;
 }
