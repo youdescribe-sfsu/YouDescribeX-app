@@ -36,8 +36,8 @@ export const Buttons = ({
               type="button"
               className="btn btn-lg inline-bg text-dark ydx-button ydx-button--lg"
               style={{
-                width: '150px',
-                minWidth: '150px',
+                width: '170px',
+                minWidth: '170px',
                 whiteSpace: 'nowrap', // Prevents text from jumping to a second line
               }}
               onClick={() => setHandleClicksFromParent('inline')}
@@ -53,8 +53,8 @@ export const Buttons = ({
               type="button"
               className="btn btn-lg extended-bg text-white ydx-button ydx-button--lg"
               style={{
-                width: '150px',
-                minWidth: '150px',
+                width: '170px',
+                minWidth: '170px',
                 whiteSpace: 'nowrap', // Prevents text from jumping to a second line
               }}
               onClick={() => setHandleClicksFromParent('extended')}
