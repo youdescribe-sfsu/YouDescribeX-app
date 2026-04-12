@@ -1335,6 +1335,12 @@ const Video = () => {
           setCurrExtendedAC(undefined)
         }
         if (currInlineAC) {
+          // This forces the audio to "snap" to the current video time so it doesn't miss sound
+          currInlineAC.seek(
+            currentTime -
+              (audioClips.find((c) => c.clip_id === playedAudioClip)
+                ?.clip_start_time || 0),
+          )
           currInlineAC.play()
           currInlineAC.on('end', function () {
             setCurrInlineAC(undefined)
