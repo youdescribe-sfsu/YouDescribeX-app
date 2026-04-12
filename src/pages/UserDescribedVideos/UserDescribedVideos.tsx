@@ -28,6 +28,7 @@ const UserDescribedVideos = () => {
   const [showLoadMoreAIButton, setShowLoadMoreAIButton] = useState(false)
   const [showLoadMoreDraftButton, setShowLoadMoreDraftButton] = useState(false)
   const { userId } = useParams()
+  const authUserId = userId || userDataStore.getState().userId
 
   type VideoListType = 'described' | 'ai' | 'draft'
 
@@ -151,6 +152,7 @@ const UserDescribedVideos = () => {
     try {
       const response = await axios.get(url, {
         params: { paginate: 'false', page },
+        headers: authUserId ? { authorization: authUserId } : undefined,
         withCredentials: true,
       })
 

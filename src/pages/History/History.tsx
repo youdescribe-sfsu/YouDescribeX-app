@@ -98,6 +98,7 @@ const fetchVideoDetails = async (videoIds: string[]) => {
 }
 
 const History = () => {
+  const authUserId = userDataStore.getState().userId
   // Recent Descriptions
   const [recentDescriptions, setRecentDescriptions] =
     useState<VideosState | null>(null)
@@ -141,6 +142,7 @@ const History = () => {
           paginate: 'true',
           page: 1, // Always provide a default page
         },
+        headers: authUserId ? { authorization: authUserId } : undefined,
         withCredentials: true,
       })
 
@@ -170,6 +172,7 @@ const History = () => {
           paginate: 'true',
           page: 1,
         },
+        headers: authUserId ? { authorization: authUserId } : undefined,
         withCredentials: true,
       })
       return {
@@ -189,6 +192,7 @@ const History = () => {
           paginate: 'true',
           page: 1,
         },
+        headers: authUserId ? { authorization: authUserId } : undefined,
         withCredentials: true,
       })
       return {
@@ -216,6 +220,7 @@ const History = () => {
           paginate: 'true',
           page: pageNumber,
         },
+        headers: authUserId ? { authorization: authUserId } : undefined,
         withCredentials: true,
       })
 
