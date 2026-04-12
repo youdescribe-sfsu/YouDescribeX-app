@@ -775,6 +775,13 @@ const Video = () => {
   ) => {
     // playing
     if (currentState === 1) {
+      // --- ADDED FIX: RESUME MID-CLIP ---
+      const liveInlineAC = currentInlineACRef.current
+      if (liveInlineAC && !liveInlineAC.playing()) {
+        liveInlineAC.play()
+        liveInlineAC.volume(descriptionVolumeRef.current / 100)
+        // Don't return, let the rest of the stack logic run
+      }
       if (clipStackRef.current.length === 0) {
         return
       }
@@ -794,6 +801,7 @@ const Video = () => {
             nextClip.clip_start_time >= previousTimeRef.current)
 
         if (isTimeToPlay) {
+          if (playedAudioClip === nextClip.clip_id) return
           // --- EXISTING, WORKING LOGIC FOR PLAYING INLINE CLIPS ---
           console.warn(
             'An inline clip is supposed to be playing right now',
@@ -1981,7 +1989,9 @@ const Video = () => {
             top: 0,
             bottom: 0,
             backgroundColor:
-              ad.playback_type === 'extended' ? '#9c27b0' : '#ffeb3b',
+              ad.playback_type === 'extended'
+                ? 'var(--extended-color)'
+                : 'var(--inline-color)',
             left: `${(ad.clip_start_time / videoDurationInSeconds) * 100}%`,
             width:
               ad.playback_type === 'extended'

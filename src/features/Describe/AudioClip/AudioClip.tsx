@@ -474,7 +474,7 @@ const AudioClip = ({
                   htmlFor={`inline-${clipID}`}
                   className="inline-extended-radio inline-bg"
                   style={{
-                    width: '110px',
+                    width: '95px',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -499,7 +499,7 @@ const AudioClip = ({
                   htmlFor={`extended-${clipID}`}
                   className="inline-extended-radio extended-bg"
                   style={{
-                    width: '110px',
+                    width: '95px',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
