@@ -474,7 +474,7 @@ const AudioClip = ({
                   htmlFor={`inline-${clipID}`}
                   className="inline-extended-radio inline-bg"
                   style={{
-                    width: '110px'
+                    width: '110px',
                   }}
                 >
                   <span className="inline-extended-label">Inline</span>
@@ -495,7 +495,7 @@ const AudioClip = ({
                   htmlFor={`extended-${clipID}`}
                   className="inline-extended-radio extended-bg"
                   style={{
-                    width: '110px'
+                    width: '110px',
                   }}
                 >
                   <span className="inline-extended-label">Extended</span>
