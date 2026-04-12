@@ -448,4 +448,16 @@ describe('PublishedAudioDescriptions master timeline clamping', () => {
 
     expect(mockYouTubePlayer?.pauseVideo).toHaveBeenCalledTimes(2)
   })
+
+  it('renders the editor playhead with the expanded hit area class', async () => {
+    const { container } = render(<PublishedAudioDescriptions />)
+
+    await screen.findByTestId('youtube-play')
+    fireEvent(window, new Event('resize'))
+    await screen.findByTestId('master-timeline-stop', undefined, {
+      timeout: 3000,
+    })
+
+    expect(container.querySelector('.editor-progress-bar-div')).toBeTruthy()
+  })
 })

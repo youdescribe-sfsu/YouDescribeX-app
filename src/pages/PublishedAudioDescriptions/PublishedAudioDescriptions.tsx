@@ -1372,7 +1372,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
                       <div
                         ref={playheadRef}
                         tabIndex={0}
-                        className="progress-bar-div"
+                        className="progress-bar-div editor-progress-bar-div"
                       >
                         <p className="mt-5 text-white progress-bar-time">
                           {convertSecondsToCardFormat(currentTime)}

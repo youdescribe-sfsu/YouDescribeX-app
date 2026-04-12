@@ -569,4 +569,17 @@ describe('YDXHome refresh alignment', () => {
 
     expect(mockYouTubePlayer?.pauseVideo).toHaveBeenCalledTimes(2)
   })
+
+  it('renders the editor playhead with the expanded hit area class', async () => {
+    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
+
+    const { container } = render(<YDXHome />)
+
+    await screen.findByTestId('insert-publish')
+    await screen.findByTestId('master-timeline-stop', undefined, {
+      timeout: 3000,
+    })
+
+    expect(container.querySelector('.editor-progress-bar-div')).toBeTruthy()
+  })
 })

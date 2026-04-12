@@ -95,6 +95,16 @@
   z-index: 1;
   top: -12px;
 }
+
+.editor-progress-bar-div::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  bottom: -8px;
+  left: -10px;
+  cursor: inherit;
+}
 /* time of the progress-bar draggable */
 .progress-bar-time {
   font-size: 0.86rem;
