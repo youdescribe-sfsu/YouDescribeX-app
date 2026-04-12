@@ -35,7 +35,11 @@ export const Buttons = ({
             <button
               type="button"
               className="btn btn-lg inline-bg text-dark ydx-button ydx-button--lg"
-              style={{ width: '150px' }}
+              style={{
+                width: '150px',
+                minWidth: '150px',
+                whiteSpace: 'nowrap', // Prevents text from jumping to a second line
+              }}
               onClick={() => setHandleClicksFromParent('inline')}
             >
               <i className="fa fa-plus" /> {'   '}
@@ -48,7 +52,11 @@ export const Buttons = ({
             <button
               type="button"
               className="btn btn-lg extended-bg text-white ydx-button ydx-button--lg"
-              style={{ width: '150px' }}
+              style={{
+                width: '150px',
+                minWidth: '150px',
+                whiteSpace: 'nowrap', // Prevents text from jumping to a second line
+              }}
               onClick={() => setHandleClicksFromParent('extended')}
             >
               <i className="fa fa-plus" /> {'   '}
