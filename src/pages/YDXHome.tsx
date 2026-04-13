@@ -1594,7 +1594,7 @@ const YDXHome = (): React.ReactElement => {
             <div className="timeline-container-wrapper" ref={divRef2}>
               <div className="timeline-track-wrapper" ref={divRef3}>
                 {/* Audio Clips Timeline - Consistent with Video.tsx */}
-                {audioClips.map((clip, key) => {
+                {audioClips.map((clip) => {
                   const left = timelineMetrics
                     ? timeToTimelineX(clip.clip_start_time, timelineMetrics)
                     : 0
@@ -1605,7 +1605,7 @@ const YDXHome = (): React.ReactElement => {
 
                   return (
                     <div
-                      key={`audio-${key}`}
+                      key={`audio-${clip.clip_id}`}
                       className="audio-clip-timeline-segment"
                       style={{
                         position: 'absolute',
@@ -1729,9 +1729,9 @@ const YDXHome = (): React.ReactElement => {
         >
           {/* Wait for the canonical duration before rendering clip editors so stale backend lengths cannot shape clip state during route changes. */}
           {hasCanonicalDuration &&
-            audioClips.map((clip, key) => (
+            audioClips.map((clip) => (
               <AudioClip
-                key={key}
+                key={clip.clip_id}
                 clip={clip}
                 userId={user || ''}
                 audioDescriptionId={audioDescriptionId || ''}
