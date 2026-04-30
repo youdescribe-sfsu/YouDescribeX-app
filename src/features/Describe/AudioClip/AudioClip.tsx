@@ -428,6 +428,13 @@ const AudioClip = ({
                 <label
                   htmlFor={`inline-${clipID}`}
                   className="inline-extended-radio inline-bg"
+                  style={{
+                    width: '95px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '40px',
+                  }}
                 >
                   <span className="inline-extended-label">Inline</span>
                 </label>
@@ -445,6 +452,12 @@ const AudioClip = ({
                 <label
                   htmlFor={`extended-${clipID}`}
                   className="inline-extended-radio extended-bg"
+                  style={{
+                    width: '95px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
                   <span className="inline-extended-label">Extended</span>
                 </label>

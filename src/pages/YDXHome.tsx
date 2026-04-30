@@ -3,7 +3,7 @@ import { useElapsedTime } from 'use-elapsed-time'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import YouTube, { YouTubePlayer } from 'react-youtube'
-import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
+import Draggable, { DraggableData } from 'react-draggable'
 import '../assets/css/home.css'
 import '../assets/css/timer.css'
 import AudioClip from '../features/Describe/AudioClip/AudioClip'
@@ -13,14 +13,29 @@ import InsertPublish from '../features/Describe/InsertPublish/InsertPublish'
 import ClipsNavigator from '../features/Describe/ClipsNavigator/ClipsNavigator'
 import { Buttons } from '../features/Describe/Buttons/Buttons'
 import Spinner from '../shared/components/Spinner/Spinner'
+import useCanonicalVideoDuration from '../shared/hooks/useCanonicalVideoDuration'
 import { Howl } from 'howler'
-import { debounce } from 'debounce'
-import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../shared/utils/convertClipObject'
+import {
+  buildTimelineMetrics,
+  clampTimelineTime,
+  clampTimelineX,
+  timeToTimelineX,
+  timelineXToTime,
+  TimelineMetrics,
+} from '../shared/utils/timelineBounds'
 import { Options } from 'youtube-player/dist/types'
 import { userDataStore } from '@/App'
 import { Id, toast } from 'react-toastify'
 import Button from 'react-bootstrap/Button'
+
+type DialogTimestamp = {
+  dialog_seq_no: number
+  dialog_start_time: number
+  dialog_duration: number
+}
+
+const DEFAULT_PLAYHEAD_WIDTH_PX = 2
 
 const YDXHome = (): React.ReactElement => {
   const { audioDescriptionId, youtubeVideoId } = useParams()
@@ -45,20 +60,27 @@ const YDXHome = (): React.ReactElement => {
   const divRef1 = useRef<HTMLDivElement>(null)
   const divRef2 = useRef<HTMLDivElement>(null)
   const divRef3 = useRef<HTMLDivElement>(null)
+  const playheadRef = useRef<HTMLDivElement>(null)
   const [divWidths, setDivWidths] = useState({})
 
   // State Variables
-  const [videoId, setVideoId] = useState('')
-  const [notesData, setNotesData] = useState('')
-  const [videoLength, setVideoLength] = useState(0)
-  const [draggableDivWidth, setDraggableDivWidth] = useState(0.0)
-  const [currentEvent, setCurrentEvent] = useState<YouTubePlayer>()
-  const [currentState, setCurrentState] = useState(-1)
-  const [currentTime, setCurrentTime] = useState(0.0)
-  const [timer, setTimer] = useState<NodeJS.Timer>()
-  const [unitLength, setUnitLength] = useState(0)
-  const [draggableTime, setDraggableTime] = useState({ x: 0, y: 0 })
-  const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<any[]>([])
+  const [videoId, setVideoId] = useState('') // retrieved from db, stored to fetch audio_descriptions
+  // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
+  const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
+  const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored as a fallback if canonical YouTube metadata is unavailable
+  const [backendFallbackYoutubeVideoId, setBackendFallbackYoutubeVideoId] =
+    useState<string | undefined>()
+  const [currentEvent, setCurrentEvent] = useState<YouTubePlayer>() //stores YouTube video's event
+  const [currentState, setCurrentState] = useState(-1) // stores YouTube video's PLAYING, CUED, PAUSED, UNSTARTED, BUFFERING, ENDED state values
+  const [currentTime, setCurrentTime] = useState(0.0) //stores current running time of the YouTube video
+  const [timer, setTimer] = useState<NodeJS.Timer>() // stores TBD
+  const [unitLength, setUnitLength] = useState(0) // stores unit length based on the video length to maintain colored div's on the timelines
+  const [draggableTime, setDraggableTime] = useState({ x: 0, y: 0 }) // stores the position of the draggable bar on the #draggable-div
+  const [timelineMetrics, setTimelineMetrics] =
+    useState<TimelineMetrics | null>(null)
+  const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<
+    DialogTimestamp[]
+  >([]) // stores dialog-timestamps data for a video from backend db
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPublished, setIsPublished] = useState(false)
   const [isCollaborativeVersion, setCollaborativeVersion] = useState(false)
@@ -91,7 +113,9 @@ const YDXHome = (): React.ReactElement => {
     Number.isInteger(storedValueAsNumber) ? storedValueAsNumber : 0,
   )
   const [isActive, setIsActive] = useState(false)
-  const [user, setUser] = useState(userDataStore.getState().userId)
+  //const [user, setUser] = useState(userDataStore.getState().userId)
+  const user = userDataStore((state) => state.userId) || ''
+
   const [needRefresh, setNeedRefresh] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [samplingRate, setSamplingRate] = useState(100)
@@ -125,8 +149,25 @@ const YDXHome = (): React.ReactElement => {
   const currentStateRef = useRef(currentState)
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
+  const timelineMetricsRef = useRef<TimelineMetrics | null>(null)
   const savedClipRefreshRequestedRef = useRef(false)
   const selectedClipIdRef = useRef<string | null>(null)
+  const isTimelineScrubbingRef = useRef(false)
+  const suppressResumeAfterScrubRef = useRef(false)
+  //Yue's fix
+  const hasValidAudioDescriptionId =
+    !!audioDescriptionId && audioDescriptionId !== 'undefined'
+
+  const initialUpdateDataRef = useRef(true)
+  const backendFallbackDurationSeconds =
+    backendFallbackYoutubeVideoId === youtubeVideoId ? videoLength : 0
+  const canonicalVideoDuration = useCanonicalVideoDuration(
+    youtubeVideoId,
+    backendFallbackDurationSeconds,
+  )
+  const canonicalDurationSeconds = canonicalVideoDuration.durationSeconds
+  const hasCanonicalDuration =
+    canonicalVideoDuration.status === 'resolved' && canonicalDurationSeconds > 0
 
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -145,6 +186,10 @@ const YDXHome = (): React.ReactElement => {
   useEffect(() => {
     currentClipIndexRef.current = currentClipIndex
   }, [currentClipIndex])
+
+  useEffect(() => {
+    timelineMetricsRef.current = timelineMetrics
+  }, [timelineMetrics])
 
   useEffect(() => {
     if (currentInlineACRef.current?.playing()) {
@@ -166,14 +211,14 @@ const YDXHome = (): React.ReactElement => {
   }, [youTubeVolume, currentEventRef])
 
   useEffect(() => {
-    if (unitLength > 0 && videoId) {
+    if (videoId) {
       setShowSpinner(true)
       fetchDialogData()
       setShowSpinner(true)
       fetchAudioDescriptionData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitLength, videoId])
+  }, [videoId])
 
   function reset() {
     setSeconds(0)
@@ -181,7 +226,7 @@ const YDXHome = (): React.ReactElement => {
   }
 
   useEffect(() => {
-    setUser(userDataStore.getState().userId || '')
+    //setUser(userDataStore.getState().userId || '')
     setDivWidths({
       divRef1:
         (divRef1.current?.clientWidth ?? 1) / 3 +
@@ -192,10 +237,24 @@ const YDXHome = (): React.ReactElement => {
     })
     setShowSpinner(true)
     fetchUserVideoData()
-    document.addEventListener('keyup', () => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [youtubeVideoId])
+
+  useEffect(() => {
+    const handleKeyUp = () => {
       setIsPlaying((prevIsPlaying) => !prevIsPlaying)
-    })
+    }
+
+    document.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      document.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
+  useEffect(() => {
     let interval: NodeJS.Timer | null = null
+
     if (isActive) {
       interval = setInterval(() => {
         setSeconds((seconds) => seconds + 1)
@@ -206,16 +265,7 @@ const YDXHome = (): React.ReactElement => {
     return () => {
       if (interval !== null) clearInterval(interval)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isActive,
-    draggableDivWidth,
-    unitLength,
-    videoId,
-    youtubeVideoId,
-    updateData,
-    setEditComponentToggleList,
-  ])
+  }, [isActive, seconds])
 
   useEffect(() => {
     localStorage.setItem('Seconds', String(seconds))
@@ -255,26 +305,109 @@ const YDXHome = (): React.ReactElement => {
   }, [needRefresh])
 
   useEffect(() => {
+    if (initialUpdateDataRef.current) {
+      initialUpdateDataRef.current = false
+      return
+    }
+
+    if (videoId) {
+      setShowSpinner(true)
+      fetchAudioDescriptionData(false, videoId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateData])
+
+  useEffect(() => {
+    // console.log(user)
+    // console.log(userDataStore.getState().userId)
     if (userDataStore.getState().userId !== sessionStorage.getItem('User')) {
       setSeconds(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const calculateDraggableDivWidth = () => {
-    const currWidth = divRef3?.current?.clientWidth ?? 1
-    const draggableDivWidth = (96 * currWidth) / 100
-    setDraggableDivWidth(draggableDivWidth)
-    return draggableDivWidth
-  }
+  const syncTimelineTime = useCallback(
+    (time: number) => {
+      const durationSeconds =
+        timelineMetricsRef.current?.durationSeconds || canonicalDurationSeconds
+      const clampedTime = clampTimelineTime(time, durationSeconds)
 
-  const calculateUnitLength = (
-    videoEndTime: number,
-    draggableDivWidth: number,
-  ) => {
-    const unitLength = draggableDivWidth / videoEndTime
-    setUnitLength(unitLength)
-  }
+      setCurrentTime(clampedTime)
+      currentTimeRef.current = clampedTime
+
+      if (timelineMetricsRef.current) {
+        setDraggableTime({
+          x: timeToTimelineX(clampedTime, timelineMetricsRef.current),
+          y: 0,
+        })
+      }
+
+      return clampedTime
+    },
+    [canonicalDurationSeconds],
+  )
+
+  const measureTimelineMetrics = useCallback(() => {
+    if (!hasCanonicalDuration) {
+      timelineMetricsRef.current = null
+      setTimelineMetrics(null)
+      setUnitLength(0)
+      setDraggableTime({ x: 0, y: 0 })
+      return
+    }
+
+    const nextMetrics = buildTimelineMetrics(
+      divRef3.current?.clientWidth || 0,
+      playheadRef.current?.clientWidth || DEFAULT_PLAYHEAD_WIDTH_PX,
+      canonicalDurationSeconds,
+    )
+    const nextUnitLength =
+      nextMetrics.durationSeconds > 0
+        ? nextMetrics.maxX / nextMetrics.durationSeconds
+        : 0
+    const clampedTime = clampTimelineTime(
+      currentTimeRef.current,
+      canonicalDurationSeconds,
+    )
+
+    timelineMetricsRef.current = nextMetrics
+    setTimelineMetrics(nextMetrics)
+    setUnitLength(nextUnitLength)
+    setCurrentTime(clampedTime)
+    currentTimeRef.current = clampedTime
+    setDraggableTime({
+      x: timeToTimelineX(clampedTime, nextMetrics),
+      y: 0,
+    })
+  }, [canonicalDurationSeconds, hasCanonicalDuration])
+
+  useEffect(() => {
+    measureTimelineMetrics()
+
+    if (!hasCanonicalDuration) {
+      return
+    }
+
+    const handleResize = () => {
+      measureTimelineMetrics()
+    }
+
+    let resizeObserver: ResizeObserver | undefined
+
+    if (typeof ResizeObserver !== 'undefined' && divRef3.current) {
+      resizeObserver = new ResizeObserver(() => {
+        measureTimelineMetrics()
+      })
+      resizeObserver.observe(divRef3.current)
+    } else {
+      window.addEventListener('resize', handleResize)
+    }
+
+    return () => {
+      resizeObserver?.disconnect()
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [hasCanonicalDuration, measureTimelineMetrics])
 
   const fetchDialogData = () => {
     if (!videoId) return
@@ -288,17 +421,13 @@ const YDXHome = (): React.ReactElement => {
       })
       .then((dialogData) => {
         setShowSpinner(false)
-        const updatedDialogData: any[] = []
-        dialogData.forEach((dialog: any) => {
-          updatedDialogData.push({
+        const updatedDialogData: DialogTimestamp[] = dialogData.map(
+          (dialog: any) => ({
             dialog_seq_no: dialog.dialog_sequence_num,
-            controlledPosition: {
-              x: dialog.dialog_start_time * unitLength,
-              y: 0,
-            },
-            width: dialog.dialog_duration * unitLength,
-          })
-        })
+            dialog_start_time: dialog.dialog_start_time,
+            dialog_duration: dialog.dialog_duration,
+          }),
+        )
         setVideoDialogTimestamps(updatedDialogData)
       })
       .catch((err) => {
@@ -308,6 +437,8 @@ const YDXHome = (): React.ReactElement => {
   }
 
   const fetchUserVideoData = () => {
+    if (!youtubeVideoId) return
+
     axios
       .get(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/videos/get-by-youtubeVideo/${youtubeVideoId}`,
@@ -317,15 +448,8 @@ const YDXHome = (): React.ReactElement => {
         const video_id = res.data.video_id
         const video_length = res.data.video_length
         setVideoLength(video_length)
+        setBackendFallbackYoutubeVideoId(youtubeVideoId)
         setVideoId(video_id)
-        return { video_id, video_length }
-      })
-      .then(({ video_id, video_length }) => {
-        setShowSpinner(false)
-        const calculatedWidth = calculateDraggableDivWidth()
-        calculateUnitLength(video_length, calculatedWidth)
-        fetchDialogData()
-        fetchAudioDescriptionData(false, video_id)
       })
       .catch((err) => {
         console.error('ERROR in fetchUserVideoData', err)
@@ -410,10 +534,17 @@ const YDXHome = (): React.ReactElement => {
     shouldRefreshEditToggleList = false,
   ) => {
     const effectiveVideoId = passedVideoId || videoId
+    if (audioDescriptionId === 'undefined') {
+      console.error(
+        'Skipping fetchAudioDescriptionData because audioDescriptionId is the string "undefined"',
+      )
+      setShowSpinner(false)
+      return
+    }
     if (
       effectiveVideoId &&
       userDataStore.getState().userId &&
-      audioDescriptionId
+      hasValidAudioDescriptionId
     )
       axios
         .get(
@@ -580,11 +711,17 @@ const YDXHome = (): React.ReactElement => {
     recentAudioPlayedTime: number,
     playedClipPath: string,
   ) => {
-    setCurrentTime(time)
-    setDraggableTime({ x: unitLength * time, y: 0 })
-    if (recentAudioPlayedTime !== time)
-      playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
-    setPreviousTime(time)
+    if (isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current) {
+      return
+    }
+
+    const syncedTime = syncTimelineTime(time)
+    // check if the audio is not played recently. do not play it again.
+    if (recentAudioPlayedTime !== syncedTime) {
+      // To Play audio files based on current time
+      playAudioAtCurrentTime(syncedTime, playedAudioClip, playedClipPath)
+    }
+    setPreviousTime(syncedTime)
   }
 
   // Scroll to and highlight the currently playing audio clip card
@@ -651,20 +788,27 @@ const YDXHome = (): React.ReactElement => {
         const seekTime = currentTimeRef.current - updatedClip.clip_start_time
 
         if (seekTime < 0) return
+        // FIX 1: Helper to handle the "Play" logic safely without echos
+        const executePlay = (audioObj: any, seek: number) => {
+          // If it's already playing, don't start it again (prevents echo)
+          if (audioObj.playing()) return
 
+          // Stop any ghost instances and set state before playing
+          audioObj.stop()
+          audioObj.seek(seek)
+          audioObj.volume(descriptionVolumeRef.current / 100)
+          audioObj.play()
+        }
+
+        // FIX 2: Removed the 50ms setTimeout
+        // The delay was causing the audio to start AFTER the next logic loop ran,
+        // causing double-triggering.
         if (currentAudio?.state() === 'loaded') {
-          currentAudio.seek(seekTime)
-          setTimeout(() => {
-            currentAudio.play()
-            currentAudio.volume(descriptionVolumeRef.current / 100)
-          }, 50)
+          executePlay(currentAudio, seekTime)
         } else {
-          currentAudio?.once('load', function () {
-            currentAudio.seek(seekTime)
-            setTimeout(() => {
-              currentAudio.play()
-              currentAudio.volume(descriptionVolumeRef.current / 100)
-            }, 50)
+          // Clear old listeners with .off() before adding a new one
+          currentAudio?.off('load').once('load', () => {
+            executePlay(currentAudio, seekTime)
           })
         }
 
@@ -842,8 +986,13 @@ const YDXHome = (): React.ReactElement => {
 
   // YouTube Player Functions
   const onStateChange = (event: any) => {
-    const currentTime = event.target.getCurrentTime()
+    const shouldKeepScrubbedTime =
+      isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current
+    const currentTime = shouldKeepScrubbedTime
+      ? currentTimeRef.current
+      : syncTimelineTime(event.target.getCurrentTime())
     setCurrentEvent(event.target)
+    currentEventRef.current = event.target
     setCurrentTime(currentTime)
     setCurrentState(event.data)
 
@@ -871,6 +1020,16 @@ const YDXHome = (): React.ReactElement => {
         break
 
       case 1: // Playing
+        if (suppressResumeAfterScrubRef.current) {
+          event.target.pauseVideo()
+          setGloballyPaused(true)
+          setTimer((prev) => {
+            if (prev) clearInterval(prev)
+            return undefined
+          })
+          break
+        }
+
         currentEvent?.setVolume(youTubeVolume)
         if (!isActive) setIsActive(true)
 
@@ -903,6 +1062,9 @@ const YDXHome = (): React.ReactElement => {
         if (inlineAC) {
           inlineAC.pause()
         }
+        if (suppressResumeAfterScrubRef.current) {
+          setGloballyPaused(true)
+        }
         // Safely clear the exact live timer
         setTimer((prev) => {
           if (prev) clearInterval(prev)
@@ -927,11 +1089,21 @@ const YDXHome = (): React.ReactElement => {
 
   const onReady = (event: any) => {
     setCurrentEvent(event.target)
+    currentEventRef.current = event.target
   }
 
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
-    setCurrentTime(event.target.getCurrentTime())
+    currentEventRef.current = event.target
+
+    if (suppressResumeAfterScrubRef.current) {
+      event.target.pauseVideo()
+      setGloballyPaused(true)
+      return
+    }
+
+    const currentTime = syncTimelineTime(event.target.getCurrentTime())
+    setPreviousTime(currentTime)
 
     // Use the functional state update to guarantee we clear the old timer
     // before starting a new one, preventing interval leaks.
@@ -954,49 +1126,80 @@ const YDXHome = (): React.ReactElement => {
     event.target.pauseVideo()
   }
 
-  const stopProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
-    setDraggableTime({ x: position.x, y: 0 })
-    const progressBarTime = position.x / unitLength
-    setCurrentTime(progressBarTime)
-    currentTimeRef.current = progressBarTime
-    currentEventRef.current?.seekTo(progressBarTime, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setPreviousTime(currentPlayerTime ?? 0)
-    // Flush the memory cache when you stop dragging
-    setPlayedClipsSet(new Set())
+  const clearPlaybackTimer = () => {
+    setTimer((prev) => {
+      if (prev) clearInterval(prev)
+      return undefined
+    })
   }
 
-  const dragProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
-    setDraggableTime({ x: position.x, y: 0 })
-    currentEventRef.current?.seekTo(position.x / unitLength, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setCurrentTime(currentPlayerTime ?? 0)
-    setPreviousTime(currentPlayerTime ?? 0)
+  const stopScrubAudio = () => {
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.stop()
+      setCurrInlineAC(undefined)
+    }
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.stop()
+      setCurrExtendedAC(undefined)
+    }
+  }
+
+  const resetScrubPlaybackTracking = () => {
     setRecentAudioPlayedTime(0.0)
     setPlayedAudioClip('')
     setPlayedClipPath('')
-    // Flush the memory cache when dragging
+  }
+
+  const startProgressBar = () => {
+    isTimelineScrubbingRef.current = true
+    suppressResumeAfterScrubRef.current = true
+    clearPlaybackTimer()
+    currentEventRef.current?.pauseVideo()
+    setGloballyPaused(true)
+    stopScrubAudio()
+    resetScrubPlaybackTracking()
+  }
+
+  // Dialog Timeline Draggable Functions
+  const stopProgressBar = (position: DraggableData) => {
+    if (!timelineMetricsRef.current) {
+      return
+    }
+
+    const clampedX = clampTimelineX(position.x, timelineMetricsRef.current.maxX)
+    const progressBarTime = timelineXToTime(
+      clampedX,
+      timelineMetricsRef.current,
+    )
+    // Keep the visible label in sync with the final drag-stop position before
+    // insert-open snapshots currentTime for a new clip.
+    const syncedTime = syncTimelineTime(progressBarTime)
+    setPreviousTime(syncedTime)
+    //Flush the memory cache when you stop dragging
     setPlayedClipsSet(new Set())
 
-    updateClipsDataCallback()
-    if (currentExtendedACRef.current) {
-      currentExtendedACRef.current.pause()
-      currentExtendedACRef.current.seek(0)
-      currentExtendedACRef.current.unload()
-      setCurrExtendedAC(undefined)
+    stopScrubAudio()
+    updateClipStackData()
+    isTimelineScrubbingRef.current = false
+    currentEventRef.current?.seekTo(syncedTime, true)
+  }
+  const dragProgressBar = (position: DraggableData) => {
+    if (!timelineMetricsRef.current) {
+      return
     }
-    if (currentInlineACRef.current) {
-      currentInlineACRef.current.pause()
-      currentInlineACRef.current.seek(0)
-      currentInlineACRef.current.unload()
-      setCurrInlineAC(undefined)
-    }
+
+    const clampedX = clampTimelineX(position.x, timelineMetricsRef.current.maxX)
+    const progressBarTime = timelineXToTime(
+      clampedX,
+      timelineMetricsRef.current,
+    )
+    // JUST update the local time state so the UI moves smoothly.
+    // DO NOT call seekTo() here.
+    const syncedTime = syncTimelineTime(progressBarTime)
+    setCurrentTime(syncedTime)
+
+    // We keep these reset so audio doesn't trigger WHILE dragging
+    resetScrubPlaybackTracking()
   }
 
   const updateClipStackData = useCallback(() => {
@@ -1016,8 +1219,8 @@ const YDXHome = (): React.ReactElement => {
       if (clip) {
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
-          html5: true,
-          preload: true,
+          html5: false, // FIX: Use Web Audio API for better sync/reliability
+          preload: true, // Ensure preloading
           autoplay: false,
         })
         clip.clip_audio.load()
@@ -1027,13 +1230,9 @@ const YDXHome = (): React.ReactElement => {
     setClipStack(clipStackData)
   }, [audioClips, setCurrentClipIndex, clipStackSize])
 
-  const updateClipsDataCallback = useMemo(
-    () =>
-      debounce(() => {
-        updateClipStackData()
-      }, 500),
-    [updateClipStackData],
-  )
+  // toggle Show Edit Component
+  // logic to show/hide the edit component and add it to a list along with clip Id
+  // this hides one edit component when the other is opened
 
   const setEditComponentToggleFunc = (clipId: string, value: boolean) => {
     const temp = [...editComponentToggleList]
@@ -1051,6 +1250,9 @@ const YDXHome = (): React.ReactElement => {
   const handlePlayAudioClip = (clipStartTime: number) => {
     // Flush the memory cache when clicking a clip to jump
     setPlayedClipsSet(new Set())
+    isTimelineScrubbingRef.current = false
+    suppressResumeAfterScrubRef.current = false
+
     currentEvent?.seekTo(clipStartTime - 0.4, true) // 0.4 is added for some buffering time
     currentEvent?.playVideo() // if paused, video is played from that audio clip.
   }
@@ -1081,6 +1283,8 @@ const YDXHome = (): React.ReactElement => {
   const handlePlayPause = () => {
     if (currExtendedAC) {
       if (isCurrentExtACPaused) {
+        isTimelineScrubbingRef.current = false
+        suppressResumeAfterScrubRef.current = false
         currExtendedAC.play()
         setCurrentExtACPaused(false)
         setGloballyPaused(false)
@@ -1093,7 +1297,9 @@ const YDXHome = (): React.ReactElement => {
       currentEvent?.pauseVideo()
       setGloballyPaused(true)
     } else {
-      if (!isActive) setIsActive(true)
+      isTimelineScrubbingRef.current = false
+      suppressResumeAfterScrubRef.current = false
+      if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
       currentEvent?.playVideo()
       setGloballyPaused(false)
     }
@@ -1281,44 +1487,51 @@ const YDXHome = (): React.ReactElement => {
         <hr className="m-2 ydx-hr" />
 
         {/* Dialog Timeline */}
-        <div className="timeline-section-wrapper">
-          <div className="timeline-header">
-            <h6 className="timeline-title">
-              Dialog Timeline (
-              {videoLength ? convertSecondsToCardFormat(videoLength) : 'N/A'}):
-            </h6>
-            <div className="timeline-actions">
-              <span className="clips-count">
-                Audio Clips Count: {audioClips.length}
-              </span>
-              {undoDeletedClipInfo && (
-                <Button
-                  className="btn rounded btn-sm text-white bg-warning ydx-button"
-                  onClick={fetchUndoDeletedClipData}
-                >
-                  <i className="fa fa-undo" /> Undo Last Deleted
-                </Button>
-              )}
+        {hasCanonicalDuration && (
+          <div className="timeline-section-wrapper">
+            <div className="timeline-header">
+              <h6 className="timeline-title">
+                Dialog Timeline (
+                {convertSecondsToCardFormat(canonicalDurationSeconds)}
+                ):
+              </h6>
+              <div className="timeline-actions">
+                <span className="clips-count">
+                  Audio Clips Count: {audioClips.length}
+                </span>
+                {undoDeletedClipInfo && (
+                  <Button
+                    className="btn rounded btn-sm text-white bg-warning ydx-button"
+                    onClick={fetchUndoDeletedClipData}
+                  >
+                    <i className="fa fa-undo" /> Undo Last Deleted
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-          {videoLength && (
             <div className="timeline-container-wrapper" ref={divRef2}>
               <div className="timeline-track-wrapper" ref={divRef3}>
-                {audioClips.map((clip, key) => {
-                  const left = clip.clip_start_time * unitLength
+                {/* Audio Clips Timeline - Consistent with Video.tsx */}
+                {audioClips.map((clip) => {
+                  const left = timelineMetrics
+                    ? timeToTimelineX(clip.clip_start_time, timelineMetrics)
+                    : 0
+                  const width = timelineMetrics
+                    ? timeToTimelineX(clip.clip_duration, timelineMetrics)
+                    : 0
                   const isExtended = clip.playback_type === 'extended'
                   return (
                     <div
-                      key={`audio-${key}`}
+                      key={`audio-${clip.clip_id}`}
                       className="audio-clip-timeline-segment"
                       style={{
                         position: 'absolute',
                         left: `${left}px`,
-                        width: isExtended
-                          ? '3px'
-                          : `${clip.clip_duration * unitLength}px`,
+                        width: isExtended ? '3px' : `${width}px`,
                         height: '20px',
-                        backgroundColor: isExtended ? '#9c27b0' : '#ffeb3b',
+                        backgroundColor: isExtended
+                          ? 'var(--extended-color)'
+                          : 'var(--inline-color)',
                         top: '0px',
                         zIndex: 3,
                         borderRadius: '2px',
@@ -1330,33 +1543,58 @@ const YDXHome = (): React.ReactElement => {
                     />
                   )
                 })}
-                {videoDialogTimestamps.map((dialog, key) => (
-                  <Draggable
-                    axis="x"
-                    key={key}
-                    position={dialog.controlledPosition}
-                    bounds="parent"
-                  >
-                    <div
-                      className="dialog-timestamps-div"
-                      style={{ width: dialog.width, height: '20px' }}
-                    />
-                  </Draggable>
-                ))}
-                {videoLength && (
+                {/* Dialog Timeline blue & white div's */}
+                {videoDialogTimestamps.map((dialog, key) => {
+                  const position = timelineMetrics
+                    ? {
+                        x: timeToTimelineX(
+                          dialog.dialog_start_time,
+                          timelineMetrics,
+                        ),
+                        y: 0,
+                      }
+                    : { x: 0, y: 0 }
+                  const width = timelineMetrics
+                    ? timeToTimelineX(dialog.dialog_duration, timelineMetrics)
+                    : 0
+
+                  return (
+                    <Draggable
+                      axis="x"
+                      key={key}
+                      position={position}
+                      bounds="parent"
+                    >
+                      <div
+                        className="dialog-timestamps-div"
+                        style={{
+                          width,
+                          height: '20px',
+                        }}
+                      ></div>
+                    </Draggable>
+                  )
+                })}
+                {timelineMetrics && unitLength > 0 && (
+                  // ProgressBar
                   <Draggable
                     axis="x"
                     bounds="parent"
                     defaultPosition={{ x: 0, y: 0 }}
                     position={draggableTime}
-                    onDrag={(e, data) => {
-                      dragProgressBar(e, data)
+                    onStart={startProgressBar}
+                    onDrag={(_, data) => {
+                      dragProgressBar(data)
                     }}
-                    onStop={(e, data) => {
-                      stopProgressBar(e, data)
+                    onStop={(_, data) => {
+                      stopProgressBar(data)
                     }}
                   >
-                    <div tabIndex={0} className="progress-bar-div">
+                    <div
+                      ref={playheadRef}
+                      tabIndex={0}
+                      className="progress-bar-div editor-progress-bar-div"
+                    >
                       <p className="mt-5 text-white progress-bar-time">
                         {convertSecondsToCardFormat(currentTime)}
                       </p>
@@ -1365,8 +1603,8 @@ const YDXHome = (): React.ReactElement => {
                 )}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* ── Navigation bar: 3-column grid ── */}
         <div
@@ -1448,7 +1686,7 @@ const YDXHome = (): React.ReactElement => {
         </div>
 
         {/* InsertPublish */}
-        {!isPublished && (
+        {!isPublished && hasCanonicalDuration && (
           <InsertPublish
             handleClicksFromParent={handleClicksFromParent}
             setHandleClicksFromParent={setHandleClicksFromParent}
@@ -1456,7 +1694,7 @@ const YDXHome = (): React.ReactElement => {
             setShowSpinner={setShowSpinner}
             youtubeVideoId={youtubeVideoId || ''}
             currentTime={currentTime}
-            videoLength={videoLength}
+            videoLength={canonicalDurationSeconds}
             audioDescriptionId={audioDescriptionId || ''}
             seconds={seconds}
             reset={reset}
@@ -1480,7 +1718,8 @@ const YDXHome = (): React.ReactElement => {
           id="audio-list"
           ref={audioClipsListRef}
         >
-          {audioClips[navClipIndex] && (
+          {/* Wait for the canonical duration before rendering clip editors so stale backend lengths cannot shape clip state during route changes. */}
+          {hasCanonicalDuration && audioClips[navClipIndex] && (
             <AudioClip
               key={audioClips[navClipIndex].clip_id}
               clip={audioClips[navClipIndex]}
@@ -1493,7 +1732,7 @@ const YDXHome = (): React.ReactElement => {
               currentState={currentState}
               updateData={updateData}
               setUpdateData={setUpdateData}
-              videoLength={videoLength}
+              videoLength={canonicalDurationSeconds}
               setShowSpinner={setShowSpinner}
               editComponentToggleList={editComponentToggleList}
               setEditComponentToggleFunc={setEditComponentToggleFunc}

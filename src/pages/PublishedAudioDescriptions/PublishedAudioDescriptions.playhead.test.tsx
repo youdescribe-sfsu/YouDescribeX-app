@@ -1,13 +1,12 @@
 import React from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import axios from 'axios'
-import YDXHome from './YDXHome'
+import PublishedAudioDescriptions from './PublishedAudioDescriptions'
 
 jest.mock('axios')
 
-const mockNavigate = jest.fn()
 const mockedAxios = axios as jest.Mocked<typeof axios>
-const audioDescriptionResponses: any[] = []
+const mockNavigate = jest.fn()
 let mockTimelineTrackWidth = 100
 let mockTimelineStopX = 0.1
 let mockPlayerCurrentTime = 0
@@ -42,6 +41,9 @@ jest.mock('react-router-dom', () => ({
     audioDescriptionId: 'ad-1',
     youtubeVideoId: 'youtube-1',
   }),
+  useLocation: () => ({
+    pathname: '/audio-description/preview/youtube-1/ad-1',
+  }),
 }))
 
 jest.mock(
@@ -62,7 +64,7 @@ jest.mock('use-elapsed-time', () => ({
   }),
 }))
 
-jest.mock('../shared/hooks/useCanonicalVideoDuration', () => ({
+jest.mock('../../shared/hooks/useCanonicalVideoDuration', () => ({
   __esModule: true,
   default: () => ({
     durationSeconds: 120,
@@ -147,7 +149,7 @@ jest.mock('react-draggable', () => ({
   ),
 }))
 
-jest.mock('../features/Describe/Buttons/Buttons', () => ({
+jest.mock('../../features/Describe/Buttons/Buttons', () => ({
   Buttons: ({ handlePlayPause }: { handlePlayPause: () => void }) => (
     <button
       type="button"
@@ -159,20 +161,34 @@ jest.mock('../features/Describe/Buttons/Buttons', () => ({
   ),
 }))
 
-jest.mock('../features/Describe/Notes/Notes', () => ({
+jest.mock('../../features/Describe/Notes/Notes', () => ({
   __esModule: true,
   default: () => <div data-testid="notes" />,
 }))
 
-jest.mock('../features/Describe/InsertPublish/InsertPublish', () => ({
+jest.mock('../../features/Describe/InsertPublish/InsertPublish', () => ({
   __esModule: true,
   default: () => <div data-testid="insert-publish" />,
 }))
 
-jest.mock('../shared/components/Spinner/Spinner', () => ({
+jest.mock('../../features/Describe/AudioClip/AudioClip', () => ({
+  __esModule: true,
+  default: () => null,
+}))
+
+jest.mock('../../shared/components/Spinner/Spinner', () => ({
   __esModule: true,
   default: () => <div data-testid="spinner" />,
 }))
+
+jest.mock(
+  '@/shared/components/Modal/Modal',
+  () => ({
+    __esModule: true,
+    default: () => <div data-testid="publish-modal" />,
+  }),
+  { virtual: true },
+)
 
 jest.mock('react-bootstrap/Button', () => ({
   __esModule: true,
@@ -213,79 +229,14 @@ jest.mock('howler', () => {
   }
 })
 
-jest.mock('../features/Describe/AudioClip/AudioClip', () => ({
-  __esModule: true,
-  default: ({
-    clip,
-    editComponentToggleList,
-    setNeedRefresh,
-    setUndoDeletedClip,
-  }: any) => {
-    const hasToggle = editComponentToggleList.some(
-      (item: { clipId: string }) => item.clipId === clip.clip_id,
-    )
-
-    return (
-      <div
-        data-testid={`clip-${clip.clip_id}`}
-        data-has-toggle={String(hasToggle)}
-      >
-        <span>{clip.clip_id}</span>
-        <button
-          type="button"
-          data-testid={`trigger-refresh-${clip.clip_id}`}
-          onClick={() => setNeedRefresh(true)}
-        >
-          Trigger Refresh
-        </button>
-        <button
-          type="button"
-          data-testid={`trigger-delete-refresh-${clip.clip_id}`}
-          onClick={() => {
-            setUndoDeletedClip(true)
-            setNeedRefresh(true)
-          }}
-        >
-          Trigger Delete Refresh
-        </button>
-      </div>
-    )
-  },
-}))
-
-const makeClip = (overrides: Partial<Record<string, any>> = {}) => ({
-  AudioDescriptionAdId: 'ad-1',
-  clip_audio_path: '/audio/test-clip.mp3',
-  clip_duration: 2,
-  clip_end_time: 12,
-  clip_id: 'clip-1',
-  clip_sequence_number: 1,
-  clip_start_time: 10,
-  clip_title: 'Clip title',
-  createdAt: '2026-03-01T00:00:00.000Z',
-  description_text: 'Description',
-  description_type: 'Visual',
-  is_recorded: false,
-  playback_type: 'inline',
-  updatedAt: '2026-03-01T00:00:00.000Z',
-  ...overrides,
-})
-
 const makeAudioDescriptionResponse = (clips: any[]) => ({
   Audio_Clips: clips,
   Notes: ['Notes'],
-  is_collaborative_version: false,
   is_published: false,
 })
 
-const queueAudioDescriptionResponses = (...responses: any[]) => {
-  audioDescriptionResponses.length = 0
-  audioDescriptionResponses.push(...responses)
-}
-
-describe('YDXHome refresh alignment', () => {
+describe('PublishedAudioDescriptions master timeline clamping', () => {
   beforeEach(() => {
-    audioDescriptionResponses.length = 0
     mockTimelineTrackWidth = 100
     mockTimelineStopX = 0.1
     mockPlayerCurrentTime = 0
@@ -328,31 +279,13 @@ describe('YDXHome refresh alignment', () => {
         })
       }
 
-      if (url.includes('/api/audio-descriptions/get-user-ad/')) {
-        const nextResponse =
-          audioDescriptionResponses.length > 1
-            ? audioDescriptionResponses.shift()
-            : audioDescriptionResponses[0]
-
-        if (!nextResponse) {
-          throw new Error(`Missing audio description response for ${url}`)
-        }
-
+      if (url.includes('/api/audio-descriptions/get-audio-description/ad-1')) {
         return Promise.resolve({
-          data: nextResponse,
+          data: makeAudioDescriptionResponse([]),
         })
       }
 
       throw new Error(`Unexpected axios.get URL: ${url}`)
-    })
-
-    mockedAxios.post.mockResolvedValue({
-      data: {
-        clip: {
-          audio_description: 'ad-1',
-          youtubeId: 'youtube-1',
-        },
-      },
     })
 
     Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
@@ -386,86 +319,33 @@ describe('YDXHome refresh alignment', () => {
     }
   })
 
-  it('rebuilds edit toggles on a non-save refresh from a clip row', async () => {
-    queueAudioDescriptionResponses(
-      makeAudioDescriptionResponse([makeClip()]),
-      makeAudioDescriptionResponse([
-        makeClip(),
-        makeClip({
-          clip_id: 'clip-2',
-          clip_start_time: 20,
-          clip_end_time: 22,
-        }),
-      ]),
-    )
+  it('clamps a right-edge drag stop to the canonical duration', async () => {
+    mockTimelineStopX = 120
 
-    render(<YDXHome />)
+    render(<PublishedAudioDescriptions />)
 
-    expect(await screen.findByTestId('clip-clip-1')).toHaveAttribute(
-      'data-has-toggle',
-      'true',
-    )
+    await screen.findByTestId('master-timeline-stop')
 
-    fireEvent.click(screen.getByTestId('trigger-refresh-clip-1'))
+    fireEvent.click(screen.getByTestId('master-timeline-stop'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('clip-clip-1')).toHaveAttribute(
-        'data-has-toggle',
-        'true',
-      )
-      expect(screen.getByTestId('clip-clip-2')).toHaveAttribute(
-        'data-has-toggle',
-        'true',
-      )
-    })
-  })
-
-  it('rebuilds edit toggles after undo restores clips through the non-save refresh path', async () => {
-    queueAudioDescriptionResponses(
-      makeAudioDescriptionResponse([makeClip()]),
-      makeAudioDescriptionResponse([]),
-      makeAudioDescriptionResponse([
-        makeClip(),
-        makeClip({
-          clip_id: 'clip-restored',
-          clip_start_time: 30,
-          clip_end_time: 33,
-        }),
-      ]),
-    )
-
-    render(<YDXHome />)
-
-    expect(await screen.findByTestId('clip-clip-1')).toHaveAttribute(
-      'data-has-toggle',
-      'true',
-    )
-
-    fireEvent.click(screen.getByTestId('trigger-delete-refresh-clip-1'))
-
-    const undoButton = await screen.findByRole('button', {
-      name: /undo last deleted/i,
+      expect(screen.getByText('00:02:00:00')).toBeInTheDocument()
     })
 
-    fireEvent.click(undoButton)
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/editor/youtube-1/ad-1')
-      expect(screen.getByTestId('clip-clip-restored')).toHaveAttribute(
-        'data-has-toggle',
-        'true',
-      )
-    })
+    expect(
+      Number(
+        screen.getByTestId('master-timeline-draggable').getAttribute('data-x'),
+      ),
+    ).toBeCloseTo(98, 5)
   })
 
   it('clamps playback-driven time updates to the canonical duration and max playhead position', async () => {
     jest.useFakeTimers()
     mockPlayerCurrentTime = 130
-    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
 
-    render(<YDXHome />)
+    render(<PublishedAudioDescriptions />)
 
-    await screen.findByTestId('insert-publish')
+    await screen.findByTestId('youtube-play')
 
     fireEvent.click(screen.getByTestId('youtube-play'))
 
@@ -491,11 +371,10 @@ describe('YDXHome refresh alignment', () => {
   it('reprojects the playhead inside the timeline when the track width shrinks', async () => {
     jest.useFakeTimers()
     mockPlayerCurrentTime = 120
-    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
 
-    render(<YDXHome />)
+    render(<PublishedAudioDescriptions />)
 
-    await screen.findByTestId('insert-publish')
+    await screen.findByTestId('youtube-play')
 
     fireEvent.click(screen.getByTestId('youtube-play'))
 
@@ -530,12 +409,12 @@ describe('YDXHome refresh alignment', () => {
   })
 
   it('pauses on playhead grab, keeps the seek paused, and only resumes on explicit play', async () => {
-    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
     mockTimelineStopX = 30
 
-    render(<YDXHome />)
+    render(<PublishedAudioDescriptions />)
 
-    await screen.findByTestId('insert-publish')
+    await screen.findByTestId('youtube-play')
+    fireEvent(window, new Event('resize'))
     await screen.findByTestId('master-timeline-stop', undefined, {
       timeout: 3000,
     })
@@ -571,11 +450,10 @@ describe('YDXHome refresh alignment', () => {
   })
 
   it('renders the editor playhead with the expanded hit area class', async () => {
-    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
+    const { container } = render(<PublishedAudioDescriptions />)
 
-    const { container } = render(<YDXHome />)
-
-    await screen.findByTestId('insert-publish')
+    await screen.findByTestId('youtube-play')
+    fireEvent(window, new Event('resize'))
     await screen.findByTestId('master-timeline-stop', undefined, {
       timeout: 3000,
     })

@@ -8,6 +8,9 @@ jest.mock('axios')
 const mockedAxios = axios as jest.Mocked<typeof axios>
 const mockNavigate = jest.fn()
 const audioDescriptionResponses: any[] = []
+let mockTimelineTrackWidth = 100
+let mockTimelineStopX = 0.1
+let mockTimelineDragX = 0.1
 const originalClientWidth = Object.getOwnPropertyDescriptor(
   HTMLElement.prototype,
   'clientWidth',
@@ -57,17 +60,33 @@ jest.mock('react-draggable', () => ({
   __esModule: true,
   default: ({
     children,
+    onDrag,
     onStop,
+    position,
   }: {
     children: React.ReactNode
+    onDrag?: (event: unknown, data: { x: number; y: number }) => void
     onStop?: (event: unknown, data: { x: number; y: number }) => void
+    position?: { x: number; y: number }
   }) => (
-    <div>
+    <div
+      data-testid={onStop ? 'master-timeline-draggable' : undefined}
+      data-x={position?.x ?? ''}
+    >
+      {onDrag ? (
+        <button
+          type="button"
+          data-testid="master-timeline-drag"
+          onClick={() => onDrag({}, { x: mockTimelineDragX, y: 0 })}
+        >
+          Trigger drag
+        </button>
+      ) : null}
       {onStop ? (
         <button
           type="button"
           data-testid="master-timeline-stop"
-          onClick={() => onStop({}, { x: 0.1, y: 0 })}
+          onClick={() => onStop({}, { x: mockTimelineStopX, y: 0 })}
         >
           Trigger drag stop
         </button>
@@ -174,6 +193,9 @@ const readStartTimeInputs = () =>
 describe('YDXHome PR2 insert-time behavior', () => {
   beforeEach(() => {
     audioDescriptionResponses.length = 0
+    mockTimelineTrackWidth = 100
+    mockTimelineStopX = 10.208333333333334
+    mockTimelineDragX = 10.208333333333334
     mockedAxios.get.mockReset()
     mockedAxios.post.mockReset()
     mockNavigate.mockReset()
@@ -186,6 +208,21 @@ describe('YDXHome PR2 insert-time behavior', () => {
           data: {
             video_id: 'video-1',
             video_length: 120,
+          },
+        })
+      }
+
+      if (url.includes('/api/youtube-proxy/videos?id=youtube-1')) {
+        return Promise.resolve({
+          data: {
+            items: [
+              {
+                id: 'youtube-1',
+                contentDetails: {
+                  duration: 'PT2M',
+                },
+              },
+            ],
           },
         })
       }
@@ -218,7 +255,22 @@ describe('YDXHome PR2 insert-time behavior', () => {
 
     Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
       configurable: true,
-      get: () => 1,
+      get() {
+        const element = this as HTMLElement
+
+        if (
+          element.classList.contains('timeline-track-wrapper') ||
+          element.id === 'draggable-div'
+        ) {
+          return mockTimelineTrackWidth
+        }
+
+        if (element.classList.contains('progress-bar-div')) {
+          return 2
+        }
+
+        return 1
+      },
     })
   })
 
@@ -248,5 +300,24 @@ describe('YDXHome PR2 insert-time behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: /insert inline/i }))
 
     expect(readStartTimeInputs()).toEqual([0, 0, 12, 50])
+  })
+
+  it('clamps a right-edge drag stop to the canonical duration before insert-open snapshots it', async () => {
+    mockTimelineStopX = 120
+    queueAudioDescriptionResponses(makeAudioDescriptionResponse([]))
+
+    render(<YDXHome />)
+
+    await screen.findByRole('button', { name: /insert inline/i })
+
+    fireEvent.click(screen.getByTestId('master-timeline-stop'))
+
+    await waitFor(() => {
+      expect(screen.getByText('00:02:00:00')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /insert inline/i }))
+
+    expect(readStartTimeInputs()).toEqual([0, 2, 0, 0])
   })
 })

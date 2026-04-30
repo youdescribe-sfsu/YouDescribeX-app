@@ -30,11 +30,16 @@ export const Buttons = ({
   return (
     <div className="d-flex justify-content-evenly flex-column text-center p-4">
       <div className="row justify-content-center gx-3 gy-4">
-        <div className="col-6">
+        <div className="col-6 d-flex justify-content-center">
           {isPreviewAudioDescription ? (
             <button
               type="button"
-              className="btn btn-lg inline-bg text-dark ydx-button ydx-button--lg w-100"
+              className="btn btn-lg inline-bg text-dark ydx-button ydx-button--lg"
+              style={{
+                width: '170px',
+                minWidth: '170px',
+                whiteSpace: 'nowrap', // Prevents text from jumping to a second line
+              }}
               onClick={() => setHandleClicksFromParent('inline')}
             >
               <i className="fa fa-plus" /> {'   '}
@@ -42,11 +47,16 @@ export const Buttons = ({
             </button>
           ) : null}
         </div>
-        <div className="col-6">
+        <div className="col-6 d-flex justify-content-center">
           {isPreviewAudioDescription ? (
             <button
               type="button"
-              className="btn btn-lg extended-bg text-white ydx-button ydx-button--lg w-100"
+              className="btn btn-lg extended-bg text-white ydx-button ydx-button--lg"
+              style={{
+                width: '170px',
+                minWidth: '170px',
+                whiteSpace: 'nowrap', // Prevents text from jumping to a second line
+              }}
               onClick={() => setHandleClicksFromParent('extended')}
             >
               <i className="fa fa-plus" /> {'   '}
