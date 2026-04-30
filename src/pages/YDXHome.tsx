@@ -128,7 +128,8 @@ const YDXHome = (): React.ReactElement => {
     Number.isInteger(storedValueAsNumber) ? storedValueAsNumber : 0,
   )
   const [isActive, setIsActive] = useState(false)
-  const [user, setUser] = useState(userDataStore.getState().userId)
+  //const [user, setUser] = useState(userDataStore.getState().userId)
+  const user = userDataStore((state) => state.userId) || ''
 
   const [needRefresh, setNeedRefresh] = useState(false)
   // const [clipDeleted, setClipDeleted] = useState(false);
@@ -244,7 +245,7 @@ const YDXHome = (): React.ReactElement => {
   }
 
   useEffect(() => {
-    setUser(userDataStore.getState().userId || '')
+    //setUser(userDataStore.getState().userId || '')
     setDivWidths({
       divRef1:
         (divRef1.current?.clientWidth ?? 1) / 3 +
