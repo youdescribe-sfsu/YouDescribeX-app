@@ -987,7 +987,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     }
     // Update clipStack
     setClipStack(clipStackData)
-  }, [audioClips, setCurrentClipIndex])
+  }, [audioClips, setCurrentClipIndex, clipStackSize])
 
   const updateClipsDataCallback = useMemo(
     () =>

@@ -25,6 +25,7 @@ const Profile = () => {
   useEffect(() => {
     document.title = translate('My profile')
     loadUser()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadUser = async () => {

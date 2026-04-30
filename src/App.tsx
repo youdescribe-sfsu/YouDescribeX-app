@@ -174,6 +174,7 @@ const App = () => {
       })
     }
     newGoogleLogin()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const newGoogleAuth = () => {

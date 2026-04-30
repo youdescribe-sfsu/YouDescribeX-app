@@ -584,6 +584,7 @@ const Wishlist = () => {
       aiRequestedUrl,
       setrecentAIRequested,
     )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadTableVideos = (

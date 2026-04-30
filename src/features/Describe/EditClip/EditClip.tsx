@@ -240,6 +240,7 @@ const EditClip = ({
       )
     }
     setAdAudio(new Audio(clipAudioPath))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     clipAudioPath,
     clipCreatedAt,

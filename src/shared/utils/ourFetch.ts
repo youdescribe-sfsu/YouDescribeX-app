@@ -35,12 +35,20 @@ const ourFetch = (
     req.onload = () => {
       if (req.status === 200) {
         if (JSONparsing) {
-          resolve(JSON.parse(req.response))
+          try {
+            resolve(JSON.parse(req.response))
+          } catch {
+            reject(new Error(`Invalid JSON response from ${url}`))
+          }
         } else {
           resolve(req.response)
         }
       } else {
-        reject(JSON.parse(req.response))
+        try {
+          reject(JSON.parse(req.response))
+        } catch {
+          reject(new Error(`HTTP ${req.status}: ${req.statusText || 'Error'}`))
+        }
       }
     }
 

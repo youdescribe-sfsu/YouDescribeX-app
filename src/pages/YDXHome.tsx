@@ -172,6 +172,7 @@ const YDXHome = (): React.ReactElement => {
       setShowSpinner(true)
       fetchAudioDescriptionData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unitLength, videoId])
 
   function reset() {
@@ -1024,7 +1025,7 @@ const YDXHome = (): React.ReactElement => {
       }
     }
     setClipStack(clipStackData)
-  }, [audioClips, setCurrentClipIndex])
+  }, [audioClips, setCurrentClipIndex, clipStackSize])
 
   const updateClipsDataCallback = useMemo(
     () =>
