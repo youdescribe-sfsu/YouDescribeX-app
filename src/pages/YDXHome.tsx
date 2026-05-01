@@ -154,6 +154,9 @@ const YDXHome = (): React.ReactElement => {
   const selectedClipIdRef = useRef<string | null>(null)
   const isTimelineScrubbingRef = useRef(false)
   const suppressResumeAfterScrubRef = useRef(false)
+  // Set before a navigation seekTo; prevents the first onStateChange/onPlay
+  // from overriding the draggable position that syncTimelineTime just set.
+  const navSeekPendingRef = useRef(false)
   //Yue's fix
   const hasValidAudioDescriptionId =
     !!audioDescriptionId && audioDescriptionId !== 'undefined'
@@ -654,8 +657,15 @@ const YDXHome = (): React.ReactElement => {
             )
             setCurrentClipIndex(startIndex)
             setClipStack(clipStackData)
-            // Navigate to newly saved clip
-            const newClipIndex = audioClipsData.length - 1
+            // Find the newly inserted clip by its ID (clips are sorted by
+            // start_time, so the new one might not be at the end).
+            const oldClipIds = new Set(audioClips.map((c) => c.clip_id))
+            const newClip = audioClipsData.find(
+              (c) => !oldClipIds.has(c.clip_id),
+            )
+            const newClipIndex = newClip
+              ? audioClipsData.indexOf(newClip)
+              : audioClipsData.length - 1
             setNavClipIndex(newClipIndex)
             selectedClipIdRef.current =
               audioClipsData[newClipIndex]?.clip_id ?? null
@@ -1039,14 +1049,22 @@ const YDXHome = (): React.ReactElement => {
 
   // YouTube Player Functions
   const onStateChange = (event: any) => {
-    // During buffering (state 3), YouTube's getCurrentTime() may still return
-    // the pre-seek position. Treat buffering like a scrub: keep whatever time
-    // syncTimelineTime last committed (e.g. from handleClipNavigation) so the
-    // visual playhead doesn't snap back to the old position.
+    // Snapshot the pending-nav flag; clear it once we reach the post-seek
+    // state (1 = playing or 2 = paused). onPlay clears it for state 1.
+    const navSeekPending = navSeekPendingRef.current
+    if (event.data === 2 && navSeekPending) {
+      navSeekPendingRef.current = false
+    }
+
+    // During buffering (state 3) or right after a navigation seek (state 1/2
+    // before YouTube has settled), YouTube's getCurrentTime() may still return
+    // the pre-seek position. Preserve the time syncTimelineTime committed so
+    // the visual playhead doesn't snap back to the old position.
     const shouldKeepScrubbedTime =
       isTimelineScrubbingRef.current ||
       suppressResumeAfterScrubRef.current ||
-      event.data === 3
+      event.data === 3 ||
+      navSeekPending
     const currentTime = shouldKeepScrubbedTime
       ? currentTimeRef.current
       : syncTimelineTime(event.target.getCurrentTime())
@@ -1164,7 +1182,15 @@ const YDXHome = (): React.ReactElement => {
       return
     }
 
-    const currentTime = syncTimelineTime(event.target.getCurrentTime())
+    // If a navigation seek is still pending, YouTube's getCurrentTime() may
+    // not yet reflect the seek target. Use the ref value set by syncTimelineTime
+    // and clear the flag so subsequent play events update normally.
+    const navSeekPending = navSeekPendingRef.current
+    if (navSeekPending) navSeekPendingRef.current = false
+
+    const currentTime = navSeekPending
+      ? currentTimeRef.current
+      : syncTimelineTime(event.target.getCurrentTime())
     setPreviousTime(currentTime)
 
     // Use the functional state update to guarantee we clear the old timer
@@ -1351,6 +1377,7 @@ const YDXHome = (): React.ReactElement => {
       suppressResumeAfterScrubRef.current = false
       const seekTime = Math.max(0, clipTime - 5)
       syncTimelineTime(seekTime)
+      navSeekPendingRef.current = true
       currentEventRef.current?.seekTo(seekTime, true)
       updateClipStackData()
     }
@@ -1692,11 +1719,10 @@ const YDXHome = (): React.ReactElement => {
           </div>
         )}
 
-        {/* ── Navigation bar: 3-column grid ── */}
+        {/* ── Navigation bar ── */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr auto 1fr',
+            display: 'flex',
             alignItems: 'center',
             gap: '8px',
             margin: '8px 0',
@@ -1724,12 +1750,12 @@ const YDXHome = (): React.ReactElement => {
             )}
           </div>
 
-          {/* Center: Currently editing */}
+          {/* Center: Currently editing — grows to fill available space */}
           {audioClips.length > 0 && (
             <button
               className="clip-nav-btn-blue"
               onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
-              style={{ whiteSpace: 'nowrap' }}
+              style={{ flex: 1, whiteSpace: 'nowrap', textAlign: 'center' }}
               aria-label={`Currently editing clip ${navClipIndex + 1} of ${
                 audioClips.length
               }. Click to ${
@@ -1747,9 +1773,14 @@ const YDXHome = (): React.ReactElement => {
             </button>
           )}
 
-          {/* Right: Prev/Next */}
+          {/* Right: Prev/Next — always right-aligned via marginLeft: auto */}
           <div
-            style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}
+            style={{
+              display: 'flex',
+              gap: '6px',
+              marginLeft: 'auto',
+              flexShrink: 0,
+            }}
           >
             <button
               className="clip-nav-btn-blue"
