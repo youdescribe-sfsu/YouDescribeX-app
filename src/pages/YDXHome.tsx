@@ -440,7 +440,7 @@ const YDXHome = (): React.ReactElement => {
       })
       .catch((err) => {
         console.error('ERROR in fetchDialogData', err)
-        setShowSpinner(true)
+        setShowSpinner(false)
       })
   }
 
@@ -455,12 +455,13 @@ const YDXHome = (): React.ReactElement => {
         setShowSpinner(false)
         const video_id = res.data.video_id
         const video_length = res.data.video_length
+        console.log('[fetchUserVideoData] success — video_id:', video_id, '| video_length:', video_length)
         setVideoLength(video_length)
         setBackendFallbackYoutubeVideoId(youtubeVideoId)
         setVideoId(video_id)
       })
       .catch((err) => {
-        console.error('ERROR in fetchUserVideoData', err)
+        console.error('[fetchUserVideoData] FAILED —', err?.response?.status, err?.response?.data?.message || err?.message)
         setShowSpinner(false)
       })
   }
@@ -542,6 +543,7 @@ const YDXHome = (): React.ReactElement => {
     shouldRefreshEditToggleList = false,
   ) => {
     const effectiveVideoId = passedVideoId || videoId
+    console.log('[fetchAD] called — effectiveVideoId:', effectiveVideoId, '| userId:', userDataStore.getState().userId, '| audioDescriptionId:', audioDescriptionId, '| hasValidADId:', hasValidAudioDescriptionId)
     if (audioDescriptionId === 'undefined') {
       console.error(
         'Skipping fetchAudioDescriptionData because audioDescriptionId is the string "undefined"',
@@ -564,6 +566,7 @@ const YDXHome = (): React.ReactElement => {
           },
         )
         .then((res) => {
+          console.log('[fetchAD] API success — clips count:', res.data?.Audio_Clips?.length, '| status:', res.status)
           setShowSpinner(false)
           setIsPublished(res.data.is_published)
           return res.data
@@ -656,9 +659,13 @@ const YDXHome = (): React.ReactElement => {
           setClipStack(clipStackData)
         })
         .catch((err) => {
-          console.error('ERROR in fetchAudioDescriptionData', err)
+          console.error('[fetchAD] API FAILED —', err?.response?.status, err?.response?.data?.message || err?.message)
           setShowSpinner(false)
         })
+    else {
+      console.warn('[fetchAD] SKIPPED — guard failed. effectiveVideoId:', effectiveVideoId, '| userId:', userDataStore.getState().userId, '| hasValidADId:', hasValidAudioDescriptionId)
+      setShowSpinner(false)
+    }
   }
 
   const toastId = React.useRef<null | Id>(null)

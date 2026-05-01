@@ -19,13 +19,14 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock(
   '@/App',
-  () => ({
-    userDataStore: {
-      getState: () => ({
-        userId: 'user-1',
-      }),
-    },
-  }),
+  () => {
+    const mockState = { userId: 'user-1', isSignedIn: true }
+    const userDataStore: any = jest.fn(
+      (selector: (s: typeof mockState) => unknown) => selector(mockState),
+    )
+    userDataStore.getState = () => mockState
+    return { userDataStore }
+  },
   { virtual: true },
 )
 
@@ -123,17 +124,31 @@ describe('InsertPublish PR2 insert-time behavior', () => {
     },
   )
 
-  it('snapshots the current timeline time on insert-open and does not drift while the dialog stays open', () => {
-    const initialProps = buildProps({ currentTime: 12.5 })
+  it('snapshots the current timeline time on insert-open and does not drift while the dialog stays open', async () => {
+    const setHandleClicksFromParent = jest.fn()
+    const initialProps = buildProps({
+      currentTime: 12.5,
+      handleClicksFromParent: 'inline',
+      setHandleClicksFromParent,
+    })
     const { rerender } = render(<InsertPublish {...initialProps} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /insert inline/i }))
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { name: /insert inline audio clip/i }),
+      ).toBeInTheDocument(),
+    )
 
     expect(readStartTimeInputs()).toEqual([0, 0, 12, 50])
 
     rerender(
       <InsertPublish
-        {...buildProps({ ...initialProps, currentTime: 48.75 })}
+        {...buildProps({
+          ...initialProps,
+          currentTime: 48.75,
+          handleClicksFromParent: '',
+          setHandleClicksFromParent,
+        })}
       />,
     )
 
@@ -141,10 +156,19 @@ describe('InsertPublish PR2 insert-time behavior', () => {
   })
 
   it('preserves a user-edited Start Time and submits that value on save', async () => {
-    const initialProps = buildProps({ currentTime: 12.5 })
+    const setHandleClicksFromParent = jest.fn()
+    const initialProps = buildProps({
+      currentTime: 12.5,
+      handleClicksFromParent: 'inline',
+      setHandleClicksFromParent,
+    })
     const { rerender } = render(<InsertPublish {...initialProps} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /insert inline/i }))
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { name: /insert inline audio clip/i }),
+      ).toBeInTheDocument(),
+    )
 
     const [hours, minutes, seconds, centiseconds] =
       screen.getAllByRole('spinbutton')
@@ -166,7 +190,11 @@ describe('InsertPublish PR2 insert-time behavior', () => {
 
     rerender(
       <InsertPublish
-        {...buildProps({ ...initialProps, currentTime: 99.99 })}
+        {...buildProps({
+          ...initialProps,
+          currentTime: 99.99,
+          handleClicksFromParent: '',
+        })}
       />,
     )
 

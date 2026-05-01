@@ -461,7 +461,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           // console.error(err.response.data);
           console.error('ERROR in fetchDialogData', err)
 
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
   }
 
@@ -484,7 +484,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           // console.error(err.response.data);
           console.error('ERROR in fetchUserVideoData', err)
 
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
     }
   }
@@ -594,7 +594,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           // console.error(err.response.data);
           console.error('ERROR in fetchAudioDescriptionData', err)
 
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
   }
 

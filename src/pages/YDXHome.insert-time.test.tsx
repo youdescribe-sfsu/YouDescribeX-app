@@ -31,13 +31,14 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock(
   '@/App',
-  () => ({
-    userDataStore: {
-      getState: () => ({
-        userId: 'user-1',
-      }),
-    },
-  }),
+  () => {
+    const mockState = { userId: 'user-1', isSignedIn: true }
+    const userDataStore: any = jest.fn(
+      (selector: (s: typeof mockState) => unknown) => selector(mockState),
+    )
+    userDataStore.getState = () => mockState
+    return { userDataStore }
+  },
   { virtual: true },
 )
 
@@ -291,7 +292,7 @@ describe('YDXHome PR2 insert-time behavior', () => {
 
     await screen.findByRole('button', { name: /insert inline/i })
 
-    fireEvent.click(screen.getByTestId('master-timeline-stop'))
+    fireEvent.click(await screen.findByTestId('master-timeline-stop'))
 
     await waitFor(() => {
       expect(screen.getByText('00:00:12:50')).toBeInTheDocument()
@@ -310,7 +311,7 @@ describe('YDXHome PR2 insert-time behavior', () => {
 
     await screen.findByRole('button', { name: /insert inline/i })
 
-    fireEvent.click(screen.getByTestId('master-timeline-stop'))
+    fireEvent.click(await screen.findByTestId('master-timeline-stop'))
 
     await waitFor(() => {
       expect(screen.getByText('00:02:00:00')).toBeInTheDocument()

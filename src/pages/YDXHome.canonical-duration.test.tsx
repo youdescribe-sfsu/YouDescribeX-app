@@ -24,13 +24,14 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock(
   '@/App',
-  () => ({
-    userDataStore: {
-      getState: () => ({
-        userId: 'user-1',
-      }),
-    },
-  }),
+  () => {
+    const mockState = { userId: 'user-1', isSignedIn: true }
+    const userDataStore: any = jest.fn(
+      (selector: (s: typeof mockState) => unknown) => selector(mockState),
+    )
+    userDataStore.getState = () => mockState
+    return { userDataStore }
+  },
   { virtual: true },
 )
 
