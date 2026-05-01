@@ -1375,7 +1375,7 @@ const YDXHome = (): React.ReactElement => {
       // the YouTube iframe play button is not blocked by a stale drag state.
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
-      const seekTime = Math.max(0, clipTime - 5)
+      const seekTime = Math.max(0, clipTime - 3)
       syncTimelineTime(seekTime)
       navSeekPendingRef.current = true
       currentEventRef.current?.seekTo(seekTime, true)
