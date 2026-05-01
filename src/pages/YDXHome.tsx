@@ -1408,6 +1408,11 @@ const YDXHome = (): React.ReactElement => {
       suppressResumeAfterScrubRef.current = false
       const seekTime = Math.max(0, clipTime - 2)
       syncTimelineTime(seekTime)
+      // Re-measure the timeline so the playhead x-position is recalculated
+      // with the actual DOM width. On initial render the ResizeObserver may
+      // not have fired yet, leaving maxX = 0 and freezing the playhead at
+      // the left edge for the first couple of navigation clicks.
+      measureTimelineMetrics()
       navSeekPendingRef.current = true
       currentEventRef.current?.seekTo(seekTime, true)
       updateClipStackData()
@@ -1750,10 +1755,11 @@ const YDXHome = (): React.ReactElement => {
           </div>
         )}
 
-        {/* ── Navigation bar ── */}
+        {/* ── Navigation bar: 3-column grid ── */}
         <div
           style={{
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: '1fr auto 1fr',
             alignItems: 'center',
             gap: '8px',
             margin: '8px 0',
@@ -1781,12 +1787,12 @@ const YDXHome = (): React.ReactElement => {
             )}
           </div>
 
-          {/* Center: Currently editing — grows to fill available space */}
+          {/* Center: Currently editing */}
           {audioClips.length > 0 && (
             <button
               className="clip-nav-btn-blue"
               onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
-              style={{ flex: 1, whiteSpace: 'nowrap', textAlign: 'center' }}
+              style={{ whiteSpace: 'nowrap' }}
               aria-label={`Currently editing clip ${navClipIndex + 1} of ${
                 audioClips.length
               }. Click to ${
@@ -1804,14 +1810,9 @@ const YDXHome = (): React.ReactElement => {
             </button>
           )}
 
-          {/* Right: Prev/Next — always right-aligned via marginLeft: auto */}
+          {/* Right: Prev/Next */}
           <div
-            style={{
-              display: 'flex',
-              gap: '6px',
-              marginLeft: 'auto',
-              flexShrink: 0,
-            }}
+            style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}
           >
             <button
               className="clip-nav-btn-blue"
