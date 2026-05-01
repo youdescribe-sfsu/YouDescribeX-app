@@ -239,7 +239,10 @@ const Home = () => {
 
       // Use the new combined endpoint
       const url = `${apiUrl}/videos/home-videos?page=${page}`
-      const response = await ourFetch(url, true, { method: 'GET', timeoutMs: HOME_FETCH_TIMEOUT_MS })
+      const response = await ourFetch(url, true, {
+        method: 'GET',
+        timeoutMs: HOME_FETCH_TIMEOUT_MS,
+      })
 
       // Check if we have more videos to load
       if (
@@ -281,7 +284,10 @@ const Home = () => {
   const fallbackToOriginalFetch = async (page: number) => {
     try {
       const url = `${apiUrl}/videos?page=${page}`
-      const response = await ourFetch(url, true, { method: 'GET', timeoutMs: HOME_FETCH_TIMEOUT_MS })
+      const response = await ourFetch(url, true, {
+        method: 'GET',
+        timeoutMs: HOME_FETCH_TIMEOUT_MS,
+      })
 
       if (!response.result || response.result.length === 0) {
         setHasMoreVideos(false)
@@ -317,7 +323,10 @@ const Home = () => {
       // Final fallback: dev backend has the full video catalog
       try {
         const devUrl = `${DEV_BACKEND_API}/videos/home-videos?page=${page}`
-        const devResponse = await ourFetch(devUrl, true, { method: 'GET', timeoutMs: HOME_FETCH_TIMEOUT_MS })
+        const devResponse = await ourFetch(devUrl, true, {
+          method: 'GET',
+          timeoutMs: HOME_FETCH_TIMEOUT_MS,
+        })
         if (devResponse.result?.videos?.length) {
           videoCache.setPageCache(page, devResponse.result)
           setShowSpinner(false)
