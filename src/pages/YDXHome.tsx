@@ -1039,8 +1039,14 @@ const YDXHome = (): React.ReactElement => {
 
   // YouTube Player Functions
   const onStateChange = (event: any) => {
+    // During buffering (state 3), YouTube's getCurrentTime() may still return
+    // the pre-seek position. Treat buffering like a scrub: keep whatever time
+    // syncTimelineTime last committed (e.g. from handleClipNavigation) so the
+    // visual playhead doesn't snap back to the old position.
     const shouldKeepScrubbedTime =
-      isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current
+      isTimelineScrubbingRef.current ||
+      suppressResumeAfterScrubRef.current ||
+      event.data === 3
     const currentTime = shouldKeepScrubbedTime
       ? currentTimeRef.current
       : syncTimelineTime(event.target.getCurrentTime())
