@@ -1759,7 +1759,7 @@ const YDXHome = (): React.ReactElement => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr auto 1fr',
+            gridTemplateColumns: 'auto 1fr auto',
             alignItems: 'center',
             gap: '8px',
             margin: '8px 0',
@@ -1787,33 +1787,33 @@ const YDXHome = (): React.ReactElement => {
             )}
           </div>
 
-          {/* Center: Currently editing */}
-          {audioClips.length > 0 && (
-            <button
-              className="clip-nav-btn-blue"
-              onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
-              style={{ whiteSpace: 'nowrap' }}
-              aria-label={`Currently editing clip ${navClipIndex + 1} of ${
-                audioClips.length
-              }. Click to ${
-                isClipsListExpanded ? 'collapse' : 'expand'
-              } clip list`}
-              aria-expanded={isClipsListExpanded}
-            >
-              <i
-                className={`fa fa-${
-                  isClipsListExpanded ? 'caret-down' : 'caret-right'
-                }`}
-              />{' '}
-              Currently editing: Clip {navClipIndex + 1} - All Clips (
-              {audioClips.length} total)
-            </button>
-          )}
+          {/* Center: Currently editing — compact button centered in remaining space */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {audioClips.length > 0 && (
+              <button
+                className="clip-nav-btn-blue"
+                onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
+                style={{ whiteSpace: 'nowrap' }}
+                aria-label={`Currently editing clip ${navClipIndex + 1} of ${
+                  audioClips.length
+                }. Click to ${
+                  isClipsListExpanded ? 'collapse' : 'expand'
+                } clip list`}
+                aria-expanded={isClipsListExpanded}
+              >
+                <i
+                  className={`fa fa-${
+                    isClipsListExpanded ? 'caret-down' : 'caret-right'
+                  }`}
+                />{' '}
+                Currently editing: Clip {navClipIndex + 1} - All Clips (
+                {audioClips.length} total)
+              </button>
+            )}
+          </div>
 
           {/* Right: Prev/Next */}
-          <div
-            style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}
-          >
+          <div style={{ display: 'flex', gap: '6px' }}>
             <button
               className="clip-nav-btn-blue"
               style={{ backgroundColor: '#6c757d' }}
