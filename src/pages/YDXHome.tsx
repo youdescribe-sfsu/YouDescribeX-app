@@ -157,6 +157,9 @@ const YDXHome = (): React.ReactElement => {
   // Set before a navigation seekTo; prevents the first onStateChange/onPlay
   // from overriding the draggable position that syncTimelineTime just set.
   const navSeekPendingRef = useRef(false)
+  // Mirror of navClipIndex kept in sync synchronously so rapid clicks read the
+  // latest index even before the React state update has committed.
+  const navClipIndexRef = useRef(0)
   //Yue's fix
   const hasValidAudioDescriptionId =
     !!audioDescriptionId && audioDescriptionId !== 'undefined'
@@ -189,6 +192,10 @@ const YDXHome = (): React.ReactElement => {
   useEffect(() => {
     currentClipIndexRef.current = currentClipIndex
   }, [currentClipIndex])
+
+  useEffect(() => {
+    navClipIndexRef.current = navClipIndex
+  }, [navClipIndex])
 
   useEffect(() => {
     timelineMetricsRef.current = timelineMetrics
@@ -1364,6 +1371,9 @@ const YDXHome = (): React.ReactElement => {
   const handleClipNavigation = (index: number) => {
     if (audioClips.length === 0) return
     const clamped = Math.max(0, Math.min(index, audioClips.length - 1))
+    // Update the ref synchronously so back-to-back clicks read the latest index
+    // even before React commits the setNavClipIndex state update.
+    navClipIndexRef.current = clamped
     setNavClipIndex(clamped)
     selectedClipIdRef.current = audioClips[clamped]?.clip_id ?? null
     setIsClipsListExpanded(false)
@@ -1375,7 +1385,7 @@ const YDXHome = (): React.ReactElement => {
       // the YouTube iframe play button is not blocked by a stale drag state.
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
-      const seekTime = Math.max(0, clipTime - 3)
+      const seekTime = Math.max(0, clipTime - 2)
       syncTimelineTime(seekTime)
       navSeekPendingRef.current = true
       currentEventRef.current?.seekTo(seekTime, true)
@@ -1786,7 +1796,7 @@ const YDXHome = (): React.ReactElement => {
               className="clip-nav-btn-blue"
               style={{ backgroundColor: '#6c757d' }}
               disabled={navClipIndex === 0}
-              onClick={() => handleClipNavigation(navClipIndex - 1)}
+              onClick={() => handleClipNavigation(navClipIndexRef.current - 1)}
               aria-label="Go to previous clip"
             >
               ← Previous
@@ -1794,7 +1804,7 @@ const YDXHome = (): React.ReactElement => {
             <button
               className="clip-nav-btn-blue"
               disabled={navClipIndex >= audioClips.length - 1}
-              onClick={() => handleClipNavigation(navClipIndex + 1)}
+              onClick={() => handleClipNavigation(navClipIndexRef.current + 1)}
               aria-label="Go to next clip"
             >
               Next →
