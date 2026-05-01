@@ -318,6 +318,12 @@ const YDXHome = (): React.ReactElement => {
       return
     }
 
+    // Any clip edit (nudge, type toggle, description save) is a deliberate user
+    // action — clear the timeline-scrub lock so the YouTube iframe play button
+    // is not left blocked by a stale drag state.
+    isTimelineScrubbingRef.current = false
+    suppressResumeAfterScrubRef.current = false
+
     if (videoId) {
       setShowSpinner(true)
       fetchAudioDescriptionData(false, videoId)
