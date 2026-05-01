@@ -1332,6 +1332,10 @@ const YDXHome = (): React.ReactElement => {
     if (clipTime !== undefined) {
       stopScrubAudio()
       setPlayedClipsSet(new Set())
+      // Clear the scrub-pause lock so seekTo takes effect immediately and
+      // the YouTube iframe play button is not blocked by a stale drag state.
+      isTimelineScrubbingRef.current = false
+      suppressResumeAfterScrubRef.current = false
       syncTimelineTime(clipTime)
       currentEventRef.current?.seekTo(clipTime, true)
       updateClipStackData()
