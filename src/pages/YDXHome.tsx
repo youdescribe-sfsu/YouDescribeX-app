@@ -671,7 +671,7 @@ const YDXHome = (): React.ReactElement => {
             // This must happen before buildClipStackForTime so the stack is
             // built from the correct time.
             const seekTime = newClip
-              ? Math.max(0, newClip.clip_start_time - 2)
+              ? Math.max(0, newClip.clip_start_time - 0.5)
               : currentTimeRef.current
             syncTimelineTime(seekTime)
             navSeekPendingRef.current = true
@@ -1406,7 +1406,7 @@ const YDXHome = (): React.ReactElement => {
       // the YouTube iframe play button is not blocked by a stale drag state.
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
-      const seekTime = Math.max(0, clipTime - 2)
+      const seekTime = Math.max(0, clipTime - 0.5)
       syncTimelineTime(seekTime)
       // Re-measure the timeline so the playhead x-position is recalculated
       // with the actual DOM width. On initial render the ResizeObserver may

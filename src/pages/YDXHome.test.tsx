@@ -632,9 +632,9 @@ describe('YDXHome refresh alignment', () => {
       expect(screen.getByTestId('clip-clip-new')).toBeInTheDocument()
     })
 
-    // seekTo should have been called with 18 (clip_start_time 20 - 2)
+    // seekTo should have been called with 19.5 (clip_start_time 20 - 0.5)
     await waitFor(() => {
-      expect(mockYouTubePlayer?.seekTo).toHaveBeenCalledWith(18, true)
+      expect(mockYouTubePlayer?.seekTo).toHaveBeenCalledWith(19.5, true)
     })
   })
 })
