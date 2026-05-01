@@ -797,7 +797,11 @@ const YDXHome = (): React.ReactElement => {
     recentAudioPlayedTime: number,
     playedClipPath: string,
   ) => {
-    if (isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current) {
+    if (
+      isTimelineScrubbingRef.current ||
+      suppressResumeAfterScrubRef.current ||
+      navSeekPendingRef.current
+    ) {
       return
     }
 
@@ -1394,6 +1398,9 @@ const YDXHome = (): React.ReactElement => {
     const clipTime = audioClips[clamped]?.clip_start_time
     if (clipTime !== undefined) {
       stopScrubAudio()
+      // Stop the playback interval so it cannot override the seek target
+      // before onPlay restarts it at the correct position.
+      clearPlaybackTimer()
       setPlayedClipsSet(new Set())
       // Clear the scrub-pause lock so seekTo takes effect immediately and
       // the YouTube iframe play button is not blocked by a stale drag state.
