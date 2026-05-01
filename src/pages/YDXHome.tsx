@@ -813,6 +813,8 @@ const YDXHome = (): React.ReactElement => {
       const prevelement = document.querySelectorAll('.green-border')
       prevelement.forEach((elem) => elem.classList.remove('green-border'))
       scrollToAudioClipCard(clipId)
+      const playingIndex = audioClips.findIndex((c) => c.clip_id === clipId)
+      if (playingIndex !== -1) setNavClipIndex(playingIndex)
     }
 
     // --- CASE A: INLINE CLIPS ---
@@ -956,32 +958,28 @@ const YDXHome = (): React.ReactElement => {
             setPlayedClipPath(updatedClip.clip_audio_path)
             const currentAudio = updatedClip.clip_audio
 
-            currentEvent?.pauseVideo()
+            currentEventRef.current?.pauseVideo()
+
+            const executeExtendedPlay = () => {
+              if (!currentAudio || currentAudio.playing()) return
+              currentAudio.play()
+              currentAudio.volume(descriptionVolumeRef.current / 100)
+            }
 
             if (currentAudio?.state() === 'loaded') {
-              setTimeout(() => {
-                if (!currentAudio.playing()) {
-                  currentAudio.play()
-                  currentAudio.volume(descriptionVolumeRef.current / 100)
-                }
-              }, 50)
+              executeExtendedPlay()
             } else {
-              currentAudio?.once('load', function () {
-                setTimeout(() => {
-                  if (!currentAudio.playing()) {
-                    currentAudio.play()
-                    currentAudio.volume(descriptionVolumeRef.current / 100)
-                  }
-                }, 50)
-              })
+              currentAudio?.off('load').once('load', executeExtendedPlay)
             }
 
             setCurrExtendedAC(currentAudio)
 
-            currentAudio?.once('play', () => {
+            // Clear stale listeners before registering — prevents duplicate
+            // handlers from concurrent interval ticks both entering this block.
+            currentAudio?.off('play').once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
             })
-            currentAudio?.once('end', () => {
+            currentAudio?.off('end').once('end', () => {
               setCurrExtendedAC(undefined)
               currentEventRef.current?.playVideo()
               currentAudio.unload()
@@ -1086,10 +1084,13 @@ const YDXHome = (): React.ReactElement => {
         if (extendedAC) {
           if (isCurrentExtACPaused) {
             extendedAC.play()
-            currentEvent?.pauseVideo()
+            currentEventRef.current?.pauseVideo()
             setCurrentExtACPaused(false)
             setGloballyPaused(false)
-          } else {
+          } else if (extendedAC.playing()) {
+            // YouTube resumed while extended clip still playing — cancel it.
+            // Guard with .playing() to avoid seek(0) on an already-ended/
+            // unloaded Howl, which would restart the audio unexpectedly.
             extendedAC.pause()
             extendedAC.seek(0)
             setCurrExtendedAC(undefined)
@@ -1268,8 +1269,8 @@ const YDXHome = (): React.ReactElement => {
       if (clip) {
         clip.clip_audio = new Howl({
           src: clip.clip_audio_path,
-          html5: false, // FIX: Use Web Audio API for better sync/reliability
-          preload: true, // Ensure preloading
+          html5: true,
+          preload: true,
           autoplay: false,
         })
         clip.clip_audio.load()
