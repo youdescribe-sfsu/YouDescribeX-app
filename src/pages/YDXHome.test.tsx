@@ -599,4 +599,42 @@ describe('YDXHome refresh alignment', () => {
 
     expect(container.querySelector('.editor-progress-bar-div')).toBeTruthy()
   })
+
+  it('navigates to the correct index and seeks 2s before when a new clip is saved mid-list', async () => {
+    // Initial state: 2 clips
+    queueAudioDescriptionResponses(
+      makeAudioDescriptionResponse([
+        makeClip({ clip_id: 'clip-1', clip_start_time: 10, clip_end_time: 12 }),
+        makeClip({ clip_id: 'clip-2', clip_start_time: 30, clip_end_time: 32 }),
+      ]),
+      // After save: new clip inserted between clip-1 and clip-2
+      makeAudioDescriptionResponse([
+        makeClip({ clip_id: 'clip-1', clip_start_time: 10, clip_end_time: 12 }),
+        makeClip({ clip_id: 'clip-new', clip_start_time: 20, clip_end_time: 22 }),
+        makeClip({ clip_id: 'clip-2', clip_start_time: 30, clip_end_time: 32 }),
+      ]),
+    )
+
+    render(<YDXHome />)
+
+    // Wait for initial load; start play so currentEventRef is populated.
+    await screen.findByTestId('youtube-play')
+    fireEvent.click(screen.getByTestId('youtube-play'))
+    expect(await screen.findByTestId('clip-clip-1')).toBeInTheDocument()
+
+    // Simulate saving a new clip: dispatch the event first (sets the ref),
+    // then trigger the needRefresh path that fetchAudioDescriptionData reads.
+    window.dispatchEvent(new Event('ydx:new-clip-saved'))
+    fireEvent.click(screen.getByTestId('trigger-refresh-clip-1'))
+
+    // After refresh the new clip card should be shown (index 1 = "Clip 2")
+    await waitFor(() => {
+      expect(screen.getByTestId('clip-clip-new')).toBeInTheDocument()
+    })
+
+    // seekTo should have been called with 18 (clip_start_time 20 - 2)
+    await waitFor(() => {
+      expect(mockYouTubePlayer?.seekTo).toHaveBeenCalledWith(18, true)
+    })
+  })
 })

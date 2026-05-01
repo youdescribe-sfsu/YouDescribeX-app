@@ -657,15 +657,8 @@ const YDXHome = (): React.ReactElement => {
             const nextClipStackSize =
               audioClipsData.length > 100 ? 10 : clipStackSize
             resetPlaybackStateForSavedClipRefresh()
-            const { startIndex, clipStackData } = buildClipStackForTime(
-              audioClipsData,
-              currentTimeRef.current,
-              nextClipStackSize,
-            )
-            setCurrentClipIndex(startIndex)
-            setClipStack(clipStackData)
-            // Find the newly inserted clip by its ID (clips are sorted by
-            // start_time, so the new one might not be at the end).
+            // Find the newly inserted clip by its ID before rebuilding the
+            // clip stack, so we can seek to 2 s before it starts.
             const oldClipIds = new Set(audioClips.map((c) => c.clip_id))
             const newClip = audioClipsData.find(
               (c) => !oldClipIds.has(c.clip_id),
@@ -673,6 +666,27 @@ const YDXHome = (): React.ReactElement => {
             const newClipIndex = newClip
               ? audioClipsData.indexOf(newClip)
               : audioClipsData.length - 1
+
+            // Seek to 2 s before the new clip so the playhead lands near it.
+            // This must happen before buildClipStackForTime so the stack is
+            // built from the correct time.
+            const seekTime = newClip
+              ? Math.max(0, newClip.clip_start_time - 2)
+              : currentTimeRef.current
+            syncTimelineTime(seekTime)
+            navSeekPendingRef.current = true
+            currentEventRef.current?.seekTo(seekTime, true)
+
+            const { startIndex, clipStackData } = buildClipStackForTime(
+              audioClipsData,
+              seekTime,
+              nextClipStackSize,
+            )
+            setCurrentClipIndex(startIndex)
+            setClipStack(clipStackData)
+            // Keep navClipIndexRef in sync immediately so rapid interactions
+            // read the correct index before React commits the state update.
+            navClipIndexRef.current = newClipIndex
             setNavClipIndex(newClipIndex)
             selectedClipIdRef.current =
               audioClipsData[newClipIndex]?.clip_id ?? null
