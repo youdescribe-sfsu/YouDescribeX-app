@@ -1243,6 +1243,7 @@ const YDXHome = (): React.ReactElement => {
     stopScrubAudio()
     updateClipStackData()
     isTimelineScrubbingRef.current = false
+    suppressResumeAfterScrubRef.current = false
     currentEventRef.current?.seekTo(syncedTime, true)
 
     // Sync clip card to wherever the playhead landed.
@@ -1348,8 +1349,9 @@ const YDXHome = (): React.ReactElement => {
       // the YouTube iframe play button is not blocked by a stale drag state.
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
-      syncTimelineTime(clipTime)
-      currentEventRef.current?.seekTo(clipTime, true)
+      const seekTime = Math.max(0, clipTime - 5)
+      syncTimelineTime(seekTime)
+      currentEventRef.current?.seekTo(seekTime, true)
       updateClipStackData()
     }
   }

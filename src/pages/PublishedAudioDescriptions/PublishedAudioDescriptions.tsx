@@ -1107,6 +1107,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     stopScrubAudio()
     updateClipStackData()
     isTimelineScrubbingRef.current = false
+    suppressResumeAfterScrubRef.current = false
     currentEventRef.current?.seekTo(syncedTime, true)
   }
   const dragProgressBar = (position: DraggableData) => {

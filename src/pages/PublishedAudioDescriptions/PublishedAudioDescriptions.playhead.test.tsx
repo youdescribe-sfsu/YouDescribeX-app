@@ -409,7 +409,7 @@ describe('PublishedAudioDescriptions master timeline clamping', () => {
     expect(screen.getByText('00:02:00:00')).toBeInTheDocument()
   })
 
-  it('pauses on playhead grab, keeps the seek paused, and only resumes on explicit play', async () => {
+  it('pauses on playhead grab and restores iframe play button after drag ends', async () => {
     mockTimelineStopX = 30
 
     render(<PublishedAudioDescriptions />)
@@ -440,14 +440,16 @@ describe('PublishedAudioDescriptions master timeline clamping', () => {
       expect(mockYouTubePlayer?.seekTo).toHaveBeenCalledTimes(1)
     })
 
+    // After drag ends suppressResumeAfterScrubRef is cleared, so the iframe
+    // play button is no longer blocked — pauseVideo count stays at 1.
     fireEvent.click(screen.getByTestId('youtube-play'))
 
-    expect(mockYouTubePlayer?.pauseVideo).toHaveBeenCalledTimes(2)
+    expect(mockYouTubePlayer?.pauseVideo).toHaveBeenCalledTimes(1)
 
     fireEvent.click(screen.getByTestId('editor-play-pause'))
     fireEvent.click(screen.getByTestId('youtube-play'))
 
-    expect(mockYouTubePlayer?.pauseVideo).toHaveBeenCalledTimes(2)
+    expect(mockYouTubePlayer?.pauseVideo).toHaveBeenCalledTimes(1)
   })
 
   it('renders the editor playhead with the expanded hit area class', async () => {
