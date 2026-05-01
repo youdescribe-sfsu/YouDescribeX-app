@@ -173,7 +173,9 @@ const App = () => {
         childDomains: ['*'],
       })
     }
+    getUserInfo() // Restore auth from cookies immediately (avoids race vs. async network call)
     newGoogleLogin()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const newGoogleAuth = () => {

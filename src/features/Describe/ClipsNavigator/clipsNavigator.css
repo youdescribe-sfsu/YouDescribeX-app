@@ -1,0 +1,105 @@
+.clips-navigator {
+  margin: 0 0 8px 0;
+  background: #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #444;
+}
+
+.clips-list-container {
+  max-height: 400px;
+  overflow-y: auto;
+  background: #1a1a1a;
+}
+
+.clip-summary-item {
+  padding: 12px 20px;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clip-summary-item:hover {
+  background: #2a2a2a;
+}
+
+.clip-summary-item.active {
+  background: #1e3a5f;
+  border-left: 4px solid #4299e1;
+  padding-left: 16px;
+}
+
+.clip-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.clip-number {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.clip-type-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.clip-type-badge.inline {
+  background: var(--inline-color);
+  color: #000;
+  font-weight: 700;
+}
+
+.clip-type-badge.extended {
+  background: var(--extended-color);
+  color: #fff;
+  font-weight: 700;
+}
+
+.clip-time {
+  font-size: 12px;
+  color: #a0aec0;
+  margin-bottom: 4px;
+}
+
+.clip-description-preview {
+  font-size: 13px;
+  color: #cbd5e0;
+}
+
+/* ── Navigation bar buttons ── */
+.clip-nav-btn-blue {
+  padding: 10px 20px;
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.clip-nav-btn-blue:hover:not(:disabled) {
+  background: #3182ce;
+}
+
+.clip-nav-btn-blue:disabled {
+  background: #4a5568;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.clip-nav-btn-blue.active {
+  background: #2b6cb0;
+}

@@ -245,6 +245,7 @@ const Video = () => {
         clearTimeout(seekDebounceTimer.current)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Update Refs
@@ -274,6 +275,7 @@ const Video = () => {
   useEffect(() => {
     currentEventRef.current = currentEvent
     currentEventRef.current?.setVolume(youTubeVolume)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEvent])
 
   useEffect(() => {
@@ -350,6 +352,7 @@ const Video = () => {
     if (videoId) {
       fetchVideoData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -362,6 +365,7 @@ const Video = () => {
       saveVideoToHistory(videoId)
       historyTracked.current = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId, videoTitle])
 
   useEffect(() => {
@@ -398,6 +402,7 @@ const Video = () => {
           }
         })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userDataStore.getState().isSignedIn])
 
   const fetchVideoData = () => {
@@ -753,6 +758,7 @@ const Video = () => {
         saveVideoToHistory(videoId)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId])
 
   //
@@ -1507,7 +1513,7 @@ const Video = () => {
     }
     // Update clipStack
     setClipStack(clipStackData)
-  }, [audioClips, setCurrentClipIndex])
+  }, [audioClips, setCurrentClipIndex, clipStackSize])
 
   const updateClipStackOnSeek = (seekTime: number) => {
     // Unload old Howl objects before creating new stack
@@ -1631,6 +1637,7 @@ const Video = () => {
       console.log('Playback Stats:', getPlaybackStats())
     }, 5000)
     return () => clearInterval(statsInterval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playedClips, currentTimeRef.current])
 
   useEffect(() => {
@@ -1688,6 +1695,7 @@ const Video = () => {
 
       setDescriberCards(describerCards)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     audioDescriptionsIdsUsers,
     selectedADId,

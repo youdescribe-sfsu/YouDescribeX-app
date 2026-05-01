@@ -46,13 +46,14 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock(
   '@/App',
-  () => ({
-    userDataStore: {
-      getState: () => ({
-        userId: 'user-1',
-      }),
-    },
-  }),
+  () => {
+    const mockState = { userId: 'user-1', isSignedIn: true }
+    const userDataStore: any = jest.fn(
+      (selector: (s: typeof mockState) => unknown) => selector(mockState),
+    )
+    userDataStore.getState = () => mockState
+    return { userDataStore }
+  },
   { virtual: true },
 )
 
@@ -413,6 +414,13 @@ describe('YDXHome refresh alignment', () => {
         'data-has-toggle',
         'true',
       )
+    })
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /go to next clip/i }),
+    )
+
+    await waitFor(() => {
       expect(screen.getByTestId('clip-clip-2')).toHaveAttribute(
         'data-has-toggle',
         'true',
@@ -451,6 +459,13 @@ describe('YDXHome refresh alignment', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/editor/youtube-1/ad-1')
+    })
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /go to next clip/i }),
+    )
+
+    await waitFor(() => {
       expect(screen.getByTestId('clip-clip-restored')).toHaveAttribute(
         'data-has-toggle',
         'true',

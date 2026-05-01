@@ -461,7 +461,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           // console.error(err.response.data);
           console.error('ERROR in fetchDialogData', err)
 
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
   }
 
@@ -484,7 +484,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           // console.error(err.response.data);
           console.error('ERROR in fetchUserVideoData', err)
 
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
     }
   }
@@ -594,7 +594,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           // console.error(err.response.data);
           console.error('ERROR in fetchAudioDescriptionData', err)
 
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
   }
 
@@ -1154,7 +1154,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     }
     // Update clipStack
     setClipStack(clipStackData)
-  }, [audioClips, setCurrentClipIndex])
+  }, [audioClips, setCurrentClipIndex, clipStackSize])
 
   // toggle Show Edit Component
   // logic to show/hide the edit component and add it to a list along with clip Id
@@ -1446,6 +1446,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
                 isPreview={isPreviewAudioDescription}
                 setUndoDeletedClip={setUndoDeletedClip}
                 setUpdatedDescriptions={setUpdatedDescriptions}
+                isPublished={isPublished}
+                enrollInCollabEdit={false}
+                setEnrollInCollabEdit={() => undefined}
+                onPublish={() => undefined}
               />
             ))}
         </div>

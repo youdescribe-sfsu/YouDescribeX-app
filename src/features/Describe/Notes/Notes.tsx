@@ -1,5 +1,5 @@
 import axios from 'axios'
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { toast } from 'react-toastify'
 import '@/assets/css/editAudioDesc.css'
 import '@/assets/css/notes.css'
@@ -65,25 +65,28 @@ const Notes = ({
     debouncedHandleNoteAutoSave(updatedNoteValue)
   }
 
-  const handleNoteAutoSave = (currentNoteValue: any) => {
-    axios
-      .post(`${process.env.REACT_APP_YDX_BACKEND_URL}/api/notes/post-note`, {
-        noteId: noteId,
-        notes: currentNoteValue,
-        adId: audioDescriptionId,
-      })
-      .then((res) => {
-        setNoteId(res.data.notes_id) // setting this in the case of inserting new note
-      })
-      .catch((err) => {
-        console.error(err.response.data)
-        toast.error('Error Saving Note! Please Try Again...')
-      })
-  }
+  const handleNoteAutoSave = useCallback(
+    (currentNoteValue: any) => {
+      axios
+        .post(`${process.env.REACT_APP_YDX_BACKEND_URL}/api/notes/post-note`, {
+          noteId: noteId,
+          notes: currentNoteValue,
+          adId: audioDescriptionId,
+        })
+        .then((res) => {
+          setNoteId(res.data.notes_id) // setting this in the case of inserting new note
+        })
+        .catch((err) => {
+          console.error(err.response.data)
+          toast.error('Error Saving Note! Please Try Again...')
+        })
+    },
+    [noteId, audioDescriptionId],
+  )
 
   const debouncedHandleNoteAutoSave = useMemo(
     () => debounce(handleNoteAutoSave, 2000),
-    [noteId, audioDescriptionId],
+    [handleNoteAutoSave],
   )
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

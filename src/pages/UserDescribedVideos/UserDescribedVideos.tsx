@@ -288,18 +288,21 @@ const UserDescribedVideos = () => {
     if (userId) {
       getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, currentPage])
 
   useEffect(() => {
     if (userId) {
       getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, currentPageDraft])
 
   useEffect(() => {
     if (userId) {
       getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, currentPageAI])
 
   if (
