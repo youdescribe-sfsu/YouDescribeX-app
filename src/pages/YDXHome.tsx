@@ -1232,6 +1232,20 @@ const YDXHome = (): React.ReactElement => {
     updateClipStackData()
     isTimelineScrubbingRef.current = false
     currentEventRef.current?.seekTo(syncedTime, true)
+
+    // Sync clip card to wherever the playhead landed.
+    if (audioClips.length > 0) {
+      const landedIndex = audioClips.findIndex(
+        (clip) =>
+          clip.clip_start_time >= syncedTime ||
+          (clip.clip_start_time < syncedTime &&
+            clip.clip_end_time > syncedTime),
+      )
+      const newNavIndex =
+        landedIndex === -1 ? audioClips.length - 1 : landedIndex
+      setNavClipIndex(newNavIndex)
+      selectedClipIdRef.current = audioClips[newNavIndex]?.clip_id ?? null
+    }
   }
   const dragProgressBar = (position: DraggableData) => {
     if (!timelineMetricsRef.current) {
@@ -1316,7 +1330,11 @@ const YDXHome = (): React.ReactElement => {
     setIsClipsListExpanded(false)
     const clipTime = audioClips[clamped]?.clip_start_time
     if (clipTime !== undefined) {
-      currentEvent?.seekTo(clipTime, true)
+      stopScrubAudio()
+      setPlayedClipsSet(new Set())
+      syncTimelineTime(clipTime)
+      currentEventRef.current?.seekTo(clipTime, true)
+      updateClipStackData()
     }
   }
 
