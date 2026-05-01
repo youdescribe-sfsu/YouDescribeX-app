@@ -18,6 +18,10 @@ const CACHE_VERSION = 'v2' // Incremented to invalidate old caches with incorrec
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes in milliseconds
 const MAX_PAGES_TO_CACHE = 3
 
+// If the local backend's video endpoints are unavailable, fall back to the dev site
+const DEV_BACKEND_API = 'https://ydx-dev.youdescribe.org/api'
+const HOME_FETCH_TIMEOUT_MS = 8000
+
 interface VideoData {
   youTubeId: string
   description: string
@@ -235,7 +239,7 @@ const Home = () => {
 
       // Use the new combined endpoint
       const url = `${apiUrl}/videos/home-videos?page=${page}`
-      const response = await ourFetch(url)
+      const response = await ourFetch(url, true, { method: 'GET', timeoutMs: HOME_FETCH_TIMEOUT_MS })
 
       // Check if we have more videos to load
       if (
@@ -277,7 +281,7 @@ const Home = () => {
   const fallbackToOriginalFetch = async (page: number) => {
     try {
       const url = `${apiUrl}/videos?page=${page}`
-      const response = await ourFetch(url)
+      const response = await ourFetch(url, true, { method: 'GET', timeoutMs: HOME_FETCH_TIMEOUT_MS })
 
       if (!response.result || response.result.length === 0) {
         setHasMoreVideos(false)
@@ -309,9 +313,22 @@ const Home = () => {
 
       parseHomePageData(combinedData, page === 1)
     } catch (error) {
+      console.error('Local backend unavailable, trying dev backend:', error)
+      // Final fallback: dev backend has the full video catalog
+      try {
+        const devUrl = `${DEV_BACKEND_API}/videos/home-videos?page=${page}`
+        const devResponse = await ourFetch(devUrl, true, { method: 'GET', timeoutMs: HOME_FETCH_TIMEOUT_MS })
+        if (devResponse.result?.videos?.length) {
+          videoCache.setPageCache(page, devResponse.result)
+          setShowSpinner(false)
+          setLoadMoreVideos(false)
+          parseHomePageData(devResponse.result, page === 1)
+          return
+        }
+      } catch (devError) {
+        console.error('Dev backend also failed:', devError)
+      }
       toast.error('Error fetching videos. Please try again later.')
-      console.error(error)
-
       setShowSpinner(false)
       setLoadMoreVideos(false)
     }

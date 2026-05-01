@@ -220,6 +220,14 @@ const YDXHome = (): React.ReactElement => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId])
 
+  // Re-fetch clips when auth resolves after videoId is already set (login race condition)
+  useEffect(() => {
+    if (user && videoId && audioClips.length === 0) {
+      fetchAudioDescriptionData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
   function reset() {
     setSeconds(0)
     setIsActive(false)
@@ -453,7 +461,7 @@ const YDXHome = (): React.ReactElement => {
       })
       .catch((err) => {
         console.error('ERROR in fetchUserVideoData', err)
-        setShowSpinner(true)
+        setShowSpinner(false)
       })
   }
 
@@ -649,7 +657,7 @@ const YDXHome = (): React.ReactElement => {
         })
         .catch((err) => {
           console.error('ERROR in fetchAudioDescriptionData', err)
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
   }
 

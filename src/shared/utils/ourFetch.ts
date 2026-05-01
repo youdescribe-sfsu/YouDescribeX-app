@@ -13,6 +13,7 @@ const ourFetch = (
     method: 'GET' | 'POST' | 'DELETE' | 'PUT'
     headers?: { [key: string]: string }
     body?: any
+    timeoutMs?: number
   } = {
     method: 'GET',
   },
@@ -25,6 +26,12 @@ const ourFetch = (
     console.log('Absolute URL:', absoluteUrl.toString())
 
     req.open(optionObj.method, absoluteUrl.toString())
+
+    req.timeout = optionObj.timeoutMs ?? 15000
+
+    req.ontimeout = () => {
+      reject(new Error(`Request timed out after ${req.timeout}ms: ${url}`))
+    }
 
     if (optionObj.headers) {
       for (const key in optionObj.headers) {
