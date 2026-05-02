@@ -706,7 +706,23 @@ const YDXHome = (): React.ReactElement => {
             const restoredIndex = audioClipsData.findIndex(
               (c) => c.clip_id === selectedClipIdRef.current,
             )
-            if (restoredIndex !== -1) setNavClipIndex(restoredIndex)
+            if (restoredIndex !== -1) {
+              setNavClipIndex(restoredIndex)
+            } else if (audioClipsData.length > 0) {
+              // Clip was deleted — recalculate by playhead position
+              const currentTime = currentTimeRef.current
+              let correctIndex = 0
+              for (let i = 0; i < audioClipsData.length; i++) {
+                if (audioClipsData[i].clip_start_time <= currentTime) {
+                  correctIndex = i
+                }
+              }
+              correctIndex = Math.min(correctIndex, audioClipsData.length - 1)
+              navClipIndexRef.current = correctIndex
+              setNavClipIndex(correctIndex)
+              selectedClipIdRef.current =
+                audioClipsData[correctIndex]?.clip_id ?? null
+            }
           }
 
           const maxStackSize =
