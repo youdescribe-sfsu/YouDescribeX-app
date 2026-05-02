@@ -860,8 +860,6 @@ const YDXHome = (): React.ReactElement => {
       const prevelement = document.querySelectorAll('.green-border')
       prevelement.forEach((elem) => elem.classList.remove('green-border'))
       scrollToAudioClipCard(clipId)
-      const playingIndex = audioClips.findIndex((c) => c.clip_id === clipId)
-      if (playingIndex !== -1) setNavClipIndex(playingIndex)
     }
 
     // --- CASE A: INLINE CLIPS ---
@@ -873,7 +871,7 @@ const YDXHome = (): React.ReactElement => {
           currentClip.clip_start_time >= previousTimeRef.current)
 
       if (isTimeToPlay) {
-        if (playedClipsSetRef.current.has(currentClip.clip_id)) {
+        if (playedClipsSet.has(currentClip.clip_id)) {
           console.log(
             'Inline clip already played (Set check), skipping:',
             currentClip.clip_id,
@@ -911,7 +909,6 @@ const YDXHome = (): React.ReactElement => {
         }
 
         setCurrInlineAC(currentAudio)
-        playedClipsSetRef.current.add(updatedClip.clip_id)
         setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
         setPlayedAudioClip(updatedClip.clip_id)
         setRecentAudioPlayedTime(currentTimeRef.current)
@@ -931,7 +928,7 @@ const YDXHome = (): React.ReactElement => {
 
           // Advance Stack
           const newClip =
-            audioClips[currentClipIndexRef.current + clipStackSize]
+            audioClips[currentClipIndexRef.current + clipStackSize - 1]
           if (newClip) {
             newClip.clip_audio = new Howl({
               src: newClip.clip_audio_path,
@@ -946,7 +943,6 @@ const YDXHome = (): React.ReactElement => {
           }
         }
       } else if (currentTimeRef.current > currentClip.clip_end_time) {
-        playedClipsSetRef.current.add(currentClip.clip_id)
         setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
         setCurrentClipIndex(currentClipIndexRef.current + 1)
         const newStack = clipStackRef.current.slice(1)
@@ -966,23 +962,19 @@ const YDXHome = (): React.ReactElement => {
 
     // --- CASE B: EXTENDED CLIPS ---
     else if (currentClip.playback_type === 'extended') {
-      // Strict condition: fire when currentTime has reached or passed the clip
-      // start time (no early-trigger forward window).
-      // 1.0 s backward window: recovers from a timer tick that lands up to 1 s
-      // after the scheduled start so the clip is never silently skipped.
       const isExactStart =
-        currentClip.clip_start_time <= currentTimeRef.current &&
-        currentClip.clip_start_time >= previousTimeRef.current - 1.0
+        currentClip.clip_start_time <= currentTimeRef.current + 0.1 &&
+        currentClip.clip_start_time >= previousTimeRef.current - 0.1
 
       if (isExactStart) {
-        if (playedClipsSetRef.current.has(currentClip.clip_id)) {
+        if (playedClipsSet.has(currentClip.clip_id)) {
           console.log(
             'Extended clip already played (Set check), advancing stack:',
             currentClip.clip_id,
           )
           setCurrentClipIndex(currentClipIndexRef.current + 1)
           const newClip =
-            audioClips[currentClipIndexRef.current + clipStackSize]
+            audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
           if (newClip) {
             newClip.clip_audio = new Howl({
               src: newClip.clip_audio_path,
@@ -1000,7 +992,6 @@ const YDXHome = (): React.ReactElement => {
 
         const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
         setCurrentClipIndex(currentClipIndexRef.current + 1)
-        playedClipsSetRef.current.add(updatedClip.clip_id)
         setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
 
         if (playedAudioClip !== updatedClip.clip_id) {
@@ -1012,28 +1003,32 @@ const YDXHome = (): React.ReactElement => {
             setPlayedClipPath(updatedClip.clip_audio_path)
             const currentAudio = updatedClip.clip_audio
 
-            currentEventRef.current?.pauseVideo()
-
-            const executeExtendedPlay = () => {
-              if (!currentAudio || currentAudio.playing()) return
-              currentAudio.play()
-              currentAudio.volume(descriptionVolumeRef.current / 100)
-            }
+            currentEvent?.pauseVideo()
 
             if (currentAudio?.state() === 'loaded') {
-              executeExtendedPlay()
+              setTimeout(() => {
+                if (!currentAudio.playing()) {
+                  currentAudio.play()
+                  currentAudio.volume(descriptionVolumeRef.current / 100)
+                }
+              }, 50)
             } else {
-              currentAudio?.off('load').once('load', executeExtendedPlay)
+              currentAudio?.once('load', function () {
+                setTimeout(() => {
+                  if (!currentAudio.playing()) {
+                    currentAudio.play()
+                    currentAudio.volume(descriptionVolumeRef.current / 100)
+                  }
+                }, 50)
+              })
             }
 
             setCurrExtendedAC(currentAudio)
 
-            // Clear stale listeners before registering — prevents duplicate
-            // handlers from concurrent interval ticks both entering this block.
-            currentAudio?.off('play').once('play', () => {
+            currentAudio?.once('play', () => {
               currentAudio.volume(descriptionVolumeRef.current / 100)
             })
-            currentAudio?.off('end').once('end', () => {
+            currentAudio?.once('end', () => {
               setCurrExtendedAC(undefined)
               currentEventRef.current?.playVideo()
               currentAudio.unload()
@@ -1042,7 +1037,7 @@ const YDXHome = (): React.ReactElement => {
 
             // Advance Stack
             const newClip =
-              audioClips[currentClipIndexRef.current + clipStackSize]
+              audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
             if (newClip) {
               newClip.clip_audio = new Howl({
                 src: newClip.clip_audio_path,
@@ -1069,7 +1064,6 @@ const YDXHome = (): React.ReactElement => {
       currentTimeRef.current - currentClip.clip_start_time >= 1.0
     ) {
       console.warn('Discarding skipped extended clip:', currentClip.clip_id)
-      playedClipsSetRef.current.add(currentClip.clip_id)
       setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
       setCurrentClipIndex(currentClipIndexRef.current + 1)
       const newStack = clipStackRef.current.slice(1)
