@@ -796,30 +796,24 @@ const EditClip = ({
           )}
 
           <div className="primary-actions">
-            {!isRecorded &&
-              !isPreview &&
-              !isTutorialMode &&
-              !isIntegratedRecordingMode && (
-                <button
-                  className="ydx-button ydx-button--primary record-voice-prominent"
-                  onClick={handleStartIntegratedRecording}
-                  title="Replace AI voice with your own recording"
-                >
-                  <i className="fa fa-microphone" /> Record Your Voice
-                </button>
-              )}
-            {isRecorded &&
-              !isPreview &&
-              !isTutorialMode &&
-              !isIntegratedRecordingMode && (
-                <button
-                  className="ydx-button ydx-button--primary record-voice-prominent"
-                  onClick={handleStartIntegratedRecording}
-                  title="Record a new audio clip to replace the current one"
-                >
-                  <i className="fa fa-microphone" /> 🎤 Record New Audio
-                </button>
-              )}
+            {!isRecorded && !isPreview && !isIntegratedRecordingMode && (
+              <button
+                className="ydx-button ydx-button--primary record-voice-prominent"
+                onClick={handleStartIntegratedRecording}
+                title="Replace AI voice with your own recording"
+              >
+                <i className="fa fa-microphone" /> Record Your Voice
+              </button>
+            )}
+            {isRecorded && !isPreview && !isIntegratedRecordingMode && (
+              <button
+                className="ydx-button ydx-button--primary record-voice-prominent"
+                onClick={handleStartIntegratedRecording}
+                title="Record a new audio clip to replace the current one"
+              >
+                <i className="fa fa-microphone" /> 🎤 Record New Audio
+              </button>
+            )}
             {!isIntegratedRecordingMode &&
               (() => {
                 const buttonConfig = getSmartButtonConfig()
@@ -905,8 +899,10 @@ const EditClip = ({
             )}
             <button
               className="ydx-button ydx-button--danger"
-              onClick={() => setIsDeleteModal(true)}
-              disabled={isPreview || isTutorialMode}
+              onClick={() => {
+                if (!isTutorialMode) setIsDeleteModal(true)
+              }}
+              disabled={isPreview}
             >
               <i className="fa fa-trash" /> Delete Clip
             </button>
@@ -1087,13 +1083,14 @@ const EditClip = ({
               <input
                 type="checkbox"
                 checked={enrollInCollabEdit}
-                onChange={(e) => setEnrollInCollabEdit(e.target.checked)}
+                onChange={(e) => {
+                  if (!isTutorialMode) setEnrollInCollabEdit(e.target.checked)
+                }}
                 id="collabEditCheckbox"
                 className="form-check-input"
                 data-tutorial={
                   isTutorialMode ? 'collab-checkbox-input' : undefined
                 }
-                disabled={isTutorialMode}
               />
               <label
                 htmlFor="collabEditCheckbox"
@@ -1106,8 +1103,9 @@ const EditClip = ({
                 type="button"
                 className="btn publish-bg text-white ydx-button"
                 data-tutorial={isTutorialMode ? 'publish-btn' : undefined}
-                onClick={() => setIsPublishModal(true)}
-                disabled={isTutorialMode}
+                onClick={() => {
+                  if (!isTutorialMode) setIsPublishModal(true)
+                }}
               >
                 <i className="fa fa-upload" /> Publish
               </button>

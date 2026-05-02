@@ -317,7 +317,7 @@ const clipAiVoiceStep: TutorialStep = {
   uiState: SAVED_CLIP,
 }
 
-// Step 22
+// Step 21
 const clipTimingControlsStep: TutorialStep = {
   id: 'clip-timing-controls',
   targetSelector: '[data-tutorial="clip-timing-controls"]',
@@ -330,7 +330,7 @@ const clipTimingControlsStep: TutorialStep = {
   uiState: SAVED_CLIP,
 }
 
-// Step 23
+// Step 22
 const nudgeControlsStep: TutorialStep = {
   id: 'nudge-controls',
   targetSelector: '[data-tutorial="nudge-controls"]',
@@ -342,7 +342,35 @@ const nudgeControlsStep: TutorialStep = {
   uiState: SAVED_CLIP,
 }
 
+// Step 23
+const currentClipNavigatorStep: TutorialStep = {
+  id: 'clip-currently-editing',
+  targetSelector: '[data-tutorial="clip-currently-editing"]',
+  title: 'Current Clip',
+  content:
+    'This shows the clip you are editing. Click it to open the clip list and jump to another saved clip.',
+  position: 'top',
+  action: 'click',
+  page: 'editor',
+  autoScroll: false,
+  uiState: SAVED_CLIP,
+}
+
 // Step 24
+const clipNavButtonsStep: TutorialStep = {
+  id: 'clip-nav-buttons',
+  targetSelector: '[data-tutorial="clip-nav-buttons"]',
+  title: 'Navigate Clips',
+  content:
+    'You can also use Previous and Next to move through your saved clips one at a time.',
+  position: 'top',
+  action: 'next',
+  page: 'editor',
+  autoScroll: false,
+  uiState: SAVED_CLIP,
+}
+
+// Step 25
 const collabCheckboxStep: TutorialStep = {
   id: 'collab-checkbox',
   targetSelector: '[data-tutorial="collab-checkbox"]',
@@ -410,6 +438,8 @@ const freestylePostForkSteps: TutorialStep[] = [
   clipAiVoiceStep,
   clipTimingControlsStep,
   nudgeControlsStep,
+  currentClipNavigatorStep,
+  clipNavButtonsStep,
   collabCheckboxStep,
   publishBtnStep,
   completionStep,

@@ -224,6 +224,7 @@ const AudioClip = ({
   }
 
   const handlePlaybackTypeUpdate = (e: any) => {
+    if (isTutorialMode) return
     const newPlaybackType = e.target.value
     if (
       clipPlaybackType === 'extended' &&
@@ -236,7 +237,6 @@ const AudioClip = ({
       return
     }
     setClipPlayBackType(newPlaybackType)
-    if (isTutorialMode) return
     axios
       .put(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-playback-type/${clipID}`,
@@ -328,7 +328,8 @@ const AudioClip = ({
               type="text"
               className="ad-title-input"
               placeholder="Enter clip title..."
-              disabled={!showEditComponent || isTutorialMode}
+              disabled={!showEditComponent}
+              readOnly={isTutorialMode}
               value={clipTitle}
               onChange={(e) => setClipTitle(e.target.value)}
             />
@@ -443,7 +444,6 @@ const AudioClip = ({
                   value="inline"
                   checked={clipPlaybackType === 'inline'}
                   onChange={handlePlaybackTypeUpdate}
-                  disabled={isTutorialMode}
                 />
                 <label
                   htmlFor={`inline-${clipID}`}
@@ -468,7 +468,6 @@ const AudioClip = ({
                   value="extended"
                   checked={clipPlaybackType === 'extended'}
                   onChange={handlePlaybackTypeUpdate}
-                  disabled={isTutorialMode}
                 />
                 <label
                   htmlFor={`extended-${clipID}`}

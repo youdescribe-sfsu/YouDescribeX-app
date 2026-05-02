@@ -1989,6 +1989,9 @@ const YDXHome = ({
             {audioClips.length > 0 && (
               <button
                 className="clip-nav-btn-blue"
+                data-tutorial={
+                  isTutorialMode ? 'clip-currently-editing' : undefined
+                }
                 onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
                 style={{ whiteSpace: 'nowrap' }}
                 aria-label={`Currently editing clip ${navClipIndex + 1} of ${
@@ -2010,7 +2013,10 @@ const YDXHome = ({
           </div>
 
           {/* Right: Prev/Next */}
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div
+            data-tutorial={isTutorialMode ? 'clip-nav-buttons' : undefined}
+            style={{ display: 'flex', gap: '6px' }}
+          >
             <button
               className="clip-nav-btn-blue"
               style={{ backgroundColor: '#6c757d' }}

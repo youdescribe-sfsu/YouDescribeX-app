@@ -94,11 +94,6 @@ $tutorial-focus-white: #fff;
   padding: 0;
 }
 
-.tutorial-mock-button {
-  opacity: 1;
-  cursor: default;
-}
-
 .tutorial-tooltip__title {
   font-size: 18px;
   font-weight: 600;
@@ -244,39 +239,8 @@ $tutorial-focus-white: #fff;
   overflow-y: visible;
 }
 
-.tutorial-saved-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  background-color: #5a6268;
-  border: 1px solid #6c757d;
-  border-radius: 6px;
-  cursor: default;
-}
-
 .primary-content-section.tutorial-clip-layout {
   gap: var(--space-sm);
-}
-
-.component[data-tutorial='clip-controls'] .primary-actions .ydx-button,
-.component[data-tutorial='clip-controls']
-  .primary-actions
-  .tutorial-saved-status,
-.component[data-tutorial='clip-controls'] .video-sync-controls .ydx-button {
-  color: #fff;
-}
-
-.component[data-tutorial='clip-controls'] .primary-actions .ydx-button i,
-.component[data-tutorial='clip-controls']
-  .primary-actions
-  .tutorial-saved-status
-  i,
-.component[data-tutorial='clip-controls'] .video-sync-controls .ydx-button i {
-  color: #fff;
 }
 
 @keyframes tooltipSettle {

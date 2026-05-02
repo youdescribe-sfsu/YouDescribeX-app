@@ -23,6 +23,8 @@ export const TUTORIAL_SAMPLE_DESCRIPTION =
   'Judy and Nick race through the streets, chasing after a fleeing vehicle.'
 
 const TUTORIAL_CREATED_AT = '2026-01-01T00:00:00.000Z'
+const TUTORIAL_READY_AUDIO_PATH =
+  'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQIAAAAAAA=='
 
 const createTutorialClip = (
   clipId: string,
@@ -36,7 +38,7 @@ const createTutorialClip = (
   audioDescriptionAdId: TUTORIAL_AUDIO_DESCRIPTION_ID,
   playback_type: playbackType,
   clip_id: clipId,
-  clip_audio_path: '',
+  clip_audio_path: TUTORIAL_READY_AUDIO_PATH,
   clip_duration: duration,
   clip_title: clipTitle,
   clip_start_time: startTime,
