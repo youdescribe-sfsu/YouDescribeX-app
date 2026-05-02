@@ -157,6 +157,9 @@ const YDXHome = (): React.ReactElement => {
   // Set before a navigation seekTo; prevents the first onStateChange/onPlay
   // from overriding the draggable position that syncTimelineTime just set.
   const navSeekPendingRef = useRef(false)
+  // Records the clip start time from the last Previous/Next navigation so that
+  // pressing Play after navigating seeks to the clip instead of the old position.
+  const manualNavTimeRef = useRef<number | null>(null)
   // Mirror of navClipIndex kept in sync synchronously so rapid clicks read the
   // latest index even before the React state update has committed.
   const navClipIndexRef = useRef(0)
@@ -1132,6 +1135,7 @@ const YDXHome = (): React.ReactElement => {
         setCurrInlineAC(undefined)
         setCurrExtendedAC(undefined)
         setIsActive(false)
+        manualNavTimeRef.current = null
         // Safely clear the exact live timer
         setTimer((prev) => {
           if (prev) clearInterval(prev)
@@ -1317,6 +1321,7 @@ const YDXHome = (): React.ReactElement => {
     updateClipStackData()
     isTimelineScrubbingRef.current = false
     suppressResumeAfterScrubRef.current = false
+    manualNavTimeRef.current = null
     currentEventRef.current?.seekTo(syncedTime, true)
 
     // Sync clip card to wherever the playhead landed:
@@ -1461,6 +1466,7 @@ const YDXHome = (): React.ReactElement => {
       navSeekPendingRef.current = true
       currentEventRef.current?.seekTo(seekTime, true)
       updateClipStackData()
+      manualNavTimeRef.current = clipTime
     }
   }
 
@@ -1494,6 +1500,16 @@ const YDXHome = (): React.ReactElement => {
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
       if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
+      if (manualNavTimeRef.current !== null) {
+        const playTime = manualNavTimeRef.current
+        manualNavTimeRef.current = null
+        playedClipsSetRef.current = new Set()
+        setPlayedClipsSet(new Set())
+        syncTimelineTime(playTime)
+        navSeekPendingRef.current = true
+        currentEventRef.current?.seekTo(playTime, true)
+        updateClipStackData()
+      }
       currentEvent?.playVideo()
       setGloballyPaused(false)
     }
