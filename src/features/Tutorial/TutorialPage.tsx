@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tutorialStore } from './tutorialStore'
+import { tutorialEditorStore } from './tutorialEditorStore'
 import { getActiveSteps, type TutorialMode } from './tutorialSteps'
 import { INSTANT_SCROLL_RESET, TUTORIAL_EXIT_ROUTE } from './tutorialConstants'
 import TutorialOverlay from './TutorialOverlay'
@@ -23,21 +24,47 @@ const TutorialPage = () => {
   const prevStep = tutorialStore((state) => state.prevStep)
   const skipTutorial = tutorialStore((state) => state.skipTutorial)
   const setTutorialMode = tutorialStore((state) => state.setTutorialMode)
+  const tutorialAudioClips = tutorialEditorStore(
+    (state) => state.tutorialAudioClips,
+  )
+  const tutorialShowClipForm = tutorialEditorStore(
+    (state) => state.tutorialShowClipForm,
+  )
+  const tutorialIsEditing = tutorialEditorStore(
+    (state) => state.tutorialIsEditing,
+  )
+  const resetTutorialEditor = tutorialEditorStore(
+    (state) => state.resetTutorialEditor,
+  )
+  const syncFromTutorialStep = tutorialEditorStore(
+    (state) => state.syncFromTutorialStep,
+  )
 
   const activeSteps = getActiveSteps(tutorialMode)
   const currentStep = activeSteps[currentStepIndex]
 
   // Start the tutorial on mount, stop on unmount
   useEffect(() => {
+    resetTutorialEditor()
     tutorialStore.getState().startTutorial()
     hasStarted.current = true
     return () => {
+      resetTutorialEditor()
       const { isActive: stillActive } = tutorialStore.getState()
       if (stillActive) {
         tutorialStore.getState().skipTutorial()
       }
     }
-  }, [])
+  }, [resetTutorialEditor])
+
+  useEffect(() => {
+    syncFromTutorialStep(tutorialMode, currentStep?.uiState)
+  }, [
+    currentStep?.id,
+    currentStep?.uiState,
+    syncFromTutorialStep,
+    tutorialMode,
+  ])
 
   useEffect(() => {
     if (isActive) {
@@ -70,7 +97,11 @@ const TutorialPage = () => {
       ) : (
         <MockEditorPage
           tutorialMode={tutorialMode}
-          uiState={currentStep?.uiState}
+          uiState={{
+            showClipForm: tutorialShowClipForm,
+            showSavedClip: tutorialAudioClips.length > 0,
+            isEditing: tutorialIsEditing,
+          }}
         />
       )}
 

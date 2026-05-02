@@ -1,3 +1,11 @@
+import {
+  TUTORIAL_AI_AUDIO_CLIPS,
+  TUTORIAL_DIALOG_TIMESTAMPS,
+  TUTORIAL_SAMPLE_DESCRIPTION,
+  TUTORIAL_VIDEO_METADATA,
+  TUTORIAL_VIDEO_THUMBNAIL_URL,
+} from './tutorialConfig'
+
 export const TUTORIAL_ROUTE = '/tutorial'
 export const TUTORIAL_EXIT_ROUTE = '/home'
 
@@ -8,19 +16,11 @@ export const noop = () => undefined
 export const DEFAULT_DESCRIPTION_VOLUME = 80
 export const DEFAULT_YOUTUBE_VOLUME = 30
 
-export const MOCK_THUMBNAIL_URL =
-  'https://img.youtube.com/vi/5AwtptT8X8k/maxresdefault.jpg'
+export const MOCK_THUMBNAIL_URL = TUTORIAL_VIDEO_THUMBNAIL_URL
 
-export const MOCK_VIDEO_METADATA = {
-  title: 'ZOOTOPIA 2 - All Trailers From The Movie (2025)',
-  author: 'YouDescribe',
-  views: '1.2M views',
-  publishedAt: 'Feb 2025',
-  likes: '45K',
-} as const
+export const MOCK_VIDEO_METADATA = TUTORIAL_VIDEO_METADATA
 
-export const MOCK_SAMPLE_DESCRIPTION =
-  'Judy and Nick race through the streets, chasing after a fleeing vehicle.'
+export const MOCK_SAMPLE_DESCRIPTION = TUTORIAL_SAMPLE_DESCRIPTION
 export const TIME_FIELD_LABELS = ['HR', 'MIN', 'SEC', 'MS'] as const
 
 export const MOCK_TIMECODES = {
@@ -38,20 +38,37 @@ export const INSTANT_SCROLL_RESET: ScrollToOptions = {
   behavior: 'auto',
 }
 
-/** Mock timeline segments for AI mode (8 clips: 1 purple slim at start + 7 yellow even) */
+const MOCK_AI_TIMELINE_WIDTH = 900
+const MOCK_AI_VISIBLE_DURATION_SECONDS = 14.04
+
+const toMockTimelinePx = (seconds: number) =>
+  Number(
+    (
+      (seconds / MOCK_AI_VISIBLE_DURATION_SECONDS) *
+      MOCK_AI_TIMELINE_WIDTH
+    ).toFixed(2),
+  )
+
+/** Mock audio description markers for AI mode. Extended clips render as slim purple markers. */
 export const MOCK_AI_CLIP_SEGMENTS: readonly {
   left: number
   width: number
   isPurple?: boolean
-}[] = [
-  { left: 45, width: 4, isPurple: true }, // The first clip
-  { left: 150, width: 60 },
-  { left: 260, width: 60 },
-  { left: 370, width: 60 },
-  { left: 480, width: 60 },
-  { left: 590, width: 60 },
-  { left: 700, width: 60 },
-  { left: 810, width: 60 },
-] as const
+}[] = TUTORIAL_AI_AUDIO_CLIPS.map((clip) => ({
+  left: toMockTimelinePx(clip.clip_start_time),
+  width:
+    clip.playback_type === 'extended'
+      ? 4
+      : Math.max(4, toMockTimelinePx(clip.clip_duration)),
+  isPurple: clip.playback_type === 'extended',
+}))
 
-export const MOCK_AI_CLIP_COUNT = MOCK_AI_CLIP_SEGMENTS.length
+export const MOCK_AI_DIALOG_SEGMENTS: readonly {
+  left: number
+  width: number
+}[] = TUTORIAL_DIALOG_TIMESTAMPS.map((dialog) => ({
+  left: toMockTimelinePx(dialog.dialog_start_time),
+  width: toMockTimelinePx(dialog.dialog_duration),
+}))
+
+export const MOCK_AI_CLIP_COUNT = TUTORIAL_AI_AUDIO_CLIPS.length
