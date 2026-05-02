@@ -1424,12 +1424,36 @@ const YDXHome = (): React.ReactElement => {
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
       const seekTime = Math.max(0, clipTime - 0.002)
-      syncTimelineTime(seekTime)
-      // Re-measure the timeline so the playhead x-position is recalculated
-      // with the actual DOM width. On initial render the ResizeObserver may
-      // not have fired yet, leaving maxX = 0 and freezing the playhead at
-      // the left edge for the first couple of navigation clicks.
+
+      console.log(
+        '[NAV] newIndex:',
+        clamped,
+        'targetClip:',
+        audioClips[clamped],
+        'targetTime:',
+        seekTime,
+        'currentTimeRef:',
+        currentTimeRef.current,
+      )
+
+      // Step 1: re-measure first so timelineMetricsRef has fresh DOM dimensions
+      // before any setDraggableTime calls are queued.
       measureTimelineMetrics()
+
+      // Step 2: sync time — uses the freshly-updated timelineMetricsRef to queue
+      // setDraggableTime({x: correct}) and update currentTimeRef.
+      syncTimelineTime(seekTime)
+
+      // Step 3: explicit setDraggableTime as the final, guaranteed write so it
+      // wins React's batch regardless of ordering between the two calls above.
+      // This is the variable that drives the visual red marker position.
+      if (timelineMetricsRef.current) {
+        setDraggableTime({
+          x: timeToTimelineX(seekTime, timelineMetricsRef.current),
+          y: 0,
+        })
+      }
+
       navSeekPendingRef.current = true
       currentEventRef.current?.seekTo(seekTime, true)
       updateClipStackData()
