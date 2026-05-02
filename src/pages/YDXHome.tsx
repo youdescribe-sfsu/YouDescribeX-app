@@ -157,6 +157,9 @@ const YDXHome = (): React.ReactElement => {
   // Set before a navigation seekTo; prevents the first onStateChange/onPlay
   // from overriding the draggable position that syncTimelineTime just set.
   const navSeekPendingRef = useRef(false)
+  // Stores the time set by manual clip navigation so Play always resumes from
+  // the selected clip's position, not from YouTube's internal last position.
+  const pendingPlayTimeRef = useRef<number | null>(null)
   // Mirror of navClipIndex kept in sync synchronously so rapid clicks read the
   // latest index even before the React state update has committed.
   const navClipIndexRef = useRef(0)
@@ -1147,6 +1150,13 @@ const YDXHome = (): React.ReactElement => {
           break
         }
 
+        if (pendingPlayTimeRef.current !== null) {
+          currentEventRef.current?.seekTo(pendingPlayTimeRef.current, true)
+          syncTimelineTime(pendingPlayTimeRef.current)
+          updateClipStackData()
+          pendingPlayTimeRef.current = null
+        }
+
         currentEvent?.setVolume(youTubeVolume)
         if (!isActive) setIsActive(true)
 
@@ -1436,6 +1446,9 @@ const YDXHome = (): React.ReactElement => {
         currentTimeRef.current,
       )
 
+      // Store target so Play always resumes from the navigated position.
+      pendingPlayTimeRef.current = seekTime
+
       // Step 1: re-measure first so timelineMetricsRef has fresh DOM dimensions
       // before any setDraggableTime calls are queued.
       measureTimelineMetrics()
@@ -1490,6 +1503,12 @@ const YDXHome = (): React.ReactElement => {
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
       if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
+      if (pendingPlayTimeRef.current !== null) {
+        currentEventRef.current?.seekTo(pendingPlayTimeRef.current, true)
+        syncTimelineTime(pendingPlayTimeRef.current)
+        updateClipStackData()
+        pendingPlayTimeRef.current = null
+      }
       currentEvent?.playVideo()
       setGloballyPaused(false)
     }
