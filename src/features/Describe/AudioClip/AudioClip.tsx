@@ -59,6 +59,7 @@ interface Props {
   enrollInCollabEdit: boolean
   setEnrollInCollabEdit: (val: boolean) => void
   onPublish: (e: any, checkbox?: boolean) => void
+  isTutorialMode?: boolean
 }
 
 const AudioClip = ({
@@ -87,6 +88,7 @@ const AudioClip = ({
   enrollInCollabEdit,
   setEnrollInCollabEdit,
   onPublish,
+  isTutorialMode = false,
 }: Props) => {
   const clipID = clip.clip_id
   const clipSequenceNumber = clip.clip_sequence_number
@@ -140,6 +142,7 @@ const AudioClip = ({
   ])
 
   const stopADBar = (event: any, position: any) => {
+    if (isTutorialMode) return
     const adBarTime = position.x / unitLength
     const newClipStartTime = Number(parseFloat(`${adBarTime}`).toFixed(2))
     if (Number(newClipStartTime) >= 0.02 && newClipStartTime < videoLength) {
@@ -201,6 +204,7 @@ const AudioClip = ({
   }
 
   const handleClipStartTimeUpdate = (updatedClipStartTime: any) => {
+    if (isTutorialMode) return
     axios
       .put(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-start-time/${clipID}`,
@@ -232,6 +236,7 @@ const AudioClip = ({
       return
     }
     setClipPlayBackType(newPlaybackType)
+    if (isTutorialMode) return
     axios
       .put(
         `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-playback-type/${clipID}`,
@@ -253,6 +258,11 @@ const AudioClip = ({
     try {
       if (updatedClipDescriptionText !== initialclipDescriptionText) {
         setShowSpinner(true)
+        if (isTutorialMode) {
+          setClipDescriptionText(updatedClipDescriptionText)
+          setShowSpinner(false)
+          return
+        }
         await axios.put(
           `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-clips/update-clip-description/${clipID}`,
           {
@@ -301,7 +311,10 @@ const AudioClip = ({
 
   return (
     <div id={`audio-clip-card-${clipID}`} className="spacing-component">
-      <div className="component">
+      <div
+        className="component"
+        data-tutorial={isTutorialMode ? 'clip-controls' : undefined}
+      >
         <div className="audio-clip-header">
           {/* Clip Information Section */}
           <div className="clip-info-section">
@@ -315,7 +328,7 @@ const AudioClip = ({
               type="text"
               className="ad-title-input"
               placeholder="Enter clip title..."
-              disabled={!showEditComponent}
+              disabled={!showEditComponent || isTutorialMode}
               value={clipTitle}
               onChange={(e) => setClipTitle(e.target.value)}
             />
@@ -341,7 +354,10 @@ const AudioClip = ({
           </div>
 
           {/* Nudge Controls */}
-          <div className="nudge-controls-section">
+          <div
+            className="nudge-controls-section"
+            data-tutorial={isTutorialMode ? 'nudge-controls' : undefined}
+          >
             <div className="nudge-label">Nudge</div>
             <div className="nudge-btns-div">
               <i
@@ -376,7 +392,10 @@ const AudioClip = ({
           </div>
 
           {/* Timeline Section */}
-          <div className="timeline-section">
+          <div
+            className="timeline-section"
+            data-tutorial={isTutorialMode ? 'ai-clip-type' : undefined}
+          >
             <div className="component-timeline-div">
               <div className="ad-draggable-div">
                 <Draggable
@@ -424,6 +443,7 @@ const AudioClip = ({
                   value="inline"
                   checked={clipPlaybackType === 'inline'}
                   onChange={handlePlaybackTypeUpdate}
+                  disabled={isTutorialMode}
                 />
                 <label
                   htmlFor={`inline-${clipID}`}
@@ -448,6 +468,7 @@ const AudioClip = ({
                   value="extended"
                   checked={clipPlaybackType === 'extended'}
                   onChange={handlePlaybackTypeUpdate}
+                  disabled={isTutorialMode}
                 />
                 <label
                   htmlFor={`extended-${clipID}`}
@@ -533,6 +554,7 @@ const AudioClip = ({
             enrollInCollabEdit={enrollInCollabEdit}
             setEnrollInCollabEdit={setEnrollInCollabEdit}
             onPublish={onPublish}
+            isTutorialMode={isTutorialMode}
           />
         )}
       </div>

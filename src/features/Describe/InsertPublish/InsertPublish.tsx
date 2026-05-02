@@ -21,6 +21,8 @@ interface Props {
   audioDescriptionId: string
   participantId: string
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
+  tutorialMode?: boolean
+  forceShowNewACComponent?: boolean
 }
 
 const InsertPublish = ({
@@ -36,6 +38,8 @@ const InsertPublish = ({
   audioDescriptionId,
   participantId,
   setNeedRefresh,
+  tutorialMode = false,
+  forceShowNewACComponent = false,
 }: Props) => {
   const navigate = useNavigate()
   const [showInlineACComponent, setShowInlineACComponent] = useState(false)
@@ -85,6 +89,13 @@ const InsertPublish = ({
   }
 
   useEffect(() => {
+    if (tutorialMode) {
+      if (handleClicksFromParent) setHandleClicksFromParent('')
+      setShowInlineACComponent(true)
+      setShowNewACComponent(forceShowNewACComponent)
+      return
+    }
+
     if (handleClicksFromParent === 'inline') {
       setHandleClicksFromParent('')
       openNewAudioClip('inline')
@@ -92,7 +103,13 @@ const InsertPublish = ({
       setHandleClicksFromParent('')
       openNewAudioClip('extended')
     }
-  }, [handleClicksFromParent, openNewAudioClip, setHandleClicksFromParent])
+  }, [
+    forceShowNewACComponent,
+    handleClicksFromParent,
+    openNewAudioClip,
+    setHandleClicksFromParent,
+    tutorialMode,
+  ])
 
   return (
     <React.Fragment>
@@ -111,6 +128,7 @@ const InsertPublish = ({
             audioDescriptionId={audioDescriptionId}
             setShowSpinner={setShowSpinner}
             setNeedRefresh={setNeedRefresh}
+            tutorialMode={tutorialMode}
           />
         </>
       ) : null}

@@ -6,7 +6,7 @@ import { getActiveSteps, type TutorialMode } from './tutorialSteps'
 import { INSTANT_SCROLL_RESET, TUTORIAL_EXIT_ROUTE } from './tutorialConstants'
 import TutorialOverlay from './TutorialOverlay'
 import MockVideoPage from './MockVideoPage'
-import MockEditorPage from './MockEditorPage'
+import YDXHome from '@/pages/YDXHome'
 import './tutorial.scss'
 
 const TutorialPage = () => {
@@ -24,15 +24,6 @@ const TutorialPage = () => {
   const prevStep = tutorialStore((state) => state.prevStep)
   const skipTutorial = tutorialStore((state) => state.skipTutorial)
   const setTutorialMode = tutorialStore((state) => state.setTutorialMode)
-  const tutorialAudioClips = tutorialEditorStore(
-    (state) => state.tutorialAudioClips,
-  )
-  const tutorialShowClipForm = tutorialEditorStore(
-    (state) => state.tutorialShowClipForm,
-  )
-  const tutorialIsEditing = tutorialEditorStore(
-    (state) => state.tutorialIsEditing,
-  )
   const resetTutorialEditor = tutorialEditorStore(
     (state) => state.resetTutorialEditor,
   )
@@ -92,18 +83,7 @@ const TutorialPage = () => {
     <div className="tutorial-page-container">
       {/* Keep page content mounted before TutorialOverlay so target elements
           exist when the overlay queries data-tutorial selectors. */}
-      {isVideoPage ? (
-        <MockVideoPage />
-      ) : (
-        <MockEditorPage
-          tutorialMode={tutorialMode}
-          uiState={{
-            showClipForm: tutorialShowClipForm,
-            showSavedClip: tutorialAudioClips.length > 0,
-            isEditing: tutorialIsEditing,
-          }}
-        />
-      )}
+      {isVideoPage ? <MockVideoPage /> : <YDXHome isTutorialMode />}
 
       {isActive && (
         <TutorialOverlay

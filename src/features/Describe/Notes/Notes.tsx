@@ -10,6 +10,9 @@ interface Props {
   audioDescriptionId: string
   notesData: any
   handleVideoPause: () => void
+  dataTutorial?: string
+  readOnly?: boolean
+  disableAutoSave?: boolean
 }
 
 const Notes = ({
@@ -17,6 +20,9 @@ const Notes = ({
   audioDescriptionId,
   notesData,
   handleVideoPause,
+  dataTutorial,
+  readOnly = false,
+  disableAutoSave = false,
 }: Props) => {
   // React State Variables
   const [noteValue, setNoteValue] = useState('') // to store Notes text
@@ -27,6 +33,7 @@ const Notes = ({
   // this function handles keyUp event in the Notes textarea -> whenever an enter key is hit,
   // a timestamp is inserted in the Notes
   const handleNewNoteLine = (e: any) => {
+    if (readOnly) return
     const tempNoteValue = noteValue
     const keycode = e.keyCode ? e.keyCode : e.which
     if (keycode === parseInt('13')) {
@@ -36,6 +43,7 @@ const Notes = ({
   }
   // for focus event of Notes Textarea -> if the notes is empty, timestamp is inserted
   const handleTextAreaFocus = (e: any) => {
+    if (readOnly) return
     const tempNoteValue = noteValue
     if (noteValue === '') {
       setNoteValue(tempNoteValue + currentTime + ' - ')
@@ -45,6 +53,7 @@ const Notes = ({
   }
 
   const handleNoteChange = (e: any) => {
+    if (readOnly) return
     let updatedNoteValue = ''
     handleVideoPause()
     if (noteValue === '') {
@@ -67,6 +76,7 @@ const Notes = ({
 
   const handleNoteAutoSave = useCallback(
     (currentNoteValue: any) => {
+      if (disableAutoSave) return
       axios
         .post(`${process.env.REACT_APP_YDX_BACKEND_URL}/api/notes/post-note`, {
           noteId: noteId,
@@ -81,7 +91,7 @@ const Notes = ({
           toast.error('Error Saving Note! Please Try Again...')
         })
     },
-    [noteId, audioDescriptionId],
+    [disableAutoSave, noteId, audioDescriptionId],
   )
 
   const debouncedHandleNoteAutoSave = useMemo(
@@ -121,7 +131,7 @@ const Notes = ({
   }, [notesData])
 
   return (
-    <div className="notes-bg rounded">
+    <div className="notes-bg rounded" data-tutorial={dataTutorial}>
       <div className="d-flex justify-content-between align-items-center pt-1 px-3 notes-label">
         <h6 className="text-white">Notes:</h6>
       </div>
@@ -136,6 +146,7 @@ const Notes = ({
           onKeyUp={handleNewNoteLine}
           onChange={handleNoteChange}
           value={noteValue}
+          readOnly={readOnly}
         ></textarea>
       </div>
     </div>

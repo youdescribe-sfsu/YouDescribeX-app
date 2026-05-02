@@ -6,6 +6,7 @@ import '@/assets/css/editAudioDesc.css'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 import { Tooltip } from 'bootstrap'
+import { TUTORIAL_DEMO_AUDIO_CLIP } from '../../Tutorial/tutorialConfig'
 
 interface Props {
   setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
@@ -17,6 +18,7 @@ interface Props {
   videoLength: number
   audioDescriptionId: string
   setNeedRefresh: React.Dispatch<React.SetStateAction<boolean>>
+  tutorialMode?: boolean
 }
 
 const NewAudioClipComponent = ({
@@ -28,10 +30,15 @@ const NewAudioClipComponent = ({
   initialStartTime,
   audioDescriptionId,
   setNeedRefresh,
+  tutorialMode = false,
 }: Props) => {
-  const [newACTitle, setNewACTitle] = useState('')
+  const [newACTitle, setNewACTitle] = useState(
+    tutorialMode ? TUTORIAL_DEMO_AUDIO_CLIP.clip_title ?? '' : '',
+  )
   const [newACType, setNewACType] = useState('Visual')
-  const [newACDescriptionText, setNewACDescriptionText] = useState('')
+  const [newACDescriptionText, setNewACDescriptionText] = useState(
+    tutorialMode ? TUTORIAL_DEMO_AUDIO_CLIP.description_text ?? '' : '',
+  )
   const [isRecording, setIsRecording] = useState(false)
   const [recordingError, setRecordingError] = useState<string | null>(null)
   const [descriptionMethod, setDescriptionMethod] = useState<'text' | 'audio'>(
@@ -49,6 +56,9 @@ const NewAudioClipComponent = ({
     useReactMediaRecorder({
       audio: true,
     })
+  const displayedInitialStartTime = tutorialMode
+    ? TUTORIAL_DEMO_AUDIO_CLIP.clip_start_time
+    : initialStartTime
 
   useEffect(() => {
     const tooltipTriggerList = document.querySelectorAll(
@@ -57,8 +67,8 @@ const NewAudioClipComponent = ({
     Array.from(tooltipTriggerList).map(
       (tooltipTriggerEl) => new Tooltip(tooltipTriggerEl),
     )
-    handleClipStartTimeInputsRender(initialStartTime)
-  }, [initialStartTime])
+    handleClipStartTimeInputsRender(displayedInitialStartTime)
+  }, [displayedInitialStartTime])
 
   const updateRecordingDuration = useCallback(() => {
     setRecordingDuration((prevDuration) => prevDuration + 0.1)
@@ -132,6 +142,12 @@ const NewAudioClipComponent = ({
 
   const handleSaveNewAudioClip = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (tutorialMode) {
+      setShowSpinner(false)
+      return
+    }
+
     setShowSpinner(true)
 
     if (!newACTitle) {
@@ -195,7 +211,10 @@ const NewAudioClipComponent = ({
   }
 
   return (
-    <div className="text-white component mt-2 rounded border border-1 border-white mx-5 d-flex flex-column pb-3 justify-content-between">
+    <div
+      className="text-white component mt-2 rounded border border-1 border-white mx-5 d-flex flex-column pb-3 justify-content-between"
+      data-tutorial={tutorialMode ? 'clip-form-area' : undefined}
+    >
       <div className="mx-2 text-end">
         <i
           className="fa fa-close fs-4 close-icon"
@@ -215,7 +234,10 @@ const NewAudioClipComponent = ({
               {showInlineACComponent ? 'Inline' : 'Extended'}
             </span>
           </div>
-          <div className="dialog-form-field">
+          <div
+            className="dialog-form-field"
+            data-tutorial={tutorialMode ? 'title-input' : undefined}
+          >
             <label className="dialog-form-label">Title:</label>
             <input
               type="text"
@@ -223,22 +245,30 @@ const NewAudioClipComponent = ({
               placeholder="Title goes here.."
               value={newACTitle}
               onChange={(e) => setNewACTitle(e.target.value)}
+              readOnly={tutorialMode}
               required
             />
           </div>
-          <div className="dialog-form-field">
+          <div
+            className="dialog-form-field"
+            data-tutorial={tutorialMode ? 'type-dropdown' : undefined}
+          >
             <label className="dialog-form-label">Type:</label>
             <select
               className="dialog-select-enhanced"
               value={newACType}
               onChange={(e) => setNewACType(e.target.value)}
+              disabled={tutorialMode}
               required
             >
               <option value="Visual">Visual</option>
               <option value="Text on Screen">Text on Screen</option>
             </select>
           </div>
-          <div className="d-flex flex-column align-items-center me-3">
+          <div
+            className="d-flex flex-column align-items-center me-3"
+            data-tutorial={tutorialMode ? 'start-time' : undefined}
+          >
             <h6 className="text-white fw-bolder text-size mb-2">Start Time:</h6>
             <div className="edit-time-div">
               <div className="text-dark text-size text-center d-flex justify-content-evenly">
@@ -255,7 +285,9 @@ const NewAudioClipComponent = ({
                       style={{ width: '30px', height: '28px' }}
                       className="text-white bg-dark ydx-input"
                       value={value.toString().padStart(2, '0')}
+                      readOnly={tutorialMode}
                       onChange={(e) => {
+                        if (tutorialMode) return
                         const newValue = Math.min(
                           parseInt(e.target.value) || 0,
                           index === 1 || index === 2 ? 59 : 99,
@@ -282,7 +314,10 @@ const NewAudioClipComponent = ({
             </div>
           </div>
         </div>
-        <div className="d-flex flex-column align-items-center mb-3">
+        <div
+          className="d-flex flex-column align-items-center mb-3"
+          data-tutorial={tutorialMode ? 'description-method' : undefined}
+        >
           <h6 className="text-white text-size mb-2">
             Choose Description Method:
           </h6>
@@ -292,7 +327,9 @@ const NewAudioClipComponent = ({
               className={`method-button-enhanced ${
                 descriptionMethod === 'text' ? 'active' : ''
               }`}
-              onClick={() => setDescriptionMethod('text')}
+              onClick={() => {
+                if (!tutorialMode) setDescriptionMethod('text')
+              }}
             >
               Text Description
             </button>
@@ -301,7 +338,9 @@ const NewAudioClipComponent = ({
               className={`method-button-enhanced ${
                 descriptionMethod === 'audio' ? 'active' : ''
               }`}
-              onClick={() => setDescriptionMethod('audio')}
+              onClick={() => {
+                if (!tutorialMode) setDescriptionMethod('audio')
+              }}
             >
               Audio Recording
             </button>
@@ -309,7 +348,10 @@ const NewAudioClipComponent = ({
         </div>
 
         {descriptionMethod === 'text' ? (
-          <div className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3">
+          <div
+            className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3"
+            data-tutorial={tutorialMode ? 'text-input-area' : undefined}
+          >
             <h6 className="text-white text-size mb-2">
               Add New Clip Description:
             </h6>
@@ -319,6 +361,7 @@ const NewAudioClipComponent = ({
               placeholder="Start writing a Text Description.."
               value={newACDescriptionText}
               onChange={(e) => setNewACDescriptionText(e.target.value)}
+              readOnly={tutorialMode}
             ></textarea>
           </div>
         ) : (
@@ -423,6 +466,7 @@ const NewAudioClipComponent = ({
           <button
             type="submit"
             className="btn rounded btn-sm text-white save-desc-btn ydx-button"
+            data-tutorial={tutorialMode ? 'save-btn' : undefined}
           >
             <i className="fa fa-save text-size" /> Save
           </button>
