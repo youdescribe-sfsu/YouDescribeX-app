@@ -5,8 +5,8 @@ import { tutorialEditorStore } from './tutorialEditorStore'
 import { getActiveSteps, type TutorialMode } from './tutorialSteps'
 import { INSTANT_SCROLL_RESET, TUTORIAL_EXIT_ROUTE } from './tutorialConstants'
 import TutorialOverlay from './TutorialOverlay'
-import MockVideoPage from './MockVideoPage'
 import YDXHome from '@/pages/YDXHome'
+import Video from '@/pages/Video/Video'
 import './tutorial.scss'
 
 const TutorialPage = () => {
@@ -83,7 +83,7 @@ const TutorialPage = () => {
     <div className="tutorial-page-container">
       {/* Keep page content mounted before TutorialOverlay so target elements
           exist when the overlay queries data-tutorial selectors. */}
-      {isVideoPage ? <MockVideoPage /> : <YDXHome isTutorialMode />}
+      {isVideoPage ? <Video isTutorialMode /> : <YDXHome isTutorialMode />}
 
       {isActive && (
         <TutorialOverlay
