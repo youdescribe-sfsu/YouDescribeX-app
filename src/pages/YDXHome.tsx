@@ -676,11 +676,8 @@ const YDXHome = (): React.ReactElement => {
               ? audioClipsData.indexOf(newClip)
               : audioClipsData.length - 1
 
-            // Seek to 2 s before the new clip so the playhead lands near it.
-            // This must happen before buildClipStackForTime so the stack is
-            // built from the correct time.
             const seekTime = newClip
-              ? Math.max(0, newClip.clip_start_time - 0.5)
+              ? Math.max(0, newClip.clip_start_time - 0.002)
               : currentTimeRef.current
             syncTimelineTime(seekTime)
             navSeekPendingRef.current = true
@@ -1319,13 +1316,11 @@ const YDXHome = (): React.ReactElement => {
     currentEventRef.current?.seekTo(syncedTime, true)
 
     // Sync clip card to wherever the playhead landed:
-    // last clip whose start_time <= syncedTime, else clip 0.
+    // last clip whose start_time <= syncedTime + 0.002, else clip 0.
     if (audioClips.length > 0) {
-      const landedIndex =
-        [...audioClips]
-          .map((c, i) => ({ i, start: c.clip_start_time }))
-          .filter((c) => c.start <= syncedTime)
-          .pop()?.i ?? 0
+      const landedIndex = audioClips.reduce((best, clip, i) => {
+        return clip.clip_start_time <= syncedTime + 0.002 ? i : best
+      }, 0)
       setNavClipIndex(landedIndex)
       navClipIndexRef.current = landedIndex
       selectedClipIdRef.current = audioClips[landedIndex]?.clip_id ?? null
@@ -1402,7 +1397,7 @@ const YDXHome = (): React.ReactElement => {
     isTimelineScrubbingRef.current = false
     suppressResumeAfterScrubRef.current = false
 
-    currentEvent?.seekTo(clipStartTime - 0.4, true) // 0.4 is added for some buffering time
+    currentEvent?.seekTo(clipStartTime - 0.002, true)
     currentEvent?.playVideo() // if paused, video is played from that audio clip.
   }
 
@@ -1428,7 +1423,7 @@ const YDXHome = (): React.ReactElement => {
       // the YouTube iframe play button is not blocked by a stale drag state.
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
-      const seekTime = Math.max(0, clipTime - 0.5)
+      const seekTime = Math.max(0, clipTime - 0.002)
       syncTimelineTime(seekTime)
       // Re-measure the timeline so the playhead x-position is recalculated
       // with the actual DOM width. On initial render the ResizeObserver may
