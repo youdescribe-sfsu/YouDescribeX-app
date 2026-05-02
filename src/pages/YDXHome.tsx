@@ -160,6 +160,9 @@ const YDXHome = (): React.ReactElement => {
   // Stores the time set by manual clip navigation so Play always resumes from
   // the selected clip's position, not from YouTube's internal last position.
   const pendingPlayTimeRef = useRef<number | null>(null)
+  // True only when Previous/Next/ClipsNavigator explicitly set pendingPlayTimeRef.
+  // Guards onStateChange(1) so normal play events never trigger a pending seek.
+  const isManualNavigationRef = useRef(false)
   // Mirror of navClipIndex kept in sync synchronously so rapid clicks read the
   // latest index even before the React state update has committed.
   const navClipIndexRef = useRef(0)
@@ -1150,11 +1153,15 @@ const YDXHome = (): React.ReactElement => {
           break
         }
 
-        if (pendingPlayTimeRef.current !== null) {
+        if (
+          pendingPlayTimeRef.current !== null &&
+          isManualNavigationRef.current
+        ) {
           currentEventRef.current?.seekTo(pendingPlayTimeRef.current, true)
           syncTimelineTime(pendingPlayTimeRef.current)
           updateClipStackData()
           pendingPlayTimeRef.current = null
+          isManualNavigationRef.current = false
         }
 
         currentEvent?.setVolume(youTubeVolume)
@@ -1313,6 +1320,9 @@ const YDXHome = (): React.ReactElement => {
     // insert-open snapshots currentTime for a new clip.
     const syncedTime = syncTimelineTime(progressBarTime)
     setPreviousTime(syncedTime)
+    // A manual drag supersedes any pending clip navigation.
+    pendingPlayTimeRef.current = null
+    isManualNavigationRef.current = false
     // Flush the memory cache when you stop dragging. Clear the ref synchronously
     // so the playback interval always reads an empty set even if YouTube's onPlay
     // fires before React commits this state update.
@@ -1453,6 +1463,7 @@ const YDXHome = (): React.ReactElement => {
 
       // Store EXACT clip start so Play always begins at the clip, not the offset.
       pendingPlayTimeRef.current = playTime
+      isManualNavigationRef.current = true
 
       // Step 1: re-measure first so timelineMetricsRef has fresh DOM dimensions
       // before any setDraggableTime calls are queued.
@@ -1508,11 +1519,15 @@ const YDXHome = (): React.ReactElement => {
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
       if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
-      if (pendingPlayTimeRef.current !== null) {
+      if (
+        pendingPlayTimeRef.current !== null &&
+        isManualNavigationRef.current
+      ) {
         currentEventRef.current?.seekTo(pendingPlayTimeRef.current, true)
         syncTimelineTime(pendingPlayTimeRef.current)
         updateClipStackData()
         pendingPlayTimeRef.current = null
+        isManualNavigationRef.current = false
       }
       currentEvent?.playVideo()
       setGloballyPaused(false)
