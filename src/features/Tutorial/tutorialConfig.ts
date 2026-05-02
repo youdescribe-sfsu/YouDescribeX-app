@@ -4,6 +4,9 @@ export const TUTORIAL_VIDEO_YOUTUBE_ID = '5AwtptT8X8k'
 export const TUTORIAL_VIDEO_PAGE_PATH = `/video/${TUTORIAL_VIDEO_YOUTUBE_ID}`
 export const TUTORIAL_VIDEO_THUMBNAIL_URL = `https://img.youtube.com/vi/${TUTORIAL_VIDEO_YOUTUBE_ID}/maxresdefault.jpg`
 
+export const isTutorialVideoId = (youtubeId?: string | null) =>
+  youtubeId === TUTORIAL_VIDEO_YOUTUBE_ID
+
 export const TUTORIAL_VIDEO_METADATA = {
   title: 'ZOOTOPIA 2 - All Trailers From The Movie (2025)',
   author: 'YouDescribe',

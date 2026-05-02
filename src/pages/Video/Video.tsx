@@ -41,6 +41,7 @@ import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
 import YouTubeService from '@/shared/utils/YouTubeService'
 import {
+  isTutorialVideoId,
   TUTORIAL_VIDEO_DURATION_SECONDS,
   TUTORIAL_VIDEO_METADATA,
   TUTORIAL_VIDEO_YOUTUBE_ID,
@@ -78,10 +79,19 @@ interface VideoProps {
 
 const Video = ({ isTutorialMode = false }: VideoProps) => {
   const { videoId: routeVideoId } = useParams()
+  const isBlockedTutorialVideo =
+    !isTutorialMode && isTutorialVideoId(routeVideoId)
   const videoId = isTutorialMode ? TUTORIAL_VIDEO_YOUTUBE_ID : routeVideoId
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedADId, setSelectedADId] = useState<string>('')
+  const isSignedIn = userDataStore((state) => state.isSignedIn)
+
+  useEffect(() => {
+    if (isBlockedTutorialVideo) {
+      navigate('/not-found', { replace: true })
+    }
+  }, [isBlockedTutorialVideo, navigate])
 
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
@@ -377,17 +387,18 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
   // Fetch Data on Page Load
   useEffect(() => {
     // console.log(videoId)
-    if (!isTutorialMode && videoId) {
+    if (!isTutorialMode && !isBlockedTutorialVideo && videoId) {
       fetchVideoData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isTutorialMode])
+  }, [isTutorialMode, isBlockedTutorialVideo])
 
   useEffect(() => {
     if (
       videoId &&
       videoTitle &&
       !isTutorialMode &&
+      !isBlockedTutorialVideo &&
       !historyTracked.current &&
       userDataStore.getState().isSignedIn
     ) {
@@ -395,12 +406,12 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
       historyTracked.current = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoId, videoTitle, isTutorialMode])
+  }, [videoId, videoTitle, isTutorialMode, isBlockedTutorialVideo])
 
   useEffect(() => {
-    if (isTutorialMode) return
+    if (isTutorialMode || isBlockedTutorialVideo) return
 
-    if (userDataStore.getState().isSignedIn) {
+    if (isSignedIn) {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/ai-description-status`
 
       axios
@@ -434,7 +445,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
         })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userDataStore.getState().isSignedIn, isTutorialMode])
+  }, [isSignedIn, isTutorialMode, isBlockedTutorialVideo])
 
   const fetchVideoData = () => {
     const url = `${apiUrl}/videos/${videoId}`
@@ -2370,6 +2381,10 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     }
 
     return <></>
+  }
+
+  if (isBlockedTutorialVideo) {
+    return null
   }
 
   return (

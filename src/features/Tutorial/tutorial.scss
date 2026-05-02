@@ -296,6 +296,11 @@ $tutorial-focus-white: #fff;
   background-color: var(--background-primary);
 }
 
+.tutorial-page-container--video {
+  min-height: auto;
+  background-color: transparent;
+}
+
 .tutorial-page-container .ydx-body .container {
   background-color: transparent;
 }

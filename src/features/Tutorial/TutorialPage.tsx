@@ -80,7 +80,13 @@ const TutorialPage = () => {
   }
 
   return (
-    <div className="tutorial-page-container">
+    <div
+      className={`tutorial-page-container ${
+        isVideoPage
+          ? 'tutorial-page-container--video'
+          : 'tutorial-page-container--editor'
+      }`}
+    >
       {/* Keep page content mounted before TutorialOverlay so target elements
           exist when the overlay queries data-tutorial selectors. */}
       {isVideoPage ? (
