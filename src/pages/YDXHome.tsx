@@ -803,17 +803,13 @@ const YDXHome = (): React.ReactElement => {
     recentAudioPlayedTime: number,
     playedClipPath: string,
   ) => {
-    if (
-      isTimelineScrubbingRef.current ||
-      suppressResumeAfterScrubRef.current ||
-      navSeekPendingRef.current
-    ) {
+    if (isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current) {
       return
     }
 
     const syncedTime = syncTimelineTime(time)
     // check if the audio is not played recently. do not play it again.
-    if (recentAudioPlayedTime !== syncedTime) {
+    if (!navSeekPendingRef.current && recentAudioPlayedTime !== syncedTime) {
       // To Play audio files based on current time
       playAudioAtCurrentTime(syncedTime, playedAudioClip, playedClipPath)
     }
@@ -1085,7 +1081,7 @@ const YDXHome = (): React.ReactElement => {
     // Snapshot the pending-nav flag; clear it once we reach the post-seek
     // state (1 = playing or 2 = paused). onPlay clears it for state 1.
     const navSeekPending = navSeekPendingRef.current
-    if (event.data === 2 && navSeekPending) {
+    if ((event.data === 1 || event.data === 2) && navSeekPending) {
       navSeekPendingRef.current = false
     }
 
