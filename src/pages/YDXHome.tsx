@@ -514,7 +514,7 @@ const YDXHome = (): React.ReactElement => {
     (clips: Clip[], targetTime: number) => {
       const startIndex = clips.findIndex(
         (clip) =>
-          clip.clip_start_time >= targetTime ||
+          clip.clip_start_time >= targetTime - 1.0 ||
           (clip.clip_start_time < targetTime &&
             clip.clip_end_time > targetTime),
       )
@@ -932,6 +932,8 @@ const YDXHome = (): React.ReactElement => {
           currentAudio?.once('end', () => {
             setCurrInlineAC(undefined)
             currentAudio.unload()
+            updateClipStackData()
+            currentEventRef.current?.playVideo()
           })
 
           // Advance Stack
