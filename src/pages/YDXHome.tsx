@@ -931,7 +931,7 @@ const YDXHome = (): React.ReactElement => {
 
           // Advance Stack
           const newClip =
-            audioClips[currentClipIndexRef.current + clipStackSize - 1]
+            audioClips[currentClipIndexRef.current + clipStackSize]
           if (newClip) {
             newClip.clip_audio = new Howl({
               src: newClip.clip_audio_path,
@@ -982,7 +982,7 @@ const YDXHome = (): React.ReactElement => {
           )
           setCurrentClipIndex(currentClipIndexRef.current + 1)
           const newClip =
-            audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+            audioClips[currentClipIndexRef.current + clipStackSize]
           if (newClip) {
             newClip.clip_audio = new Howl({
               src: newClip.clip_audio_path,
@@ -1042,7 +1042,7 @@ const YDXHome = (): React.ReactElement => {
 
             // Advance Stack
             const newClip =
-              audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
+              audioClips[currentClipIndexRef.current + clipStackSize]
             if (newClip) {
               newClip.clip_audio = new Howl({
                 src: newClip.clip_audio_path,
