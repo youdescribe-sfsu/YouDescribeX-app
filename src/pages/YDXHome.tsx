@@ -969,12 +969,13 @@ const YDXHome = (): React.ReactElement => {
 
     // --- CASE B: EXTENDED CLIPS ---
     else if (currentClip.playback_type === 'extended') {
-      // Forward tolerance is kept small (0.1 s) so the clip plays at its exact
-      // start time; backward tolerance is widened to 0.5 s to recover from
-      // timer jitter and from seeking to just before the clip's start time.
+      // 1.0 s forward window: fires when currentTime is within 1 s of (or past)
+      // the clip's start time, so dragging to e.g. 15.99 still triggers a clip
+      // at 16.00. 1.0 s backward window: recovers from timer jitter or a tick
+      // that lands up to 1 s after the scheduled start.
       const isExactStart =
-        currentClip.clip_start_time <= currentTimeRef.current + 0.1 &&
-        currentClip.clip_start_time >= previousTimeRef.current - 0.5
+        currentClip.clip_start_time <= currentTimeRef.current + 1.0 &&
+        currentClip.clip_start_time >= previousTimeRef.current - 1.0
 
       if (isExactStart) {
         if (playedClipsSetRef.current.has(currentClip.clip_id)) {
