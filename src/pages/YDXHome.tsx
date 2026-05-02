@@ -1318,18 +1318,17 @@ const YDXHome = (): React.ReactElement => {
     suppressResumeAfterScrubRef.current = false
     currentEventRef.current?.seekTo(syncedTime, true)
 
-    // Sync clip card to wherever the playhead landed.
+    // Sync clip card to wherever the playhead landed:
+    // last clip whose start_time <= syncedTime, else clip 0.
     if (audioClips.length > 0) {
-      const landedIndex = audioClips.findIndex(
-        (clip) =>
-          clip.clip_start_time >= syncedTime ||
-          (clip.clip_start_time < syncedTime &&
-            clip.clip_end_time > syncedTime),
-      )
-      const newNavIndex =
-        landedIndex === -1 ? audioClips.length - 1 : landedIndex
-      setNavClipIndex(newNavIndex)
-      selectedClipIdRef.current = audioClips[newNavIndex]?.clip_id ?? null
+      const landedIndex =
+        [...audioClips]
+          .map((c, i) => ({ i, start: c.clip_start_time }))
+          .filter((c) => c.start <= syncedTime)
+          .pop()?.i ?? 0
+      setNavClipIndex(landedIndex)
+      navClipIndexRef.current = landedIndex
+      selectedClipIdRef.current = audioClips[landedIndex]?.clip_id ?? null
     }
   }
   const dragProgressBar = (position: DraggableData) => {

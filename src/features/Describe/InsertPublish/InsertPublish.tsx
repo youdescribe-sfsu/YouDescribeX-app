@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import '@/assets/css/insertPublish.css'
 import '@/assets/css/audioDesc.css'
 import axios from 'axios'
@@ -43,17 +43,19 @@ const InsertPublish = ({
   const [isModal, setIsModal] = useState(false)
   const [insertClipStartTimeSnapshot, setInsertClipStartTimeSnapshot] =
     useState(currentTime)
+  // Keep a ref so openNewAudioClip always reads the latest time without
+  // needing currentTime as a useCallback dep (which would recreate it on
+  // every tick and cause the trigger useEffect to re-run unnecessarily).
+  const currentTimeSnapshotRef = useRef(currentTime)
+  useEffect(() => {
+    currentTimeSnapshotRef.current = currentTime
+  }, [currentTime])
 
-  const openNewAudioClip = useCallback(
-    (isInline: boolean) => {
-      // Snapshot the visible timeline label time at open so the dialog does
-      // not drift if playback state changes while the form is open.
-      setInsertClipStartTimeSnapshot(currentTime)
-      setShowInlineACComponent(isInline)
-      setShowNewACComponent(true)
-    },
-    [currentTime],
-  )
+  const openNewAudioClip = useCallback((isInline: boolean) => {
+    setInsertClipStartTimeSnapshot(currentTimeSnapshotRef.current)
+    setShowInlineACComponent(isInline)
+    setShowNewACComponent(true)
+  }, [])
 
   const handleClickInsertInline = (e: any) => {
     e.preventDefault()
