@@ -51,20 +51,20 @@ const InsertPublish = ({
     currentTimeSnapshotRef.current = currentTime
   }, [currentTime])
 
-  const openNewAudioClip = useCallback((isInline: boolean) => {
+  const openNewAudioClip = useCallback((clipType: 'inline' | 'extended') => {
     setInsertClipStartTimeSnapshot(currentTimeSnapshotRef.current)
-    setShowInlineACComponent(isInline)
+    setShowInlineACComponent(clipType === 'inline')
     setShowNewACComponent(true)
   }, [])
 
   const handleClickInsertInline = (e: any) => {
     e.preventDefault()
-    openNewAudioClip(true)
+    openNewAudioClip('inline')
   }
 
   const handleClickInsertExtended = (e: any) => {
     e.preventDefault()
-    openNewAudioClip(false)
+    openNewAudioClip('extended')
   }
 
   const handleClickPublish = (e: any) => {
@@ -87,10 +87,10 @@ const InsertPublish = ({
   useEffect(() => {
     if (handleClicksFromParent === 'inline') {
       setHandleClicksFromParent('')
-      openNewAudioClip(true)
+      openNewAudioClip('inline')
     } else if (handleClicksFromParent === 'extended') {
       setHandleClicksFromParent('')
-      openNewAudioClip(false)
+      openNewAudioClip('extended')
     }
   }, [handleClicksFromParent, openNewAudioClip, setHandleClicksFromParent])
 
