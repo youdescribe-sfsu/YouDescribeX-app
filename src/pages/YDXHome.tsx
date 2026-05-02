@@ -932,7 +932,6 @@ const YDXHome = (): React.ReactElement => {
           currentAudio?.once('end', () => {
             setCurrInlineAC(undefined)
             currentAudio.unload()
-            updateClipStackData()
           })
 
           // Advance Stack
@@ -972,9 +971,8 @@ const YDXHome = (): React.ReactElement => {
     // --- CASE B: EXTENDED CLIPS ---
     else if (currentClip.playback_type === 'extended') {
       const isExactStart =
-        currentTimeRef.current >= currentClip.clip_start_time &&
-        currentTimeRef.current <= currentClip.clip_start_time + 0.3 &&
-        !playedClipsSet.has(currentClip.clip_id)
+        currentClip.clip_start_time <= currentTimeRef.current + 0.1 &&
+        currentClip.clip_start_time >= previousTimeRef.current - 0.1
 
       if (isExactStart) {
         if (playedClipsSet.has(currentClip.clip_id)) {
