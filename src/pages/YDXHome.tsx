@@ -856,6 +856,11 @@ const YDXHome = (): React.ReactElement => {
       const prevelement = document.querySelectorAll('.green-border')
       prevelement.forEach((elem) => elem.classList.remove('green-border'))
       scrollToAudioClipCard(clipId)
+      const playingIndex = audioClips.findIndex((c) => c.clip_id === clipId)
+      if (playingIndex !== -1) {
+        navClipIndexRef.current = playingIndex
+        setNavClipIndex(playingIndex)
+      }
     }
 
     // --- CASE A: INLINE CLIPS ---
