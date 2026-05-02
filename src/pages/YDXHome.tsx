@@ -853,6 +853,12 @@ const YDXHome = (): React.ReactElement => {
 
     // --- HELPER: UI UPDATER ---
     const updateUIForClip = (clipId: string) => {
+      console.log(
+        '[updateUIForClip] clipId:',
+        clipId,
+        'navSeekPending:',
+        navSeekPendingRef.current,
+      )
       const prevelement = document.querySelectorAll('.green-border')
       prevelement.forEach((elem) => elem.classList.remove('green-border'))
       scrollToAudioClipCard(clipId)
@@ -860,6 +866,7 @@ const YDXHome = (): React.ReactElement => {
       if (playingIndex !== -1) {
         navClipIndexRef.current = playingIndex
         setNavClipIndex(playingIndex)
+        selectedClipIdRef.current = clipId
       }
     }
 
