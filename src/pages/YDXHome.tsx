@@ -1433,21 +1433,26 @@ const YDXHome = (): React.ReactElement => {
       // the YouTube iframe play button is not blocked by a stale drag state.
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
-      const seekTime = Math.max(0, clipTime - 0.002)
+      // visualTime: tiny offset so the playhead marker sits just before the clip
+      const visualTime = Math.max(0, clipTime - 0.002)
+      // playTime: exact clip start used when Play is pressed after navigation
+      const playTime = clipTime
 
       console.log(
         '[NAV] newIndex:',
         clamped,
         'targetClip:',
         audioClips[clamped],
-        'targetTime:',
-        seekTime,
+        'visualTime:',
+        visualTime,
+        'playTime:',
+        playTime,
         'currentTimeRef:',
         currentTimeRef.current,
       )
 
-      // Store target so Play always resumes from the navigated position.
-      pendingPlayTimeRef.current = seekTime
+      // Store EXACT clip start so Play always begins at the clip, not the offset.
+      pendingPlayTimeRef.current = playTime
 
       // Step 1: re-measure first so timelineMetricsRef has fresh DOM dimensions
       // before any setDraggableTime calls are queued.
@@ -1455,20 +1460,20 @@ const YDXHome = (): React.ReactElement => {
 
       // Step 2: sync time — uses the freshly-updated timelineMetricsRef to queue
       // setDraggableTime({x: correct}) and update currentTimeRef.
-      syncTimelineTime(seekTime)
+      syncTimelineTime(visualTime)
 
       // Step 3: explicit setDraggableTime as the final, guaranteed write so it
       // wins React's batch regardless of ordering between the two calls above.
       // This is the variable that drives the visual red marker position.
       if (timelineMetricsRef.current) {
         setDraggableTime({
-          x: timeToTimelineX(seekTime, timelineMetricsRef.current),
+          x: timeToTimelineX(visualTime, timelineMetricsRef.current),
           y: 0,
         })
       }
 
       navSeekPendingRef.current = true
-      currentEventRef.current?.seekTo(seekTime, true)
+      currentEventRef.current?.seekTo(visualTime, true)
       updateClipStackData()
     }
   }
