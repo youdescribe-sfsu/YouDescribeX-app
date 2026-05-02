@@ -314,36 +314,38 @@ const NewAudioClipComponent = ({
             </div>
           </div>
         </div>
-        <div
-          className="d-flex flex-column align-items-center mb-3"
-          data-tutorial={tutorialMode ? 'description-method' : undefined}
-        >
-          <h6 className="text-white text-size mb-2">
-            Choose Description Method:
-          </h6>
-          <div className="method-selection-enhanced">
-            <button
-              type="button"
-              className={`method-button-enhanced ${
-                descriptionMethod === 'text' ? 'active' : ''
-              }`}
-              onClick={() => {
-                if (!tutorialMode) setDescriptionMethod('text')
-              }}
-            >
-              Text Description
-            </button>
-            <button
-              type="button"
-              className={`method-button-enhanced ${
-                descriptionMethod === 'audio' ? 'active' : ''
-              }`}
-              onClick={() => {
-                if (!tutorialMode) setDescriptionMethod('audio')
-              }}
-            >
-              Audio Recording
-            </button>
+        <div className="d-flex flex-column align-items-center mb-3">
+          <div
+            className="d-flex flex-column align-items-center"
+            data-tutorial={tutorialMode ? 'description-method' : undefined}
+          >
+            <h6 className="text-white text-size mb-2">
+              Choose Description Method:
+            </h6>
+            <div className="method-selection-enhanced">
+              <button
+                type="button"
+                className={`method-button-enhanced ${
+                  descriptionMethod === 'text' ? 'active' : ''
+                }`}
+                onClick={() => {
+                  if (!tutorialMode) setDescriptionMethod('text')
+                }}
+              >
+                Text Description
+              </button>
+              <button
+                type="button"
+                className={`method-button-enhanced ${
+                  descriptionMethod === 'audio' ? 'active' : ''
+                }`}
+                onClick={() => {
+                  if (!tutorialMode) setDescriptionMethod('audio')
+                }}
+              >
+                Audio Recording
+              </button>
+            </div>
           </div>
         </div>
 
