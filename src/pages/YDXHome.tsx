@@ -664,6 +664,12 @@ const YDXHome = (): React.ReactElement => {
             setEditComponentToggleList(tempArray)
           }
           setAudioClips([...audioClipsData])
+          console.log(
+            '[DELETE] new clips array:',
+            audioClipsData.length,
+            'currentTime:',
+            currentTimeRef.current,
+          )
           setNotesData(notesData)
           if (isNewClipAdded) {
             const nextClipStackSize =
@@ -701,28 +707,16 @@ const YDXHome = (): React.ReactElement => {
               audioClipsData[newClipIndex]?.clip_id ?? null
             return
           }
-          // After normal refresh, restore selection by clip_id
-          if (selectedClipIdRef.current) {
-            const restoredIndex = audioClipsData.findIndex(
-              (c) => c.clip_id === selectedClipIdRef.current,
+          // After normal refresh, recalculate which clip to show by playhead
+          if (audioClipsData.length > 0) {
+            const t = currentTimeRef.current
+            const newIdx = audioClipsData.reduce(
+              (best, clip, i) => (clip.clip_start_time <= t ? i : best),
+              0,
             )
-            if (restoredIndex !== -1) {
-              setNavClipIndex(restoredIndex)
-            } else if (audioClipsData.length > 0) {
-              // Clip was deleted — recalculate by playhead position
-              const currentTime = currentTimeRef.current
-              let correctIndex = 0
-              for (let i = 0; i < audioClipsData.length; i++) {
-                if (audioClipsData[i].clip_start_time <= currentTime) {
-                  correctIndex = i
-                }
-              }
-              correctIndex = Math.min(correctIndex, audioClipsData.length - 1)
-              navClipIndexRef.current = correctIndex
-              setNavClipIndex(correctIndex)
-              selectedClipIdRef.current =
-                audioClipsData[correctIndex]?.clip_id ?? null
-            }
+            navClipIndexRef.current = newIdx
+            setNavClipIndex(newIdx)
+            selectedClipIdRef.current = audioClipsData[newIdx]?.clip_id ?? null
           }
 
           const maxStackSize =
@@ -1490,34 +1484,6 @@ const YDXHome = (): React.ReactElement => {
   useEffect(() => {
     if (audioClips.length === 0) return
     setNavClipIndex((prev) => {
-      // If selectedClipIdRef still points to a valid clip, restore its index.
-      if (selectedClipIdRef.current) {
-        const restoredIndex = audioClips.findIndex(
-          (c) => c.clip_id === selectedClipIdRef.current,
-        )
-        if (restoredIndex !== -1) {
-          navClipIndexRef.current = restoredIndex
-          return restoredIndex
-        }
-        // Clip was deleted — pick the last clip whose start time is at or
-        // before the current playhead, using the fresh audioClips array.
-        const currentTime = currentTimeRef.current
-        let correctIndex = 0
-        for (let i = 0; i < audioClips.length; i++) {
-          if (audioClips[i].clip_start_time <= currentTime) {
-            correctIndex = i
-          } else {
-            break
-          }
-        }
-        correctIndex = Math.max(
-          0,
-          Math.min(correctIndex, audioClips.length - 1),
-        )
-        navClipIndexRef.current = correctIndex
-        selectedClipIdRef.current = audioClips[correctIndex]?.clip_id ?? null
-        return correctIndex
-      }
       const clamped = Math.min(prev, audioClips.length - 1)
       navClipIndexRef.current = clamped
       selectedClipIdRef.current = audioClips[clamped]?.clip_id ?? null
