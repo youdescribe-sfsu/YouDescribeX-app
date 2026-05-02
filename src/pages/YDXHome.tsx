@@ -1501,7 +1501,9 @@ const YDXHome = (): React.ReactElement => {
       suppressResumeAfterScrubRef.current = false
       if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
       if (manualNavTimeRef.current !== null) {
-        const playTime = manualNavTimeRef.current
+        // Seek 100ms before the clip so audio has time to load before the
+        // video reaches the trigger point, preventing clipped audio starts.
+        const playTime = Math.max(0, manualNavTimeRef.current - 0.1)
         manualNavTimeRef.current = null
         playedClipsSetRef.current = new Set()
         setPlayedClipsSet(new Set())
@@ -1509,6 +1511,15 @@ const YDXHome = (): React.ReactElement => {
         navSeekPendingRef.current = true
         currentEventRef.current?.seekTo(playTime, true)
         updateClipStackData()
+        // Force a precise clip stack rebuild at playTime so extended clips are
+        // included in the stack with their audio loaded before playback begins.
+        const { startIndex, clipStackData } = buildClipStackForTime(
+          audioClips,
+          playTime,
+          clipStackSize,
+        )
+        setCurrentClipIndex(startIndex)
+        setClipStack(clipStackData)
       }
       currentEvent?.playVideo()
       setGloballyPaused(false)
