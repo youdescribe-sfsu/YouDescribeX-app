@@ -339,7 +339,6 @@ const nudgeControlsStep: TutorialStep = {
   position: 'top',
   action: 'next',
   page: 'editor',
-  autoScroll: 'top',
   uiState: SAVED_CLIP,
 }
 
@@ -353,7 +352,6 @@ const collabCheckboxStep: TutorialStep = {
   position: 'top',
   action: 'next',
   page: 'editor',
-  autoScroll: false,
   spotlightIncludeSelector: '[data-tutorial="collab-checkbox-input"]',
   uiState: SAVED_CLIP,
 }
@@ -368,7 +366,6 @@ const publishBtnStep: TutorialStep = {
   position: 'top',
   action: 'next',
   page: 'editor',
-  autoScroll: false,
   uiState: SAVED_CLIP,
 }
 

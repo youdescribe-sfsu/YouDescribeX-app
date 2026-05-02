@@ -83,7 +83,11 @@ const TutorialPage = () => {
     <div className="tutorial-page-container">
       {/* Keep page content mounted before TutorialOverlay so target elements
           exist when the overlay queries data-tutorial selectors. */}
-      {isVideoPage ? <Video isTutorialMode /> : <YDXHome isTutorialMode />}
+      {isVideoPage ? (
+        <Video isTutorialMode />
+      ) : (
+        <YDXHome isTutorialMode tutorialMode={tutorialMode} />
+      )}
 
       {isActive && (
         <TutorialOverlay

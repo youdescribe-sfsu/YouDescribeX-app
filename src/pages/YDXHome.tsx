@@ -36,6 +36,7 @@ import {
   TUTORIAL_VIDEO_YOUTUBE_ID,
 } from '../features/Tutorial/tutorialConfig'
 import { tutorialEditorStore } from '../features/Tutorial/tutorialEditorStore'
+import type { TutorialMode } from '../features/Tutorial/tutorialSteps'
 
 type DialogTimestamp = {
   dialog_seq_no: number
@@ -47,10 +48,12 @@ const DEFAULT_PLAYHEAD_WIDTH_PX = 2
 
 interface YDXHomeProps {
   isTutorialMode?: boolean
+  tutorialMode?: TutorialMode | null
 }
 
 const YDXHome = ({
   isTutorialMode = false,
+  tutorialMode = null,
 }: YDXHomeProps): React.ReactElement => {
   const {
     audioDescriptionId: routeAudioDescriptionId,
@@ -288,7 +291,9 @@ const YDXHome = ({
     setVideoId(TUTORIAL_VIDEO_DATABASE_ID)
     setVideoLength(TUTORIAL_VIDEO_DURATION_SECONDS)
     setBackendFallbackYoutubeVideoId(TUTORIAL_VIDEO_YOUTUBE_ID)
-    setVideoDialogTimestamps([...TUTORIAL_DIALOG_TIMESTAMPS])
+    setVideoDialogTimestamps(
+      tutorialMode === 'ai' ? [...TUTORIAL_DIALOG_TIMESTAMPS] : [],
+    )
     setAudioClips(nextTutorialAudioClips)
     setNotesData({ notes_text: '', notes_id: '' } as any)
     setIsPublished(false)
@@ -303,6 +308,7 @@ const YDXHome = ({
     tutorialAudioClips,
     tutorialEditComponentToggleList,
     tutorialNavClipIndex,
+    tutorialMode,
   ])
 
   useEffect(() => {
