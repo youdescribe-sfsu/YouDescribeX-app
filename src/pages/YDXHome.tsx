@@ -160,6 +160,10 @@ const YDXHome = (): React.ReactElement => {
   // Mirror of navClipIndex kept in sync synchronously so rapid clicks read the
   // latest index even before the React state update has committed.
   const navClipIndexRef = useRef(0)
+  // Ref mirror of playedClipsSet — updated synchronously on every add/clear so
+  // the playback interval always reads the latest value even when React has not
+  // yet committed the corresponding setPlayedClipsSet state update.
+  const playedClipsSetRef = useRef<Set<string>>(new Set())
   //Yue's fix
   const hasValidAudioDescriptionId =
     !!audioDescriptionId && audioDescriptionId !== 'undefined'
@@ -184,6 +188,10 @@ const YDXHome = (): React.ReactElement => {
     currentTimeRef.current = currentTime
     previousTimeRef.current = previousTime
   }, [currentTime, previousTime])
+
+  useEffect(() => {
+    playedClipsSetRef.current = playedClipsSet
+  }, [playedClipsSet])
 
   useEffect(() => {
     clipIDRef.current = playedAudioClip
@@ -559,6 +567,7 @@ const YDXHome = (): React.ReactElement => {
     setRecentAudioPlayedTime(0.0)
     setPlayedAudioClip('')
     setPlayedClipPath('')
+    playedClipsSetRef.current = new Set()
     setPlayedClipsSet(new Set())
   }, [unloadHowls])
 
@@ -867,7 +876,7 @@ const YDXHome = (): React.ReactElement => {
           currentClip.clip_start_time >= previousTimeRef.current)
 
       if (isTimeToPlay) {
-        if (playedClipsSet.has(currentClip.clip_id)) {
+        if (playedClipsSetRef.current.has(currentClip.clip_id)) {
           console.log(
             'Inline clip already played (Set check), skipping:',
             currentClip.clip_id,
@@ -905,6 +914,7 @@ const YDXHome = (): React.ReactElement => {
         }
 
         setCurrInlineAC(currentAudio)
+        playedClipsSetRef.current.add(updatedClip.clip_id)
         setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
         setPlayedAudioClip(updatedClip.clip_id)
         setRecentAudioPlayedTime(currentTimeRef.current)
@@ -939,6 +949,7 @@ const YDXHome = (): React.ReactElement => {
           }
         }
       } else if (currentTimeRef.current > currentClip.clip_end_time) {
+        playedClipsSetRef.current.add(currentClip.clip_id)
         setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
         setCurrentClipIndex(currentClipIndexRef.current + 1)
         const newStack = clipStackRef.current.slice(1)
@@ -958,12 +969,15 @@ const YDXHome = (): React.ReactElement => {
 
     // --- CASE B: EXTENDED CLIPS ---
     else if (currentClip.playback_type === 'extended') {
+      // Forward tolerance is kept small (0.1 s) so the clip plays at its exact
+      // start time; backward tolerance is widened to 0.5 s to recover from
+      // timer jitter and from seeking to just before the clip's start time.
       const isExactStart =
         currentClip.clip_start_time <= currentTimeRef.current + 0.1 &&
-        currentClip.clip_start_time >= previousTimeRef.current - 0.1
+        currentClip.clip_start_time >= previousTimeRef.current - 0.5
 
       if (isExactStart) {
-        if (playedClipsSet.has(currentClip.clip_id)) {
+        if (playedClipsSetRef.current.has(currentClip.clip_id)) {
           console.log(
             'Extended clip already played (Set check), advancing stack:',
             currentClip.clip_id,
@@ -988,6 +1002,7 @@ const YDXHome = (): React.ReactElement => {
 
         const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
         setCurrentClipIndex(currentClipIndexRef.current + 1)
+        playedClipsSetRef.current.add(updatedClip.clip_id)
         setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
 
         if (playedAudioClip !== updatedClip.clip_id) {
@@ -1056,6 +1071,7 @@ const YDXHome = (): React.ReactElement => {
       currentTimeRef.current - currentClip.clip_start_time >= 1.0
     ) {
       console.warn('Discarding skipped extended clip:', currentClip.clip_id)
+      playedClipsSetRef.current.add(currentClip.clip_id)
       setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
       setCurrentClipIndex(currentClipIndexRef.current + 1)
       const newStack = clipStackRef.current.slice(1)
@@ -1108,6 +1124,7 @@ const YDXHome = (): React.ReactElement => {
         setCurrentClipIndex(0)
         setPlayedAudioClip('')
         setPlayedClipPath('')
+        playedClipsSetRef.current = new Set()
         setPlayedClipsSet(new Set())
         setRecentAudioPlayedTime(0.0)
         setCurrInlineAC(undefined)
@@ -1288,7 +1305,10 @@ const YDXHome = (): React.ReactElement => {
     // insert-open snapshots currentTime for a new clip.
     const syncedTime = syncTimelineTime(progressBarTime)
     setPreviousTime(syncedTime)
-    //Flush the memory cache when you stop dragging
+    // Flush the memory cache when you stop dragging. Clear the ref synchronously
+    // so the playback interval always reads an empty set even if YouTube's onPlay
+    // fires before React commits this state update.
+    playedClipsSetRef.current = new Set()
     setPlayedClipsSet(new Set())
 
     stopScrubAudio()
@@ -1377,6 +1397,7 @@ const YDXHome = (): React.ReactElement => {
   // when "AudioClip <seq no>" is clicked, video is playing from that audio clip
   const handlePlayAudioClip = (clipStartTime: number) => {
     // Flush the memory cache when clicking a clip to jump
+    playedClipsSetRef.current = new Set()
     setPlayedClipsSet(new Set())
     isTimelineScrubbingRef.current = false
     suppressResumeAfterScrubRef.current = false
@@ -1401,6 +1422,7 @@ const YDXHome = (): React.ReactElement => {
       // Stop the playback interval so it cannot override the seek target
       // before onPlay restarts it at the correct position.
       clearPlaybackTimer()
+      playedClipsSetRef.current = new Set()
       setPlayedClipsSet(new Set())
       // Clear the scrub-pause lock so seekTo takes effect immediately and
       // the YouTube iframe play button is not blocked by a stale drag state.
