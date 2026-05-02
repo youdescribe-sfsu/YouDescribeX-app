@@ -966,12 +966,13 @@ const YDXHome = (): React.ReactElement => {
 
     // --- CASE B: EXTENDED CLIPS ---
     else if (currentClip.playback_type === 'extended') {
-      // 1.0 s forward window: fires when currentTime is within 1 s of (or past)
-      // the clip's start time, so dragging to e.g. 15.99 still triggers a clip
-      // at 16.00. 1.0 s backward window: recovers from timer jitter or a tick
-      // that lands up to 1 s after the scheduled start.
+      // 0.1 s forward window: handles drag-to-just-before-clip (e.g. scrubbing
+      // to 15.99 still triggers a clip at 16.00) without causing clips to fire
+      // a full second early during normal playback.
+      // 1.0 s backward window: recovers from timer jitter or a tick that lands
+      // up to 1 s after the scheduled start.
       const isExactStart =
-        currentClip.clip_start_time <= currentTimeRef.current + 1.0 &&
+        currentClip.clip_start_time <= currentTimeRef.current + 0.1 &&
         currentClip.clip_start_time >= previousTimeRef.current - 1.0
 
       if (isExactStart) {
