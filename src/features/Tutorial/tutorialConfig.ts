@@ -1,8 +1,6 @@
 import type { Clip } from '@/shared/utils/convertClipObject'
 
 export const TUTORIAL_VIDEO_YOUTUBE_ID = '5AwtptT8X8k'
-export const TUTORIAL_VIDEO_PAGE_PATH = `/video/${TUTORIAL_VIDEO_YOUTUBE_ID}`
-export const TUTORIAL_VIDEO_THUMBNAIL_URL = `https://img.youtube.com/vi/${TUTORIAL_VIDEO_YOUTUBE_ID}/maxresdefault.jpg`
 
 export const isTutorialVideoId = (youtubeId?: string | null) =>
   youtubeId === TUTORIAL_VIDEO_YOUTUBE_ID
@@ -19,7 +17,7 @@ export const TUTORIAL_VIDEO_DURATION_SECONDS = 145
 export const TUTORIAL_AUDIO_DESCRIPTION_ID = 'tutorial-audio-description'
 export const TUTORIAL_VIDEO_DATABASE_ID = 'tutorial-video'
 
-export const TUTORIAL_SAMPLE_DESCRIPTION =
+const TUTORIAL_SAMPLE_DESCRIPTION =
   'Judy and Nick race through the streets, chasing after a fleeing vehicle.'
 
 const TUTORIAL_CREATED_AT = '2026-01-01T00:00:00.000Z'
