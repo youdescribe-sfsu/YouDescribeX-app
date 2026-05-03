@@ -9,6 +9,7 @@ interface Props {
   onSelectClip: (index: number) => void
   isExpanded: boolean
   setIsExpanded: (val: boolean) => void
+  listDataTutorial?: string
 }
 
 const ClipsNavigator = ({
@@ -17,13 +18,14 @@ const ClipsNavigator = ({
   onSelectClip,
   isExpanded,
   setIsExpanded,
+  listDataTutorial,
 }: Props) => {
   if (clips.length === 0) return null
 
   return (
     <div className="clips-navigator">
       {isExpanded && (
-        <div className="clips-list-container">
+        <div className="clips-list-container" data-tutorial={listDataTutorial}>
           {clips.map((clip, index) => (
             <div
               key={clip.clip_id}

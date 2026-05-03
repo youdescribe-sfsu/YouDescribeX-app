@@ -15,7 +15,7 @@ import {
   autoUpdate,
   Placement,
 } from '@floating-ui/react-dom'
-import { type TutorialMode, TutorialStep } from './tutorialSteps'
+import { type TutorialMode, TutorialStep } from './tutorialStepRegistry'
 import './tutorial.scss'
 
 interface Props {
@@ -40,6 +40,8 @@ const DEFAULT_SPOTLIGHT_PADDING = {
 const TARGET_POLL_INTERVAL_MS = 100
 const TOOLTIP_FOCUS_DELAY_MS = 50
 const SCROLL_AFTER_LAYOUT_DELAY_MS = 100
+const TARGET_STABLE_FRAME_COUNT = 2
+const TARGET_SETTLE_FALLBACK_MS = 500
 
 const SCROLL_BLOCK_KEYS = [
   ' ',
@@ -75,6 +77,66 @@ const isInteractiveElement = (element: Element | null): boolean => {
 
 const isScrollBlockKey = (key: string): boolean =>
   SCROLL_BLOCK_KEYS.includes(key)
+
+const getVisibleElement = (selector: string): Element | null => {
+  const elements = Array.from(document.querySelectorAll(selector))
+
+  for (const element of elements) {
+    const rect = element.getBoundingClientRect()
+    if (rect.width > 0 && rect.height > 0) {
+      return element
+    }
+  }
+
+  return null
+}
+
+const areRectsEquivalent = (firstRect: DOMRect, secondRect: DOMRect) =>
+  Math.abs(firstRect.top - secondRect.top) < 0.5 &&
+  Math.abs(firstRect.left - secondRect.left) < 0.5 &&
+  Math.abs(firstRect.width - secondRect.width) < 0.5 &&
+  Math.abs(firstRect.height - secondRect.height) < 0.5
+
+const waitForStableRect = (
+  element: Element,
+  onStable: () => void,
+): (() => void) => {
+  let animationFrameId: number | undefined
+  let previousRect: DOMRect | null = null
+  let stableFrameCount = 0
+  let isCancelled = false
+
+  const checkRect = () => {
+    if (isCancelled) return
+
+    const currentRect = element.getBoundingClientRect()
+    if (currentRect.width <= 0 || currentRect.height <= 0) {
+      previousRect = null
+      stableFrameCount = 0
+    } else if (previousRect && areRectsEquivalent(previousRect, currentRect)) {
+      stableFrameCount += 1
+    } else {
+      previousRect = currentRect
+      stableFrameCount = 0
+    }
+
+    if (stableFrameCount >= TARGET_STABLE_FRAME_COUNT) {
+      onStable()
+      return
+    }
+
+    animationFrameId = window.requestAnimationFrame(checkRect)
+  }
+
+  animationFrameId = window.requestAnimationFrame(checkRect)
+
+  return () => {
+    isCancelled = true
+    if (animationFrameId !== undefined) {
+      window.cancelAnimationFrame(animationFrameId)
+    }
+  }
+}
 
 const getSpotlightBox = (
   rect: DOMRect,
@@ -162,20 +224,30 @@ const TutorialOverlay = ({
   currentStepIndex,
   totalSteps,
 }: Props) => {
-  const [targetEl, setTargetEl] = useState<Element | null>(null)
+  const [targetState, setTargetState] = useState<{
+    element: Element | null
+    stepId: string | null
+  }>({ element: null, stepId: null })
+  const [isTargetSettled, setIsTargetSettled] = useState(false)
   const holeRef = useRef<SVGRectElement>(null)
   const outlineRef = useRef<SVGRectElement>(null)
   const tooltipRef = useRef<HTMLDivElement | null>(null)
 
   const isTrulyCentered = step.position === 'center' || !step.targetSelector
-  const isOverlayReady = isTrulyCentered || targetEl !== null
+  const shouldWaitForTargetSettling = step.waitForTargetSettle === true
+  const targetEl = targetState.stepId === step.id ? targetState.element : null
+  const isTargetReady =
+    isTrulyCentered ||
+    (targetEl !== null && (!shouldWaitForTargetSettling || isTargetSettled))
+  const isOverlayReady = isTargetReady
 
   const handleTargetClick = useCallback(() => {
     onNext()
   }, [onNext])
 
   useEffect(() => {
-    setTargetEl(null)
+    setTargetState({ element: null, stepId: null })
+    setIsTargetSettled(false)
 
     if (!step.targetSelector) {
       return undefined
@@ -185,17 +257,13 @@ const TutorialOverlay = ({
     let clickTarget: Element | null = null
 
     const findTarget = () => {
-      const element = document.querySelector(step.targetSelector)
+      const element = getVisibleElement(step.targetSelector)
       if (!element) {
         return false
       }
 
-      const rect = element.getBoundingClientRect()
-      if (rect.width <= 0 || rect.height <= 0) {
-        return false
-      }
-
-      setTargetEl(element)
+      setIsTargetSettled(false)
+      setTargetState({ element, stepId: step.id })
 
       if (step.action === 'click' && clickTarget !== element) {
         element.addEventListener('click', handleTargetClick)
@@ -224,6 +292,55 @@ const TutorialOverlay = ({
       }
     }
   }, [step.id, step.targetSelector, step.action, handleTargetClick])
+
+  useEffect(() => {
+    if (!shouldWaitForTargetSettling || isTrulyCentered || !targetEl) {
+      setIsTargetSettled(false)
+      return undefined
+    }
+
+    setIsTargetSettled(false)
+    let isCancelled = false
+    let cancelStableRectWait: (() => void) | undefined
+
+    const settleTarget = () => {
+      if (isCancelled) return
+      setIsTargetSettled(true)
+    }
+
+    const waitForStableTargetRect = () => {
+      if (isCancelled) return
+      cancelStableRectWait = waitForStableRect(targetEl, settleTarget)
+    }
+
+    const activeAnimations =
+      targetEl
+        .getAnimations?.({ subtree: true })
+        .filter(
+          (animation) =>
+            animation.playState !== 'finished' &&
+            animation.playState !== 'idle',
+        ) ?? []
+
+    if (activeAnimations.length > 0) {
+      Promise.allSettled(
+        activeAnimations.map((animation) => animation.finished),
+      ).then(waitForStableTargetRect)
+    } else {
+      waitForStableTargetRect()
+    }
+
+    const fallbackTimer = window.setTimeout(() => {
+      cancelStableRectWait?.()
+      settleTarget()
+    }, TARGET_SETTLE_FALLBACK_MS)
+
+    return () => {
+      isCancelled = true
+      window.clearTimeout(fallbackTimer)
+      cancelStableRectWait?.()
+    }
+  }, [isTrulyCentered, shouldWaitForTargetSettling, targetEl, step.id])
 
   useEffect(() => {
     if (step.action !== 'click' || !targetEl) return
@@ -278,7 +395,7 @@ const TutorialOverlay = ({
     if (!hole || !outline) return
 
     const syncPosition = () => {
-      if (isTrulyCentered || !targetEl) {
+      if (isTrulyCentered || !targetEl || !isTargetReady) {
         hole.setAttribute('width', '0')
         hole.setAttribute('height', '0')
         outline.setAttribute('width', '0')
@@ -337,10 +454,17 @@ const TutorialOverlay = ({
 
     runAnimation()
 
+    const delayedPositionSync = step.spotlightIncludeSelector
+      ? window.setTimeout(syncPosition, SCROLL_AFTER_LAYOUT_DELAY_MS)
+      : undefined
+
     window.addEventListener('scroll', syncPosition, true)
     window.addEventListener('resize', syncPosition)
 
     return () => {
+      if (delayedPositionSync) {
+        window.clearTimeout(delayedPositionSync)
+      }
       window.removeEventListener('scroll', syncPosition, true)
       window.removeEventListener('resize', syncPosition)
     }
@@ -351,9 +475,10 @@ const TutorialOverlay = ({
     step.spotlightPadding,
     step.spotlightOffsetX,
     step.spotlightIncludeSelector,
+    isTargetReady,
   ])
 
-  const { refs, floatingStyles, isPositioned } = useFloating({
+  const { refs, floatingStyles, isPositioned, update } = useFloating({
     placement: toPlacement(step.position),
     strategy: 'fixed',
     middleware: [offset(16), flip(), shift({ padding: 12 })],
@@ -364,7 +489,17 @@ const TutorialOverlay = ({
     refs.setReference(targetEl)
   }, [targetEl, refs])
 
-  const isTooltipCentered = isTrulyCentered || !targetEl
+  useEffect(() => {
+    if (!isTargetReady || isTrulyCentered) return
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      void update()
+    })
+
+    return () => window.cancelAnimationFrame(animationFrame)
+  }, [isTargetReady, isTrulyCentered, step.id, update])
+
+  const isTooltipCentered = isTrulyCentered
   const isClickAction = step.action === 'click'
   const isFinish = step.action === 'finish'
   const isChooseAction = step.action === 'choose'
@@ -374,9 +509,14 @@ const TutorialOverlay = ({
     !isClickAction &&
     !isChooseAction
   const contentLines = step.content.split('\n')
+  const legendText =
+    step.legendItems
+      ?.map((item) => `${item.label}: ${item.description}`)
+      .join('. ') ?? ''
   const useIntroCenteredSize = step.centeredSize === 'intro'
 
-  const isReady = isTooltipCentered || (targetEl !== null && isPositioned)
+  const isReady =
+    isTooltipCentered || (targetEl !== null && isTargetReady && isPositioned)
 
   useEffect(() => {
     if (!isReady) return
@@ -396,6 +536,10 @@ const TutorialOverlay = ({
       event.preventDefault()
     }
 
+    const preventSelectionOrDrag = (event: Event) => {
+      event.preventDefault()
+    }
+
     const preventKeys = (event: KeyboardEvent) => {
       if (!isScrollBlockKey(event.key)) {
         return
@@ -412,12 +556,16 @@ const TutorialOverlay = ({
     window.addEventListener('touchmove', preventManualScroll, {
       passive: false,
     })
+    document.addEventListener('selectstart', preventSelectionOrDrag, true)
+    document.addEventListener('dragstart', preventSelectionOrDrag, true)
     window.addEventListener('keydown', preventKeys, { passive: false })
 
     return () => {
       document.body.style.overflow = originalStyle
       window.removeEventListener('wheel', preventManualScroll)
       window.removeEventListener('touchmove', preventManualScroll)
+      document.removeEventListener('selectstart', preventSelectionOrDrag, true)
+      document.removeEventListener('dragstart', preventSelectionOrDrag, true)
       window.removeEventListener('keydown', preventKeys)
     }
   }, [])
@@ -516,11 +664,13 @@ const TutorialOverlay = ({
     <>
       <div aria-live="assertive" aria-atomic="true" className="sr-only">
         Step {currentStepIndex + 1} of {totalSteps}: {step.title}.{' '}
-        {step.content}
+        {step.content} {legendText}
       </div>
+      {/*
       <p className="tutorial-tooltip__step-count" aria-hidden="true">
         Step {currentStepIndex + 1} of {totalSteps}
       </p>
+      */}
       <h3 className="tutorial-tooltip__title">{step.title}</h3>
       <p className="tutorial-tooltip__content">
         {contentLines.map((line, index) => (
@@ -530,6 +680,23 @@ const TutorialOverlay = ({
           </Fragment>
         ))}
       </p>
+      {step.legendItems && (
+        <dl className="tutorial-tooltip__legend">
+          {step.legendItems.map((item) => (
+            <div
+              key={`${step.id}-${item.label}`}
+              className="tutorial-tooltip__legend-row"
+            >
+              <dt
+                className={`tutorial-tooltip__legend-label tutorial-tooltip__legend-label--${item.color}`}
+              >
+                {item.label}:
+              </dt>
+              <dd>{item.description}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
       {isClickAction && (
         <p className="tutorial-tooltip__click-hint">
           Click or press Enter on the highlighted element to continue
@@ -557,7 +724,7 @@ const TutorialOverlay = ({
             <>
               {showBack && (
                 <button className="tutorial-tooltip__back-btn" onClick={onBack}>
-                  Back
+                  Previous
                 </button>
               )}
               <button className="tutorial-tooltip__next-btn" onClick={onNext}>

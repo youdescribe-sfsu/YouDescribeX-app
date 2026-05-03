@@ -28,6 +28,14 @@ import { Options } from 'youtube-player/dist/types'
 import { userDataStore } from '@/App'
 import { Id, toast } from 'react-toastify'
 import Button from 'react-bootstrap/Button'
+import {
+  TUTORIAL_AUDIO_DESCRIPTION_ID,
+  TUTORIAL_VIDEO_DURATION_SECONDS,
+  TUTORIAL_VIDEO_YOUTUBE_ID,
+} from '../features/Tutorial/tutorialConfig'
+import { TUTORIAL_TARGETS } from '../features/Tutorial/tutorialSelectors'
+import { useTutorialEditorAdapter } from '../features/Tutorial/useTutorialEditorAdapter'
+import type { TutorialMode } from '../features/Tutorial/tutorialStepRegistry'
 
 type DialogTimestamp = {
   dialog_seq_no: number
@@ -37,8 +45,25 @@ type DialogTimestamp = {
 
 const DEFAULT_PLAYHEAD_WIDTH_PX = 2
 
-const YDXHome = (): React.ReactElement => {
-  const { audioDescriptionId, youtubeVideoId } = useParams()
+interface YDXHomeProps {
+  isTutorialMode?: boolean
+  tutorialMode?: TutorialMode | null
+}
+
+const YDXHome = ({
+  isTutorialMode = false,
+  tutorialMode = null,
+}: YDXHomeProps): React.ReactElement => {
+  const {
+    audioDescriptionId: routeAudioDescriptionId,
+    youtubeVideoId: routeYoutubeVideoId,
+  } = useParams()
+  const audioDescriptionId = isTutorialMode
+    ? TUTORIAL_AUDIO_DESCRIPTION_ID
+    : routeAudioDescriptionId
+  const youtubeVideoId = isTutorialMode
+    ? TUTORIAL_VIDEO_YOUTUBE_ID
+    : routeYoutubeVideoId
   const participant_id = sessionStorage.getItem('id')
   const navigate = useNavigate()
 
@@ -66,7 +91,7 @@ const YDXHome = (): React.ReactElement => {
   // State Variables
   const [videoId, setVideoId] = useState('') // retrieved from db, stored to fetch audio_descriptions
   // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
-  const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
+  const [notesData, setNotesData] = useState<unknown>('') // retrieved from db, stored to pass on to Notes Component
   const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored as a fallback if canonical YouTube metadata is unavailable
   const [backendFallbackYoutubeVideoId, setBackendFallbackYoutubeVideoId] =
     useState<string | undefined>()
@@ -171,11 +196,40 @@ const YDXHome = (): React.ReactElement => {
   const hasValidAudioDescriptionId =
     !!audioDescriptionId && audioDescriptionId !== 'undefined'
 
+  const {
+    tutorialShowClipForm,
+    tutorialShowClipsList,
+    setTutorialNavClipIndex,
+  } = useTutorialEditorAdapter({
+    isTutorialMode,
+    tutorialMode,
+    setShowSpinner,
+    setVideoId,
+    setVideoLength,
+    setBackendFallbackYoutubeVideoId,
+    setVideoDialogTimestamps,
+    setAudioClips,
+    setNotesData,
+    setIsPublished,
+    setCollaborativeVersion,
+    setEditComponentToggleList,
+    setNavClipIndex,
+    setIsClipsListExpanded,
+    navClipIndexRef,
+    selectedClipIdRef,
+  })
+
+  const shouldShowClipsList =
+    isTutorialMode && tutorialShowClipsList ? true : isClipsListExpanded
+
   const initialUpdateDataRef = useRef(true)
-  const backendFallbackDurationSeconds =
-    backendFallbackYoutubeVideoId === youtubeVideoId ? videoLength : 0
+  const backendFallbackDurationSeconds = isTutorialMode
+    ? TUTORIAL_VIDEO_DURATION_SECONDS
+    : backendFallbackYoutubeVideoId === youtubeVideoId
+    ? videoLength
+    : 0
   const canonicalVideoDuration = useCanonicalVideoDuration(
-    youtubeVideoId,
+    isTutorialMode ? undefined : youtubeVideoId,
     backendFallbackDurationSeconds,
   )
   const canonicalDurationSeconds = canonicalVideoDuration.durationSeconds
@@ -232,6 +286,7 @@ const YDXHome = (): React.ReactElement => {
   }, [youTubeVolume, currentEventRef])
 
   useEffect(() => {
+    if (isTutorialMode) return
     if (videoId) {
       setShowSpinner(true)
       fetchDialogData()
@@ -243,6 +298,7 @@ const YDXHome = (): React.ReactElement => {
 
   // Re-fetch clips when auth resolves after videoId is already set (login race condition)
   useEffect(() => {
+    if (isTutorialMode) return
     if (user && videoId && audioClips.length === 0) {
       fetchAudioDescriptionData()
     }
@@ -264,10 +320,12 @@ const YDXHome = (): React.ReactElement => {
       divRef3: divRef2.current?.clientWidth,
       divRef4: divRef3.current?.clientWidth,
     })
-    setShowSpinner(true)
-    fetchUserVideoData()
+    if (!isTutorialMode) {
+      setShowSpinner(true)
+      fetchUserVideoData()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [youtubeVideoId])
+  }, [youtubeVideoId, isTutorialMode])
 
   useEffect(() => {
     const handleKeyUp = () => {
@@ -324,6 +382,10 @@ const YDXHome = (): React.ReactElement => {
   }, [])
 
   useEffect(() => {
+    if (isTutorialMode) {
+      if (needRefresh) setNeedRefresh(false)
+      return
+    }
     if (needRefresh) {
       const isNewClipAdded = savedClipRefreshRequestedRef.current
       savedClipRefreshRequestedRef.current = false
@@ -338,6 +400,8 @@ const YDXHome = (): React.ReactElement => {
       initialUpdateDataRef.current = false
       return
     }
+
+    if (isTutorialMode) return
 
     // Any clip edit (nudge, type toggle, description save) is a deliberate user
     // action — clear the timeline-scrub lock so the YouTube iframe play button
@@ -1428,6 +1492,7 @@ const YDXHome = (): React.ReactElement => {
     // even before React commits the setNavClipIndex state update.
     navClipIndexRef.current = clamped
     setNavClipIndex(clamped)
+    if (isTutorialMode) setTutorialNavClipIndex(clamped)
     selectedClipIdRef.current = audioClips[clamped]?.clip_id ?? null
     setIsClipsListExpanded(false)
     const clipTime = audioClips[clamped]?.clip_start_time
@@ -1705,11 +1770,22 @@ const YDXHome = (): React.ReactElement => {
             setDescriptionVolume={setDescriptionVolume}
             setYouTubeVolume={setYouTubeVolume}
             youTubeVolume={youTubeVolume}
+            playPauseDataTutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.playPauseBtn : undefined
+            }
+            audioDuckingDataTutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.audioDucking : undefined
+            }
           />
           <Notes
             currentTime={convertSecondsToCardFormat(currentTime)}
             audioDescriptionId={audioDescriptionId || ''}
             notesData={notesData}
+            dataTutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.notesArea : undefined
+            }
+            readOnly={isTutorialMode}
+            disableAutoSave={isTutorialMode}
             handleVideoPause={async () => {
               const currentState = await currentEvent?.getPlayerState()
               if (currentState === 1) handlePlayPause()
@@ -1720,7 +1796,12 @@ const YDXHome = (): React.ReactElement => {
 
         {/* Dialog Timeline */}
         {hasCanonicalDuration && (
-          <div className="timeline-section-wrapper">
+          <div
+            className="timeline-section-wrapper"
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.dialogTimeline : undefined
+            }
+          >
             <div className="timeline-header">
               <h6 className="timeline-title">
                 Dialog Timeline (
@@ -1767,7 +1848,6 @@ const YDXHome = (): React.ReactElement => {
                         top: '0px',
                         zIndex: 3,
                         borderRadius: '2px',
-                        opacity: 0.8,
                       }}
                       title={`${
                         clip.playback_type
@@ -1827,7 +1907,14 @@ const YDXHome = (): React.ReactElement => {
                       tabIndex={0}
                       className="progress-bar-div editor-progress-bar-div"
                     >
-                      <p className="mt-5 text-white progress-bar-time">
+                      <p
+                        className="mt-5 text-white progress-bar-time"
+                        data-tutorial={
+                          isTutorialMode
+                            ? TUTORIAL_TARGETS.dialogTimelineTime
+                            : undefined
+                        }
+                      >
                         {convertSecondsToCardFormat(currentTime)}
                       </p>
                     </div>
@@ -1855,6 +1942,11 @@ const YDXHome = (): React.ReactElement => {
                 <button
                   type="button"
                   className="btn inline-bg text-dark ydx-button"
+                  data-tutorial={
+                    isTutorialMode
+                      ? TUTORIAL_TARGETS.insertInlineBtn
+                      : undefined
+                  }
                   onClick={() => setHandleClicksFromParent('inline')}
                 >
                   <i className="fa fa-plus" /> Insert Inline
@@ -1862,6 +1954,11 @@ const YDXHome = (): React.ReactElement => {
                 <button
                   type="button"
                   className="btn extended-bg text-white ydx-button"
+                  data-tutorial={
+                    isTutorialMode
+                      ? TUTORIAL_TARGETS.insertExtendedBtn
+                      : undefined
+                  }
                   onClick={() => setHandleClicksFromParent('extended')}
                 >
                   <i className="fa fa-plus" /> Insert Extended
@@ -1875,18 +1972,23 @@ const YDXHome = (): React.ReactElement => {
             {audioClips.length > 0 && (
               <button
                 className="clip-nav-btn-blue saved-clips-toggle-btn"
+                data-tutorial={
+                  isTutorialMode
+                    ? TUTORIAL_TARGETS.clipCurrentlyEditing
+                    : undefined
+                }
                 onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
                 style={{ whiteSpace: 'nowrap' }}
                 aria-label={`View saved clips list, ${
                   audioClips.length
                 } total. Click to ${
-                  isClipsListExpanded ? 'collapse' : 'expand'
+                  shouldShowClipsList ? 'collapse' : 'expand'
                 } saved clips list`}
-                aria-expanded={isClipsListExpanded}
+                aria-expanded={shouldShowClipsList}
               >
                 <i
                   className={`fa fa-${
-                    isClipsListExpanded ? 'chevron-up' : 'chevron-down'
+                    shouldShowClipsList ? 'chevron-up' : 'chevron-down'
                   }`}
                 />{' '}
                 View Saved Clips ({audioClips.length} total)
@@ -1895,7 +1997,12 @@ const YDXHome = (): React.ReactElement => {
           </div>
 
           {/* Right: Prev/Next */}
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.clipNavButtons : undefined
+            }
+            style={{ display: 'flex', gap: '6px' }}
+          >
             <button
               className="clip-nav-btn-blue"
               style={{ backgroundColor: '#6c757d' }}
@@ -1931,6 +2038,8 @@ const YDXHome = (): React.ReactElement => {
             reset={reset}
             participantId={participant_id || ''}
             setNeedRefresh={setNeedRefresh}
+            tutorialMode={isTutorialMode}
+            forceShowNewACComponent={tutorialShowClipForm}
           />
         )}
 
@@ -1939,8 +2048,11 @@ const YDXHome = (): React.ReactElement => {
           clips={audioClips}
           currentIndex={navClipIndex}
           onSelectClip={handleClipNavigation}
-          isExpanded={isClipsListExpanded}
+          isExpanded={shouldShowClipsList}
           setIsExpanded={setIsClipsListExpanded}
+          listDataTutorial={
+            isTutorialMode ? TUTORIAL_TARGETS.savedClipsList : undefined
+          }
         />
 
         {/* Single clip view */}
@@ -1977,6 +2089,7 @@ const YDXHome = (): React.ReactElement => {
               enrollInCollabEdit={enrollInCollabEdit}
               setEnrollInCollabEdit={setEnrollInCollabEdit}
               onPublish={handlePublish}
+              isTutorialMode={isTutorialMode}
             />
           )}
         </div>

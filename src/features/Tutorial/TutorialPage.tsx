@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tutorialStore } from './tutorialStore'
-import { getActiveSteps, type TutorialMode } from './tutorialSteps'
-import { INSTANT_SCROLL_RESET, TUTORIAL_EXIT_ROUTE } from './tutorialConstants'
+import { tutorialEditorStore } from './tutorialEditorStore'
+import { getActiveSteps, type TutorialMode } from './tutorialStepRegistry'
+import { INSTANT_SCROLL_RESET, TUTORIAL_EXIT_ROUTE } from './tutorialConfig'
 import TutorialOverlay from './TutorialOverlay'
-import MockVideoPage from './MockVideoPage'
-import MockEditorPage from './MockEditorPage'
+import YDXHome from '@/pages/YDXHome'
+import Video from '@/pages/Video/Video'
 import './tutorial.scss'
 
 const TutorialPage = () => {
@@ -23,21 +24,38 @@ const TutorialPage = () => {
   const prevStep = tutorialStore((state) => state.prevStep)
   const skipTutorial = tutorialStore((state) => state.skipTutorial)
   const setTutorialMode = tutorialStore((state) => state.setTutorialMode)
+  const resetTutorialEditor = tutorialEditorStore(
+    (state) => state.resetTutorialEditor,
+  )
+  const syncFromTutorialStep = tutorialEditorStore(
+    (state) => state.syncFromTutorialStep,
+  )
 
   const activeSteps = getActiveSteps(tutorialMode)
   const currentStep = activeSteps[currentStepIndex]
 
   // Start the tutorial on mount, stop on unmount
   useEffect(() => {
+    resetTutorialEditor()
     tutorialStore.getState().startTutorial()
     hasStarted.current = true
     return () => {
+      resetTutorialEditor()
       const { isActive: stillActive } = tutorialStore.getState()
       if (stillActive) {
         tutorialStore.getState().skipTutorial()
       }
     }
-  }, [])
+  }, [resetTutorialEditor])
+
+  useLayoutEffect(() => {
+    syncFromTutorialStep(tutorialMode, currentStep?.uiState)
+  }, [
+    currentStep?.id,
+    currentStep?.uiState,
+    syncFromTutorialStep,
+    tutorialMode,
+  ])
 
   useEffect(() => {
     if (isActive) {
@@ -62,16 +80,19 @@ const TutorialPage = () => {
   }
 
   return (
-    <div className="tutorial-page-container">
+    <div
+      className={`tutorial-page-container ${
+        isVideoPage
+          ? 'tutorial-page-container--video'
+          : 'tutorial-page-container--editor'
+      }`}
+    >
       {/* Keep page content mounted before TutorialOverlay so target elements
           exist when the overlay queries data-tutorial selectors. */}
       {isVideoPage ? (
-        <MockVideoPage />
+        <Video isTutorialMode />
       ) : (
-        <MockEditorPage
-          tutorialMode={tutorialMode}
-          uiState={currentStep?.uiState}
-        />
+        <YDXHome isTutorialMode tutorialMode={tutorialMode} />
       )}
 
       {isActive && (

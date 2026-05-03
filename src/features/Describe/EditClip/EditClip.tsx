@@ -10,6 +10,7 @@ import Button from 'react-bootstrap/Button'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
 import padNumber from '@/shared/utils/padNumber'
 import { Tooltip } from 'bootstrap'
+import { TUTORIAL_TARGETS } from '../../Tutorial/tutorialSelectors'
 
 interface Props {
   userId: string
@@ -36,6 +37,7 @@ interface Props {
   isPreview?: boolean
   handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
   setClipDescText: (description: string) => void
+  isTutorialMode?: boolean
 }
 
 const EditClip = ({
@@ -63,6 +65,7 @@ const EditClip = ({
   handleClickSaveClipDescription,
   setUndoDeletedClip,
   setClipDescText,
+  isTutorialMode = false,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
   const clipEndTime = clipStartTime + clipDuration
@@ -437,6 +440,7 @@ const EditClip = ({
   }
 
   const handlePlayPauseAdAudio = () => {
+    if (isTutorialMode) return
     if (isAdAudioPlaying) {
       adAudio?.pause()
       setIsAdAudioPlaying(false)
@@ -458,6 +462,7 @@ const EditClip = ({
   }
 
   const handleReadySetGo = (): void => {
+    if (isTutorialMode) return
     const countdown = ['3', '2', '1', 'GO!', 'start']
     countdown.forEach((val, i) => {
       setTimeout(() => {
@@ -486,12 +491,14 @@ const EditClip = ({
   const shouldShowTextArea = !isRecorded
 
   const handleStartIntegratedRecording = () => {
+    if (isTutorialMode) return
     setIsIntegratedRecordingMode(true)
     setIsPreparingToRecord(true)
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   const handleReplaceWithNewRecording = useCallback(async () => {
+    if (isTutorialMode) return
     if (!mediaBlobUrl) {
       toast.error('No recording found. Please record audio first.')
       return
@@ -543,9 +550,15 @@ const EditClip = ({
     updateData,
     setUpdateData,
     setShowSpinner,
+    isTutorialMode,
   ])
 
   const handleClickDeleteClip = (e: any) => {
+    if (isTutorialMode) {
+      e.preventDefault()
+      setIsDeleteModal(false)
+      return
+    }
     setShowSpinner(true)
     e.preventDefault()
     axios
@@ -571,6 +584,7 @@ const EditClip = ({
   }
 
   const handleSwitchToTTS = async () => {
+    if (isTutorialMode) return
     if (!switchToTTSText.trim()) {
       toast.error('Please enter text for AI voice generation')
       return
@@ -607,7 +621,12 @@ const EditClip = ({
       </div>
 
       <div className="primary-content-section">
-        <div className="description-editing-area">
+        <div
+          className="description-editing-area"
+          data-tutorial={
+            isTutorialMode ? TUTORIAL_TARGETS.clipAiVoice : undefined
+          }
+        >
           <div className="section-header">
             <h6 className="section-title">Description Content</h6>
             <div className="description-status">
@@ -621,10 +640,12 @@ const EditClip = ({
               placeholder={descriptionPlaceholder}
               value={clipDescriptionText}
               onChange={(e) => {
+                if (isTutorialMode) return
                 setClipDescriptionText(e.target.value)
                 setClipDescText(e.target.value)
               }}
               disabled={isPreview}
+              readOnly={isTutorialMode}
               minRows={4}
               maxRows={8}
             />
@@ -853,7 +874,9 @@ const EditClip = ({
             )}
             <button
               className="ydx-button ydx-button--danger"
-              onClick={() => setIsDeleteModal(true)}
+              onClick={() => {
+                if (!isTutorialMode) setIsDeleteModal(true)
+              }}
               disabled={isPreview}
             >
               <i className="fa fa-trash" /> Delete Clip
@@ -861,7 +884,12 @@ const EditClip = ({
           </div>
         </div>
 
-        <div className="timing-controls-section">
+        <div
+          className="timing-controls-section"
+          data-tutorial={
+            isTutorialMode ? TUTORIAL_TARGETS.clipTimingControls : undefined
+          }
+        >
           <div className="section-header">
             <h6 className="section-title">Timing Controls</h6>
           </div>
@@ -879,6 +907,7 @@ const EditClip = ({
                     value={padNumber(clipStartTimeHours)}
                     onChange={handleOnChangeClipStartTimeHours}
                     onBlur={handleBlurClipStartTimeHours}
+                    readOnly={isTutorialMode}
                     min="0"
                     max="23"
                     onKeyDown={(evt) =>
@@ -896,6 +925,7 @@ const EditClip = ({
                     value={padNumber(clipStartTimeMinutes)}
                     onChange={handleOnChangeClipStartTimeMinutes}
                     onBlur={handleBlurClipStartTimeMinutes}
+                    readOnly={isTutorialMode}
                     min="0"
                     max="59"
                     onKeyDown={(evt) =>
@@ -913,6 +943,7 @@ const EditClip = ({
                     value={padNumber(clipStartTimeSeconds)}
                     onChange={handleOnChangeClipStartTimeSeconds}
                     onBlur={handleBlurClipStartTimeSeconds}
+                    readOnly={isTutorialMode}
                     min="0"
                     max="59"
                     onKeyDown={(evt) =>
@@ -930,6 +961,7 @@ const EditClip = ({
                     value={padNumber(clipStartTimeCentiseconds)}
                     onChange={handleOnChangeClipStartTimeCentiseconds}
                     onBlur={handleBlurClipStartTimeCentiseconds}
+                    readOnly={isTutorialMode}
                     min="0"
                     max="99"
                     onKeyDown={(evt) =>

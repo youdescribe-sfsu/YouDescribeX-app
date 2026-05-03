@@ -94,16 +94,12 @@ $tutorial-focus-white: #fff;
   padding: 0;
 }
 
-.tutorial-mock-button {
-  opacity: 1;
-  cursor: default;
-}
-
 .tutorial-tooltip__title {
   font-size: 18px;
   font-weight: 600;
-  margin: 0 0 10px 0;
+  margin: 20px 0 10px 0;
   color: #333;
+  text-align: center;
 }
 
 .tutorial-tooltip__content {
@@ -111,6 +107,42 @@ $tutorial-focus-white: #fff;
   line-height: 1.5;
   margin: 0 0 20px 0;
   color: #555;
+}
+
+.tutorial-tooltip__legend {
+  display: grid;
+  gap: 4px;
+  margin: -10px 0 20px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.tutorial-tooltip__legend-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+
+  dd {
+    margin: 0;
+    color: #555;
+  }
+}
+
+.tutorial-tooltip__legend-label {
+  margin: 0;
+  font-weight: 700;
+}
+
+.tutorial-tooltip__legend-label--inline {
+  color: var(--inline-color);
+}
+
+.tutorial-tooltip__legend-label--extended {
+  color: var(--extended-color);
+}
+
+.tutorial-tooltip__legend-label--dialogue {
+  color: #64b5f6;
 }
 
 .tutorial-tooltip__actions {
@@ -138,8 +170,7 @@ $tutorial-focus-white: #fff;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
+    box-shadow 0.2s ease, background-color 0.2s ease;
 
   &:hover {
     transform: translateY(-1px);
@@ -244,39 +275,8 @@ $tutorial-focus-white: #fff;
   overflow-y: visible;
 }
 
-.tutorial-saved-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  background-color: #5a6268;
-  border: 1px solid #6c757d;
-  border-radius: 6px;
-  cursor: default;
-}
-
 .primary-content-section.tutorial-clip-layout {
   gap: var(--space-sm);
-}
-
-.component[data-tutorial='clip-controls'] .primary-actions .ydx-button,
-.component[data-tutorial='clip-controls']
-  .primary-actions
-  .tutorial-saved-status,
-.component[data-tutorial='clip-controls'] .video-sync-controls .ydx-button {
-  color: #fff;
-}
-
-.component[data-tutorial='clip-controls'] .primary-actions .ydx-button i,
-.component[data-tutorial='clip-controls']
-  .primary-actions
-  .tutorial-saved-status
-  i,
-.component[data-tutorial='clip-controls'] .video-sync-controls .ydx-button i {
-  color: #fff;
 }
 
 @keyframes tooltipSettle {
@@ -294,6 +294,19 @@ $tutorial-focus-white: #fff;
 .tutorial-page-container {
   min-height: 100vh;
   background-color: var(--background-primary);
+  user-select: none;
+  -webkit-user-select: none;
+
+  * {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+  }
+}
+
+.tutorial-page-container--video {
+  min-height: auto;
+  background-color: transparent;
 }
 
 .tutorial-page-container .ydx-body .container {

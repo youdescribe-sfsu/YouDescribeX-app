@@ -15,7 +15,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Id, toast } from 'react-toastify'
 import YouTube from 'react-youtube'
 import { Options, YouTubePlayer } from 'youtube-player/dist/types'
@@ -40,6 +40,8 @@ import axios from 'axios'
 import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
 import YouTubeService from '@/shared/utils/YouTubeService'
+import { TUTORIAL_TARGETS } from '@/features/Tutorial/tutorialSelectors'
+import { useTutorialVideoAdapter } from '@/features/Tutorial/useTutorialVideoAdapter'
 
 interface IADUserId {
   [key: string]: {
@@ -67,11 +69,21 @@ interface ApiError {
   message?: string
 }
 
-const Video = () => {
-  const { videoId } = useParams()
+interface VideoProps {
+  isTutorialMode?: boolean
+}
+
+const Video = ({ isTutorialMode = false }: VideoProps) => {
+  const {
+    videoId,
+    isBlockedTutorialVideo,
+    initialVideoState,
+    tutorialDocumentTitle,
+  } = useTutorialVideoAdapter(isTutorialMode)
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedADId, setSelectedADId] = useState<string>('')
+  const isSignedIn = userDataStore((state) => state.isSignedIn)
 
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
@@ -95,7 +107,7 @@ const Video = () => {
   ]
 
   // Loading Spinner
-  const [showSpinner, setShowSpinner] = useState(true)
+  const [showSpinner, setShowSpinner] = useState(initialVideoState.showSpinner)
 
   // Data from API
   const [audioDescriptionsIds, setAudioDescriptionsIds] = useState<any[]>([])
@@ -105,13 +117,17 @@ const Video = () => {
     useState<any>({})
 
   // YouTube Video Info
-  const [videoTitle, setVideoTitle] = useState('')
-  const [videoAuthor, setVideoAuthor] = useState('')
-  const [videoPublishedAt, setVideoPublishedAt] = useState('')
+  const [videoTitle, setVideoTitle] = useState(initialVideoState.title)
+  const [videoAuthor, setVideoAuthor] = useState(initialVideoState.author)
+  const [videoPublishedAt, setVideoPublishedAt] = useState(
+    initialVideoState.publishedAt,
+  )
   const [, setVideoDescription] = useState('')
-  const [videoViews, setVideoViews] = useState('')
-  const [videoLikes, setVideoLikes] = useState('')
-  const [videoDurationInSeconds, setVideoDurationInSeconds] = useState(0)
+  const [videoViews, setVideoViews] = useState(initialVideoState.views)
+  const [videoLikes, setVideoLikes] = useState(initialVideoState.likes)
+  const [videoDurationInSeconds, setVideoDurationInSeconds] = useState(
+    initialVideoState.durationSeconds,
+  )
   const [playedClips, setPlayedClips] = useState<Set<string>>(new Set())
   const playedClipsRef = useRef<Set<string>>(new Set())
   const [sortedAudioClips, setSortedAudioClips] = useState<Clip[]>([])
@@ -193,6 +209,12 @@ const Video = () => {
   >('unknown')
 
   useEffect(() => {
+    if (isTutorialMode) {
+      setAiServiceStatus('available')
+      document.title = tutorialDocumentTitle
+      return
+    }
+
     const checkAiService = async () => {
       try {
         const response = await axios.get(
@@ -208,7 +230,7 @@ const Video = () => {
     }
 
     checkAiService()
-  }, [])
+  }, [isTutorialMode, tutorialDocumentTitle])
 
   useEffect(() => {
     // Pause and unload current inline audio clip
@@ -349,16 +371,18 @@ const Video = () => {
   // Fetch Data on Page Load
   useEffect(() => {
     // console.log(videoId)
-    if (videoId) {
+    if (!isTutorialMode && !isBlockedTutorialVideo && videoId) {
       fetchVideoData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isTutorialMode, isBlockedTutorialVideo])
 
   useEffect(() => {
     if (
       videoId &&
       videoTitle &&
+      !isTutorialMode &&
+      !isBlockedTutorialVideo &&
       !historyTracked.current &&
       userDataStore.getState().isSignedIn
     ) {
@@ -366,10 +390,12 @@ const Video = () => {
       historyTracked.current = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoId, videoTitle])
+  }, [videoId, videoTitle, isTutorialMode, isBlockedTutorialVideo])
 
   useEffect(() => {
-    if (userDataStore.getState().isSignedIn) {
+    if (isTutorialMode || isBlockedTutorialVideo) return
+
+    if (isSignedIn) {
       const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/ai-description-status`
 
       axios
@@ -403,7 +429,7 @@ const Video = () => {
         })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userDataStore.getState().isSignedIn])
+  }, [isSignedIn, isTutorialMode, isBlockedTutorialVideo])
 
   const fetchVideoData = () => {
     const url = `${apiUrl}/videos/${videoId}`
@@ -751,6 +777,7 @@ const Video = () => {
     return () => {
       // If component unmounts before history is saved, try to save it
       if (
+        !isTutorialMode &&
         !historyTracked.current &&
         videoId &&
         userDataStore.getState().isSignedIn
@@ -759,7 +786,7 @@ const Video = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoId])
+  }, [videoId, isTutorialMode])
 
   //
   //
@@ -1465,7 +1492,7 @@ const Video = () => {
         }, samplingRate),
       )
     }
-    if (!historyTracked.current && videoId) {
+    if (!isTutorialMode && !historyTracked.current && videoId) {
       saveVideoToHistory(videoId)
       historyTracked.current = true
     }
@@ -1576,6 +1603,10 @@ const Video = () => {
     videoId: string,
     retryCount = 0,
   ): Promise<boolean> => {
+    if (isTutorialMode) {
+      return false
+    }
+
     if (!userDataStore.getState().isSignedIn || !videoId) {
       return false
     }
@@ -1657,7 +1688,7 @@ const Video = () => {
           .concat(describerIds)
       }
 
-      if (videoId && !showSpinner && videoTitle) {
+      if (!isTutorialMode && videoId && !showSpinner && videoTitle) {
         saveVideoToHistory(videoId)
       }
 
@@ -1702,6 +1733,7 @@ const Video = () => {
     videoId,
     showSpinner,
     videoTitle,
+    isTutorialMode,
   ])
 
   const checkUserCanCollaborate = (
@@ -1726,6 +1758,10 @@ const Video = () => {
   }
 
   const upVote = () => {
+    if (isTutorialMode) {
+      return
+    }
+
     if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
     } else {
@@ -2011,6 +2047,10 @@ const Video = () => {
     })
   }
   const handleNewCollabEdit = async (oldDescriberId: string) => {
+    if (isTutorialMode) {
+      return
+    }
+
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
         translate('You have to be logged in in order to add a description'),
@@ -2043,6 +2083,10 @@ const Video = () => {
   }
 
   const handleAddDescription = async () => {
+    if (isTutorialMode) {
+      return
+    }
+
     // console.log(userDataStore.getState())
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
@@ -2074,6 +2118,10 @@ const Video = () => {
   }
 
   const handleGenerateAIDescriptions = async (languageCode: string) => {
+    if (isTutorialMode) {
+      return
+    }
+
     if (!userDataStore.getState().isSignedIn) {
       toast.error(
         translate(
@@ -2181,6 +2229,10 @@ const Video = () => {
   }
 
   const handleRequestAIDescriptions = () => {
+    if (isTutorialMode) {
+      return
+    }
+
     if (videoDurationInSeconds > 600) {
       toast.error(
         translate(
@@ -2214,13 +2266,19 @@ const Video = () => {
     ) {
       return (
         <div className="description-buttons">
-          <Button
-            title={translate('Add a new description for this video')}
-            ariaLabel="Add a new description for this video"
-            text={translate('Add Freestyle Description')}
-            color="w3-yellow w3-block w3-margin-top"
-            onClick={handleAddDescription}
-          />
+          <div
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.freestyleBtn : undefined
+            }
+          >
+            <Button
+              title={translate('Add a new description for this video')}
+              ariaLabel="Add a new description for this video"
+              text={translate('Add Freestyle Description')}
+              color="w3-yellow w3-block w3-margin-top"
+              onClick={handleAddDescription}
+            />
+          </div>
         </div>
       )
     }
@@ -2228,13 +2286,19 @@ const Video = () => {
     if (requestAiDescription.status === 'pending') {
       return (
         <div className="description-buttons">
-          <Button
-            title={translate('Add a new description for this video')}
-            ariaLabel="Add a new description for this video"
-            text={translate('Add Freestyle Description')}
-            color="w3-yellow w3-block w3-margin-top"
-            onClick={handleAddDescription}
-          />
+          <div
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.freestyleBtn : undefined
+            }
+          >
+            <Button
+              title={translate('Add a new description for this video')}
+              ariaLabel="Add a new description for this video"
+              text={translate('Add Freestyle Description')}
+              color="w3-yellow w3-block w3-margin-top"
+              onClick={handleAddDescription}
+            />
+          </div>
           {requestAiDescription.requested ? (
             <Button
               title={translate('AI Descriptions requested')}
@@ -2244,14 +2308,20 @@ const Video = () => {
               disabled={true}
             />
           ) : (
-            <Button
-              title={translate('Request AI Descriptions')}
-              ariaLabel="Request AI Descriptions"
-              text={translate('Request AI Descriptions')}
-              color="w3-light-blue w3-block w3-margin-top"
-              disabled={requestAiDescription.requested}
-              onClick={handleRequestAIDescriptions}
-            />
+            <div
+              data-tutorial={
+                isTutorialMode ? TUTORIAL_TARGETS.requestAiBtn : undefined
+              }
+            >
+              <Button
+                title={translate('Request AI Descriptions')}
+                ariaLabel="Request AI Descriptions"
+                text={translate('Request AI Descriptions')}
+                color="w3-light-blue w3-block w3-margin-top"
+                disabled={requestAiDescription.requested}
+                onClick={handleRequestAIDescriptions}
+              />
+            </div>
           )}
           {showLanguageSelector && (
             <LanguageSelector
@@ -2273,22 +2343,34 @@ const Video = () => {
     ) {
       return (
         <div className="description-buttons">
-          <Button
-            title={translate('Add a new description for this video')}
-            ariaLabel="Add a new description for this video"
-            text={translate('Add Freestyle Description')}
-            color="w3-yellow w3-block w3-margin-top"
-            onClick={handleAddDescription}
-            disabled={requestAiDescription.requested}
-          />
-          <Button
-            title={translate('Request AI Descriptions')}
-            ariaLabel="Request AI Descriptions"
-            text={translate('Request AI Descriptions')}
-            color="w3-light-blue w3-block w3-margin-top"
-            disabled={requestAiDescription.requested}
-            onClick={handleRequestAIDescriptions}
-          />
+          <div
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.freestyleBtn : undefined
+            }
+          >
+            <Button
+              title={translate('Add a new description for this video')}
+              ariaLabel="Add a new description for this video"
+              text={translate('Add Freestyle Description')}
+              color="w3-yellow w3-block w3-margin-top"
+              onClick={handleAddDescription}
+              disabled={requestAiDescription.requested}
+            />
+          </div>
+          <div
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.requestAiBtn : undefined
+            }
+          >
+            <Button
+              title={translate('Request AI Descriptions')}
+              ariaLabel="Request AI Descriptions"
+              text={translate('Request AI Descriptions')}
+              color="w3-light-blue w3-block w3-margin-top"
+              disabled={requestAiDescription.requested}
+              onClick={handleRequestAIDescriptions}
+            />
+          </div>
           {showLanguageSelector && (
             <LanguageSelector
               show={showLanguageSelector}
@@ -2303,6 +2385,10 @@ const Video = () => {
     }
 
     return <></>
+  }
+
+  if (isBlockedTutorialVideo) {
+    return null
   }
 
   return (
@@ -2456,13 +2542,21 @@ const Video = () => {
               ) : (
                 <h3 className="classic-h3">No descriptions available</h3>
               )}
-              <Button
-                title={translate('Request an audio description for this video')}
-                ariaLabel="Request an audio description for this video"
-                text={translate('Add to WISHLIST')}
-                color="w3-indigo w3-block w3-margin-top"
-                onClick={() => upVote()}
-              />
+              <div
+                data-tutorial={
+                  isTutorialMode ? TUTORIAL_TARGETS.wishlistBtn : undefined
+                }
+              >
+                <Button
+                  title={translate(
+                    'Request an audio description for this video',
+                  )}
+                  ariaLabel="Request an audio description for this video"
+                  text={translate('Add to WISHLIST')}
+                  color="w3-indigo w3-block w3-margin-top"
+                  onClick={() => upVote()}
+                />
+              </div>
               <DescriptionButtons />
             </div>
           </div>
