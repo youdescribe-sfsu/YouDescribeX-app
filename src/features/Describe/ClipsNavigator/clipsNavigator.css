@@ -103,3 +103,9 @@
 .clip-nav-btn-blue.active {
   background: #2b6cb0;
 }
+
+.saved-clips-toggle-btn {
+  padding-left: 10px;
+  padding-right: 16px;
+  gap: 4px;
+}

@@ -1874,7 +1874,7 @@ const YDXHome = (): React.ReactElement => {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             {audioClips.length > 0 && (
               <button
-                className="clip-nav-btn-blue"
+                className="clip-nav-btn-blue saved-clips-toggle-btn"
                 onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
                 style={{ whiteSpace: 'nowrap' }}
                 aria-label={`View saved clips list, ${
