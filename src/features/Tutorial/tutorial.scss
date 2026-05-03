@@ -109,6 +109,42 @@ $tutorial-focus-white: #fff;
   color: #555;
 }
 
+.tutorial-tooltip__legend {
+  display: grid;
+  gap: 4px;
+  margin: -10px 0 20px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.tutorial-tooltip__legend-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+
+  dd {
+    margin: 0;
+    color: #555;
+  }
+}
+
+.tutorial-tooltip__legend-label {
+  margin: 0;
+  font-weight: 700;
+}
+
+.tutorial-tooltip__legend-label--inline {
+  color: var(--inline-color);
+}
+
+.tutorial-tooltip__legend-label--extended {
+  color: var(--extended-color);
+}
+
+.tutorial-tooltip__legend-label--dialogue {
+  color: #64b5f6;
+}
+
 .tutorial-tooltip__actions {
   display: flex;
   justify-content: center;

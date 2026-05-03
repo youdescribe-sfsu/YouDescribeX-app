@@ -509,6 +509,10 @@ const TutorialOverlay = ({
     !isClickAction &&
     !isChooseAction
   const contentLines = step.content.split('\n')
+  const legendText =
+    step.legendItems
+      ?.map((item) => `${item.label}: ${item.description}`)
+      .join('. ') ?? ''
   const useIntroCenteredSize = step.centeredSize === 'intro'
 
   const isReady =
@@ -652,7 +656,7 @@ const TutorialOverlay = ({
     <>
       <div aria-live="assertive" aria-atomic="true" className="sr-only">
         Step {currentStepIndex + 1} of {totalSteps}: {step.title}.{' '}
-        {step.content}
+        {step.content} {legendText}
       </div>
       {/*
       <p className="tutorial-tooltip__step-count" aria-hidden="true">
@@ -668,6 +672,23 @@ const TutorialOverlay = ({
           </Fragment>
         ))}
       </p>
+      {step.legendItems && (
+        <dl className="tutorial-tooltip__legend">
+          {step.legendItems.map((item) => (
+            <div
+              key={`${step.id}-${item.label}`}
+              className="tutorial-tooltip__legend-row"
+            >
+              <dt
+                className={`tutorial-tooltip__legend-label tutorial-tooltip__legend-label--${item.color}`}
+              >
+                {item.label}:
+              </dt>
+              <dd>{item.description}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
       {isClickAction && (
         <p className="tutorial-tooltip__click-hint">
           Click or press Enter on the highlighted element to continue

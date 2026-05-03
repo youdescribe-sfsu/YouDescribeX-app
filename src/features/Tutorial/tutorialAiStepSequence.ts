@@ -53,7 +53,12 @@ export const aiPostForkSteps: TutorialStep[] = [
   withUIState(dialogTimelineStep, SAVED_CLIP, {
     id: 'ai-dialog-timeline',
     content:
-      'You can view AI-generated audio descriptions. Drag the red playhead to any point on the timeline to jump and listen.',
+      'View AI-generated audio descriptions and drag the red playhead to move through the timeline.',
+    legendItems: [
+      { label: 'Yellow', description: 'Inline clips', color: 'inline' },
+      { label: 'Fuchsia', description: 'Extended clips', color: 'extended' },
+      { label: 'Blue', description: 'Video dialogue', color: 'dialogue' },
+    ],
   }),
 
   withUIStateDefaultScroll(playPauseBtnStep, SAVED_CLIP, {

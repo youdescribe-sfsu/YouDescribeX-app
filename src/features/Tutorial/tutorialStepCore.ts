@@ -12,6 +12,11 @@ export interface TutorialStep {
   autoScroll?: false | 'top'
   centeredSize?: 'intro' | 'default'
   choices?: { label: string; value: TutorialMode }[]
+  legendItems?: {
+    label: string
+    description: string
+    color: 'inline' | 'extended' | 'dialogue'
+  }[]
   spotlightPadding?: {
     top: number
     right: number
