@@ -589,7 +589,18 @@ const aiPostForkSteps: TutorialStep[] = [
   }),
   withUIState(saveBtnStep, FORM_AND_CLIP, { id: 'ai-save-btn' }),
 
-  // AI Steps 25–27 (UI Steps 26-28): Ending
+  // AI Steps 26-28: View and navigate saved clips
+  withUIState(currentClipNavigatorStep, SAVED_CLIP, {
+    id: 'ai-clip-currently-editing',
+  }),
+  withUIState(savedClipsListStep, SAVED_CLIP_WITH_LIST, {
+    id: 'ai-saved-clips-list',
+  }),
+  withUIState(clipNavButtonsStep, SAVED_CLIP, {
+    id: 'ai-clip-nav-buttons',
+  }),
+
+  // AI Steps 29-31: Ending
   withUIStateDefaultScroll(collabCheckboxStep, SAVED_CLIP, {
     id: 'ai-collab',
   }),
