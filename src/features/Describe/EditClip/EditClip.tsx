@@ -7,7 +7,6 @@ import { toast } from 'react-toastify'
 import TextareaAutosize from 'react-textarea-autosize'
 import ModalComponent from '../../../shared/components/Modal/Modal'
 import Button from 'react-bootstrap/Button'
-import { YouTubePlayer } from 'youtube-player/dist/types'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
 import padNumber from '@/shared/utils/padNumber'
 import { Tooltip } from 'bootstrap'
@@ -16,8 +15,6 @@ interface Props {
   userId: string
   youtubeVideoId: string
   currentTime: number
-  currentState: number
-  currentEvent: YouTubePlayer | undefined
   videoLength: number
   handleClipStartTimeUpdate: (value: number) => void
   updateData: boolean
@@ -39,11 +36,6 @@ interface Props {
   isPreview?: boolean
   handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
   setClipDescText: (description: string) => void
-  // Publish props
-  isPublished: boolean
-  enrollInCollabEdit: boolean
-  setEnrollInCollabEdit: (val: boolean) => void
-  onPublish: (e: any, checkbox?: boolean) => void
   isTutorialMode?: boolean
 }
 
@@ -51,8 +43,6 @@ const EditClip = ({
   userId,
   youtubeVideoId,
   currentTime,
-  currentState,
-  currentEvent,
   videoLength,
   handleClipStartTimeUpdate,
   updateData,
@@ -74,10 +64,6 @@ const EditClip = ({
   handleClickSaveClipDescription,
   setUndoDeletedClip,
   setClipDescText,
-  isPublished,
-  enrollInCollabEdit,
-  setEnrollInCollabEdit,
-  onPublish,
   isTutorialMode = false,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
@@ -89,13 +75,11 @@ const EditClip = ({
   const [recordedClipDuration, setRecordedClipDuration] = useState(0.0)
   const [readySetGo, setReadySetGo] = useState('')
   const [isDeleteModal, setIsDeleteModal] = useState(false)
-  const [isPublishModal, setIsPublishModal] = useState(false)
 
   const [recordedAudio, setRecordedAudio] = useState<HTMLAudioElement>()
   const [adAudio, setAdAudio] = useState<HTMLAudioElement>()
   const [isRecordedAudioPlaying, setIsRecordedAudioPlaying] = useState(false)
   const [isAdAudioPlaying, setIsAdAudioPlaying] = useState(false)
-  const [isYoutubeVideoPlaying, setIsYoutubeVideoPlaying] = useState(false)
 
   const [clipStartTimeHours, setClipStartTimeHours] = useState(0.0)
   const [clipStartTimeMinutes, setClipStartTimeMinutes] = useState(0.0)
@@ -215,7 +199,6 @@ const EditClip = ({
     setClipDescriptionText(initialClipDescriptionText ?? '')
     handleClipStartTimeInputsRender()
     handleClipEndTimeInputsRender()
-    setIsYoutubeVideoPlaying(currentState === 1)
     if (mediaBlobUrl !== null) {
       const newAudio = new Audio(mediaBlobUrl)
       setRecordedAudio(newAudio)
@@ -246,7 +229,6 @@ const EditClip = ({
   }, [
     clipAudioPath,
     clipCreatedAt,
-    currentState,
     mediaBlobUrl,
     initialClipDescriptionText,
     clipStartTime,
@@ -475,16 +457,6 @@ const EditClip = ({
             toast.error('Cannot play audio. Please try again later.')
           })
       }
-    }
-  }
-
-  const handlePlayPauseYouTubeVideo = () => {
-    if (currentState === -1 || currentState === 0 || currentState === 2) {
-      currentEvent?.playVideo()
-      setIsYoutubeVideoPlaying(true)
-    } else if (currentState === 1) {
-      currentEvent?.pauseVideo()
-      setIsYoutubeVideoPlaying(false)
     }
   }
 
@@ -1052,78 +1024,6 @@ const EditClip = ({
           </div>
         </div>
       </div>
-
-      {/* ── Bottom row: Play Video | Enroll + Publish ── */}
-      {!isPreview && !isIntegratedRecordingMode && (
-        <div className="bottom-row-controls">
-          {/* Left spacer */}
-          <div />
-
-          {/* Center: Play Video with Description */}
-          <button
-            className={`ydx-button ${
-              isYoutubeVideoPlaying
-                ? 'ydx-button--secondary'
-                : 'ydx-button--primary'
-            } video-control-btn`}
-            onClick={handlePlayPauseYouTubeVideo}
-          >
-            <i
-              className={`fa ${isYoutubeVideoPlaying ? 'fa-pause' : 'fa-play'}`}
-            />
-            {isYoutubeVideoPlaying ? 'Pause' : 'Play'} Video with Description
-          </button>
-
-          {/* Right: Enroll + Publish */}
-          {!isPublished ? (
-            <div
-              className="enroll-publish-group"
-              data-tutorial={isTutorialMode ? 'collab-checkbox' : undefined}
-            >
-              <input
-                type="checkbox"
-                checked={enrollInCollabEdit}
-                onChange={(e) => {
-                  if (!isTutorialMode) setEnrollInCollabEdit(e.target.checked)
-                }}
-                id="collabEditCheckbox"
-                className="form-check-input"
-                data-tutorial={
-                  isTutorialMode ? 'collab-checkbox-input' : undefined
-                }
-              />
-              <label
-                htmlFor="collabEditCheckbox"
-                className="form-check-label text-white"
-                style={{ marginBottom: 0 }}
-              >
-                Enroll in Collaborative Editing
-              </label>
-              <button
-                type="button"
-                className="btn publish-bg text-white ydx-button"
-                data-tutorial={isTutorialMode ? 'publish-btn' : undefined}
-                onClick={() => {
-                  if (!isTutorialMode) setIsPublishModal(true)
-                }}
-              >
-                <i className="fa fa-upload" /> Publish
-              </button>
-              <ModalComponent
-                id="publishModal"
-                title="Publish"
-                text="Are you sure you want to publish this audio description?"
-                modalTask={onPublish}
-                show={isPublishModal}
-                handleClose={() => setIsPublishModal(false)}
-              />
-            </div>
-          ) : (
-            <div />
-          )}
-        </div>
-      )}
-
       {/* Delete Modal */}
       <ModalComponent
         id="deleteModal"

@@ -7,6 +7,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { Clip } from '@/shared/utils/convertClipObject'
 import { YouTubePlayer } from 'youtube-player/dist/types'
+import ModalComponent from '../../../shared/components/Modal/Modal'
 
 const getDescriptionDisplay = (clip: Clip): string => {
   if (clip.is_recorded) return clip.description_text || 'Voice recording'
@@ -54,7 +55,7 @@ interface Props {
   setUpdatedDescriptions: React.Dispatch<
     React.SetStateAction<{ [key: string]: string }>
   >
-  // Publish props passed down to EditClip
+  // Publish props
   isPublished: boolean
   enrollInCollabEdit: boolean
   setEnrollInCollabEdit: (val: boolean) => void
@@ -117,6 +118,10 @@ const AudioClip = ({
   const [showEditComponent, setShowEditComponent] = useState(false)
   const [adDraggableWidth, setAdDraggableWidth] = useState(0.0)
   const [adDraggablePosition, setAdDraggablePosition] = useState({ x: 0, y: 0 })
+  const [isPublishModal, setIsPublishModal] = useState(false)
+  const [isYoutubeVideoPlaying, setIsYoutubeVideoPlaying] = useState(
+    currentState === 1,
+  )
 
   useEffect(() => {
     setClipPlayBackType(initialClipPlaybackType)
@@ -131,9 +136,11 @@ const AudioClip = ({
     setClipStartTime(initialClipStartTime)
     setAdDraggablePosition({ x: initialClipStartTime * unitLength, y: 0 })
     setAdDraggableWidth(clipDuration * unitLength)
+    setIsYoutubeVideoPlaying(currentState === 1)
   }, [
     clipDuration,
     clipID,
+    currentState,
     initialClipPlaybackType,
     initialClipStartTime,
     initialClipTitle,
@@ -308,6 +315,18 @@ const AudioClip = ({
       [clip.clip_id]: newDescription,
     }))
   }
+
+  const handlePlayPauseYouTubeVideo = () => {
+    if (currentState === -1 || currentState === 0 || currentState === 2) {
+      currentEvent?.playVideo()
+      setIsYoutubeVideoPlaying(true)
+    } else if (currentState === 1) {
+      currentEvent?.pauseVideo()
+      setIsYoutubeVideoPlaying(false)
+    }
+  }
+
+  const collabEditCheckboxId = `collabEditCheckbox-${clipID}`
 
   return (
     <div id={`audio-clip-card-${clipID}`} className="spacing-component">
@@ -538,8 +557,6 @@ const AudioClip = ({
             currentTime={currentTime}
             updateData={updateData}
             setUpdateData={setUpdateData}
-            currentEvent={currentEvent}
-            currentState={currentState}
             videoLength={videoLength}
             setShowSpinner={setShowSpinner}
             audioDescriptionId={audioDescriptionId}
@@ -549,14 +566,77 @@ const AudioClip = ({
             handleClickSaveClipDescription={handleClickSaveClipDescription}
             setUndoDeletedClip={setUndoDeletedClip}
             setClipDescText={handleDescriptionChange}
-            isPublished={isPublished}
-            enrollInCollabEdit={enrollInCollabEdit}
-            setEnrollInCollabEdit={setEnrollInCollabEdit}
-            onPublish={onPublish}
             isTutorialMode={isTutorialMode}
           />
         )}
       </div>
+
+      {!isPreview && (
+        <div className="bottom-row-controls">
+          <div />
+
+          <button
+            className={`ydx-button ${
+              isYoutubeVideoPlaying
+                ? 'ydx-button--secondary'
+                : 'ydx-button--primary'
+            } video-control-btn`}
+            onClick={handlePlayPauseYouTubeVideo}
+          >
+            <i
+              className={`fa ${isYoutubeVideoPlaying ? 'fa-pause' : 'fa-play'}`}
+            />
+            {isYoutubeVideoPlaying ? 'Pause' : 'Play'} Video with Description
+          </button>
+
+          {!isPublished ? (
+            <div
+              className="enroll-publish-group"
+              data-tutorial={isTutorialMode ? 'collab-checkbox' : undefined}
+            >
+              <input
+                type="checkbox"
+                checked={enrollInCollabEdit}
+                onChange={(e) => {
+                  if (!isTutorialMode) setEnrollInCollabEdit(e.target.checked)
+                }}
+                id={collabEditCheckboxId}
+                className="form-check-input"
+                data-tutorial={
+                  isTutorialMode ? 'collab-checkbox-input' : undefined
+                }
+              />
+              <label
+                htmlFor={collabEditCheckboxId}
+                className="form-check-label text-white"
+                style={{ marginBottom: 0 }}
+              >
+                Enroll in Collaborative Editing
+              </label>
+              <button
+                type="button"
+                className="btn publish-bg text-white ydx-button"
+                data-tutorial={isTutorialMode ? 'publish-btn' : undefined}
+                onClick={() => {
+                  if (!isTutorialMode) setIsPublishModal(true)
+                }}
+              >
+                <i className="fa fa-upload" /> Publish
+              </button>
+              <ModalComponent
+                id={`publishModal-${clipID}`}
+                title="Publish"
+                text="Are you sure you want to publish this audio description?"
+                modalTask={onPublish}
+                show={isPublishModal}
+                handleClose={() => setIsPublishModal(false)}
+              />
+            </div>
+          ) : (
+            <div />
+          )}
+        </div>
+      )}
     </div>
   )
 }
