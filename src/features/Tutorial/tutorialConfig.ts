@@ -115,7 +115,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     5,
     19.2,
     24.8,
-    'Nick leans back in the passenger seat while Judy keeps her eyes fixed on the road.',
+    'content placeholder',
     'inline',
   ),
   createTutorialClipFromRange(
@@ -123,7 +123,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     6,
     31.4,
     37.6,
-    'A busy city street flashes by as the chase moves between traffic lanes.',
+    'content placeholder',
     'inline',
   ),
   createTutorialClipFromRange(
@@ -131,7 +131,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     7,
     48.8,
     50.6,
-    'A quick cut reveals a shadowy figure watching from a doorway.',
+    'content placeholder',
     'extended',
   ),
   createTutorialClipFromRange(
@@ -139,7 +139,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     8,
     59.4,
     67.2,
-    'Judy and Nick dodge through a crowded station as signs and lights blur around them.',
+    'content placeholder',
     'inline',
   ),
   createTutorialClipFromRange(
@@ -147,7 +147,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     9,
     82.6,
     89.4,
-    'Chief Bogo points firmly at the map while officers gather around the briefing table.',
+    'content placeholder',
     'inline',
   ),
   createTutorialClipFromRange(
@@ -155,7 +155,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     10,
     108.2,
     110.1,
-    'A small reptile darts across the floor and disappears behind stacked crates.',
+    'content placeholder',
     'extended',
   ),
   createTutorialClipFromRange(
@@ -163,7 +163,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     11,
     126.8,
     132.2,
-    'The trailer ends with Judy and Nick staring ahead as the title card fills the screen.',
+    'content placeholder',
     'inline',
   ),
 ]
