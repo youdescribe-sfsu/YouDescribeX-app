@@ -1971,7 +1971,7 @@ const YDXHome = ({
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             {audioClips.length > 0 && (
               <button
-                className="clip-nav-btn-blue"
+                className="clip-nav-btn-blue saved-clips-toggle-btn"
                 data-tutorial={
                   isTutorialMode
                     ? TUTORIAL_TARGETS.clipCurrentlyEditing
