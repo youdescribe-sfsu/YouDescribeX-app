@@ -30,13 +30,11 @@ import { Id, toast } from 'react-toastify'
 import Button from 'react-bootstrap/Button'
 import {
   TUTORIAL_AUDIO_DESCRIPTION_ID,
-  TUTORIAL_DIALOG_TIMESTAMPS,
-  TUTORIAL_VIDEO_DATABASE_ID,
   TUTORIAL_VIDEO_DURATION_SECONDS,
   TUTORIAL_VIDEO_YOUTUBE_ID,
 } from '../features/Tutorial/tutorialConfig'
-import { tutorialEditorStore } from '../features/Tutorial/tutorialEditorStore'
 import { TUTORIAL_TARGETS } from '../features/Tutorial/tutorialSelectors'
+import { useTutorialEditorAdapter } from '../features/Tutorial/useTutorialEditorAdapter'
 import type { TutorialMode } from '../features/Tutorial/tutorialSteps'
 
 type DialogTimestamp = {
@@ -93,7 +91,7 @@ const YDXHome = ({
   // State Variables
   const [videoId, setVideoId] = useState('') // retrieved from db, stored to fetch audio_descriptions
   // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
-  const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
+  const [notesData, setNotesData] = useState<unknown>('') // retrieved from db, stored to pass on to Notes Component
   const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored as a fallback if canonical YouTube metadata is unavailable
   const [backendFallbackYoutubeVideoId, setBackendFallbackYoutubeVideoId] =
     useState<string | undefined>()
@@ -142,24 +140,6 @@ const YDXHome = ({
   const [isActive, setIsActive] = useState(false)
   //const [user, setUser] = useState(userDataStore.getState().userId)
   const user = userDataStore((state) => state.userId) || ''
-  const tutorialAudioClips = tutorialEditorStore(
-    (state) => state.tutorialAudioClips,
-  )
-  const tutorialShowClipForm = tutorialEditorStore(
-    (state) => state.tutorialShowClipForm,
-  )
-  const tutorialShowClipsList = tutorialEditorStore(
-    (state) => state.tutorialShowClipsList,
-  )
-  const tutorialNavClipIndex = tutorialEditorStore(
-    (state) => state.tutorialNavClipIndex,
-  )
-  const setTutorialNavClipIndex = tutorialEditorStore(
-    (state) => state.setTutorialNavClipIndex,
-  )
-  const tutorialEditComponentToggleList = tutorialEditorStore(
-    (state) => state.tutorialEditComponentToggleList,
-  )
 
   const [needRefresh, setNeedRefresh] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -173,8 +153,6 @@ const YDXHome = ({
   // ── Single-clip navigation ───────────────────────────────────────────────────
   const [navClipIndex, setNavClipIndex] = useState(0)
   const [isClipsListExpanded, setIsClipsListExpanded] = useState(false)
-  const shouldShowClipsList =
-    isTutorialMode && tutorialShowClipsList ? true : isClipsListExpanded
 
   // ── Publish state ────────────────────────────────────────────────────────────
   const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(true)
@@ -217,6 +195,32 @@ const YDXHome = ({
   //Yue's fix
   const hasValidAudioDescriptionId =
     !!audioDescriptionId && audioDescriptionId !== 'undefined'
+
+  const {
+    tutorialShowClipForm,
+    tutorialShowClipsList,
+    setTutorialNavClipIndex,
+  } = useTutorialEditorAdapter({
+    isTutorialMode,
+    tutorialMode,
+    setShowSpinner,
+    setVideoId,
+    setVideoLength,
+    setBackendFallbackYoutubeVideoId,
+    setVideoDialogTimestamps,
+    setAudioClips,
+    setNotesData,
+    setIsPublished,
+    setCollaborativeVersion,
+    setEditComponentToggleList,
+    setNavClipIndex,
+    setIsClipsListExpanded,
+    navClipIndexRef,
+    selectedClipIdRef,
+  })
+
+  const shouldShowClipsList =
+    isTutorialMode && tutorialShowClipsList ? true : isClipsListExpanded
 
   const initialUpdateDataRef = useRef(true)
   const backendFallbackDurationSeconds = isTutorialMode
@@ -280,44 +284,6 @@ const YDXHome = ({
     youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
-
-  useEffect(() => {
-    if (!isTutorialMode) return
-
-    const nextTutorialAudioClips = tutorialAudioClips.map((clip, index) => ({
-      ...clip,
-      clip_sequence_number: index + 1,
-    }))
-    const nextNavClipIndex =
-      nextTutorialAudioClips.length === 0
-        ? 0
-        : Math.min(tutorialNavClipIndex, nextTutorialAudioClips.length - 1)
-
-    setShowSpinner(false)
-    setVideoId(TUTORIAL_VIDEO_DATABASE_ID)
-    setVideoLength(TUTORIAL_VIDEO_DURATION_SECONDS)
-    setBackendFallbackYoutubeVideoId(TUTORIAL_VIDEO_YOUTUBE_ID)
-    setVideoDialogTimestamps(
-      tutorialMode === 'ai' ? [...TUTORIAL_DIALOG_TIMESTAMPS] : [],
-    )
-    setAudioClips(nextTutorialAudioClips)
-    setNotesData({ notes_text: '', notes_id: '' } as any)
-    setIsPublished(false)
-    setCollaborativeVersion(false)
-    setEditComponentToggleList(tutorialEditComponentToggleList)
-    setNavClipIndex(nextNavClipIndex)
-    setIsClipsListExpanded(tutorialShowClipsList)
-    navClipIndexRef.current = nextNavClipIndex
-    selectedClipIdRef.current =
-      nextTutorialAudioClips[nextNavClipIndex]?.clip_id ?? null
-  }, [
-    isTutorialMode,
-    tutorialAudioClips,
-    tutorialEditComponentToggleList,
-    tutorialNavClipIndex,
-    tutorialShowClipsList,
-    tutorialMode,
-  ])
 
   useEffect(() => {
     if (isTutorialMode) return
