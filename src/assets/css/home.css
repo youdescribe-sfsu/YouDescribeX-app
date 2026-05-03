@@ -79,6 +79,13 @@
   gap: 1rem;
 }
 
+.ydx-toolbar-button {
+  box-sizing: border-box;
+  height: 3rem;
+  min-height: 3rem;
+  align-items: center;
+}
+
 /* draggable component - div - dialog timeline */
 .draggable-div {
   position: relative;

@@ -1941,7 +1941,7 @@ const YDXHome = ({
               <>
                 <button
                   type="button"
-                  className="btn inline-bg text-dark ydx-button"
+                  className="btn inline-bg text-dark ydx-button ydx-toolbar-button"
                   data-tutorial={
                     isTutorialMode
                       ? TUTORIAL_TARGETS.insertInlineBtn
@@ -1953,7 +1953,7 @@ const YDXHome = ({
                 </button>
                 <button
                   type="button"
-                  className="btn extended-bg text-white ydx-button"
+                  className="btn extended-bg text-white ydx-button ydx-toolbar-button"
                   data-tutorial={
                     isTutorialMode
                       ? TUTORIAL_TARGETS.insertExtendedBtn
@@ -1971,7 +1971,7 @@ const YDXHome = ({
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             {audioClips.length > 0 && (
               <button
-                className="clip-nav-btn-blue saved-clips-toggle-btn"
+                className="btn clip-nav-btn-blue ydx-button ydx-toolbar-button"
                 data-tutorial={
                   isTutorialMode
                     ? TUTORIAL_TARGETS.clipCurrentlyEditing
@@ -1979,11 +1979,11 @@ const YDXHome = ({
                 }
                 onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
                 style={{ whiteSpace: 'nowrap' }}
-                aria-label={`View saved clips list, ${
+                aria-label={`View saved audio clips list, ${
                   audioClips.length
                 } total. Click to ${
                   shouldShowClipsList ? 'collapse' : 'expand'
-                } saved clips list`}
+                } saved audio clips list`}
                 aria-expanded={shouldShowClipsList}
               >
                 <i
@@ -1991,7 +1991,7 @@ const YDXHome = ({
                     shouldShowClipsList ? 'chevron-up' : 'chevron-down'
                   }`}
                 />{' '}
-                View Saved Clips ({audioClips.length} total)
+                View Saved Audio Clips ({audioClips.length} total)
               </button>
             )}
           </div>
@@ -2004,7 +2004,7 @@ const YDXHome = ({
             style={{ display: 'flex', gap: '6px' }}
           >
             <button
-              className="clip-nav-btn-blue"
+              className="btn clip-nav-btn-blue ydx-button ydx-toolbar-button"
               style={{ backgroundColor: '#6c757d' }}
               disabled={navClipIndex === 0}
               onClick={() => handleClipNavigation(navClipIndexRef.current - 1)}
@@ -2013,7 +2013,7 @@ const YDXHome = ({
               ← Previous
             </button>
             <button
-              className="clip-nav-btn-blue"
+              className="btn clip-nav-btn-blue ydx-button ydx-toolbar-button"
               disabled={navClipIndex >= audioClips.length - 1}
               onClick={() => handleClipNavigation(navClipIndexRef.current + 1)}
               aria-label="Go to next clip"

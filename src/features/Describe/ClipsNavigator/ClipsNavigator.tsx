@@ -12,6 +12,18 @@ interface Props {
   listDataTutorial?: string
 }
 
+const formatPlaybackType = (playbackType: string) =>
+  playbackType
+    ? `${playbackType.charAt(0).toUpperCase()}${playbackType
+        .slice(1)
+        .toLowerCase()}`
+    : ''
+
+const getClipLabel = (clip: Clip, index: number) => {
+  const title = clip.clip_title?.trim()
+  return title ? `Clip ${index + 1}: ${title}` : `Clip ${index + 1}`
+}
+
 const ClipsNavigator = ({
   clips,
   currentIndex,
@@ -38,13 +50,13 @@ const ClipsNavigator = ({
               }}
             >
               <div className="clip-summary-header">
-                <span className="clip-number">Clip {index + 1}</span>
+                <span className="clip-number">{getClipLabel(clip, index)}</span>
                 <span
                   className={`clip-type-badge ${
                     clip.playback_type === 'inline' ? 'inline' : 'extended'
                   }`}
                 >
-                  {clip.playback_type}
+                  {formatPlaybackType(clip.playback_type)}
                 </span>
               </div>
               <div className="clip-summary-content">
