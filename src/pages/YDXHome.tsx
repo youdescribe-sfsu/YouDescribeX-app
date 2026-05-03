@@ -1809,9 +1809,6 @@ const YDXHome = ({
                 ):
               </h6>
               <div className="timeline-actions">
-                <span className="clips-count">
-                  Audio Clips Count: {audioClips.length}
-                </span>
                 {undoDeletedClipInfo && (
                   <Button
                     className="btn rounded btn-sm text-white bg-warning ydx-button"
