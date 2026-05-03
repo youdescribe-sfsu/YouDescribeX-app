@@ -2004,7 +2004,6 @@ const YDXHome = ({
           >
             <button
               className="btn clip-nav-btn-blue ydx-button ydx-toolbar-button"
-              style={{ backgroundColor: '#6c757d' }}
               disabled={navClipIndex === 0}
               onClick={() => handleClipNavigation(navClipIndexRef.current - 1)}
               aria-label="Go to previous clip"
