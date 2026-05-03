@@ -36,6 +36,7 @@ import {
   TUTORIAL_VIDEO_YOUTUBE_ID,
 } from '../features/Tutorial/tutorialConfig'
 import { tutorialEditorStore } from '../features/Tutorial/tutorialEditorStore'
+import { TUTORIAL_TARGETS } from '../features/Tutorial/tutorialSelectors'
 import type { TutorialMode } from '../features/Tutorial/tutorialSteps'
 
 type DialogTimestamp = {
@@ -1804,17 +1805,19 @@ const YDXHome = ({
             setYouTubeVolume={setYouTubeVolume}
             youTubeVolume={youTubeVolume}
             playPauseDataTutorial={
-              isTutorialMode ? 'play-pause-btn' : undefined
+              isTutorialMode ? TUTORIAL_TARGETS.playPauseBtn : undefined
             }
             audioDuckingDataTutorial={
-              isTutorialMode ? 'audio-ducking' : undefined
+              isTutorialMode ? TUTORIAL_TARGETS.audioDucking : undefined
             }
           />
           <Notes
             currentTime={convertSecondsToCardFormat(currentTime)}
             audioDescriptionId={audioDescriptionId || ''}
             notesData={notesData}
-            dataTutorial={isTutorialMode ? 'notes-area' : undefined}
+            dataTutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.notesArea : undefined
+            }
             readOnly={isTutorialMode}
             disableAutoSave={isTutorialMode}
             handleVideoPause={async () => {
@@ -1829,7 +1832,9 @@ const YDXHome = ({
         {hasCanonicalDuration && (
           <div
             className="timeline-section-wrapper"
-            data-tutorial={isTutorialMode ? 'dialog-timeline' : undefined}
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.dialogTimeline : undefined
+            }
           >
             <div className="timeline-header">
               <h6 className="timeline-title">
@@ -1939,7 +1944,9 @@ const YDXHome = ({
                       <p
                         className="mt-5 text-white progress-bar-time"
                         data-tutorial={
-                          isTutorialMode ? 'dialog-timeline-time' : undefined
+                          isTutorialMode
+                            ? TUTORIAL_TARGETS.dialogTimelineTime
+                            : undefined
                         }
                       >
                         {convertSecondsToCardFormat(currentTime)}
@@ -1970,7 +1977,9 @@ const YDXHome = ({
                   type="button"
                   className="btn inline-bg text-dark ydx-button"
                   data-tutorial={
-                    isTutorialMode ? 'insert-inline-btn' : undefined
+                    isTutorialMode
+                      ? TUTORIAL_TARGETS.insertInlineBtn
+                      : undefined
                   }
                   onClick={() => setHandleClicksFromParent('inline')}
                 >
@@ -1980,7 +1989,9 @@ const YDXHome = ({
                   type="button"
                   className="btn extended-bg text-white ydx-button"
                   data-tutorial={
-                    isTutorialMode ? 'insert-extended-btn' : undefined
+                    isTutorialMode
+                      ? TUTORIAL_TARGETS.insertExtendedBtn
+                      : undefined
                   }
                   onClick={() => setHandleClicksFromParent('extended')}
                 >
@@ -1996,7 +2007,9 @@ const YDXHome = ({
               <button
                 className="clip-nav-btn-blue"
                 data-tutorial={
-                  isTutorialMode ? 'clip-currently-editing' : undefined
+                  isTutorialMode
+                    ? TUTORIAL_TARGETS.clipCurrentlyEditing
+                    : undefined
                 }
                 onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
                 style={{ whiteSpace: 'nowrap' }}
@@ -2019,7 +2032,9 @@ const YDXHome = ({
 
           {/* Right: Prev/Next */}
           <div
-            data-tutorial={isTutorialMode ? 'clip-nav-buttons' : undefined}
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.clipNavButtons : undefined
+            }
             style={{ display: 'flex', gap: '6px' }}
           >
             <button
@@ -2069,7 +2084,9 @@ const YDXHome = ({
           onSelectClip={handleClipNavigation}
           isExpanded={shouldShowClipsList}
           setIsExpanded={setIsClipsListExpanded}
-          listDataTutorial={isTutorialMode ? 'saved-clips-list' : undefined}
+          listDataTutorial={
+            isTutorialMode ? TUTORIAL_TARGETS.savedClipsList : undefined
+          }
         />
 
         {/* Single clip view */}

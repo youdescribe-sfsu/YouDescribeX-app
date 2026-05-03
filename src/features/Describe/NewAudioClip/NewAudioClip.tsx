@@ -6,6 +6,7 @@ import '@/assets/css/editAudioDesc.css'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 import { Tooltip } from 'bootstrap'
+import { TUTORIAL_TARGETS } from '../../Tutorial/tutorialSelectors'
 
 interface Props {
   setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
@@ -206,7 +207,7 @@ const NewAudioClipComponent = ({
   return (
     <div
       className="text-white component mt-2 rounded border border-1 border-white mx-5 d-flex flex-column pb-3 justify-content-between"
-      data-tutorial={tutorialMode ? 'clip-form-area' : undefined}
+      data-tutorial={tutorialMode ? TUTORIAL_TARGETS.clipFormArea : undefined}
     >
       <div className="mx-2 text-end">
         <i
@@ -229,7 +230,9 @@ const NewAudioClipComponent = ({
           </div>
           <div
             className="dialog-form-field"
-            data-tutorial={tutorialMode ? 'title-input' : undefined}
+            data-tutorial={
+              tutorialMode ? TUTORIAL_TARGETS.titleInput : undefined
+            }
           >
             <label className="dialog-form-label">Title:</label>
             <input
@@ -244,7 +247,9 @@ const NewAudioClipComponent = ({
           </div>
           <div
             className="dialog-form-field"
-            data-tutorial={tutorialMode ? 'type-dropdown' : undefined}
+            data-tutorial={
+              tutorialMode ? TUTORIAL_TARGETS.typeDropdown : undefined
+            }
           >
             <label className="dialog-form-label">Type:</label>
             <select
@@ -260,7 +265,9 @@ const NewAudioClipComponent = ({
           </div>
           <div
             className="d-flex flex-column align-items-center me-3"
-            data-tutorial={tutorialMode ? 'start-time' : undefined}
+            data-tutorial={
+              tutorialMode ? TUTORIAL_TARGETS.startTime : undefined
+            }
           >
             <h6 className="text-white fw-bolder text-size mb-2">Start Time:</h6>
             <div className="edit-time-div">
@@ -310,7 +317,9 @@ const NewAudioClipComponent = ({
         <div className="d-flex flex-column align-items-center mb-3">
           <div
             className="d-flex flex-column align-items-center"
-            data-tutorial={tutorialMode ? 'description-method' : undefined}
+            data-tutorial={
+              tutorialMode ? TUTORIAL_TARGETS.descriptionMethod : undefined
+            }
           >
             <h6 className="text-white text-size mb-2">
               Choose Description Method:
@@ -345,7 +354,9 @@ const NewAudioClipComponent = ({
         {descriptionMethod === 'text' ? (
           <div
             className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3"
-            data-tutorial={tutorialMode ? 'text-input-area' : undefined}
+            data-tutorial={
+              tutorialMode ? TUTORIAL_TARGETS.textInputArea : undefined
+            }
           >
             <h6 className="text-white text-size mb-2">
               Add New Clip Description:
@@ -461,7 +472,7 @@ const NewAudioClipComponent = ({
           <button
             type="submit"
             className="btn rounded btn-sm text-white save-desc-btn ydx-button"
-            data-tutorial={tutorialMode ? 'save-btn' : undefined}
+            data-tutorial={tutorialMode ? TUTORIAL_TARGETS.saveBtn : undefined}
           >
             <i className="fa fa-save text-size" /> Save
           </button>

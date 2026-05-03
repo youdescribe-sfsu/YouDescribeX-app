@@ -46,6 +46,7 @@ import {
   TUTORIAL_VIDEO_METADATA,
   TUTORIAL_VIDEO_YOUTUBE_ID,
 } from '@/features/Tutorial/tutorialConfig'
+import { TUTORIAL_TARGETS } from '@/features/Tutorial/tutorialSelectors'
 
 interface IADUserId {
   [key: string]: {
@@ -2282,7 +2283,11 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     ) {
       return (
         <div className="description-buttons">
-          <div data-tutorial={isTutorialMode ? 'freestyle-btn' : undefined}>
+          <div
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.freestyleBtn : undefined
+            }
+          >
             <Button
               title={translate('Add a new description for this video')}
               ariaLabel="Add a new description for this video"
@@ -2298,7 +2303,11 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     if (requestAiDescription.status === 'pending') {
       return (
         <div className="description-buttons">
-          <div data-tutorial={isTutorialMode ? 'freestyle-btn' : undefined}>
+          <div
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.freestyleBtn : undefined
+            }
+          >
             <Button
               title={translate('Add a new description for this video')}
               ariaLabel="Add a new description for this video"
@@ -2316,7 +2325,11 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
               disabled={true}
             />
           ) : (
-            <div data-tutorial={isTutorialMode ? 'request-ai-btn' : undefined}>
+            <div
+              data-tutorial={
+                isTutorialMode ? TUTORIAL_TARGETS.requestAiBtn : undefined
+              }
+            >
               <Button
                 title={translate('Request AI Descriptions')}
                 ariaLabel="Request AI Descriptions"
@@ -2347,7 +2360,11 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     ) {
       return (
         <div className="description-buttons">
-          <div data-tutorial={isTutorialMode ? 'freestyle-btn' : undefined}>
+          <div
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.freestyleBtn : undefined
+            }
+          >
             <Button
               title={translate('Add a new description for this video')}
               ariaLabel="Add a new description for this video"
@@ -2357,7 +2374,11 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
               disabled={requestAiDescription.requested}
             />
           </div>
-          <div data-tutorial={isTutorialMode ? 'request-ai-btn' : undefined}>
+          <div
+            data-tutorial={
+              isTutorialMode ? TUTORIAL_TARGETS.requestAiBtn : undefined
+            }
+          >
             <Button
               title={translate('Request AI Descriptions')}
               ariaLabel="Request AI Descriptions"
@@ -2538,7 +2559,11 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
               ) : (
                 <h3 className="classic-h3">No descriptions available</h3>
               )}
-              <div data-tutorial={isTutorialMode ? 'wishlist-btn' : undefined}>
+              <div
+                data-tutorial={
+                  isTutorialMode ? TUTORIAL_TARGETS.wishlistBtn : undefined
+                }
+              >
                 <Button
                   title={translate(
                     'Request an audio description for this video',

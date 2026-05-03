@@ -8,6 +8,7 @@ import { toast } from 'react-toastify'
 import { Clip } from '@/shared/utils/convertClipObject'
 import { YouTubePlayer } from 'youtube-player/dist/types'
 import ModalComponent from '../../../shared/components/Modal/Modal'
+import { TUTORIAL_TARGETS } from '../../Tutorial/tutorialSelectors'
 
 const getDescriptionDisplay = (clip: Clip): string => {
   if (clip.is_recorded) return clip.description_text || 'Voice recording'
@@ -333,7 +334,9 @@ const AudioClip = ({
       <div id={`audio-clip-card-${clipID}`} className="spacing-component">
         <div
           className="component"
-          data-tutorial={isTutorialMode ? 'clip-controls' : undefined}
+          data-tutorial={
+            isTutorialMode ? TUTORIAL_TARGETS.clipControls : undefined
+          }
         >
           <div className="audio-clip-header">
             {/* Clip Information Section */}
@@ -377,7 +380,9 @@ const AudioClip = ({
             {/* Nudge Controls */}
             <div
               className="nudge-controls-section"
-              data-tutorial={isTutorialMode ? 'nudge-controls' : undefined}
+              data-tutorial={
+                isTutorialMode ? TUTORIAL_TARGETS.nudgeControls : undefined
+              }
             >
               <div className="nudge-label">Nudge</div>
               <div className="nudge-btns-div">
@@ -415,7 +420,9 @@ const AudioClip = ({
             {/* Timeline Section */}
             <div
               className="timeline-section"
-              data-tutorial={isTutorialMode ? 'ai-clip-type' : undefined}
+              data-tutorial={
+                isTutorialMode ? TUTORIAL_TARGETS.aiClipType : undefined
+              }
             >
               <div className="component-timeline-div">
                 <div className="ad-draggable-div">
@@ -594,7 +601,9 @@ const AudioClip = ({
           {!isPublished ? (
             <div className="enroll-publish-group">
               <span
-                data-tutorial={isTutorialMode ? 'collab-checkbox' : undefined}
+                data-tutorial={
+                  isTutorialMode ? TUTORIAL_TARGETS.collabCheckbox : undefined
+                }
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -610,7 +619,9 @@ const AudioClip = ({
                   id={collabEditCheckboxId}
                   className="form-check-input"
                   data-tutorial={
-                    isTutorialMode ? 'collab-checkbox-input' : undefined
+                    isTutorialMode
+                      ? TUTORIAL_TARGETS.collabCheckboxInput
+                      : undefined
                   }
                 />
                 <label
@@ -624,7 +635,9 @@ const AudioClip = ({
               <button
                 type="button"
                 className="btn publish-bg text-white ydx-button"
-                data-tutorial={isTutorialMode ? 'publish-btn' : undefined}
+                data-tutorial={
+                  isTutorialMode ? TUTORIAL_TARGETS.publishBtn : undefined
+                }
                 onClick={() => {
                   if (!isTutorialMode) setIsPublishModal(true)
                 }}

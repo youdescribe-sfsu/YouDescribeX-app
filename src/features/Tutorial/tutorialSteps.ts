@@ -1,3 +1,5 @@
+import { getTutorialSelector, TUTORIAL_TARGETS } from './tutorialSelectors'
+
 export type TutorialMode = 'freestyle' | 'ai'
 
 export interface TutorialStep {
@@ -70,7 +72,7 @@ const welcomeStep = centeredStep({
 // Step 2
 const wishlistBtnStep: TutorialStep = {
   id: 'wishlist-btn',
-  targetSelector: '[data-tutorial="wishlist-btn"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.wishlistBtn),
   title: 'Add to Wishlist',
   content: 'Add videos here to describe them later.',
   position: 'left',
@@ -81,7 +83,7 @@ const wishlistBtnStep: TutorialStep = {
 // Step 3
 const freestyleBtnStep: TutorialStep = {
   id: 'freestyle-btn',
-  targetSelector: '[data-tutorial="freestyle-btn"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.freestyleBtn),
   title: 'Add Freestyle Description',
   content: 'Write descriptions from scratch with your own words.',
   position: 'left',
@@ -92,7 +94,7 @@ const freestyleBtnStep: TutorialStep = {
 // Step 4
 const requestAiBtnStep: TutorialStep = {
   id: 'request-ai-btn',
-  targetSelector: '[data-tutorial="request-ai-btn"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.requestAiBtn),
   title: 'Request AI Descriptions',
   content: 'Let AI generate descriptions for you, then edit and refine them.',
   position: 'left',
@@ -130,7 +132,7 @@ const editorIntroStep = centeredStep({
 // Step 7 (AI)
 const dialogTimelineStep: TutorialStep = {
   id: 'dialog-timeline',
-  targetSelector: '[data-tutorial="dialog-timeline"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.dialogTimeline),
   title: 'Dialog Timeline',
   content:
     'Each yellow or purple block is an AI-generated description. The red playhead shows your current position in the video.',
@@ -138,13 +140,15 @@ const dialogTimelineStep: TutorialStep = {
   action: 'next',
   page: 'editor',
   autoScroll: false,
-  spotlightIncludeSelector: '[data-tutorial="dialog-timeline-time"]',
+  spotlightIncludeSelector: getTutorialSelector(
+    TUTORIAL_TARGETS.dialogTimelineTime,
+  ),
 }
 
 // Step 8
 const playPauseBtnStep: TutorialStep = {
   id: 'play-pause-btn',
-  targetSelector: '[data-tutorial="play-pause-btn"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.playPauseBtn),
   title: 'Play and Pause',
   content:
     'Play and pause the video here. We recommend watching it fully before adding descriptions.',
@@ -156,7 +160,7 @@ const playPauseBtnStep: TutorialStep = {
 // Step 9
 const notesAreaStep: TutorialStep = {
   id: 'notes-area',
-  targetSelector: '[data-tutorial="notes-area"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.notesArea),
   title: 'Take Notes',
   content:
     'Click to save timestamps while watching and draft descriptions for each moment.',
@@ -168,7 +172,7 @@ const notesAreaStep: TutorialStep = {
 // Step 10
 const audioDuckingStep: TutorialStep = {
   id: 'audio-ducking',
-  targetSelector: '[data-tutorial="audio-ducking"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.audioDucking),
   title: 'Audio Ducking',
   content:
     'Use Description Volume and Video Volume to balance clarity and original audio.',
@@ -180,7 +184,7 @@ const audioDuckingStep: TutorialStep = {
 // Step 11
 const insertInlineBtnStep: TutorialStep = {
   id: 'insert-inline-btn',
-  targetSelector: '[data-tutorial="insert-inline-btn"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.insertInlineBtn),
   title: 'Insert Inline',
   content:
     'Use Inline when the video should keep playing during the description.',
@@ -193,7 +197,7 @@ const insertInlineBtnStep: TutorialStep = {
 // Step 12
 const insertExtendedBtnStep: TutorialStep = {
   id: 'insert-extended-btn',
-  targetSelector: '[data-tutorial="insert-extended-btn"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.insertExtendedBtn),
   title: 'Insert Extended',
   content:
     'Use Extended when the description is longer and the video should pause.',
@@ -206,7 +210,7 @@ const insertExtendedBtnStep: TutorialStep = {
 // Step 13
 const clipFormIntroStep: TutorialStep = {
   id: 'clip-form-intro',
-  targetSelector: '[data-tutorial="clip-form-area"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.clipFormArea),
   title: 'Insert Audio Clip',
   content: 'Fill out this form to save your description to the timeline.',
   position: 'top',
@@ -218,7 +222,7 @@ const clipFormIntroStep: TutorialStep = {
 // Step 14
 const titleInputStep: TutorialStep = {
   id: 'title-input',
-  targetSelector: '[data-tutorial="title-input"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.titleInput),
   title: 'Add a Title',
   content: 'Give your audio clip a short, descriptive title.',
   position: 'top',
@@ -231,7 +235,7 @@ const titleInputStep: TutorialStep = {
 // Step 15
 const typeDropdownStep: TutorialStep = {
   id: 'type-dropdown',
-  targetSelector: '[data-tutorial="type-dropdown"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.typeDropdown),
   title: 'Choose Type',
   content:
     "Select 'Visual' to describe on-screen action, or 'Text on Screen' to read visible text.",
@@ -245,7 +249,7 @@ const typeDropdownStep: TutorialStep = {
 // Step 16
 const startTimeStep: TutorialStep = {
   id: 'start-time',
-  targetSelector: '[data-tutorial="start-time"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.startTime),
   title: 'Start Time',
   content:
     'Sets when your clip begins. It auto-fills from your current playback position.',
@@ -259,7 +263,7 @@ const startTimeStep: TutorialStep = {
 // Step 17
 const descriptionMethodStep: TutorialStep = {
   id: 'description-method',
-  targetSelector: '[data-tutorial="description-method"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.descriptionMethod),
   title: 'Description Method',
   content:
     'Choose Text Description to use an AI voice, or Audio Recording to use your own.',
@@ -273,7 +277,7 @@ const descriptionMethodStep: TutorialStep = {
 // Step 18
 const textInputAreaStep: TutorialStep = {
   id: 'text-input-area',
-  targetSelector: '[data-tutorial="text-input-area"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.textInputArea),
   title: 'Write Your Description',
   content: 'Type clear, concise descriptions of visually important content.',
   position: 'top',
@@ -286,7 +290,7 @@ const textInputAreaStep: TutorialStep = {
 // Step 19
 const saveBtnStep: TutorialStep = {
   id: 'save-btn',
-  targetSelector: '[data-tutorial="save-btn"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.saveBtn),
   title: 'Save Your Clip',
   content: 'Click Save to add this clip to the timeline.',
   position: 'top',
@@ -299,7 +303,7 @@ const saveBtnStep: TutorialStep = {
 // Step 20
 const clipControlsStep: TutorialStep = {
   id: 'clip-controls',
-  targetSelector: '[data-tutorial="clip-controls"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.clipControls),
   title: 'Adjust Your Clip',
   content:
     "Here you can edit your clip's content, adjust timing, or switch between Inline and Extended.",
@@ -312,7 +316,7 @@ const clipControlsStep: TutorialStep = {
 // Step 21
 const clipAiVoiceStep: TutorialStep = {
   id: 'clip-ai-voice',
-  targetSelector: '[data-tutorial="clip-ai-voice"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.clipAiVoice),
   title: 'Audio Description Content',
   content:
     'Edit the description text, preview the audio, or record your own voice instead.',
@@ -325,7 +329,7 @@ const clipAiVoiceStep: TutorialStep = {
 // Step 21
 const clipTimingControlsStep: TutorialStep = {
   id: 'clip-timing-controls',
-  targetSelector: '[data-tutorial="clip-timing-controls"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.clipTimingControls),
   title: 'Timing Controls',
   content: 'Fine-tune start and end times for precise placement.',
   position: 'top',
@@ -338,7 +342,7 @@ const clipTimingControlsStep: TutorialStep = {
 // Step 22
 const nudgeControlsStep: TutorialStep = {
   id: 'nudge-controls',
-  targetSelector: '[data-tutorial="nudge-controls"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.nudgeControls),
   title: 'Nudge Timing',
   content: 'Move clips earlier or later in 0.25-second steps.',
   position: 'top',
@@ -350,7 +354,7 @@ const nudgeControlsStep: TutorialStep = {
 // Step 23
 const currentClipNavigatorStep: TutorialStep = {
   id: 'clip-currently-editing',
-  targetSelector: '[data-tutorial="clip-currently-editing"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.clipCurrentlyEditing),
   title: 'View Saved Clips',
   content: "Use this button to view the list of clips you've saved.",
   position: 'top',
@@ -363,7 +367,7 @@ const currentClipNavigatorStep: TutorialStep = {
 // Step 24
 const savedClipsListStep: TutorialStep = {
   id: 'saved-clips-list',
-  targetSelector: '[data-tutorial="saved-clips-list"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.savedClipsList),
   title: 'Saved Clips List',
   content:
     'Saved clips appear here as compact summaries. Select one to open it in the editor.',
@@ -377,7 +381,7 @@ const savedClipsListStep: TutorialStep = {
 // Step 25
 const clipNavButtonsStep: TutorialStep = {
   id: 'clip-nav-buttons',
-  targetSelector: '[data-tutorial="clip-nav-buttons"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.clipNavButtons),
   title: 'Move Between Clips',
   content: 'Click Previous and Next to move between saved clips.',
   position: 'top',
@@ -390,21 +394,23 @@ const clipNavButtonsStep: TutorialStep = {
 // Step 25
 const collabCheckboxStep: TutorialStep = {
   id: 'collab-checkbox',
-  targetSelector: '[data-tutorial="collab-checkbox"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.collabCheckbox),
   title: 'Collaborative Editing',
   content:
     'Enable this to let other volunteers improve your work, or leave it off to work solo.',
   position: 'top',
   action: 'next',
   page: 'editor',
-  spotlightIncludeSelector: '[data-tutorial="collab-checkbox-input"]',
+  spotlightIncludeSelector: getTutorialSelector(
+    TUTORIAL_TARGETS.collabCheckboxInput,
+  ),
   uiState: SAVED_CLIP,
 }
 
 // Step 26
 const publishBtnStep: TutorialStep = {
   id: 'publish-btn',
-  targetSelector: '[data-tutorial="publish-btn"]',
+  targetSelector: getTutorialSelector(TUTORIAL_TARGETS.publishBtn),
   title: 'Publish',
   content:
     'Publish when you\u2019re done to share your descriptions with the community.',
@@ -544,7 +550,7 @@ const aiPostForkSteps: TutorialStep[] = [
   // AI Step 14 (UI Step 15): Inline/Extended type selection on saved clip
   {
     id: 'ai-clip-type',
-    targetSelector: '[data-tutorial="ai-clip-type"]',
+    targetSelector: getTutorialSelector(TUTORIAL_TARGETS.aiClipType),
     title: 'Choose Description Type',
     content:
       'Change the type of the generated description to either Inline or Extended.',

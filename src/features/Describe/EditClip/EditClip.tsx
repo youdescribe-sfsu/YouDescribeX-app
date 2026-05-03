@@ -10,6 +10,7 @@ import Button from 'react-bootstrap/Button'
 import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCardFormat'
 import padNumber from '@/shared/utils/padNumber'
 import { Tooltip } from 'bootstrap'
+import { TUTORIAL_TARGETS } from '../../Tutorial/tutorialSelectors'
 
 interface Props {
   userId: string
@@ -622,7 +623,9 @@ const EditClip = ({
       <div className="primary-content-section">
         <div
           className="description-editing-area"
-          data-tutorial={isTutorialMode ? 'clip-ai-voice' : undefined}
+          data-tutorial={
+            isTutorialMode ? TUTORIAL_TARGETS.clipAiVoice : undefined
+          }
         >
           <div className="section-header">
             <h6 className="section-title">Description Content</h6>
@@ -883,7 +886,9 @@ const EditClip = ({
 
         <div
           className="timing-controls-section"
-          data-tutorial={isTutorialMode ? 'clip-timing-controls' : undefined}
+          data-tutorial={
+            isTutorialMode ? TUTORIAL_TARGETS.clipTimingControls : undefined
+          }
         >
           <div className="section-header">
             <h6 className="section-title">Timing Controls</h6>
