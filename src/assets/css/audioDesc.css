@@ -198,7 +198,7 @@
 .inline-extended-radio {
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-md);
-  font-weight: 500;
+  font-weight: 700;
   font-size: var(--text-base);
   transition: all var(--duration-fast) ease;
   box-shadow: var(--shadow-sm);
