@@ -536,6 +536,10 @@ const TutorialOverlay = ({
       event.preventDefault()
     }
 
+    const preventSelectionOrDrag = (event: Event) => {
+      event.preventDefault()
+    }
+
     const preventKeys = (event: KeyboardEvent) => {
       if (!isScrollBlockKey(event.key)) {
         return
@@ -552,12 +556,16 @@ const TutorialOverlay = ({
     window.addEventListener('touchmove', preventManualScroll, {
       passive: false,
     })
+    document.addEventListener('selectstart', preventSelectionOrDrag, true)
+    document.addEventListener('dragstart', preventSelectionOrDrag, true)
     window.addEventListener('keydown', preventKeys, { passive: false })
 
     return () => {
       document.body.style.overflow = originalStyle
       window.removeEventListener('wheel', preventManualScroll)
       window.removeEventListener('touchmove', preventManualScroll)
+      document.removeEventListener('selectstart', preventSelectionOrDrag, true)
+      document.removeEventListener('dragstart', preventSelectionOrDrag, true)
       window.removeEventListener('keydown', preventKeys)
     }
   }, [])

@@ -294,6 +294,14 @@ $tutorial-focus-white: #fff;
 .tutorial-page-container {
   min-height: 100vh;
   background-color: var(--background-primary);
+  user-select: none;
+  -webkit-user-select: none;
+
+  * {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+  }
 }
 
 .tutorial-page-container--video {
