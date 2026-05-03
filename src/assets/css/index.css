@@ -93,7 +93,9 @@
   padding: var(--space-sm) var(--space-md);
   font-size: var(--text-base);
   font-weight: 500;
-  transition: all var(--duration-fast) ease;
+  transition: background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease, color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease, filter var(--duration-fast) ease;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -105,14 +107,14 @@
 
 .ydx-button:hover {
   /* Enhanced hover state with better visual feedback */
-  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+  filter: brightness(1.04);
 }
 
 .ydx-button:active {
   /* Better active state for tactile feedback */
-  transform: translateY(0);
   box-shadow: var(--shadow-sm);
+  filter: brightness(0.98);
 }
 
 /* Button variants for different purposes */
@@ -153,6 +155,7 @@
 .disabled-btn {
   opacity: 0.5;
   cursor: not-allowed;
+  filter: none;
   transform: none !important;
   box-shadow: none !important;
 }
@@ -262,6 +265,5 @@
 .save-desc-btn:hover {
   background-color: #389e7c !important;
   border-color: #389e7c !important;
-  transform: translateY(-1px) !important;
   box-shadow: var(--shadow-lg) !important;
 }

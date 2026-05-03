@@ -133,7 +133,8 @@
   padding: var(--space-xs) var(--space-sm); /* Further reduced padding */
   resize: vertical;
   min-height: 100px;
-  transition: all var(--duration-fast) ease;
+  transition: border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
   width: 100%;
   font-family: inherit;
 }
@@ -224,7 +225,6 @@
 .time-input-container:focus-within {
   border-color: var(--border-accent);
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-  transform: translateY(-1px);
 }
 
 .time-input {
@@ -854,7 +854,6 @@
 }
 
 .record-voice-prominent:hover {
-  transform: translateY(-2px) !important;
   box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4) !important;
 }
 
@@ -1119,7 +1118,6 @@
 .radio-option-enhanced:hover {
   background-color: var(--background-tertiary);
   border-color: var(--border-accent);
-  transform: translateY(-1px);
 }
 
 .radio-option-enhanced input[type='radio'] {
@@ -1265,7 +1263,6 @@
 .method-button-enhanced:hover {
   border-color: var(--border-accent);
   background-color: var(--background-tertiary);
-  transform: translateY(-1px);
 }
 
 .method-button-enhanced.active {

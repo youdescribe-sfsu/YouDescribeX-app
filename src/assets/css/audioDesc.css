@@ -13,13 +13,13 @@
   padding: var(--space-sm); /* Reduced padding */
   margin-bottom: var(--space-sm); /* Reduced margin */
   box-shadow: var(--shadow-sm);
-  transition: all var(--duration-normal) ease;
+  transition: background-color var(--duration-normal) ease,
+    box-shadow var(--duration-normal) ease;
   overflow: visible; /* Changed from scroll to allow proper expansion */
 }
 
 .component:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
 }
 
 .audio-clip-header {
@@ -100,13 +100,13 @@
   align-items: center;
   gap: var(--space-sm);
   box-shadow: var(--shadow-sm);
-  transition: all var(--duration-fast) ease;
+  transition: background-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
 }
 
 .nudge-btns-div:hover {
   background-color: #4960df;
   box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
 }
 
 .nudge-icons {
@@ -160,13 +160,12 @@
   position: absolute;
   cursor: ew-resize;
   border-radius: var(--radius-sm);
-  transition: all var(--duration-fast) ease;
+  transition: box-shadow var(--duration-fast) ease;
   box-shadow: var(--shadow-sm);
 }
 
 .ad-timestamp-div:hover {
-  box-shadow: var(--shadow-md);
-  transform: scaleY(1.1);
+  box-shadow: var(--shadow-md), 0 0 0 2px rgba(255, 255, 255, 0.24);
 }
 
 /* Enhanced Playback Type Controls */
@@ -182,11 +181,11 @@
   align-items: center;
   gap: var(--space-xs);
   cursor: pointer;
-  transition: all var(--duration-fast) ease;
+  transition: filter var(--duration-fast) ease;
 }
 
 .playback-type-option:hover {
-  transform: translateY(-1px);
+  filter: brightness(1.06);
 }
 
 .form-check-input {
@@ -200,7 +199,7 @@
   border-radius: var(--radius-md);
   font-weight: 700;
   font-size: var(--text-base);
-  transition: all var(--duration-fast) ease;
+  transition: box-shadow var(--duration-fast) ease;
   box-shadow: var(--shadow-sm);
 }
 
@@ -234,14 +233,14 @@
   cursor: pointer;
   padding: var(--space-sm);
   border-radius: var(--radius-md);
-  transition: all var(--duration-fast) ease;
+  transition: background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease;
 }
 
 .fa-chevron-up:hover,
 .fa-chevron-down:hover {
   color: var(--text-primary);
   background-color: var(--surface-hover);
-  transform: translateY(-1px);
 }
 
 /* Audio Mode Indicator - Shows current audio type clearly */
