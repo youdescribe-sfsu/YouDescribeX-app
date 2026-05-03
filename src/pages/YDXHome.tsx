@@ -1870,27 +1870,26 @@ const YDXHome = (): React.ReactElement => {
             )}
           </div>
 
-          {/* Center: Currently editing — compact button centered in remaining space */}
+          {/* Center: saved clips toggle — compact button centered in remaining space */}
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             {audioClips.length > 0 && (
               <button
                 className="clip-nav-btn-blue"
                 onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
                 style={{ whiteSpace: 'nowrap' }}
-                aria-label={`Currently editing clip ${navClipIndex + 1} of ${
+                aria-label={`View saved clips list, ${
                   audioClips.length
-                }. Click to ${
+                } total. Click to ${
                   isClipsListExpanded ? 'collapse' : 'expand'
-                } clip list`}
+                } saved clips list`}
                 aria-expanded={isClipsListExpanded}
               >
                 <i
                   className={`fa fa-${
-                    isClipsListExpanded ? 'caret-down' : 'caret-right'
+                    isClipsListExpanded ? 'chevron-up' : 'chevron-down'
                   }`}
                 />{' '}
-                Currently editing: Clip {navClipIndex + 1} - All Clips (
-                {audioClips.length} total)
+                View Saved Clips ({audioClips.length} total)
               </button>
             )}
           </div>
