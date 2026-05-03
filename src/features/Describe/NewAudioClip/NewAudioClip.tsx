@@ -6,7 +6,6 @@ import '@/assets/css/editAudioDesc.css'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 import { Tooltip } from 'bootstrap'
-import { TUTORIAL_DEMO_AUDIO_CLIP } from '../../Tutorial/tutorialConfig'
 
 interface Props {
   setShowSpinner: React.Dispatch<React.SetStateAction<boolean>>
@@ -32,13 +31,9 @@ const NewAudioClipComponent = ({
   setNeedRefresh,
   tutorialMode = false,
 }: Props) => {
-  const [newACTitle, setNewACTitle] = useState(
-    tutorialMode ? TUTORIAL_DEMO_AUDIO_CLIP.clip_title ?? '' : '',
-  )
+  const [newACTitle, setNewACTitle] = useState('')
   const [newACType, setNewACType] = useState('Visual')
-  const [newACDescriptionText, setNewACDescriptionText] = useState(
-    tutorialMode ? TUTORIAL_DEMO_AUDIO_CLIP.description_text ?? '' : '',
-  )
+  const [newACDescriptionText, setNewACDescriptionText] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [recordingError, setRecordingError] = useState<string | null>(null)
   const [descriptionMethod, setDescriptionMethod] = useState<'text' | 'audio'>(
@@ -56,9 +51,7 @@ const NewAudioClipComponent = ({
     useReactMediaRecorder({
       audio: true,
     })
-  const displayedInitialStartTime = tutorialMode
-    ? TUTORIAL_DEMO_AUDIO_CLIP.clip_start_time
-    : initialStartTime
+  const displayedInitialStartTime = tutorialMode ? 0 : initialStartTime
 
   useEffect(() => {
     const tooltipTriggerList = document.querySelectorAll(
