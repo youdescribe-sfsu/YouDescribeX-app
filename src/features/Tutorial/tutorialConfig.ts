@@ -106,6 +106,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     9.15,
     'Judy, the rabbit officer, drives a pink car with Nick beside her, speeding down the road in pursuit of a white truck.',
     'extended',
+    "Judy and Nick's Car Chase",
   ),
   createTutorialClipFromRange(
     'tutorial-ai-clip-3',
@@ -114,6 +115,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     13.87,
     "Judy and Nick's car crashes into a cart loaded with wool, sending fleece flying through a sheep salon. The wool covers a sheep customer mid-haircut, completely changing their style.",
     'extended',
+    'Sheep Salon Crash',
   ),
   createTutorialClipFromRange(
     'tutorial-ai-clip-4',
