@@ -65,7 +65,7 @@ export const TUTORIAL_DEMO_AUDIO_CLIP = createTutorialClip(
   3.4,
   TUTORIAL_SAMPLE_DESCRIPTION,
   'inline',
-  'Judy and Nick in a Car Chase',
+  'Car Chase',
 )
 
 const createTutorialClipFromRange = (
@@ -97,7 +97,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     7,
     'Animal police officers of the Zootopia Police Department are listening to a briefing by Chief Bogo, the water buffalo chief.',
     'extended',
-    "Chief Bogo's Police Briefing",
+    'Police Briefing',
   ),
   createTutorialClipFromRange(
     'tutorial-ai-clip-2',
@@ -106,7 +106,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     9.15,
     'Judy, the rabbit officer, drives a pink car with Nick beside her, speeding down the road in pursuit of a white truck.',
     'extended',
-    "Judy and Nick's Car Chase",
+    'Car Chase',
   ),
   createTutorialClipFromRange(
     'tutorial-ai-clip-3',
@@ -115,7 +115,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     13.87,
     "Judy and Nick's car crashes into a cart loaded with wool, sending fleece flying through a sheep salon. The wool covers a sheep customer mid-haircut, completely changing their style.",
     'extended',
-    'Sheep Salon Crash',
+    'Salon Crash',
   ),
   createTutorialClipFromRange(
     'tutorial-ai-clip-4',
@@ -124,14 +124,16 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     14.04,
     "The scene cuts back and forth between Chief Bogo's briefing and Judy and Nick carrying out the mission.",
     'extended',
+    'Transition',
   ),
   createTutorialClipFromRange(
     'tutorial-ai-clip-5',
     5,
     19.2,
     24.8,
-    'content placeholder',
+    'Smuggler Antony the Giant Anteater gets into his white truck and flees from Nick and Judy.',
     'inline',
+    'Truck fleeing',
   ),
   createTutorialClipFromRange(
     'tutorial-ai-clip-6',
