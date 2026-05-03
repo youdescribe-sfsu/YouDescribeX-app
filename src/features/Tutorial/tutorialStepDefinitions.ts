@@ -103,7 +103,7 @@ export const notesAreaStep: TutorialStep = {
   targetSelector: getTutorialSelector(TUTORIAL_TARGETS.notesArea),
   title: 'Take Notes',
   content:
-    'Click to save timestamps while watching and draft descriptions for each moment.',
+    'Use memos to auto-save scene timestamps and draft descriptions while watching.',
   position: 'left',
   action: 'next',
   page: 'editor',
@@ -114,7 +114,7 @@ export const audioDuckingStep: TutorialStep = {
   targetSelector: getTutorialSelector(TUTORIAL_TARGETS.audioDucking),
   title: 'Audio Ducking',
   content:
-    'Use Description Volume and Video Volume to balance clarity and original audio.',
+    'Balance Description Volume and Video Volume for clear narration and original audio.',
   position: 'bottom',
   action: 'next',
   page: 'editor',
@@ -185,7 +185,7 @@ export const startTimeStep: TutorialStep = {
   targetSelector: getTutorialSelector(TUTORIAL_TARGETS.startTime),
   title: 'Start Time',
   content:
-    'Sets when your clip begins. It auto-fills from your current playback position.',
+    'Sets when your clip begins. It auto-fills from your current playhead position.',
   position: 'top',
   action: 'next',
   page: 'editor',
@@ -281,7 +281,7 @@ export const currentClipNavigatorStep: TutorialStep = {
   id: 'clip-currently-editing',
   targetSelector: getTutorialSelector(TUTORIAL_TARGETS.clipCurrentlyEditing),
   title: 'View Saved Clips',
-  content: "Use this button to view the list of clips you've saved.",
+  content: "Click button to view the list of clips you've saved.",
   position: 'top',
   action: 'next',
   page: 'editor',
