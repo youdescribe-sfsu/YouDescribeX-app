@@ -123,9 +123,7 @@ const ClipsNavigator = ({
                     </div>
                     <span
                       className={`clip-type-badge ${
-                        clip.playback_type === 'inline'
-                          ? 'inline'
-                          : 'extended'
+                        clip.playback_type === 'inline' ? 'inline' : 'extended'
                       }`}
                     >
                       {formatPlaybackType(clip.playback_type)}
