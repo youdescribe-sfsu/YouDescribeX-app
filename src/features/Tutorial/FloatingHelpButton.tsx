@@ -9,6 +9,7 @@ const HIDDEN_FLOATING_HELP_PATH_PREFIXES = [
   '/wishlist',
   '/editor',
   '/profile',
+  '/support',
 ]
 
 const shouldHideFloatingHelpButton = (pathname: string) =>
