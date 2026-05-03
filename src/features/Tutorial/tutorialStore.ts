@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { getActiveSteps, type TutorialMode } from './tutorialSteps'
-import { TUTORIAL_STORAGE_KEY } from './tutorialConstants'
+import { TUTORIAL_STORAGE_KEY } from './tutorialConfig'
 
 interface PersistedTutorialState {
   hasCompleted: boolean

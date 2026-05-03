@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { tutorialStore } from './tutorialStore'
-import { TUTORIAL_ROUTE } from './tutorialConstants'
+import { TUTORIAL_ROUTE } from './tutorialConfig'
 import './tutorial.scss'
 
 const HIDDEN_FLOATING_HELP_PATH_PREFIXES = [
