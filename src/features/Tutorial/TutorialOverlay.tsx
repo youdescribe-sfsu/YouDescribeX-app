@@ -76,6 +76,19 @@ const isInteractiveElement = (element: Element | null): boolean => {
 const isScrollBlockKey = (key: string): boolean =>
   SCROLL_BLOCK_KEYS.includes(key)
 
+const getVisibleElement = (selector: string): Element | null => {
+  const elements = Array.from(document.querySelectorAll(selector))
+
+  for (const element of elements) {
+    const rect = element.getBoundingClientRect()
+    if (rect.width > 0 && rect.height > 0) {
+      return element
+    }
+  }
+
+  return null
+}
+
 const getSpotlightBox = (
   rect: DOMRect,
   spotlightPadding: TutorialStep['spotlightPadding'],
@@ -185,13 +198,8 @@ const TutorialOverlay = ({
     let clickTarget: Element | null = null
 
     const findTarget = () => {
-      const element = document.querySelector(step.targetSelector)
+      const element = getVisibleElement(step.targetSelector)
       if (!element) {
-        return false
-      }
-
-      const rect = element.getBoundingClientRect()
-      if (rect.width <= 0 || rect.height <= 0) {
         return false
       }
 
