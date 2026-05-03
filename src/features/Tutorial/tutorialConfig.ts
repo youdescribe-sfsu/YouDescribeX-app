@@ -74,7 +74,9 @@ const createTutorialClipFromRange = (
     Number((endTime - startTime).toFixed(2)),
     descriptionText,
     playbackType,
-    `Extended Clip ${sequenceNumber}`,
+    `${
+      playbackType === 'extended' ? 'Extended' : 'Inline'
+    } Clip ${sequenceNumber}`,
   )
 
 export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
@@ -110,11 +112,78 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     "The scene cuts back and forth between Chief Bogo's briefing and Judy and Nick carrying out the mission.",
     'extended',
   ),
+  createTutorialClipFromRange(
+    'tutorial-ai-clip-5',
+    5,
+    19.2,
+    24.8,
+    'Nick leans back in the passenger seat while Judy keeps her eyes fixed on the road.',
+    'inline',
+  ),
+  createTutorialClipFromRange(
+    'tutorial-ai-clip-6',
+    6,
+    31.4,
+    37.6,
+    'A busy city street flashes by as the chase moves between traffic lanes.',
+    'inline',
+  ),
+  createTutorialClipFromRange(
+    'tutorial-ai-clip-7',
+    7,
+    48.8,
+    50.6,
+    'A quick cut reveals a shadowy figure watching from a doorway.',
+    'extended',
+  ),
+  createTutorialClipFromRange(
+    'tutorial-ai-clip-8',
+    8,
+    59.4,
+    67.2,
+    'Judy and Nick dodge through a crowded station as signs and lights blur around them.',
+    'inline',
+  ),
+  createTutorialClipFromRange(
+    'tutorial-ai-clip-9',
+    9,
+    82.6,
+    89.4,
+    'Chief Bogo points firmly at the map while officers gather around the briefing table.',
+    'inline',
+  ),
+  createTutorialClipFromRange(
+    'tutorial-ai-clip-10',
+    10,
+    108.2,
+    110.1,
+    'A small reptile darts across the floor and disappears behind stacked crates.',
+    'extended',
+  ),
+  createTutorialClipFromRange(
+    'tutorial-ai-clip-11',
+    11,
+    126.8,
+    132.2,
+    'The trailer ends with Judy and Nick staring ahead as the title card fills the screen.',
+    'inline',
+  ),
 ]
 
 export const TUTORIAL_DIALOG_TIMESTAMPS = [
-  { dialog_seq_no: 1, dialog_start_time: 0.08, dialog_duration: 3.44 },
-  { dialog_seq_no: 2, dialog_start_time: 3.68, dialog_duration: 1.91 },
-  { dialog_seq_no: 3, dialog_start_time: 5.75, dialog_duration: 3.49 },
-  { dialog_seq_no: 4, dialog_start_time: 9.4, dialog_duration: 4.64 },
+  { dialog_seq_no: 1, dialog_start_time: 1.0, dialog_duration: 2.0 },
+  { dialog_seq_no: 2, dialog_start_time: 4.0, dialog_duration: 1.2 },
+  { dialog_seq_no: 3, dialog_start_time: 6.2, dialog_duration: 2.5 },
+  { dialog_seq_no: 4, dialog_start_time: 10.1, dialog_duration: 3.7 },
+  { dialog_seq_no: 5, dialog_start_time: 14.8, dialog_duration: 3.4 },
+  { dialog_seq_no: 6, dialog_start_time: 25.8, dialog_duration: 4.2 },
+  { dialog_seq_no: 7, dialog_start_time: 39.0, dialog_duration: 7.2 },
+  { dialog_seq_no: 8, dialog_start_time: 51.5, dialog_duration: 6.5 },
+  { dialog_seq_no: 9, dialog_start_time: 68.5, dialog_duration: 7.7 },
+  { dialog_seq_no: 10, dialog_start_time: 77.2, dialog_duration: 4.0 },
+  { dialog_seq_no: 11, dialog_start_time: 90.5, dialog_duration: 9.0 },
+  { dialog_seq_no: 12, dialog_start_time: 100.5, dialog_duration: 6.1 },
+  { dialog_seq_no: 13, dialog_start_time: 111.5, dialog_duration: 8.0 },
+  { dialog_seq_no: 14, dialog_start_time: 120.5, dialog_duration: 5.0 },
+  { dialog_seq_no: 15, dialog_start_time: 133.2, dialog_duration: 8.8 },
 ] as const

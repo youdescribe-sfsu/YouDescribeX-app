@@ -1877,7 +1877,6 @@ const YDXHome = ({
                         top: '0px',
                         zIndex: 3,
                         borderRadius: '2px',
-                        opacity: 0.8,
                       }}
                       title={`${
                         clip.playback_type
