@@ -65,6 +65,8 @@ export const TUTORIAL_DEMO_AUDIO_CLIP = createTutorialClip(
   3.92,
   3.4,
   TUTORIAL_SAMPLE_DESCRIPTION,
+  'inline',
+  'Judy and Nick in a Car Chase',
 )
 
 const createTutorialClipFromRange = (
@@ -74,6 +76,9 @@ const createTutorialClipFromRange = (
   endTime: number,
   descriptionText: string,
   playbackType: 'inline' | 'extended' = 'inline',
+  clipTitle = `${
+    playbackType === 'extended' ? 'Extended' : 'Inline'
+  } Clip ${sequenceNumber}`,
 ): Clip =>
   createTutorialClip(
     clipId,
@@ -82,9 +87,7 @@ const createTutorialClipFromRange = (
     Number((endTime - startTime).toFixed(2)),
     descriptionText,
     playbackType,
-    `${
-      playbackType === 'extended' ? 'Extended' : 'Inline'
-    } Clip ${sequenceNumber}`,
+    clipTitle,
   )
 
 export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
@@ -95,6 +98,7 @@ export const TUTORIAL_AI_AUDIO_CLIPS: Clip[] = [
     7,
     'Animal police officers of the Zootopia Police Department are listening to a briefing by Chief Bogo, the water buffalo chief.',
     'extended',
+    "Chief Bogo's Police Briefing",
   ),
   createTutorialClipFromRange(
     'tutorial-ai-clip-2',
