@@ -10,17 +10,38 @@
   max-height: 400px;
   overflow-y: auto;
   background: #1a1a1a;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.clip-summary-list-item {
+  margin: 0;
 }
 
 .clip-summary-item {
+  display: block;
+  width: 100%;
   padding: 12px 28px;
+  background: transparent;
   border-bottom: 1px solid #333;
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  color: inherit;
   cursor: pointer;
+  font: inherit;
+  text-align: left;
   transition: all 0.2s;
 }
 
 .clip-summary-item:hover {
   background: #2a2a2a;
+}
+
+.clip-summary-item:focus-visible {
+  outline: 3px solid #90cdf4;
+  outline-offset: -3px;
 }
 
 .clip-summary-item.active {

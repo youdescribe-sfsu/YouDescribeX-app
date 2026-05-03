@@ -31,6 +31,18 @@ const getDescriptionPreview = (description?: string) => {
   }`
 }
 
+const getClipAccessibilityLabel = (clip: Clip, index: number) => {
+  const startTime = convertSecondsToCardFormat(clip.clip_start_time)
+  const endTime = convertSecondsToCardFormat(clip.clip_end_time)
+  const type = formatPlaybackType(clip.playback_type)
+  const description = getDescriptionPreview(clip.description_text)
+
+  return `${getClipLabel(
+    clip,
+    index,
+  )}. ${type}. Starts at ${startTime}, ends at ${endTime}. ${description}. Press Enter to select this clip.`
+}
+
 const ClipsNavigator = ({
   clips,
   currentIndex,
@@ -39,56 +51,98 @@ const ClipsNavigator = ({
   setIsExpanded,
   listDataTutorial,
 }: Props) => {
+  const clipButtonRefs = React.useRef<Array<HTMLButtonElement | null>>([])
+
   if (clips.length === 0) return null
+
+  const selectClip = (index: number) => {
+    onSelectClip(index)
+    setIsExpanded(false)
+  }
+
+  const focusClipButton = (index: number) => {
+    clipButtonRefs.current[index]?.focus()
+  }
+
+  const handleClipKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      focusClipButton(Math.min(index + 1, clips.length - 1))
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      focusClipButton(Math.max(index - 1, 0))
+    } else if (event.key === 'Home') {
+      event.preventDefault()
+      focusClipButton(0)
+    } else if (event.key === 'End') {
+      event.preventDefault()
+      focusClipButton(clips.length - 1)
+    }
+  }
 
   return (
     <div className="clips-navigator">
       {isExpanded && (
-        <div className="clips-list-container" data-tutorial={listDataTutorial}>
+        <ul
+          className="clips-list-container"
+          data-tutorial={listDataTutorial}
+          role="list"
+          aria-label={`${clips.length} saved audio clips`}
+        >
           {clips.map((clip, index) => (
-            <div
-              key={clip.clip_id}
-              className={`clip-summary-item ${
-                index === currentIndex ? 'active' : ''
-              }`}
-              onClick={() => {
-                onSelectClip(index)
-                setIsExpanded(false)
-              }}
-            >
-              <div className="clip-summary-header">
-                <span className="clip-number">
-                  <span className="clip-title-line">
-                    {getClipLabel(clip, index)}
+            <li key={clip.clip_id} className="clip-summary-list-item">
+              <button
+                type="button"
+                ref={(element) => {
+                  clipButtonRefs.current[index] = element
+                }}
+                className={`clip-summary-item ${
+                  index === currentIndex ? 'active' : ''
+                }`}
+                onClick={() => selectClip(index)}
+                onKeyDown={(event) => handleClipKeyDown(event, index)}
+                aria-label={getClipAccessibilityLabel(clip, index)}
+                aria-current={index === currentIndex ? 'true' : undefined}
+              >
+                <div className="clip-summary-header">
+                  <span className="clip-number">
+                    <span className="clip-title-line">
+                      {getClipLabel(clip, index)}
+                    </span>
                   </span>
-                </span>
-                <div className="clip-summary-meta">
-                  <div className="clip-time">
-                    <i className="fa fa-clock" aria-hidden="true" />
-                    <span>
-                      {convertSecondsToCardFormat(clip.clip_start_time)} →{' '}
-                      {convertSecondsToCardFormat(clip.clip_end_time)}
+                  <div className="clip-summary-meta">
+                    <div className="clip-time">
+                      <i className="fa fa-clock" aria-hidden="true" />
+                      <span>
+                        {convertSecondsToCardFormat(clip.clip_start_time)} →{' '}
+                        {convertSecondsToCardFormat(clip.clip_end_time)}
+                      </span>
+                    </div>
+                    <span
+                      className={`clip-type-badge ${
+                        clip.playback_type === 'inline'
+                          ? 'inline'
+                          : 'extended'
+                      }`}
+                    >
+                      {formatPlaybackType(clip.playback_type)}
                     </span>
                   </div>
-                  <span
-                    className={`clip-type-badge ${
-                      clip.playback_type === 'inline' ? 'inline' : 'extended'
-                    }`}
-                  >
-                    {formatPlaybackType(clip.playback_type)}
-                  </span>
                 </div>
-              </div>
-              <div className="clip-summary-content">
-                <div className="clip-description-preview">
-                  <span className="clip-description-text">
-                    {getDescriptionPreview(clip.description_text)}
-                  </span>
+                <div className="clip-summary-content">
+                  <div className="clip-description-preview">
+                    <span className="clip-description-text">
+                      {getDescriptionPreview(clip.description_text)}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   )
