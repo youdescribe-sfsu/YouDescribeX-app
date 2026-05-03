@@ -1,8 +1,8 @@
-import { aiPostForkSteps } from './tutorialAiSteps'
-import { freestylePostForkSteps, sharedSteps } from './tutorialBaseSteps'
-import type { TutorialMode, TutorialStep } from './tutorialStepModel'
+import { aiPostForkSteps } from './tutorialAiStepSequence'
+import { freestylePostForkSteps, sharedSteps } from './tutorialStepDefinitions'
+import type { TutorialMode, TutorialStep } from './tutorialStepCore'
 
-export type { TutorialMode, TutorialStep } from './tutorialStepModel'
+export type { TutorialMode, TutorialStep } from './tutorialStepCore'
 
 export const freestyleTutorialSteps: TutorialStep[] = [
   ...sharedSteps,

@@ -5,7 +5,7 @@ import {
   TUTORIAL_AI_AUDIO_CLIPS,
   TUTORIAL_DEMO_AUDIO_CLIP,
 } from './tutorialConfig'
-import type { TutorialMode, TutorialStep } from './tutorialSteps'
+import type { TutorialMode, TutorialStep } from './tutorialStepRegistry'
 
 type TutorialEditorUiState = TutorialStep['uiState']
 

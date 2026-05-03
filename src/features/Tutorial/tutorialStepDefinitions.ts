@@ -5,7 +5,7 @@ import {
   SAVED_CLIP,
   SAVED_CLIP_WITH_LIST,
   type TutorialStep,
-} from './tutorialStepModel'
+} from './tutorialStepCore'
 
 export const welcomeStep = centeredStep({
   id: 'welcome',

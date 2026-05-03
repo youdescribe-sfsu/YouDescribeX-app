@@ -22,7 +22,7 @@ import {
   titleInputStep,
   typeDropdownStep,
   nudgeControlsStep,
-} from './tutorialBaseSteps'
+} from './tutorialStepDefinitions'
 import { getTutorialSelector, TUTORIAL_TARGETS } from './tutorialSelectors'
 import {
   centeredStep,
@@ -32,7 +32,7 @@ import {
   withUIState,
   withUIStateDefaultScroll,
   type TutorialStep,
-} from './tutorialStepModel'
+} from './tutorialStepCore'
 
 const aiEditorIntroStep = centeredStep({
   id: 'ai-editor-intro',

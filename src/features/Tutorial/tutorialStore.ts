@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { getActiveSteps, type TutorialMode } from './tutorialSteps'
+import { getActiveSteps, type TutorialMode } from './tutorialStepRegistry'
 import { TUTORIAL_STORAGE_KEY } from './tutorialConfig'
 
 interface PersistedTutorialState {

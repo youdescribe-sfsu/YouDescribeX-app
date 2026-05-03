@@ -35,7 +35,7 @@ import {
 } from '../features/Tutorial/tutorialConfig'
 import { TUTORIAL_TARGETS } from '../features/Tutorial/tutorialSelectors'
 import { useTutorialEditorAdapter } from '../features/Tutorial/useTutorialEditorAdapter'
-import type { TutorialMode } from '../features/Tutorial/tutorialSteps'
+import type { TutorialMode } from '../features/Tutorial/tutorialStepRegistry'
 
 type DialogTimestamp = {
   dialog_seq_no: number

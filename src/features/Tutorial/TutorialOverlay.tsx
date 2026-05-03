@@ -15,7 +15,7 @@ import {
   autoUpdate,
   Placement,
 } from '@floating-ui/react-dom'
-import { type TutorialMode, TutorialStep } from './tutorialSteps'
+import { type TutorialMode, TutorialStep } from './tutorialStepRegistry'
 import './tutorial.scss'
 
 interface Props {

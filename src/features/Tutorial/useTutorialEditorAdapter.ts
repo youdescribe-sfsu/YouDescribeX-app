@@ -8,7 +8,7 @@ import {
   TUTORIAL_VIDEO_YOUTUBE_ID,
 } from './tutorialConfig'
 import { tutorialEditorStore } from './tutorialEditorStore'
-import type { TutorialMode } from './tutorialStepModel'
+import type { TutorialMode } from './tutorialStepCore'
 
 type TutorialDialogTimestamp = {
   dialog_seq_no: number
