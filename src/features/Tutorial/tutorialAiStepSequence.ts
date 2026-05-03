@@ -110,6 +110,7 @@ export const aiPostForkSteps: TutorialStep[] = [
     id: 'ai-clip-form-intro',
     title: 'Insert Audio Clip',
     content: 'Fill out this form to save your description to the timeline.',
+    waitForTargetSettle: true,
   }),
   withUIState(titleInputStep, FORM_AND_CLIP, { id: 'ai-title-input' }),
   withUIState(typeDropdownStep, FORM_AND_CLIP, { id: 'ai-type-dropdown' }),
@@ -127,6 +128,7 @@ export const aiPostForkSteps: TutorialStep[] = [
   }),
   withUIState(savedClipsListStep, SAVED_CLIP_WITH_LIST, {
     id: 'ai-saved-clips-list',
+    waitForTargetSettle: true,
   }),
   withUIState(clipNavButtonsStep, SAVED_CLIP, {
     id: 'ai-clip-nav-buttons',

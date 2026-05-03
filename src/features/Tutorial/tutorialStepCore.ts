@@ -20,6 +20,7 @@ export interface TutorialStep {
   }
   spotlightOffsetX?: number
   spotlightIncludeSelector?: string
+  waitForTargetSettle?: boolean
   uiState?: {
     showClipForm?: boolean
     showSavedClip?: boolean

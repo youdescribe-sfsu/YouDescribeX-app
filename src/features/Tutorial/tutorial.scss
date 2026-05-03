@@ -97,7 +97,7 @@ $tutorial-focus-white: #fff;
 .tutorial-tooltip__title {
   font-size: 18px;
   font-weight: 600;
-  margin: 0 0 10px 0;
+  margin: 10px 0 10px 0;
   color: #333;
 }
 
@@ -133,8 +133,7 @@ $tutorial-focus-white: #fff;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
+    box-shadow 0.2s ease, background-color 0.2s ease;
 
   &:hover {
     transform: translateY(-1px);
