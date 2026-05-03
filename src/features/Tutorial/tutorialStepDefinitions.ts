@@ -21,7 +21,8 @@ export const wishlistBtnStep: TutorialStep = {
   id: 'wishlist-btn',
   targetSelector: getTutorialSelector(TUTORIAL_TARGETS.wishlistBtn),
   title: 'Add to Wishlist',
-  content: 'Add videos here to describe them later.',
+  content:
+    'Request an audio description. All requests can be viewed on the wishlist page.',
   position: 'left',
   action: 'next',
   page: 'video',
