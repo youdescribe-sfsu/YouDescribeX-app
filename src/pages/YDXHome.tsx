@@ -1967,7 +1967,7 @@ const YDXHome = ({
             )}
           </div>
 
-          {/* Center: Currently editing — compact button centered in remaining space */}
+          {/* Center: saved clips toggle — compact button centered in remaining space */}
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             {audioClips.length > 0 && (
               <button
@@ -1988,7 +1988,7 @@ const YDXHome = ({
               >
                 <i
                   className={`fa fa-${
-                    shouldShowClipsList ? 'caret-down' : 'caret-right'
+                    shouldShowClipsList ? 'chevron-up' : 'chevron-down'
                   }`}
                 />{' '}
                 View Saved Clips ({audioClips.length} total)
