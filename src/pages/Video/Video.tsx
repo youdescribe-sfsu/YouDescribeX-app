@@ -15,7 +15,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Id, toast } from 'react-toastify'
 import YouTube from 'react-youtube'
 import { Options, YouTubePlayer } from 'youtube-player/dist/types'
@@ -40,13 +40,8 @@ import axios from 'axios'
 import { Feedbacks, User, VideoDescriberRoot } from './video_describer'
 import LanguageSelector from './LanguageSelector'
 import YouTubeService from '@/shared/utils/YouTubeService'
-import {
-  isTutorialVideoId,
-  TUTORIAL_VIDEO_DURATION_SECONDS,
-  TUTORIAL_VIDEO_METADATA,
-  TUTORIAL_VIDEO_YOUTUBE_ID,
-} from '@/features/Tutorial/tutorialConfig'
 import { TUTORIAL_TARGETS } from '@/features/Tutorial/tutorialSelectors'
+import { useTutorialVideoAdapter } from '@/features/Tutorial/useTutorialVideoAdapter'
 
 interface IADUserId {
   [key: string]: {
@@ -79,20 +74,16 @@ interface VideoProps {
 }
 
 const Video = ({ isTutorialMode = false }: VideoProps) => {
-  const { videoId: routeVideoId } = useParams()
-  const isBlockedTutorialVideo =
-    !isTutorialMode && isTutorialVideoId(routeVideoId)
-  const videoId = isTutorialMode ? TUTORIAL_VIDEO_YOUTUBE_ID : routeVideoId
+  const {
+    videoId,
+    isBlockedTutorialVideo,
+    initialVideoState,
+    tutorialDocumentTitle,
+  } = useTutorialVideoAdapter(isTutorialMode)
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedADId, setSelectedADId] = useState<string>('')
   const isSignedIn = userDataStore((state) => state.isSignedIn)
-
-  useEffect(() => {
-    if (isBlockedTutorialVideo) {
-      navigate('/not-found', { replace: true })
-    }
-  }, [isBlockedTutorialVideo, navigate])
 
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
@@ -116,7 +107,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
   ]
 
   // Loading Spinner
-  const [showSpinner, setShowSpinner] = useState(!isTutorialMode)
+  const [showSpinner, setShowSpinner] = useState(initialVideoState.showSpinner)
 
   // Data from API
   const [audioDescriptionsIds, setAudioDescriptionsIds] = useState<any[]>([])
@@ -126,24 +117,16 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     useState<any>({})
 
   // YouTube Video Info
-  const [videoTitle, setVideoTitle] = useState(
-    isTutorialMode ? TUTORIAL_VIDEO_METADATA.title : '',
-  )
-  const [videoAuthor, setVideoAuthor] = useState(
-    isTutorialMode ? TUTORIAL_VIDEO_METADATA.author : '',
-  )
+  const [videoTitle, setVideoTitle] = useState(initialVideoState.title)
+  const [videoAuthor, setVideoAuthor] = useState(initialVideoState.author)
   const [videoPublishedAt, setVideoPublishedAt] = useState(
-    isTutorialMode ? TUTORIAL_VIDEO_METADATA.publishedAt : '',
+    initialVideoState.publishedAt,
   )
   const [, setVideoDescription] = useState('')
-  const [videoViews, setVideoViews] = useState(
-    isTutorialMode ? TUTORIAL_VIDEO_METADATA.views : '',
-  )
-  const [videoLikes, setVideoLikes] = useState(
-    isTutorialMode ? TUTORIAL_VIDEO_METADATA.likes : '',
-  )
+  const [videoViews, setVideoViews] = useState(initialVideoState.views)
+  const [videoLikes, setVideoLikes] = useState(initialVideoState.likes)
   const [videoDurationInSeconds, setVideoDurationInSeconds] = useState(
-    isTutorialMode ? TUTORIAL_VIDEO_DURATION_SECONDS : 0,
+    initialVideoState.durationSeconds,
   )
   const [playedClips, setPlayedClips] = useState<Set<string>>(new Set())
   const playedClipsRef = useRef<Set<string>>(new Set())
@@ -228,7 +211,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
   useEffect(() => {
     if (isTutorialMode) {
       setAiServiceStatus('available')
-      document.title = `YouDescribe - ${TUTORIAL_VIDEO_METADATA.title}`
+      document.title = tutorialDocumentTitle
       return
     }
 
@@ -247,7 +230,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     }
 
     checkAiService()
-  }, [isTutorialMode])
+  }, [isTutorialMode, tutorialDocumentTitle])
 
   useEffect(() => {
     // Pause and unload current inline audio clip
