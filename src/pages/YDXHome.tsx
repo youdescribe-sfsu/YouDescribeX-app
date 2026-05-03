@@ -1968,7 +1968,7 @@ const YDXHome = ({
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             {audioClips.length > 0 && (
               <button
-                className="btn clip-nav-btn-blue ydx-button ydx-toolbar-button"
+                className="btn clip-nav-btn-blue saved-clips-toggle-btn ydx-button ydx-toolbar-button"
                 data-tutorial={
                   isTutorialMode
                     ? TUTORIAL_TARGETS.clipCurrentlyEditing
@@ -1987,8 +1987,10 @@ const YDXHome = ({
                   className={`fa fa-${
                     shouldShowClipsList ? 'chevron-up' : 'chevron-down'
                   }`}
-                />{' '}
-                View Saved Audio Clips ({audioClips.length} total)
+                />
+                <span className="saved-clips-toggle-text">
+                  View Saved Audio Clips ({audioClips.length} total)
+                </span>
               </button>
             )}
           </div>

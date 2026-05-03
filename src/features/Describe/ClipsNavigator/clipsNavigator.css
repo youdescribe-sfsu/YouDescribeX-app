@@ -160,6 +160,33 @@
   transition: background 0.2s;
 }
 
+.clip-nav-btn-blue.saved-clips-toggle-btn {
+  padding-left: var(--space-md);
+  padding-right: 0.875rem;
+  gap: 0.3rem;
+}
+
+.saved-clips-toggle-btn .fa-chevron-up,
+.saved-clips-toggle-btn .fa-chevron-down {
+  padding: 0;
+  color: white;
+  font-size: 1em;
+  line-height: 1;
+  background: transparent;
+  transform: none;
+}
+
+.saved-clips-toggle-btn .fa-chevron-up:hover,
+.saved-clips-toggle-btn .fa-chevron-down:hover {
+  color: white;
+  background: transparent;
+  transform: none;
+}
+
+.saved-clips-toggle-text {
+  display: inline-block;
+}
+
 .clip-nav-btn-blue:hover:not(:disabled) {
   background: #3182ce;
   color: white;
