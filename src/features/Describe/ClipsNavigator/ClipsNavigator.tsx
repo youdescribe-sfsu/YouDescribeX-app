@@ -24,6 +24,13 @@ const getClipLabel = (clip: Clip, index: number) => {
   return title ? `Clip ${index + 1}: ${title}` : `Clip ${index + 1}`
 }
 
+const getDescriptionPreview = (description?: string) => {
+  if (!description) return 'No description'
+  return `${description.substring(0, 80)}${
+    description.length > 80 ? '...' : ''
+  }`
+}
+
 const ClipsNavigator = ({
   clips,
   currentIndex,
@@ -50,25 +57,33 @@ const ClipsNavigator = ({
               }}
             >
               <div className="clip-summary-header">
-                <span className="clip-number">{getClipLabel(clip, index)}</span>
-                <span
-                  className={`clip-type-badge ${
-                    clip.playback_type === 'inline' ? 'inline' : 'extended'
-                  }`}
-                >
-                  {formatPlaybackType(clip.playback_type)}
+                <span className="clip-number">
+                  <span className="clip-title-line">
+                    {getClipLabel(clip, index)}
+                  </span>
                 </span>
+                <div className="clip-summary-meta">
+                  <div className="clip-time">
+                    <i className="fa fa-clock" aria-hidden="true" />
+                    <span>
+                      {convertSecondsToCardFormat(clip.clip_start_time)} →{' '}
+                      {convertSecondsToCardFormat(clip.clip_end_time)}
+                    </span>
+                  </div>
+                  <span
+                    className={`clip-type-badge ${
+                      clip.playback_type === 'inline' ? 'inline' : 'extended'
+                    }`}
+                  >
+                    {formatPlaybackType(clip.playback_type)}
+                  </span>
+                </div>
               </div>
               <div className="clip-summary-content">
-                <div className="clip-time">
-                  {convertSecondsToCardFormat(clip.clip_start_time)} →{' '}
-                  {convertSecondsToCardFormat(clip.clip_end_time)}
-                </div>
                 <div className="clip-description-preview">
-                  {clip.description_text?.substring(0, 80) || 'No description'}
-                  {clip.description_text && clip.description_text.length > 80
-                    ? '...'
-                    : ''}
+                  <span className="clip-description-text">
+                    {getDescriptionPreview(clip.description_text)}
+                  </span>
                 </div>
               </div>
             </div>
