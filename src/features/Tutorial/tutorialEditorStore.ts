@@ -17,6 +17,7 @@ interface TutorialEditComponentToggle {
 interface TutorialEditorState {
   tutorialAudioClips: Clip[]
   tutorialShowClipForm: boolean
+  tutorialShowClipsList: boolean
   tutorialIsEditing: boolean
   tutorialNavClipIndex: number
   tutorialEditComponentToggleList: TutorialEditComponentToggle[]
@@ -54,6 +55,7 @@ const getClampedNavClipIndex = (index: number, clips: Clip[]) => {
 const initialTutorialEditorState = {
   tutorialAudioClips: [],
   tutorialShowClipForm: false,
+  tutorialShowClipsList: false,
   tutorialIsEditing: false,
   tutorialNavClipIndex: 0,
   tutorialEditComponentToggleList: [],
@@ -70,6 +72,7 @@ export const tutorialEditorStore = create<TutorialEditorState>()(
         set({
           tutorialAudioClips,
           tutorialShowClipForm: uiState?.showClipForm === true,
+          tutorialShowClipsList: uiState?.showClipsList === true,
           tutorialIsEditing: uiState?.isEditing === true,
           tutorialNavClipIndex: getClampedNavClipIndex(
             get().tutorialNavClipIndex,

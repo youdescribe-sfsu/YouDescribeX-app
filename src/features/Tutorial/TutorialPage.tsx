@@ -48,7 +48,7 @@ const TutorialPage = () => {
     }
   }, [resetTutorialEditor])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     syncFromTutorialStep(tutorialMode, currentStep?.uiState)
   }, [
     currentStep?.id,

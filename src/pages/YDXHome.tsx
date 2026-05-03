@@ -147,6 +147,9 @@ const YDXHome = ({
   const tutorialShowClipForm = tutorialEditorStore(
     (state) => state.tutorialShowClipForm,
   )
+  const tutorialShowClipsList = tutorialEditorStore(
+    (state) => state.tutorialShowClipsList,
+  )
   const tutorialNavClipIndex = tutorialEditorStore(
     (state) => state.tutorialNavClipIndex,
   )
@@ -169,6 +172,8 @@ const YDXHome = ({
   // ── Single-clip navigation ───────────────────────────────────────────────────
   const [navClipIndex, setNavClipIndex] = useState(0)
   const [isClipsListExpanded, setIsClipsListExpanded] = useState(false)
+  const shouldShowClipsList =
+    isTutorialMode && tutorialShowClipsList ? true : isClipsListExpanded
 
   // ── Publish state ────────────────────────────────────────────────────────────
   const [enrollInCollabEdit, setEnrollInCollabEdit] = useState(true)
@@ -300,6 +305,7 @@ const YDXHome = ({
     setCollaborativeVersion(false)
     setEditComponentToggleList(tutorialEditComponentToggleList)
     setNavClipIndex(nextNavClipIndex)
+    setIsClipsListExpanded(tutorialShowClipsList)
     navClipIndexRef.current = nextNavClipIndex
     selectedClipIdRef.current =
       nextTutorialAudioClips[nextNavClipIndex]?.clip_id ?? null
@@ -308,6 +314,7 @@ const YDXHome = ({
     tutorialAudioClips,
     tutorialEditComponentToggleList,
     tutorialNavClipIndex,
+    tutorialShowClipsList,
     tutorialMode,
   ])
 
@@ -1994,20 +2001,19 @@ const YDXHome = ({
                 }
                 onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
                 style={{ whiteSpace: 'nowrap' }}
-                aria-label={`Currently editing clip ${navClipIndex + 1} of ${
+                aria-label={`View saved clips list, ${
                   audioClips.length
-                }. Click to ${
-                  isClipsListExpanded ? 'collapse' : 'expand'
-                } clip list`}
-                aria-expanded={isClipsListExpanded}
+                } total. Click to ${
+                  shouldShowClipsList ? 'collapse' : 'expand'
+                } saved clips list`}
+                aria-expanded={shouldShowClipsList}
               >
                 <i
                   className={`fa fa-${
-                    isClipsListExpanded ? 'caret-down' : 'caret-right'
+                    shouldShowClipsList ? 'caret-down' : 'caret-right'
                   }`}
                 />{' '}
-                Currently editing: Clip {navClipIndex + 1} - All Clips (
-                {audioClips.length} total)
+                View Saved Clips ({audioClips.length} total)
               </button>
             )}
           </div>
@@ -2062,8 +2068,9 @@ const YDXHome = ({
           clips={audioClips}
           currentIndex={navClipIndex}
           onSelectClip={handleClipNavigation}
-          isExpanded={isClipsListExpanded}
+          isExpanded={shouldShowClipsList}
           setIsExpanded={setIsClipsListExpanded}
+          listDataTutorial={isTutorialMode ? 'saved-clips-list' : undefined}
         />
 
         {/* Single clip view */}

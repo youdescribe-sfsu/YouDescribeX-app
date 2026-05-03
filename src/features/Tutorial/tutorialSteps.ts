@@ -24,6 +24,7 @@ export interface TutorialStep {
     showClipForm?: boolean
     showSavedClip?: boolean
     isEditing?: boolean
+    showClipsList?: boolean
   }
 }
 
@@ -42,6 +43,10 @@ const CLIP_FORM_ONLY: TutorialStep['uiState'] = {
 const SAVED_CLIP: TutorialStep['uiState'] = {
   showSavedClip: true,
   isEditing: true,
+}
+const SAVED_CLIP_WITH_LIST: TutorialStep['uiState'] = {
+  ...SAVED_CLIP,
+  showClipsList: true,
 }
 const FORM_AND_CLIP: TutorialStep['uiState'] = {
   showClipForm: true,
@@ -346,23 +351,35 @@ const nudgeControlsStep: TutorialStep = {
 const currentClipNavigatorStep: TutorialStep = {
   id: 'clip-currently-editing',
   targetSelector: '[data-tutorial="clip-currently-editing"]',
-  title: 'Current Clip',
-  content:
-    'This shows the clip you are editing. Click it to open the clip list and jump to another saved clip.',
+  title: 'View Saved Clips',
+  content: "Use this button to view the list of clips you've saved.",
   position: 'top',
-  action: 'click',
+  action: 'next',
   page: 'editor',
   autoScroll: false,
   uiState: SAVED_CLIP,
 }
 
 // Step 24
+const savedClipsListStep: TutorialStep = {
+  id: 'saved-clips-list',
+  targetSelector: '[data-tutorial="saved-clips-list"]',
+  title: 'Saved Clips List',
+  content:
+    'Saved clips appear here as compact summaries. Select one to open it in the editor.',
+  position: 'top',
+  action: 'next',
+  page: 'editor',
+  autoScroll: false,
+  uiState: SAVED_CLIP_WITH_LIST,
+}
+
+// Step 25
 const clipNavButtonsStep: TutorialStep = {
   id: 'clip-nav-buttons',
   targetSelector: '[data-tutorial="clip-nav-buttons"]',
-  title: 'Navigate Clips',
-  content:
-    'You can also use Previous and Next to move through your saved clips one at a time.',
+  title: 'Move Between Clips',
+  content: 'Click Previous and Next to move between saved clips.',
   position: 'top',
   action: 'next',
   page: 'editor',
@@ -439,6 +456,7 @@ const freestylePostForkSteps: TutorialStep[] = [
   clipTimingControlsStep,
   nudgeControlsStep,
   currentClipNavigatorStep,
+  savedClipsListStep,
   clipNavButtonsStep,
   collabCheckboxStep,
   publishBtnStep,

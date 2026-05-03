@@ -337,10 +337,17 @@ const TutorialOverlay = ({
 
     runAnimation()
 
+    const delayedAnimation = step.spotlightIncludeSelector
+      ? window.setTimeout(runAnimation, SCROLL_AFTER_LAYOUT_DELAY_MS)
+      : undefined
+
     window.addEventListener('scroll', syncPosition, true)
     window.addEventListener('resize', syncPosition)
 
     return () => {
+      if (delayedAnimation) {
+        window.clearTimeout(delayedAnimation)
+      }
       window.removeEventListener('scroll', syncPosition, true)
       window.removeEventListener('resize', syncPosition)
     }
@@ -557,7 +564,7 @@ const TutorialOverlay = ({
             <>
               {showBack && (
                 <button className="tutorial-tooltip__back-btn" onClick={onBack}>
-                  Back
+                  Previous
                 </button>
               )}
               <button className="tutorial-tooltip__next-btn" onClick={onNext}>
