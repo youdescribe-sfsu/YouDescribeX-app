@@ -36,6 +36,7 @@ import {
 import { TUTORIAL_TARGETS } from '../features/Tutorial/tutorialSelectors'
 import { useTutorialEditorAdapter } from '../features/Tutorial/useTutorialEditorAdapter'
 import type { TutorialMode } from '../features/Tutorial/tutorialStepRegistry'
+import { useAudioDescriptionEngine } from '../shared/hooks/useAudioDescriptionEngine' // <-- Add import
 
 type DialogTimestamp = {
   dialog_seq_no: number
@@ -111,13 +112,12 @@ const YDXHome = ({
   const [isCollaborativeVersion, setCollaborativeVersion] = useState(false)
   const [audioClips, setAudioClips] = useState<Clip[]>([])
   const audioClipsListRef = useRef<HTMLDivElement>(null)
-  const [currExtendedAC, setCurrExtendedAC] = useState<Howl>()
-  const [currInlineAC, setCurrInlineAC] = useState<Howl>()
+
   const [updateData, setUpdateData] = useState(false)
   const [recentAudioPlayedTime, setRecentAudioPlayedTime] = useState(0.0)
   const [playedAudioClip, setPlayedAudioClip] = useState('')
   const [playedClipPath, setPlayedClipPath] = useState('')
-  const [playedClipsSet, setPlayedClipsSet] = useState<Set<string>>(new Set())
+
   const [showSpinner, setShowSpinner] = useState(false)
   const [undoDeletedClipInfo, setUndoDeletedClip] = useState(false)
   const [updatedDescriptions, setUpdatedDescriptions] = useState<{
@@ -172,8 +172,7 @@ const YDXHome = ({
   const currentClipIndexRef = useRef(currentClipIndex)
   const currentEventRef = useRef(currentEvent)
   const currentStateRef = useRef(currentState)
-  const currentInlineACRef = useRef(currInlineAC)
-  const currentExtendedACRef = useRef(currExtendedAC)
+
   const timelineMetricsRef = useRef<TimelineMetrics | null>(null)
   const savedClipRefreshRequestedRef = useRef(false)
   const selectedClipIdRef = useRef<string | null>(null)
@@ -236,19 +235,38 @@ const YDXHome = ({
   const hasCanonicalDuration =
     canonicalVideoDuration.status === 'resolved' && canonicalDurationSeconds > 0
 
+  const {
+    currentTimeUI,
+    playedClips,
+    activeClipId,
+    seekTo,
+    stopAllAudio,
+    resetPlayedClips,
+  } = useAudioDescriptionEngine(
+    audioClips,
+    currentEvent,
+    descriptionVolume,
+    !isGloballyPaused, // This controls the tick loop
+  )
+
   useEffect(() => {
-    currentInlineACRef.current = currInlineAC
-    currentExtendedACRef.current = currExtendedAC
-  }, [currInlineAC, currExtendedAC])
+    if (activeClipId) {
+      // 1. Highlight the card (scrolling logic)
+      scrollToAudioClipCard(activeClipId)
+
+      // 2. Keep the Editor's "Currently Editing" index in sync
+      const index = audioClips.findIndex((c) => c.clip_id === activeClipId)
+      if (index !== -1) {
+        setNavClipIndex(index)
+        navClipIndexRef.current = index // Update ref too for safety
+      }
+    }
+  }, [activeClipId, audioClips])
 
   useEffect(() => {
     currentTimeRef.current = currentTime
     previousTimeRef.current = previousTime
   }, [currentTime, previousTime])
-
-  useEffect(() => {
-    playedClipsSetRef.current = playedClipsSet
-  }, [playedClipsSet])
 
   useEffect(() => {
     clipIDRef.current = playedAudioClip
@@ -267,15 +285,12 @@ const YDXHome = ({
   }, [timelineMetrics])
 
   useEffect(() => {
-    if (currentInlineACRef.current?.playing()) {
-      currentInlineACRef.current?.volume(descriptionVolume / 100)
+    // Only move the playhead if we aren't currently dragging it manually
+    if (timelineMetrics && !isTimelineScrubbingRef.current) {
+      const newX = timeToTimelineX(currentTimeUI, timelineMetrics)
+      setDraggableTime({ x: newX, y: 0 })
     }
-    if (currentExtendedACRef.current?.playing()) {
-      currentExtendedACRef.current?.volume(descriptionVolume / 100)
-    }
-    descriptionVolumeRef.current = descriptionVolume
-    localStorage.setItem('descriptionVolume', descriptionVolume.toString())
-  }, [descriptionVolume])
+  }, [currentTimeUI, timelineMetrics])
 
   useEffect(() => {
     if (currentEventRef) {
@@ -623,20 +638,20 @@ const YDXHome = ({
   )
 
   const resetPlaybackStateForSavedClipRefresh = useCallback(() => {
-    unloadHowls([
-      ...clipStackRef.current.map((clip) => clip.clip_audio),
-      currentExtendedACRef.current,
-      currentInlineACRef.current,
-    ])
-    setCurrExtendedAC(undefined)
-    setCurrInlineAC(undefined)
-    setCurrentExtACPaused(false)
+    // 1. Tell the engine to stop all current audio and clear Howler memory
+    stopAllAudio()
+
+    // 2. Tell the engine to reset the "already played" history
+    resetPlayedClips()
+
+    // 3. Reset local editor UI states
     setRecentAudioPlayedTime(0.0)
     setPlayedAudioClip('')
     setPlayedClipPath('')
-    playedClipsSetRef.current = new Set()
-    setPlayedClipsSet(new Set())
-  }, [unloadHowls])
+
+    // Note: We no longer need to manually map and unloadHowls here
+    // because the engine handles its own cleanup via stopAllAudio.
+  }, [stopAllAudio, resetPlayedClips])
 
   const fetchAudioDescriptionData = (
     isNewClipAdded = false,
@@ -874,25 +889,6 @@ const YDXHome = ({
     }
   }
 
-  const updateTime = (
-    time: number,
-    playedAudioClip: string,
-    recentAudioPlayedTime: number,
-    playedClipPath: string,
-  ) => {
-    if (isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current) {
-      return
-    }
-
-    const syncedTime = syncTimelineTime(time)
-    // check if the audio is not played recently. do not play it again.
-    if (!navSeekPendingRef.current && recentAudioPlayedTime !== syncedTime) {
-      // To Play audio files based on current time
-      playAudioAtCurrentTime(syncedTime, playedAudioClip, playedClipPath)
-    }
-    setPreviousTime(syncedTime)
-  }
-
   // Scroll to and highlight the currently playing audio clip card
   const scrollToAudioClipCard = (clipId: string) => {
     const element = document.getElementById(`audio-clip-card-${clipId}`)
@@ -908,383 +904,69 @@ const YDXHome = ({
     }
   }
 
-  // To Play audio files based on current time
-  const playAudioAtCurrentTime = async (
-    updatedCurrentTime: number,
-    playedAudioClip: string,
-    playedClipPath: string,
-  ) => {
-    // 1. Initial Guards
-    if (currentStateRef.current !== 1) return
-    if (clipStackRef.current.length === 0) return
-
-    // Prevent overlapping playback
-    if (
-      currentInlineACRef.current?.playing() ||
-      currentExtendedACRef.current?.playing()
-    ) {
-      return
-    }
-
-    const currentClip = clipStackRef.current[0]
-
-    // --- HELPER: UI UPDATER ---
-    const updateUIForClip = (clipId: string) => {
-      console.log(
-        '[updateUIForClip] clipId:',
-        clipId,
-        'navSeekPending:',
-        navSeekPendingRef.current,
-      )
-      const prevelement = document.querySelectorAll('.green-border')
-      prevelement.forEach((elem) => elem.classList.remove('green-border'))
-      scrollToAudioClipCard(clipId)
-      const playingIndex = audioClips.findIndex((c) => c.clip_id === clipId)
-      if (playingIndex !== -1) {
-        navClipIndexRef.current = playingIndex
-        setNavClipIndex(playingIndex)
-        selectedClipIdRef.current = clipId
-      }
-    }
-
-    // --- CASE A: INLINE CLIPS ---
-    if (currentClip.playback_type === 'inline') {
-      const isTimeToPlay =
-        (currentClip.clip_start_time <= currentTimeRef.current &&
-          currentClip.clip_end_time >= currentTimeRef.current) ||
-        (currentClip.clip_start_time <= currentTimeRef.current &&
-          currentClip.clip_start_time >= previousTimeRef.current)
-
-      if (isTimeToPlay) {
-        if (playedClipsSet.has(currentClip.clip_id)) {
-          console.log(
-            'Inline clip already played (Set check), skipping:',
-            currentClip.clip_id,
-          )
-          return
-        }
-
-        const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
-        const currentAudio = updatedClip.clip_audio
-        const seekTime = currentTimeRef.current - updatedClip.clip_start_time
-
-        if (seekTime < 0) return
-        // FIX 1: Helper to handle the "Play" logic safely without echos
-        const executePlay = (audioObj: any, seek: number) => {
-          // If it's already playing, don't start it again (prevents echo)
-          if (audioObj.playing()) return
-
-          // Stop any ghost instances and set state before playing
-          audioObj.stop()
-          audioObj.seek(seek)
-          audioObj.volume(descriptionVolumeRef.current / 100)
-          audioObj.play()
-        }
-
-        // FIX 2: Removed the 50ms setTimeout
-        // The delay was causing the audio to start AFTER the next logic loop ran,
-        // causing double-triggering.
-        if (currentAudio?.state() === 'loaded') {
-          executePlay(currentAudio, seekTime)
-        } else {
-          // Clear old listeners with .off() before adding a new one
-          currentAudio?.off('load').once('load', () => {
-            executePlay(currentAudio, seekTime)
-          })
-        }
-
-        setCurrInlineAC(currentAudio)
-        setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
-        setPlayedAudioClip(updatedClip.clip_id)
-        setRecentAudioPlayedTime(currentTimeRef.current)
-        updateUIForClip(updatedClip.clip_id)
-
-        if (updatedClip.clip_audio_path !== playedClipPath) {
-          setCurrentClipIndex(currentClipIndexRef.current + 1)
-          setPlayedClipPath(updatedClip.clip_audio_path)
-
-          currentAudio?.once('play', () => {
-            currentAudio.volume(descriptionVolumeRef.current / 100)
-          })
-          currentAudio?.once('end', () => {
-            setCurrInlineAC(undefined)
-            currentAudio.unload()
-            updateClipStackData()
-            currentEventRef.current?.playVideo()
-          })
-
-          // Advance Stack
-          const newClip =
-            audioClips[currentClipIndexRef.current + clipStackSize - 1]
-          if (newClip) {
-            newClip.clip_audio = new Howl({
-              src: newClip.clip_audio_path,
-              html5: true,
-            })
-            setClipStack([
-              ...clipStackRef.current.slice(1, clipStackSize),
-              newClip,
-            ])
-          } else {
-            setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-          }
-        }
-      } else if (currentTimeRef.current > currentClip.clip_end_time) {
-        setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
-        setCurrentClipIndex(currentClipIndexRef.current + 1)
-        const newStack = clipStackRef.current.slice(1)
-        const nextClipToAdd =
-          audioClips[currentClipIndexRef.current + clipStackSize]
-        if (nextClipToAdd) {
-          nextClipToAdd.clip_audio = new Howl({
-            src: nextClipToAdd.clip_audio_path,
-            html5: true,
-          })
-          newStack.push(nextClipToAdd)
-        }
-        setClipStack(newStack)
-        return
-      }
-    }
-
-    // --- CASE B: EXTENDED CLIPS ---
-    else if (currentClip.playback_type === 'extended') {
-      const isExactStart =
-        currentClip.clip_start_time <= currentTimeRef.current + 0.1 &&
-        currentClip.clip_start_time >= previousTimeRef.current - 0.1
-
-      if (isExactStart) {
-        if (playedClipsSet.has(currentClip.clip_id)) {
-          console.log(
-            'Extended clip already played (Set check), advancing stack:',
-            currentClip.clip_id,
-          )
-          setCurrentClipIndex(currentClipIndexRef.current + 1)
-          const newClip =
-            audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-          if (newClip) {
-            newClip.clip_audio = new Howl({
-              src: newClip.clip_audio_path,
-              html5: true,
-            })
-            setClipStack([
-              ...clipStackRef.current.slice(1, clipStackSize),
-              newClip,
-            ])
-          } else {
-            setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-          }
-          return
-        }
-
-        const updatedClip = await checkPlaybackTypeBeforePlaying(currentClip)
-        setCurrentClipIndex(currentClipIndexRef.current + 1)
-        setPlayedClipsSet((prev) => new Set(prev).add(updatedClip.clip_id))
-
-        if (playedAudioClip !== updatedClip.clip_id) {
-          setPlayedAudioClip(updatedClip.clip_id)
-          setRecentAudioPlayedTime(currentTimeRef.current)
-          updateUIForClip(updatedClip.clip_id)
-
-          if (updatedClip.clip_audio_path !== playedClipPath) {
-            setPlayedClipPath(updatedClip.clip_audio_path)
-            const currentAudio = updatedClip.clip_audio
-
-            currentEvent?.pauseVideo()
-
-            if (currentAudio?.state() === 'loaded') {
-              setTimeout(() => {
-                if (!currentAudio.playing()) {
-                  currentAudio.play()
-                  currentAudio.volume(descriptionVolumeRef.current / 100)
-                }
-              }, 50)
-            } else {
-              currentAudio?.once('load', function () {
-                setTimeout(() => {
-                  if (!currentAudio.playing()) {
-                    currentAudio.play()
-                    currentAudio.volume(descriptionVolumeRef.current / 100)
-                  }
-                }, 50)
-              })
-            }
-
-            setCurrExtendedAC(currentAudio)
-
-            currentAudio?.once('play', () => {
-              currentAudio.volume(descriptionVolumeRef.current / 100)
-            })
-            currentAudio?.once('end', () => {
-              setCurrExtendedAC(undefined)
-              currentEventRef.current?.playVideo()
-              currentAudio.unload()
-              setCurrentExtACPaused(false)
-            })
-
-            // Advance Stack
-            const newClip =
-              audioClips[currentClipIndexRef.current + (clipStackSize - 1)]
-            if (newClip) {
-              newClip.clip_audio = new Howl({
-                src: newClip.clip_audio_path,
-                html5: true,
-              })
-              setClipStack([
-                ...clipStackRef.current.slice(1, clipStackSize),
-                newClip,
-              ])
-            } else {
-              setClipStack([...clipStackRef.current.slice(1, clipStackSize)])
-            }
-          }
-        }
-      }
-    }
-
-    // --- CASE C: GLOBAL SKIP DETECTION (EXTENDED) ---
-    if (
-      currentClip.playback_type === 'extended' &&
-      !currentInlineACRef.current?.playing() &&
-      !currentExtendedACRef.current?.playing() &&
-      currentClip.clip_start_time < currentTimeRef.current &&
-      currentTimeRef.current - currentClip.clip_start_time >= 1.0
-    ) {
-      console.warn('Discarding skipped extended clip:', currentClip.clip_id)
-      setPlayedClipsSet((prev) => new Set(prev).add(currentClip.clip_id))
-      setCurrentClipIndex(currentClipIndexRef.current + 1)
-      const newStack = clipStackRef.current.slice(1)
-      const newClip = audioClips[currentClipIndexRef.current + clipStackSize]
-      if (newClip) {
-        newClip.clip_audio = new Howl({
-          src: newClip.clip_audio_path,
-          html5: true,
-        })
-        newStack.push(newClip)
-      }
-      setClipStack(newStack)
-      return
-    }
-  }
-
   // YouTube Player Functions
   const onStateChange = (event: any) => {
-    // Snapshot the pending-nav flag; clear it once we reach the post-seek
-    // state (1 = playing or 2 = paused). onPlay clears it for state 1.
+    // 1. Logic Guard: Handle navigation seek flags
     const navSeekPending = navSeekPendingRef.current
     if ((event.data === 1 || event.data === 2) && navSeekPending) {
       navSeekPendingRef.current = false
     }
 
-    // During buffering (state 3) or right after a navigation seek (state 1/2
-    // before YouTube has settled), YouTube's getCurrentTime() may still return
-    // the pre-seek position. Preserve the time syncTimelineTime committed so
-    // the visual playhead doesn't snap back to the old position.
+    // 2. Logic Guard: Prevent playhead "snapping" during seek/buffer
     const shouldKeepScrubbedTime =
       isTimelineScrubbingRef.current ||
       suppressResumeAfterScrubRef.current ||
       event.data === 3 ||
       navSeekPending
+
     const currentTime = shouldKeepScrubbedTime
       ? currentTimeRef.current
       : syncTimelineTime(event.target.getCurrentTime())
+
+    // 3. Update standard state
     setCurrentEvent(event.target)
     currentEventRef.current = event.target
     setCurrentTime(currentTime)
     setCurrentState(event.data)
 
-    // Grab the live, un-frozen audio objects right away
-    const inlineAC = currentInlineACRef.current
-    const extendedAC = currentExtendedACRef.current
-
+    // 4. Integrated Engine Switch
     switch (event.data) {
-      case 0:
-        setGloballyPaused(true)
-        setCurrentClipIndex(0)
-        setPlayedAudioClip('')
-        setPlayedClipPath('')
-        playedClipsSetRef.current = new Set()
-        setPlayedClipsSet(new Set())
-        setRecentAudioPlayedTime(0.0)
-        setCurrInlineAC(undefined)
-        setCurrExtendedAC(undefined)
+      case 0: // Ended
+        resetPlayedClips()
+        stopAllAudio()
         setIsActive(false)
-        manualNavTimeRef.current = null
-        // Safely clear the exact live timer
-        setTimer((prev) => {
-          if (prev) clearInterval(prev)
-          return undefined
-        })
-        console.log('Video ended, states reset')
         break
 
       case 1: // Playing
         if (suppressResumeAfterScrubRef.current) {
           event.target.pauseVideo()
           setGloballyPaused(true)
-          setTimer((prev) => {
-            if (prev) clearInterval(prev)
-            return undefined
-          })
           break
         }
 
         currentEvent?.setVolume(youTubeVolume)
         if (!isActive) setIsActive(true)
 
-        // Handle Extended Audio
-        if (extendedAC) {
-          if (isCurrentExtACPaused) {
-            extendedAC.play()
-            currentEventRef.current?.pauseVideo()
-            setCurrentExtACPaused(false)
-            setGloballyPaused(false)
-          } else if (extendedAC.playing()) {
-            // YouTube resumed while extended clip still playing — cancel it.
-            // Guard with .playing() to avoid seek(0) on an already-ended/
-            // unloaded Howl, which would restart the audio unexpectedly.
-            extendedAC.pause()
-            extendedAC.seek(0)
-            setCurrExtendedAC(undefined)
-          }
-        }
-
-        // Handle Inline Audio Resuming (Bypassing Stale State)
-        if (inlineAC) {
-          if (!inlineAC.playing()) {
-            inlineAC.play()
-            inlineAC.volume(descriptionVolumeRef.current / 100)
-          }
-        }
+        // We set this to FALSE so the Engine's tick loop knows it's okay to run
         setGloballyPaused(false)
         break
 
       case 2: // Paused
-        // Force the live Ref to pause
-        if (inlineAC) {
-          inlineAC.pause()
-        }
-        if (suppressResumeAfterScrubRef.current) {
-          setGloballyPaused(true)
-        }
-        // Safely clear the exact live timer
+        // We set this to TRUE to pause the Engine's tick loop
+        setGloballyPaused(true)
+
+        // Stop the old timer if you still have it,
+        // though the engine mostly replaces this logic
         setTimer((prev) => {
           if (prev) clearInterval(prev)
           return undefined
         })
         break
 
-      case 3: // Buffering
-        // YouTube flashes State 3 when resuming.
-        // Pause audio if it's playing, but DO NOT delete the clips or reset the sets here!
-        if (inlineAC && inlineAC.playing()) {
-          inlineAC.pause()
-        }
-        // Safely clear the exact live timer so the timeline doesn't drift
-        setTimer((prev) => {
-          if (prev) clearInterval(prev)
-          return undefined
-        })
+      case 3: // Buffering / Seek
+        // This is the most important engine call:
+        // It resets the 'played' set so audio triggers correctly at the new time
+        seekTo(event.target.getCurrentTime())
         break
     }
   }
@@ -1304,32 +986,19 @@ const YDXHome = ({
       return
     }
 
-    // If a navigation seek is still pending, YouTube's getCurrentTime() may
-    // not yet reflect the seek target. Use the ref value set by syncTimelineTime
-    // and clear the flag so subsequent play events update normally.
+    // 1. Handle Navigation Seek logic
     const navSeekPending = navSeekPendingRef.current
     if (navSeekPending) navSeekPendingRef.current = false
 
     const currentTime = navSeekPending
       ? currentTimeRef.current
       : syncTimelineTime(event.target.getCurrentTime())
+
     setPreviousTime(currentTime)
 
-    // Use the functional state update to guarantee we clear the old timer
-    // before starting a new one, preventing interval leaks.
-    setTimer((prevTimer) => {
-      if (prevTimer) clearInterval(prevTimer)
-      return setInterval(
-        () =>
-          updateTime(
-            event.target.getCurrentTime(),
-            clipIDRef.current, // Use Ref to get the live clip ID
-            recentAudioPlayedTime,
-            playedClipPath,
-          ),
-        samplingRate,
-      )
-    })
+    // 2. Simply trigger the playback engine by updating the pause state
+    // This is much cleaner than managing manual intervals!
+    setGloballyPaused(false)
   }
 
   const onPause = (event: any) => {
@@ -1344,14 +1013,8 @@ const YDXHome = ({
   }
 
   const stopScrubAudio = () => {
-    if (currentInlineACRef.current) {
-      currentInlineACRef.current.stop()
-      setCurrInlineAC(undefined)
-    }
-    if (currentExtendedACRef.current) {
-      currentExtendedACRef.current.stop()
-      setCurrExtendedAC(undefined)
-    }
+    // This one call replaces both manual Howler checks
+    stopAllAudio()
   }
 
   const resetScrubPlaybackTracking = () => {
@@ -1363,52 +1026,49 @@ const YDXHome = ({
   const startProgressBar = () => {
     isTimelineScrubbingRef.current = true
     suppressResumeAfterScrubRef.current = true
-    clearPlaybackTimer()
+    stopAllAudio() // Use engine stop
     currentEventRef.current?.pauseVideo()
     setGloballyPaused(true)
-    stopScrubAudio()
-    resetScrubPlaybackTracking()
   }
 
   // Dialog Timeline Draggable Functions
   const stopProgressBar = (position: DraggableData) => {
-    if (!timelineMetricsRef.current) {
-      return
-    }
+    if (!timelineMetricsRef.current) return
 
     const clampedX = clampTimelineX(position.x, timelineMetricsRef.current.maxX)
     const progressBarTime = timelineXToTime(
       clampedX,
       timelineMetricsRef.current,
     )
-    // Keep the visible label in sync with the final drag-stop position before
-    // insert-open snapshots currentTime for a new clip.
+
     const syncedTime = syncTimelineTime(progressBarTime)
     setPreviousTime(syncedTime)
-    // Flush the memory cache when you stop dragging. Clear the ref synchronously
-    // so the playback interval always reads an empty set even if YouTube's onPlay
-    // fires before React commits this state update.
-    playedClipsSetRef.current = new Set()
-    setPlayedClipsSet(new Set())
 
+    // 1. Tell the engine to reset and stop any scrub-audio
+    // This replaces playedClipsSetRef and setPlayedClips calls
+    resetPlayedClips()
     stopScrubAudio()
-    updateClipStackData()
+
+    // 2. Standard cleanup for the YouTube player
     isTimelineScrubbingRef.current = false
     suppressResumeAfterScrubRef.current = false
     manualNavTimeRef.current = null
+
+    // 3. Move the YouTube playhead
     currentEventRef.current?.seekTo(syncedTime, true)
 
-    // Sync clip card to wherever the playhead landed:
-    // last clip whose start_time <= syncedTime + 0.002, else clip 0.
+    // 4. Sync the UI card
     if (audioClips.length > 0) {
       const landedIndex = audioClips.reduce((best, clip, i) => {
         return clip.clip_start_time <= syncedTime + 0.002 ? i : best
       }, 0)
+
       setNavClipIndex(landedIndex)
       navClipIndexRef.current = landedIndex
       selectedClipIdRef.current = audioClips[landedIndex]?.clip_id ?? null
     }
   }
+
   const dragProgressBar = (position: DraggableData) => {
     if (!timelineMetricsRef.current) {
       return
@@ -1474,63 +1134,51 @@ const YDXHome = ({
 
   // when "AudioClip <seq no>" is clicked, video is playing from that audio clip
   const handlePlayAudioClip = (clipStartTime: number) => {
-    // Flush the memory cache when clicking a clip to jump
-    playedClipsSetRef.current = new Set()
-    setPlayedClipsSet(new Set())
+    // 1. Tell the engine to reset its history and prepare for a new time
+    stopAllAudio() // Kill any currently playing audio first
+    resetPlayedClips()
+
+    // 2. Synchronize the engine's internal time tracker
+    // This ensures the engine doesn't think it's still at the old time
+    seekTo(clipStartTime - 0.002)
+
+    // 3. UI State cleanup
     isTimelineScrubbingRef.current = false
     suppressResumeAfterScrubRef.current = false
 
+    // 4. Trigger YouTube
     currentEvent?.seekTo(clipStartTime - 0.002, true)
-    currentEvent?.playVideo() // if paused, video is played from that audio clip.
+    currentEvent?.playVideo()
   }
 
   // ── Single-clip navigation ───────────────────────────────────────────────────
   const handleClipNavigation = (index: number) => {
     if (audioClips.length === 0) return
     const clamped = Math.max(0, Math.min(index, audioClips.length - 1))
-    // Update the ref synchronously so back-to-back clicks read the latest index
-    // even before React commits the setNavClipIndex state update.
+
+    // 1. Update UI Selection Refs/State
     navClipIndexRef.current = clamped
     setNavClipIndex(clamped)
     if (isTutorialMode) setTutorialNavClipIndex(clamped)
     selectedClipIdRef.current = audioClips[clamped]?.clip_id ?? null
     setIsClipsListExpanded(false)
+
     const clipTime = audioClips[clamped]?.clip_start_time
     if (clipTime !== undefined) {
-      stopScrubAudio()
-      // Stop the playback interval so it cannot override the seek target
-      // before onPlay restarts it at the correct position.
-      clearPlaybackTimer()
-      playedClipsSetRef.current = new Set()
-      setPlayedClipsSet(new Set())
-      // Clear the scrub-pause lock so seekTo takes effect immediately and
-      // the YouTube iframe play button is not blocked by a stale drag state.
-      isTimelineScrubbingRef.current = false
-      suppressResumeAfterScrubRef.current = false
       const seekTime = Math.max(0, clipTime - 0.002)
 
-      console.log(
-        '[NAV] newIndex:',
-        clamped,
-        'targetClip:',
-        audioClips[clamped],
-        'seekTime:',
-        seekTime,
-        'currentTimeRef:',
-        currentTimeRef.current,
-      )
+      // 2. TELL THE ENGINE TO RESET
+      stopScrubAudio() // Kills current audio via stopAllAudio()
+      resetPlayedClips() // Clears memory of played clips
+      seekTo(seekTime) // Updates the engine's internal previousTimeRef
 
-      // Step 1: re-measure first so timelineMetricsRef has fresh DOM dimensions
-      // before any setDraggableTime calls are queued.
+      // 3. Clear Editor Locks
+      isTimelineScrubbingRef.current = false
+      suppressResumeAfterScrubRef.current = false
+
+      // 4. Visual Timeline Sync (Keep this! It's for the red playhead)
       measureTimelineMetrics()
-
-      // Step 2: sync time — uses the freshly-updated timelineMetricsRef to queue
-      // setDraggableTime({x: correct}) and update currentTimeRef.
       syncTimelineTime(seekTime)
-
-      // Step 3: explicit setDraggableTime as the final, guaranteed write so it
-      // wins React's batch regardless of ordering between the two calls above.
-      // This is the variable that drives the visual red marker position.
       if (timelineMetricsRef.current) {
         setDraggableTime({
           x: timeToTimelineX(seekTime, timelineMetricsRef.current),
@@ -1538,9 +1186,12 @@ const YDXHome = ({
         })
       }
 
+      // 5. Trigger YouTube Seek
       navSeekPendingRef.current = true
       currentEventRef.current?.seekTo(seekTime, true)
-      updateClipStackData()
+
+      // We can likely remove updateClipStackData() as the engine loop
+      // will pick up the new clip at seekTime automatically.
       manualNavTimeRef.current = clipTime
     }
   }
@@ -1557,46 +1208,35 @@ const YDXHome = ({
   }, [audioClips])
 
   const handlePlayPause = () => {
-    if (currExtendedAC) {
-      if (isCurrentExtACPaused) {
-        isTimelineScrubbingRef.current = false
-        suppressResumeAfterScrubRef.current = false
-        currExtendedAC.play()
-        setCurrentExtACPaused(false)
-        setGloballyPaused(false)
-      } else {
-        currExtendedAC.pause()
-        setCurrentExtACPaused(true)
-        setGloballyPaused(true)
-      }
-    } else if (currentState === 1) {
+    // If we are currently playing (Video is state 1 or Engine is active)
+    if (currentState === 1 || !isGloballyPaused) {
+      // 1. Pause everything
       currentEvent?.pauseVideo()
+      stopAllAudio() // Kill any active descriptions
       setGloballyPaused(true)
     } else {
+      // 2. Prepare for Playback
       isTimelineScrubbingRef.current = false
       suppressResumeAfterScrubRef.current = false
-      if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
+
+      if (!isActive) setIsActive(true) // Start the work-session timer
+
+      // 3. Handle Navigation Seek (If user clicked Prev/Next then Play)
       if (manualNavTimeRef.current !== null) {
-        // Seek 100ms before the clip so audio has time to load before the
-        // video reaches the trigger point, preventing clipped audio starts.
         const playTime = Math.max(0, manualNavTimeRef.current - 0.1)
         manualNavTimeRef.current = null
-        playedClipsSetRef.current = new Set()
-        setPlayedClipsSet(new Set())
+
+        // Engine replacements for manual set clearing
+        resetPlayedClips()
+        seekTo(playTime)
+
         syncTimelineTime(playTime)
         navSeekPendingRef.current = true
         currentEventRef.current?.seekTo(playTime, true)
-        updateClipStackData()
-        // Force a precise clip stack rebuild at playTime so extended clips are
-        // included in the stack with their audio loaded before playback begins.
-        const { startIndex, clipStackData } = buildClipStackForTime(
-          audioClips,
-          playTime,
-          clipStackSize,
-        )
-        setCurrentClipIndex(startIndex)
-        setClipStack(clipStackData)
       }
+
+      // 4. Play Video
+      // The engine's useEffect watches isGloballyPaused and will resume audio automatically
       currentEvent?.playVideo()
       setGloballyPaused(false)
     }
@@ -1889,21 +1529,13 @@ const YDXHome = ({
                   <Draggable
                     axis="x"
                     bounds="parent"
-                    defaultPosition={{ x: 0, y: 0 }}
+                    // Use the draggableTime state which we will now sync with the engine
                     position={draggableTime}
                     onStart={startProgressBar}
-                    onDrag={(_, data) => {
-                      dragProgressBar(data)
-                    }}
-                    onStop={(_, data) => {
-                      stopProgressBar(data)
-                    }}
+                    onDrag={(_, data) => dragProgressBar(data)}
+                    onStop={(_, data) => stopProgressBar(data)}
                   >
-                    <div
-                      ref={playheadRef}
-                      tabIndex={0}
-                      className="progress-bar-div editor-progress-bar-div"
-                    >
+                    <div ref={playheadRef} className="progress-bar-div">
                       <p
                         className="mt-5 text-white progress-bar-time"
                         data-tutorial={
@@ -2064,11 +1696,11 @@ const YDXHome = ({
             <AudioClip
               key={audioClips[navClipIndex].clip_id}
               clip={audioClips[navClipIndex]}
+              currentTime={currentTimeUI}
               userId={user || ''}
               audioDescriptionId={audioDescriptionId || ''}
               youtubeVideoId={youtubeVideoId || ''}
               unitLength={unitLength}
-              currentTime={currentTime}
               currentEvent={currentEvent}
               currentState={currentState}
               updateData={updateData}
