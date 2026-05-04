@@ -252,7 +252,7 @@ const YDXHome = ({
   useEffect(() => {
     if (activeClipId) {
       // 1. Highlight the card (scrolling logic)
-      scrollToAudioClipCard(activeClipId)
+      // scrollToAudioClipCard(activeClipId)
 
       // 2. Keep the Editor's "Currently Editing" index in sync
       const index = audioClips.findIndex((c) => c.clip_id === activeClipId)
