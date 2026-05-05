@@ -42,8 +42,9 @@ export const useAudioDescriptionEngine = (
 
   // 2. Playback Logic
   const startPlayback = useCallback(
-    async (clip: Clip, seekTime = 0) => {
-      const type = await checkPlaybackType(clip)
+    (clip: Clip) => {
+      // <-- Removed async and seekTime parameter
+      const type = clip.playback_type // <-- Use local state immediately
       setActiveClipId(clip.clip_id)
 
       if (type === 'extended') {
@@ -58,7 +59,17 @@ export const useAudioDescriptionEngine = (
         html5: true,
         volume: descriptionVolume / 100,
         onplay: () => {
-          if (seekTime > 0) howl.seek(seekTime)
+          // Recalculate the time exactly when Howler is fully loaded and starts playing.
+          // This absorbs any micro-stutters from downloading/decoding the audio file.
+          if (currentEvent && type !== 'extended') {
+            const currentVideoTime = currentEvent.getCurrentTime()
+            const accurateSeekTime = currentVideoTime - clip.clip_start_time
+
+            // Only seek if we are lagging by more than a tiny threshold
+            if (accurateSeekTime > 0.05) {
+              howl.seek(accurateSeekTime)
+            }
+          }
         },
         onend: () => {
           howl.unload()
@@ -94,7 +105,9 @@ export const useAudioDescriptionEngine = (
     if (clipToPlay && !currentAudioRef.current?.playing()) {
       playedClipsRef.current.add(clipToPlay.clip_id)
       setPlayedClips(new Set(playedClipsRef.current))
-      startPlayback(clipToPlay, now - clipToPlay.clip_start_time)
+
+      // Update how this is called
+      startPlayback(clipToPlay)
     }
 
     previousTimeRef.current = now
