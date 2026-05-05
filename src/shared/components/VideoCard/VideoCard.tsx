@@ -157,6 +157,38 @@ const VideoCard = ({
     }
   }
 
+  const collaborativeEditThisVideo = async () => {
+    if (!userDataStore.getState().isSignedIn) {
+      toast.error(
+        translate('You have to be logged in in order to add a description'),
+      )
+      return
+    }
+    if (!audioDescriptionId) {
+      toast.error(
+        translate(
+          'Something went wrong when attempting to edit audio description.',
+        ),
+      )
+      return
+    }
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/create-collaborative-ad`,
+        { youtubeVideoId: youTubeId, oldDescriberId: audioDescriptionId },
+        {
+          withCredentials: true,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      )
+      console.log('COLLAB response', response.data)
+      navigate(`/editor/${response.data.url}`)
+    } catch (error) {
+      console.error(error)
+      toast.error(translate('Something went wrong, please try again later'))
+    }
+  }
+
   const buttonElements =
     buttons === 'upvote-describe' ? (
       <div>
@@ -185,6 +217,18 @@ const VideoCard = ({
           text={translate('Edit')}
           color="w3-indigo w3-block"
           onClick={editThisVideo}
+          classNames="card-button"
+        />
+      </div>
+    ) : buttons === 'collaborative-edit' ? (
+      <div>
+        <Button
+          ariaLabel={translate(
+            'Create a collaborative edit of this AI description',
+          )}
+          text={translate('Edit')}
+          color="w3-indigo w3-block"
+          onClick={collaborativeEditThisVideo}
           classNames="card-button"
         />
       </div>
