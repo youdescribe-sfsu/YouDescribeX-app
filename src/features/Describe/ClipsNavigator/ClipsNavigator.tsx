@@ -53,6 +53,24 @@ const ClipsNavigator = ({
 }: Props) => {
   const clipButtonRefs = React.useRef<Array<HTMLButtonElement | null>>([])
 
+  // --- NEW ACCESSIBILITY FOCUS EFFECT ---
+  React.useEffect(() => {
+    if (isExpanded && clips.length > 0) {
+      // A tiny timeout ensures the list is fully rendered before we target it
+      setTimeout(() => {
+        const activeItem = clipButtonRefs.current[currentIndex]
+        if (activeItem) {
+          // 1. Shift focus for the screen reader
+          activeItem.focus()
+
+          // 2. Visually scroll the item into the center of the list
+          activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 50)
+    }
+  }, [isExpanded, currentIndex, clips.length])
+  // --------------------------------------
+
   if (clips.length === 0) return null
 
   const selectClip = (index: number) => {
@@ -96,6 +114,7 @@ const ClipsNavigator = ({
             <li key={clip.clip_id} className="clip-summary-list-item">
               <button
                 type="button"
+                tabIndex={index === currentIndex ? 0 : -1}
                 ref={(element) => {
                   clipButtonRefs.current[index] = element
                 }}

@@ -74,7 +74,10 @@
   min-width: 0;
   overflow-wrap: anywhere;
   padding-bottom: 1px;
-  background: linear-gradient(rgba(66, 153, 225, 0.55), rgba(66, 153, 225, 0.55))
+  background: linear-gradient(
+      rgba(66, 153, 225, 0.55),
+      rgba(66, 153, 225, 0.55)
+    )
     0 100% / 100% 2px no-repeat;
 }
 

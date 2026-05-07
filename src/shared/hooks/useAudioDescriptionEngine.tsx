@@ -43,8 +43,7 @@ export const useAudioDescriptionEngine = (
   // 2. Playback Logic
   const startPlayback = useCallback(
     (clip: Clip) => {
-      // <-- Removed async and seekTime parameter
-      const type = clip.playback_type // <-- Use local state immediately
+      const type = clip.playback_type
       setActiveClipId(clip.clip_id)
 
       if (type === 'extended') {
@@ -54,35 +53,36 @@ export const useAudioDescriptionEngine = (
         engineStateRef.current = 'PLAYING_INLINE'
       }
 
-      const howl = new Howl({
-        src: clip.clip_audio_path,
-        html5: true,
-        volume: descriptionVolume / 100,
-        onplay: () => {
-          // Recalculate the time exactly when Howler is fully loaded and starts playing.
-          // This absorbs any micro-stutters from downloading/decoding the audio file.
-          if (currentEvent && type !== 'extended') {
-            const currentVideoTime = currentEvent.getCurrentTime()
-            const accurateSeekTime = currentVideoTime - clip.clip_start_time
+      // Assign to a variable and ensure it is treated as a Howl instance
+      const howlInstance: Howl =
+        clip.clip_audio ??
+        new Howl({
+          src: clip.clip_audio_path,
+          html5: true,
+          preload: true,
+          volume: descriptionVolume / 100,
+        })
 
-            // Only seek if we are lagging by more than a tiny threshold
-            if (accurateSeekTime > 0.05) {
-              howl.seek(accurateSeekTime)
-            }
+      // Use howlInstance consistently within this scope
+      howlInstance.once('play', () => {
+        if (currentEvent && type !== 'extended') {
+          const currentVideoTime = currentEvent.getCurrentTime()
+          const drift = currentVideoTime - clip.clip_start_time
+
+          if (drift > 0.02 && drift < clip.clip_duration) {
+            howlInstance.seek(drift) // TS now knows this is a Howl instance
           }
-        },
-        onend: () => {
-          howl.unload()
-          currentAudioRef.current = null
-          if (type === 'extended') {
-            currentEvent?.playVideo()
-          }
-          engineStateRef.current = 'PLAYING_VIDEO'
-        },
+        }
       })
 
-      currentAudioRef.current = howl
-      howl.play()
+      howlInstance.once('end', () => {
+        currentAudioRef.current = null
+        if (type === 'extended') currentEvent?.playVideo()
+        engineStateRef.current = 'PLAYING_VIDEO'
+      })
+
+      currentAudioRef.current = howlInstance
+      howlInstance.play()
     },
     [currentEvent, descriptionVolume],
   )

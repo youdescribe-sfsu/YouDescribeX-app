@@ -75,7 +75,7 @@ const YDXHome = ({
       autoplay: 0,
       enablejsapi: 1,
       cc_load_policy: 1,
-      controls: 0,
+      controls: 1,
       fs: 0,
       iv_load_policy: 3,
       modestbranding: 1,
@@ -1045,7 +1045,6 @@ const YDXHome = ({
     setPreviousTime(syncedTime)
 
     // 1. Tell the engine to reset and stop any scrub-audio
-    // This replaces playedClipsSetRef and setPlayedClips calls
     resetPlayedClips()
     stopScrubAudio()
 
@@ -1059,9 +1058,22 @@ const YDXHome = ({
 
     // 4. Sync the UI card
     if (audioClips.length > 0) {
-      const landedIndex = audioClips.reduce((best, clip, i) => {
-        return clip.clip_start_time <= syncedTime + 0.002 ? i : best
-      }, 0)
+      let landedIndex = audioClips.findIndex((clip) => {
+        // Extended clips pause the video, so their audio duration doesn't
+        // stretch across the video's timeline. Their effective end time
+        // on the timeline is just their start time.
+        const effectiveVideoEndTime =
+          clip.playback_type === 'extended'
+            ? clip.clip_start_time
+            : clip.clip_end_time
+
+        return effectiveVideoEndTime > syncedTime
+      })
+
+      // If we dragged past the very last clip entirely
+      if (landedIndex === -1) {
+        landedIndex = audioClips.length - 1
+      }
 
       setNavClipIndex(landedIndex)
       navClipIndexRef.current = landedIndex

@@ -256,6 +256,27 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     }
   }, [currentEvent, youTubeVolume])
 
+  useEffect(() => {
+    if (currentState !== 1 || audioClips.length === 0) return
+
+    // Find any clip starting in the next 5 seconds and tell the browser to download it
+    const futureThreshold = currentTimeUI + 5
+    audioClips.forEach((clip) => {
+      if (
+        clip.clip_start_time > currentTimeUI &&
+        clip.clip_start_time < futureThreshold
+      ) {
+        if (!clip.clip_audio) {
+          clip.clip_audio = new Howl({
+            src: clip.clip_audio_path,
+            html5: true,
+            preload: true,
+          })
+        }
+      }
+    })
+  }, [currentTimeUI, currentState, audioClips])
+
   //
   // END OF YDX STATE VARIABLES
   //
