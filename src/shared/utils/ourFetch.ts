@@ -13,6 +13,7 @@ const ourFetch = (
     method: 'GET' | 'POST' | 'DELETE' | 'PUT'
     headers?: { [key: string]: string }
     body?: any
+    timeoutMs?: number
   } = {
     method: 'GET',
   },
@@ -26,6 +27,12 @@ const ourFetch = (
 
     req.open(optionObj.method, absoluteUrl.toString())
 
+    req.timeout = optionObj.timeoutMs ?? 15000
+
+    req.ontimeout = () => {
+      reject(new Error(`Request timed out after ${req.timeout}ms: ${url}`))
+    }
+
     if (optionObj.headers) {
       for (const key in optionObj.headers) {
         req.setRequestHeader(key, optionObj.headers[key])
@@ -35,12 +42,20 @@ const ourFetch = (
     req.onload = () => {
       if (req.status === 200) {
         if (JSONparsing) {
-          resolve(JSON.parse(req.response))
+          try {
+            resolve(JSON.parse(req.response))
+          } catch {
+            reject(new Error(`Invalid JSON response from ${url}`))
+          }
         } else {
           resolve(req.response)
         }
       } else {
-        reject(JSON.parse(req.response))
+        try {
+          reject(JSON.parse(req.response))
+        } catch {
+          reject(new Error(`HTTP ${req.status}: ${req.statusText || 'Error'}`))
+        }
       }
     }
 

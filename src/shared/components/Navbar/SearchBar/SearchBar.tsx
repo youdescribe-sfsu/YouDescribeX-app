@@ -102,15 +102,16 @@ const SearchBar = () => {
   }, [location.pathname])
 
   useEffect(() => {
-    inputRef.current?.addEventListener('click', () => setShowDropdown(true))
+    const inputEl = inputRef.current
+    const showDropdown = () => setShowDropdown(true)
+    inputEl?.addEventListener('click', showDropdown)
     window.addEventListener('click', handleClickOutsideInput)
 
     return () => {
-      inputRef.current?.removeEventListener('click', () =>
-        setShowDropdown(true),
-      )
+      inputEl?.removeEventListener('click', showDropdown)
       window.removeEventListener('click', handleClickOutsideInput)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

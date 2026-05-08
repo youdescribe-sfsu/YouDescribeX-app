@@ -18,6 +18,10 @@ const CACHE_VERSION = 'v2' // Incremented to invalidate old caches with incorrec
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes in milliseconds
 const MAX_PAGES_TO_CACHE = 3
 
+// If the local backend's video endpoints are unavailable, fall back to the dev site
+const DEV_BACKEND_API = 'https://ydx-dev.youdescribe.org/api'
+const HOME_FETCH_TIMEOUT_MS = 8000
+
 interface VideoData {
   youTubeId: string
   description: string
@@ -42,6 +46,123 @@ interface CachedPage {
   timestamp: number
 }
 
+// Helper function to clean up older caches if we have too many
+const cleanupOldCaches = () => {
+  try {
+    const maxPage = parseInt(localStorage.getItem('ydx-home-max-page') || '0')
+    if (maxPage > MAX_PAGES_TO_CACHE) {
+      for (let i = 1; i <= maxPage - MAX_PAGES_TO_CACHE; i++) {
+        localStorage.removeItem(`ydx-home-page-${i}-${CACHE_VERSION}`)
+      }
+    }
+  } catch (error) {
+    console.error('Error cleaning up caches:', error)
+  }
+}
+
+// Helper object to manage the video cache (uses only localStorage + module-level constants)
+const videoCache = {
+  getPageCache: (page: number): CachedPage | null => {
+    try {
+      const cacheKey = `ydx-home-page-${page}-${CACHE_VERSION}`
+      const cachedData = localStorage.getItem(cacheKey)
+
+      if (!cachedData) return null
+
+      const parsedData = JSON.parse(cachedData) as CachedPage
+
+      // Check if cache is still valid
+      if (Date.now() - parsedData.timestamp > CACHE_TTL) {
+        // Cache expired
+        localStorage.removeItem(cacheKey)
+        return null
+      }
+
+      return parsedData
+    } catch (error) {
+      console.error('Error retrieving from cache:', error)
+      return null
+    }
+  },
+
+  setPageCache: (page: number, data: any) => {
+    try {
+      const cacheKey = `ydx-home-page-${page}-${CACHE_VERSION}`
+      const cacheData: CachedPage = {
+        data,
+        timestamp: Date.now(),
+      }
+
+      localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+
+      // Also store the max page seen for easy retrieval next time
+      localStorage.setItem(
+        'ydx-home-max-page',
+        String(
+          Math.max(
+            page,
+            parseInt(localStorage.getItem('ydx-home-max-page') || '0'),
+          ),
+        ),
+      )
+
+      // Cleanup old caches if we have too many
+      cleanupOldCaches()
+    } catch (error) {
+      console.error('Error saving to cache:', error)
+    }
+  },
+
+  getVideoData: (): VideoCache | null => {
+    try {
+      const cache = localStorage.getItem('ydx-home-videos-data')
+      if (!cache) return null
+
+      const parsedCache = JSON.parse(cache) as VideoCache
+
+      // Validate cache version and TTL
+      if (
+        parsedCache.version !== CACHE_VERSION ||
+        Date.now() - parsedCache.timestamp > CACHE_TTL
+      ) {
+        localStorage.removeItem('ydx-home-videos-data')
+        return null
+      }
+
+      return parsedCache
+    } catch (error) {
+      console.error('Error retrieving video data from cache:', error)
+      return null
+    }
+  },
+
+  setVideoData: (videoData: VideoData[]) => {
+    try {
+      const cacheData = {
+        videos: videoData,
+        timestamp: Date.now(),
+        version: CACHE_VERSION,
+      }
+
+      localStorage.setItem('ydx-home-videos-data', JSON.stringify(cacheData))
+    } catch (error) {
+      console.error('Error saving video data to cache:', error)
+    }
+  },
+
+  invalidateCache: () => {
+    try {
+      for (let i = 1; i <= MAX_PAGES_TO_CACHE; i++) {
+        localStorage.removeItem(`ydx-home-page-${i}-${CACHE_VERSION}`)
+      }
+      localStorage.removeItem('ydx-home-videos-data')
+      localStorage.removeItem('ydx-home-max-page')
+    } catch (error) {
+      console.error('Error invalidating cache:', error)
+    }
+  },
+}
+
 const Home = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [rawVideoData, setRawVideoData] = useState<VideoData[]>([])
@@ -51,124 +172,6 @@ const Home = () => {
   const [renderKey, setRenderKey] = useState(0)
 
   const navigate = useNavigate()
-
-  // Helper function to manage the video cache
-  const videoCache = {
-    getPageCache: (page: number): CachedPage | null => {
-      try {
-        const cacheKey = `ydx-home-page-${page}-${CACHE_VERSION}`
-        const cachedData = localStorage.getItem(cacheKey)
-
-        if (!cachedData) return null
-
-        const parsedData = JSON.parse(cachedData) as CachedPage
-
-        // Check if cache is still valid
-        if (Date.now() - parsedData.timestamp > CACHE_TTL) {
-          // Cache expired
-          localStorage.removeItem(cacheKey)
-          return null
-        }
-
-        return parsedData
-      } catch (error) {
-        console.error('Error retrieving from cache:', error)
-        return null
-      }
-    },
-
-    setPageCache: (page: number, data: any) => {
-      try {
-        const cacheKey = `ydx-home-page-${page}-${CACHE_VERSION}`
-        const cacheData: CachedPage = {
-          data,
-          timestamp: Date.now(),
-        }
-
-        localStorage.setItem(cacheKey, JSON.stringify(cacheData))
-
-        // Also store the max page seen for easy retrieval next time
-        localStorage.setItem(
-          'ydx-home-max-page',
-          String(
-            Math.max(
-              page,
-              parseInt(localStorage.getItem('ydx-home-max-page') || '0'),
-            ),
-          ),
-        )
-
-        // Cleanup old caches if we have too many
-        cleanupOldCaches()
-      } catch (error) {
-        console.error('Error saving to cache:', error)
-      }
-    },
-
-    getVideoData: (): VideoCache | null => {
-      try {
-        const cache = localStorage.getItem('ydx-home-videos-data')
-        if (!cache) return null
-
-        const parsedCache = JSON.parse(cache) as VideoCache
-
-        // Validate cache version and TTL
-        if (
-          parsedCache.version !== CACHE_VERSION ||
-          Date.now() - parsedCache.timestamp > CACHE_TTL
-        ) {
-          localStorage.removeItem('ydx-home-videos-data')
-          return null
-        }
-
-        return parsedCache
-      } catch (error) {
-        console.error('Error retrieving video data from cache:', error)
-        return null
-      }
-    },
-
-    setVideoData: (videoData: VideoData[]) => {
-      try {
-        const cacheData = {
-          videos: videoData,
-          timestamp: Date.now(),
-          version: CACHE_VERSION,
-        }
-
-        localStorage.setItem('ydx-home-videos-data', JSON.stringify(cacheData))
-      } catch (error) {
-        console.error('Error saving video data to cache:', error)
-      }
-    },
-
-    invalidateCache: () => {
-      try {
-        for (let i = 1; i <= MAX_PAGES_TO_CACHE; i++) {
-          localStorage.removeItem(`ydx-home-page-${i}-${CACHE_VERSION}`)
-        }
-        localStorage.removeItem('ydx-home-videos-data')
-        localStorage.removeItem('ydx-home-max-page')
-      } catch (error) {
-        console.error('Error invalidating cache:', error)
-      }
-    },
-  }
-
-  // Helper function to clean up older caches if we have too many
-  const cleanupOldCaches = () => {
-    try {
-      const maxPage = parseInt(localStorage.getItem('ydx-home-max-page') || '0')
-      if (maxPage > MAX_PAGES_TO_CACHE) {
-        // Remove caches for pages beyond our limit
-        for (let i = 1; i <= maxPage - MAX_PAGES_TO_CACHE; i++) {
-          localStorage.removeItem(`ydx-home-page-${i}-${CACHE_VERSION}`)
-        }
-      }
-    } catch (error) {
-      console.error('Error cleaning up caches:', error)
-    }
-  }
 
   // Initialize or restore videos from cache
   useEffect(() => {
@@ -236,7 +239,10 @@ const Home = () => {
 
       // Use the new combined endpoint
       const url = `${apiUrl}/videos/home-videos?page=${page}`
-      const response = await ourFetch(url)
+      const response = await ourFetch(url, true, {
+        method: 'GET',
+        timeoutMs: HOME_FETCH_TIMEOUT_MS,
+      })
 
       // Check if we have more videos to load
       if (
@@ -278,7 +284,10 @@ const Home = () => {
   const fallbackToOriginalFetch = async (page: number) => {
     try {
       const url = `${apiUrl}/videos?page=${page}`
-      const response = await ourFetch(url)
+      const response = await ourFetch(url, true, {
+        method: 'GET',
+        timeoutMs: HOME_FETCH_TIMEOUT_MS,
+      })
 
       if (!response.result || response.result.length === 0) {
         setHasMoreVideos(false)
@@ -310,9 +319,25 @@ const Home = () => {
 
       parseHomePageData(combinedData, page === 1)
     } catch (error) {
+      console.error('Local backend unavailable, trying dev backend:', error)
+      // Final fallback: dev backend has the full video catalog
+      try {
+        const devUrl = `${DEV_BACKEND_API}/videos/home-videos?page=${page}`
+        const devResponse = await ourFetch(devUrl, true, {
+          method: 'GET',
+          timeoutMs: HOME_FETCH_TIMEOUT_MS,
+        })
+        if (devResponse.result?.videos?.length) {
+          videoCache.setPageCache(page, devResponse.result)
+          setShowSpinner(false)
+          setLoadMoreVideos(false)
+          parseHomePageData(devResponse.result, page === 1)
+          return
+        }
+      } catch (devError) {
+        console.error('Dev backend also failed:', devError)
+      }
       toast.error('Error fetching videos. Please try again later.')
-      console.error(error)
-
       setShowSpinner(false)
       setLoadMoreVideos(false)
     }
@@ -419,7 +444,7 @@ const Home = () => {
         videoCache.setVideoData(allVideosData)
       }
     },
-    [rawVideoData, videoCache],
+    [rawVideoData],
   )
 
   const loadMoreResults = () => {

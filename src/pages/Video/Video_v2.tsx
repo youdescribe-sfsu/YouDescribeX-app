@@ -165,6 +165,7 @@ const Video = () => {
         clearInterval(timer)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Update Refs
@@ -194,6 +195,7 @@ const Video = () => {
   useEffect(() => {
     currentEventRef.current = currentEvent
     currentEventRef.current?.setVolume(youTubeVolume)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEvent])
 
   useEffect(() => {
@@ -242,6 +244,7 @@ const Video = () => {
     if (videoId) {
       fetchVideoData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -278,6 +281,7 @@ const Video = () => {
           }
         })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userDataStore.getState().isSignedIn])
 
   const fetchVideoData = () => {
@@ -950,7 +954,7 @@ const Video = () => {
     }
     // Update clipStack
     setClipStack(clipStackData)
-  }, [audioClips, setCurrentClipIndex])
+  }, [audioClips, setCurrentClipIndex, clipStackSize])
 
   //
   //
@@ -1005,6 +1009,7 @@ const Video = () => {
     })
 
     setDescriberCards(describerCards)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioDescriptionsIdsUsers, selectedADId])
 
   const checkUserCanCollaborate = (ads: any, selectedDescriberId: string) => {
@@ -1408,7 +1413,8 @@ const Video = () => {
         ),
       )
     }
-    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
+    //const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-gpu`
+    const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/users/request-ai-descriptions-with-lana`
 
     try {
       setRequestAiDescription({

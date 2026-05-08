@@ -13,6 +13,7 @@ import convertViewsToCardFormat from '@/shared/utils/convertViewsToCardFormat'
 import ourFetch from '@/shared/utils/ourFetch'
 import YouTubeService from '@/shared/utils/YouTubeService'
 import axios from 'axios'
+import { isTutorialVideoId } from '@/features/Tutorial/tutorialConfig'
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -101,7 +102,9 @@ const Search = () => {
 
       ourFetch(url)
         .then((response) => {
-          const videoDbResponseVideos = response.result.videos
+          const videoDbResponseVideos = response.result.videos.filter(
+            (video: any) => !isTutorialVideoId(video.youtube_id),
+          )
           const totalVideos = response.result.total
           setVideoDBResponseVideos(videoDbResponseVideos)
           setShowLoadMoreButton(totalVideos > page * 20)
@@ -213,7 +216,10 @@ const Search = () => {
         const videoFoundOnYTIds = []
         for (let i = 0; i < videos.items.length; i++) {
           const video = videos.items[i]
-          if (video.id.kind === 'youtube#video') {
+          if (
+            video.id.kind === 'youtube#video' &&
+            !isTutorialVideoId(video.id.videoId)
+          ) {
             // Make sure we only get videos
             videoFoundOnYTIds.push(video.id.videoId)
           }
@@ -243,6 +249,10 @@ const Search = () => {
         continue
       }
       const youTubeId = item.id
+      if (isTutorialVideoId(youTubeId)) {
+        continue
+      }
+
       const thumbnailMedium = item.snippet.thumbnails.medium
       const duration = convertSecondsToCardFormat(
         convertISO8601ToSeconds(item.contentDetails.duration),

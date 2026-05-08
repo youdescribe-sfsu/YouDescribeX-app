@@ -79,6 +79,7 @@ const UserDescribedVideos = () => {
     url: string,
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
     page: number,
+    buttonType?: string,
   ) => {
     try {
       // Step 1: Get video IDs from our backend (keep this part)
@@ -134,6 +135,7 @@ const UserDescribedVideos = () => {
         setStateFunction,
         totalVideos,
         page,
+        buttonType ?? 'edit',
       )
     } catch (error) {
       console.error('Error fetching videos:', error)
@@ -158,6 +160,7 @@ const UserDescribedVideos = () => {
     setStateFunction: React.Dispatch<React.SetStateAction<any[]>>,
     totalVideos: number,
     page: number,
+    buttonType?: string,
   ) => {
     const videoComponents = []
     // Determine which collection of videos we're working with
@@ -196,7 +199,7 @@ const UserDescribedVideos = () => {
             author={author}
             views={views}
             time={time}
-            buttons="edit"
+            buttons={buttonType ?? 'edit'}
             onClick={() => onVideoClick(youTubeId)}
           />
         </div>,
@@ -239,7 +242,12 @@ const UserDescribedVideos = () => {
   const loadMoreResultsAI = () => {
     setLoadMoreAIVideos(true)
     setCurrentPageAI(currentPageAI + 1)
-    getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI + 1)
+    getUserVideos(
+      aiRequestedVideosUrl,
+      setAIVideos,
+      currentPageAI + 1,
+      'collaborative-edit',
+    )
   }
 
   const loadMoreResultsDraft = () => {
@@ -288,18 +296,26 @@ const UserDescribedVideos = () => {
     if (userId) {
       getUserVideos(myDescribedVideosUrl, setVideos, currentPage)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, currentPage])
 
   useEffect(() => {
     if (userId) {
       getUserVideos(myDraftVideosUrl, setVideosDraft, currentPageDraft)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, currentPageDraft])
 
   useEffect(() => {
     if (userId) {
-      getUserVideos(aiRequestedVideosUrl, setAIVideos, currentPageAI)
+      getUserVideos(
+        aiRequestedVideosUrl,
+        setAIVideos,
+        currentPageAI,
+        'collaborative-edit',
+      )
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, currentPageAI])
 
   if (

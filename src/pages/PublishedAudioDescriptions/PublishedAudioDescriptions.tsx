@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom' /* to use params on the url */
 import axios from 'axios'
 import YouTube, { YouTubePlayer } from 'react-youtube'
-import Draggable, { DraggableData, DraggableEvent } from 'react-draggable'
+import Draggable, { DraggableData } from 'react-draggable'
 import '../../assets/css/home.css'
 import '../../assets/css/timer.css'
 import AudioClip from '../../features/Describe/AudioClip/AudioClip'
@@ -17,10 +17,18 @@ import InsertPublish from '../../features/Describe/InsertPublish/InsertPublish'
 import { Buttons } from '../../features/Describe/Buttons/Buttons'
 
 import Spinner from '../../shared/components/Spinner/Spinner'
+import useCanonicalVideoDuration from '../../shared/hooks/useCanonicalVideoDuration'
 import { Howl } from 'howler'
-import { debounce } from 'debounce'
 import { useMemo } from 'react'
 import convertClipObject, { Clip } from '../../shared/utils/convertClipObject'
+import {
+  buildTimelineMetrics,
+  clampTimelineTime,
+  clampTimelineX,
+  timeToTimelineX,
+  timelineXToTime,
+  TimelineMetrics,
+} from '../../shared/utils/timelineBounds'
 import { Options } from 'youtube-player/dist/types'
 import { userDataStore } from '@/App'
 import { Id, toast } from 'react-toastify'
@@ -28,6 +36,14 @@ import ModalComponent from '@/shared/components/Modal/Modal'
 import Button from 'react-bootstrap/Button'
 
 const previewUrl = '/audio-description/preview'
+
+type DialogTimestamp = {
+  dialog_seq_no: number
+  dialog_start_time: number
+  dialog_duration: number
+}
+
+const DEFAULT_PLAYHEAD_WIDTH_PX = 2
 
 const PublishedAudioDescriptions = (): React.ReactElement => {
   /* to use params on the url and get userId & youtubeVideoId */
@@ -63,21 +79,27 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   const divRef1 = useRef<HTMLDivElement>(null)
   const divRef2 = useRef<HTMLDivElement>(null)
   const divRef3 = useRef<HTMLDivElement>(null)
+  const playheadRef = useRef<HTMLDivElement>(null)
   const [divWidths, setDivWidths] = useState({})
 
   // State Variables
   const [videoId, setVideoId] = useState('') // retrieved from db, stored to fetch audio_descriptions
   // const [audioDescriptionId, setAudioDescriptionId] = useState('') // retrieved from db, stored to fetch Notes & Audio Clips
   const [notesData, setNotesData] = useState('') // retrieved from db, stored to pass on to Notes Component
-  const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored to display as a label for the dialog timeline
-  const [draggableDivWidth, setDraggableDivWidth] = useState(0.0) //stores width of #draggable-div
+  const [videoLength, setVideoLength] = useState(0) // retrieved from db, stored as a fallback if canonical YouTube metadata is unavailable
+  const [backendFallbackYoutubeVideoId, setBackendFallbackYoutubeVideoId] =
+    useState<string | undefined>()
   const [currentEvent, setCurrentEvent] = useState<YouTubePlayer>() //stores YouTube video's event
   const [currentState, setCurrentState] = useState(-1) // stores YouTube video's PLAYING, CUED, PAUSED, UNSTARTED, BUFFERING, ENDED state values
   const [currentTime, setCurrentTime] = useState(0.0) //stores current running time of the YouTube video
   const [timer, setTimer] = useState<NodeJS.Timer>() // stores TBD
   const [unitLength, setUnitLength] = useState(0) // stores unit length based on the video length to maintain colored div's on the timelines
-  const [draggableTime, setDraggableTime] = useState({ x: -3, y: 0 }) // stores the position of the draggable bar on the #draggable-div
-  const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<any[]>([]) // stores dialog-timestamps data for a video from backend db
+  const [draggableTime, setDraggableTime] = useState({ x: 0, y: 0 }) // stores the position of the draggable bar on the #draggable-div
+  const [timelineMetrics, setTimelineMetrics] =
+    useState<TimelineMetrics | null>(null)
+  const [videoDialogTimestamps, setVideoDialogTimestamps] = useState<
+    DialogTimestamp[]
+  >([]) // stores dialog-timestamps data for a video from backend db
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPublished, setIsPublished] = useState(false) // holds the published state of the Video & Audio Description
   const [audioClips, setAudioClips] = useState<Clip[]>([]) // stores list of Audio Clips data for a video from backend db
@@ -162,8 +184,22 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   // )
 
   const currentEventRef = useRef(currentEvent)
+  const currentStateRef = useRef(currentState)
   const currentInlineACRef = useRef(currInlineAC)
   const currentExtendedACRef = useRef(currExtendedAC)
+  const timelineMetricsRef = useRef<TimelineMetrics | null>(null)
+  const isTimelineScrubbingRef = useRef(false)
+  const suppressResumeAfterScrubRef = useRef(false)
+  const initialUpdateDataRef = useRef(true)
+  const backendFallbackDurationSeconds =
+    backendFallbackYoutubeVideoId === youtubeVideoId ? videoLength : 0
+  const canonicalVideoDuration = useCanonicalVideoDuration(
+    youtubeVideoId,
+    backendFallbackDurationSeconds,
+  )
+  const canonicalDurationSeconds = canonicalVideoDuration.durationSeconds
+  const hasCanonicalDuration =
+    canonicalVideoDuration.status === 'resolved' && canonicalDurationSeconds > 0
 
   useEffect(() => {
     currentInlineACRef.current = currInlineAC
@@ -184,6 +220,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   }, [currentClipIndex])
 
   useEffect(() => {
+    timelineMetricsRef.current = timelineMetrics
+  }, [timelineMetrics])
+
+  useEffect(() => {
     if (currentInlineACRef.current?.playing()) {
       currentInlineACRef.current?.volume(descriptionVolume / 100)
     }
@@ -202,6 +242,16 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
   }, [youTubeVolume, currentEventRef])
 
+  useEffect(() => {
+    if (videoId) {
+      setShowSpinner(true)
+      fetchDialogData()
+      setShowSpinner(true)
+      fetchAudioDescriptionData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoId])
+
   function reset() {
     setSeconds(0)
     setIsActive(false)
@@ -218,13 +268,25 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
       divRef4: divRef3.current?.clientWidth,
     })
     setShowSpinner(true)
-    // set the toggle list back to empty if we are fetching the data again
-    fetchUserVideoData() // use axios to get audio descriptions for the youtubeVideoId & userId passed to the url Params
+    fetchUserVideoData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [youtubeVideoId])
 
-    document.addEventListener('keyup', () => {
+  useEffect(() => {
+    const handleKeyUp = () => {
       setIsPlaying((prevIsPlaying) => !prevIsPlaying)
-    })
+    }
+
+    document.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      document.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
+  useEffect(() => {
     let interval: NodeJS.Timer | null = null
+
     if (isActive) {
       interval = setInterval(() => {
         setSeconds((seconds) => seconds + 1)
@@ -239,17 +301,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         clearInterval(interval)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isActive,
-    draggableDivWidth,
-    unitLength,
-    videoId,
-    youtubeVideoId,
-    // changing this state variable, will fetch user data again
-    updateData, // to fetch data whenever updateData state is changed.
-    setEditComponentToggleList,
-  ])
+  }, [isActive, seconds])
 
   useEffect(() => {
     localStorage.setItem('Seconds', String(seconds))
@@ -266,12 +318,29 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
   }, [currentEvent])
 
   useEffect(() => {
+    currentStateRef.current = currentState
+  }, [currentState])
+
+  useEffect(() => {
     if (needRefresh) {
       fetchAudioDescriptionData(true)
       setNeedRefresh(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needRefresh])
+
+  useEffect(() => {
+    if (initialUpdateDataRef.current) {
+      initialUpdateDataRef.current = false
+      return
+    }
+
+    if (videoId) {
+      setShowSpinner(true)
+      fetchAudioDescriptionData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateData])
 
   useEffect(() => {
     // console.log(user)
@@ -281,25 +350,89 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  // for calculating the draggable-div width of the timeline
-  const calculateDraggableDivWidth = () => {
-    // remove the left & right margin - leaving about 96% of the total width of the draggable-div
-    const currWidth = divRef3?.current?.clientWidth ?? 1
-    // const currWidth = 700;
-    const draggableDivWidth = (96 * currWidth) / 100
-    setDraggableDivWidth(draggableDivWidth)
-    // could add this to change the unit length for every window resize.. commenting this for now
-    // window.addEventListener('resize', () => {
-    //   const newWidth = divRef.current.clientWidth;
-    //   const draggableDivWidth = (96 * newWidth) / 100;
-    //   setDraggableDivWidth(draggableDivWidth);
-    // });
-  }
-  // calculate unit length of the timeline width based on video length
-  const calculateUnitLength = (videoEndTime: number) => {
-    const unitLength = draggableDivWidth / videoEndTime // let unitlength = 644 / 299;
-    setUnitLength(unitLength)
-  }
+
+  const syncTimelineTime = useCallback(
+    (time: number) => {
+      const durationSeconds =
+        timelineMetricsRef.current?.durationSeconds || canonicalDurationSeconds
+      const clampedTime = clampTimelineTime(time, durationSeconds)
+
+      setCurrentTime(clampedTime)
+      currentTimeRef.current = clampedTime
+
+      if (timelineMetricsRef.current) {
+        setDraggableTime({
+          x: timeToTimelineX(clampedTime, timelineMetricsRef.current),
+          y: 0,
+        })
+      }
+
+      return clampedTime
+    },
+    [canonicalDurationSeconds],
+  )
+
+  const measureTimelineMetrics = useCallback(() => {
+    if (!hasCanonicalDuration) {
+      timelineMetricsRef.current = null
+      setTimelineMetrics(null)
+      setUnitLength(0)
+      setDraggableTime({ x: 0, y: 0 })
+      return
+    }
+
+    const nextMetrics = buildTimelineMetrics(
+      divRef3.current?.clientWidth || 0,
+      playheadRef.current?.clientWidth || DEFAULT_PLAYHEAD_WIDTH_PX,
+      canonicalDurationSeconds,
+    )
+    const nextUnitLength =
+      nextMetrics.durationSeconds > 0
+        ? nextMetrics.maxX / nextMetrics.durationSeconds
+        : 0
+    const clampedTime = clampTimelineTime(
+      currentTimeRef.current,
+      canonicalDurationSeconds,
+    )
+
+    timelineMetricsRef.current = nextMetrics
+    setTimelineMetrics(nextMetrics)
+    setUnitLength(nextUnitLength)
+    setCurrentTime(clampedTime)
+    currentTimeRef.current = clampedTime
+    setDraggableTime({
+      x: timeToTimelineX(clampedTime, nextMetrics),
+      y: 0,
+    })
+  }, [canonicalDurationSeconds, hasCanonicalDuration])
+
+  useEffect(() => {
+    measureTimelineMetrics()
+
+    if (!hasCanonicalDuration) {
+      return
+    }
+
+    const handleResize = () => {
+      measureTimelineMetrics()
+    }
+
+    let resizeObserver: ResizeObserver | undefined
+
+    if (typeof ResizeObserver !== 'undefined' && divRef3.current) {
+      resizeObserver = new ResizeObserver(() => {
+        measureTimelineMetrics()
+      })
+      resizeObserver.observe(divRef3.current)
+    } else {
+      window.addEventListener('resize', handleResize)
+    }
+
+    return () => {
+      resizeObserver?.disconnect()
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [hasCanonicalDuration, measureTimelineMetrics])
 
   // use axios and get dialog timestamps for the Dialog Timeline
   const fetchDialogData = () => {
@@ -315,25 +448,20 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         })
         .then((dialogData) => {
           setShowSpinner(false)
-          const updatedDialogData: any[] = []
-          dialogData.forEach((dialog: any) => {
-            const x = dialog.dialog_start_time * unitLength
-            const width = dialog.dialog_duration * unitLength
-            const dialog_start_time = {
+          const updatedDialogData: DialogTimestamp[] = dialogData.map(
+            (dialog: any) => ({
               dialog_seq_no: dialog.dialog_sequence_num,
-              // dialog_end_time: dialog.dialog_end_time,
-              controlledPosition: { x: x, y: 0 },
-              width: width,
-            }
-            updatedDialogData.push(dialog_start_time)
-          })
+              dialog_start_time: dialog.dialog_start_time,
+              dialog_duration: dialog.dialog_duration,
+            }),
+          )
           setVideoDialogTimestamps(updatedDialogData)
         })
         .catch((err) => {
           // console.error(err.response.data);
           console.error('ERROR in fetchDialogData', err)
 
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
   }
 
@@ -349,24 +477,14 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           const video_id = res.data.video_id
           const video_length = res.data.video_length
           setVideoLength(video_length)
+          setBackendFallbackYoutubeVideoId(youtubeVideoId)
           setVideoId(video_id)
-          return video_length
-        })
-        .then((video_length) => {
-          setShowSpinner(false)
-          // order of the below function calls is important
-          calculateDraggableDivWidth() // for calculating the draggable-div width of the timeline
-          calculateUnitLength(video_length) // calculate unit length of the timeline width based on video length
-          setShowSpinner(true)
-          fetchDialogData() // use axios and get dialog timestamps for the Dialog Timeline});
-          setShowSpinner(true)
-          fetchAudioDescriptionData()
         })
         .catch((err) => {
           // console.error(err.response.data);
           console.error('ERROR in fetchUserVideoData', err)
 
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
     }
   }
@@ -476,7 +594,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           // console.error(err.response.data);
           console.error('ERROR in fetchAudioDescriptionData', err)
 
-          setShowSpinner(true)
+          setShowSpinner(false)
         })
   }
 
@@ -487,15 +605,17 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     recentAudioPlayedTime: number,
     playedClipPath: string,
   ) => {
-    setCurrentTime(time)
-    // for updating the draggable component position based on current time
-    setDraggableTime({ x: unitLength * time, y: 0 })
-    // check if the audio is not played recently. do not play it again.
-    if (recentAudioPlayedTime !== time) {
-      // To Play audio files based on current time
-      playAudioAtCurrentTime(time, playedAudioClip, playedClipPath)
+    if (isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current) {
+      return
     }
-    setPreviousTime(time)
+
+    const syncedTime = syncTimelineTime(time)
+    // check if the audio is not played recently. do not play it again.
+    if (recentAudioPlayedTime !== syncedTime) {
+      // To Play audio files based on current time
+      playAudioAtCurrentTime(syncedTime, playedAudioClip, playedClipPath)
+    }
+    setPreviousTime(syncedTime)
   }
 
   const checkPlaybackTypeBeforePlaying = async (clip: Clip): Promise<Clip> => {
@@ -548,7 +668,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     playedClipPath: string,
   ) => {
     // playing
-    if (currentState === 1) {
+    if (currentStateRef.current === 1) {
       // If all clips have been played, skip check
       if (clipStackRef.current.length === 0) {
         // console.log('No Clips left to play')
@@ -824,8 +944,13 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   // YouTube Player Functions
   const onStateChange = (event: any) => {
-    const currentTime = event.target.getCurrentTime()
+    const shouldKeepScrubbedTime =
+      isTimelineScrubbingRef.current || suppressResumeAfterScrubRef.current
+    const currentTime = shouldKeepScrubbedTime
+      ? currentTimeRef.current
+      : syncTimelineTime(event.target.getCurrentTime())
     setCurrentEvent(event.target)
+    currentEventRef.current = event.target
     setCurrentTime(currentTime)
     setCurrentState(event.data)
     switch (event.data) {
@@ -834,6 +959,13 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         // event.target.seekTo(0);
         break
       case 1: // Playing
+        if (suppressResumeAfterScrubRef.current) {
+          event.target.pauseVideo()
+          setGloballyPaused(true)
+          clearPlaybackTimer()
+          break
+        }
+
         // Case for Extended Audio Clips:
         // When an extended Audio Clip is playing, YT video is paused
         // User plays the YT Video. Extended is still played along with the video. Overlapping with Dialogs &/ other audio clips
@@ -871,7 +1003,10 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           // currInlineAC.currentTime = 0;
           // setCurrInlineAC(null);
         }
-        clearInterval(timer)
+        if (suppressResumeAfterScrubRef.current) {
+          setGloballyPaused(true)
+        }
+        clearPlaybackTimer()
         break
       case 3: // Buffering
         // onSeek - Buffering event is also called
@@ -879,21 +1014,31 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         setPlayedClipPath('')
         setPlayedAudioClip('')
         setRecentAudioPlayedTime(0.0)
-        clearInterval(timer)
+        clearPlaybackTimer()
         setCurrExtendedAC(undefined)
         setCurrInlineAC(undefined)
         break
       default: // All other states
-        clearInterval(timer)
+        clearPlaybackTimer()
         break
     }
   }
   const onReady = (event: any) => {
     setCurrentEvent(event.target)
+    currentEventRef.current = event.target
   }
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
-    setCurrentTime(event.target.getCurrentTime())
+    currentEventRef.current = event.target
+
+    if (suppressResumeAfterScrubRef.current) {
+      event.target.pauseVideo()
+      setGloballyPaused(true)
+      return
+    }
+
+    const currentTime = syncTimelineTime(event.target.getCurrentTime())
+    setPreviousTime(currentTime)
     // pass the current time & recentAudioPlayedTime - to avoid playing same clip multiple times
     setTimer(
       setInterval(
@@ -912,49 +1057,72 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     event.target.pauseVideo()
   }
 
-  // Dialog Timeline Draggable Functions
-  const stopProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
-    setDraggableTime({ x: position.x, y: 0 })
-    let progressBarTime = 0.0
-    progressBarTime = position.x / unitLength
-    currentEventRef.current?.seekTo(progressBarTime, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setPreviousTime(currentPlayerTime ?? 0)
+  const clearPlaybackTimer = () => {
+    setTimer((prev) => {
+      if (prev) clearInterval(prev)
+      return undefined
+    })
   }
-  const dragProgressBar = async (
-    event: DraggableEvent,
-    position: DraggableData,
-  ) => {
-    // setDraggableTime({ x: position.x, y: 0 });
-    let progressBarTime = 0.0
-    progressBarTime = position.x / unitLength
-    currentEventRef.current?.seekTo(progressBarTime, true)
-    const currentPlayerTime = await currentEventRef.current?.getCurrentTime()
-    setCurrentTime(currentPlayerTime ?? 0)
-    setPreviousTime(currentPlayerTime ?? 0)
+
+  const stopScrubAudio = () => {
+    if (currentInlineACRef.current) {
+      currentInlineACRef.current.stop()
+      setCurrInlineAC(undefined)
+    }
+    if (currentExtendedACRef.current) {
+      currentExtendedACRef.current.stop()
+      setCurrExtendedAC(undefined)
+    }
+  }
+
+  const resetScrubPlaybackTracking = () => {
     setRecentAudioPlayedTime(0.0)
     setPlayedAudioClip('')
     setPlayedClipPath('')
-    updateClipsDataCallback()
-    if (currentExtendedACRef.current) {
-      // to stop playing -> pause and set time to 0
-      currentExtendedACRef.current.pause()
-      currentExtendedACRef.current.seek(0)
-      currentExtendedACRef.current.unload()
-      setCurrExtendedAC(undefined)
-      // currentEvent?.playVideo()
+  }
+
+  const startProgressBar = () => {
+    isTimelineScrubbingRef.current = true
+    suppressResumeAfterScrubRef.current = true
+    clearPlaybackTimer()
+    currentEventRef.current?.pauseVideo()
+    setGloballyPaused(true)
+    stopScrubAudio()
+    resetScrubPlaybackTracking()
+  }
+
+  // Dialog Timeline Draggable Functions
+  const stopProgressBar = (position: DraggableData) => {
+    if (!timelineMetricsRef.current) {
+      return
     }
-    if (currentInlineACRef.current) {
-      // to stop playing -> pause and set time to 0
-      currentInlineACRef.current.pause()
-      currentInlineACRef.current.seek(0)
-      currentInlineACRef.current.unload()
-      setCurrExtendedAC(undefined)
-      // currentEvent?.playVideo()
+
+    const clampedX = clampTimelineX(position.x, timelineMetricsRef.current.maxX)
+    const progressBarTime = timelineXToTime(
+      clampedX,
+      timelineMetricsRef.current,
+    )
+    const syncedTime = syncTimelineTime(progressBarTime)
+    setPreviousTime(syncedTime)
+    stopScrubAudio()
+    updateClipStackData()
+    isTimelineScrubbingRef.current = false
+    suppressResumeAfterScrubRef.current = false
+    currentEventRef.current?.seekTo(syncedTime, true)
+  }
+  const dragProgressBar = (position: DraggableData) => {
+    if (!timelineMetricsRef.current) {
+      return
     }
+
+    const clampedX = clampTimelineX(position.x, timelineMetricsRef.current.maxX)
+    const progressBarTime = timelineXToTime(
+      clampedX,
+      timelineMetricsRef.current,
+    )
+    const syncedTime = syncTimelineTime(progressBarTime)
+    setCurrentTime(syncedTime)
+    resetScrubPlaybackTracking()
   }
 
   const updateClipStackData = useCallback(() => {
@@ -987,15 +1155,7 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     }
     // Update clipStack
     setClipStack(clipStackData)
-  }, [audioClips, setCurrentClipIndex])
-
-  const updateClipsDataCallback = useMemo(
-    () =>
-      debounce(() => {
-        updateClipStackData()
-      }, 500),
-    [updateClipStackData],
-  )
+  }, [audioClips, setCurrentClipIndex, clipStackSize])
 
   // toggle Show Edit Component
   // logic to show/hide the edit component and add it to a list along with clip Id
@@ -1019,6 +1179,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
 
   // when "AudioClip <seq no>" is clicked, video is playing from that audio clip start time
   const handlePlayAudioClip = (clipStartTime: number) => {
+    isTimelineScrubbingRef.current = false
+    suppressResumeAfterScrubRef.current = false
     currentEvent?.seekTo(clipStartTime - 0.4, true) // 0.4 is added for some buffering time
     currentEvent?.playVideo() // if paused, video is played from that audio clip.
   }
@@ -1027,6 +1189,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
     if (currExtendedAC) {
       // If an extended clip exists, make it play/pause
       if (isCurrentExtACPaused) {
+        isTimelineScrubbingRef.current = false
+        suppressResumeAfterScrubRef.current = false
         currExtendedAC.play()
         setCurrentExtACPaused(false)
         setGloballyPaused(false)
@@ -1040,6 +1204,8 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
       currentEvent?.pauseVideo()
       setGloballyPaused(true)
     } else {
+      isTimelineScrubbingRef.current = false
+      suppressResumeAfterScrubRef.current = false
       if (!isActive) setIsActive(true) //if the timer is paused it will start again when the video plays
       currentEvent?.playVideo()
       setGloballyPaused(false)
@@ -1144,69 +1310,95 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
         </div>
         <hr className="m-2 ydx-hr" />
         {/* Dialog Timeline */}
-        <div className="row div-below-hr">
-          <div className="col-3 text-white" ref={divRef1}>
-            <h6 className="dialog-timeline-text text-center fw-bolder">
-              Dialog Timeline ({convertSecondsToCardFormat(videoLength)}):
-            </h6>
-          </div>
-          <div className="col-7 mt-3" ref={divRef2}>
-            <div className="row mx-1 timeline-div">
-              <div id="draggable-div" className="draggable-div" ref={divRef3}>
-                {/* Dialog Timeline blue & white div's */}
-                {videoDialogTimestamps.map((dialog, key) => (
-                  <Draggable
-                    axis="x"
-                    key={key}
-                    position={dialog.controlledPosition}
-                    bounds="parent"
-                  >
-                    <div
-                      className="dialog-timestamps-div"
-                      style={{
-                        width: dialog.width,
-                        height: '20px',
-                      }}
-                    ></div>
-                  </Draggable>
-                ))}
+        {hasCanonicalDuration && (
+          <div className="row div-below-hr">
+            <div className="col-3 text-white" ref={divRef1}>
+              <h6 className="dialog-timeline-text text-center fw-bolder">
+                Dialog Timeline (
+                {convertSecondsToCardFormat(canonicalDurationSeconds)}
+                ):
+              </h6>
+            </div>
+            <div className="col-7 mt-3" ref={divRef2}>
+              <div className="row mx-1 timeline-div">
+                <div id="draggable-div" className="draggable-div" ref={divRef3}>
+                  {/* Dialog Timeline blue & white div's */}
+                  {videoDialogTimestamps.map((dialog, key) => {
+                    const position = timelineMetrics
+                      ? {
+                          x: timeToTimelineX(
+                            dialog.dialog_start_time,
+                            timelineMetrics,
+                          ),
+                          y: 0,
+                        }
+                      : { x: 0, y: 0 }
+                    const width = timelineMetrics
+                      ? timeToTimelineX(dialog.dialog_duration, timelineMetrics)
+                      : 0
 
-                {/* ProgressBar */}
-                <Draggable
-                  axis="x"
-                  bounds="parent"
-                  defaultPosition={{ x: 0, y: 0 }}
-                  position={draggableTime}
-                  onDrag={(e, data) => {
-                    dragProgressBar(e, data)
-                  }}
-                  onStop={(e, data) => {
-                    stopProgressBar(e, data)
-                  }}
-                >
-                  <div tabIndex={0} className="progress-bar-div">
-                    <p className="mt-5 text-white progress-bar-time">
-                      {convertSecondsToCardFormat(currentTime)}
-                    </p>
-                  </div>
-                </Draggable>
+                    return (
+                      <Draggable
+                        axis="x"
+                        key={key}
+                        position={position}
+                        bounds="parent"
+                      >
+                        <div
+                          className="dialog-timestamps-div"
+                          style={{
+                            width,
+                            height: '20px',
+                          }}
+                        ></div>
+                      </Draggable>
+                    )
+                  })}
+
+                  {/* ProgressBar */}
+                  {timelineMetrics && unitLength > 0 && (
+                    <Draggable
+                      axis="x"
+                      bounds="parent"
+                      defaultPosition={{ x: 0, y: 0 }}
+                      position={draggableTime}
+                      onStart={startProgressBar}
+                      onDrag={(_, data) => {
+                        dragProgressBar(data)
+                      }}
+                      onStop={(_, data) => {
+                        stopProgressBar(data)
+                      }}
+                    >
+                      <div
+                        ref={playheadRef}
+                        tabIndex={0}
+                        className="progress-bar-div editor-progress-bar-div"
+                      >
+                        <p className="mt-5 text-white progress-bar-time">
+                          {convertSecondsToCardFormat(currentTime)}
+                        </p>
+                      </div>
+                    </Draggable>
+                  )}
+                </div>
               </div>
             </div>
+            <div className="col-2 mt-3">
+              <p className="text-white fw-bolder">
+                Audio Clips Count: {audioClips.length}
+              </p>
+              {undoDeletedClipInfo && ( // Render the undo button if there is deleted clip info
+                <Button
+                  className="btn rounded btn-sm text-white bg-warning ydx-button"
+                  disabled={isPreviewAudioDescription}
+                >
+                  <i className="fa fa-undo" /> {'  '} Undo Last Deleted
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="col-2 mt-3">
-            <p className="text-white fw-bolder">
-              Audio Clips Count: {audioClips.length}
-            </p>
-            {undoDeletedClipInfo && ( // Render the undo button if there is deleted clip info
-              <Button
-                className="btn rounded btn-sm text-white bg-warning ydx-button"
-                disabled={isPreviewAudioDescription}
-              >
-                <i className="fa fa-undo" /> {'  '} Undo Last Deleted
-              </Button>
-            )}
-          </div>
-        </div>
+        )}
         {/* <div className="row">
           <div className="col-3 text-white" ref={divRef1}>
             <h6 className="dialog-timeline-text text-center fw-bolder">
@@ -1229,32 +1421,38 @@ const PublishedAudioDescriptions = (): React.ReactElement => {
           id="audio-list"
           ref={audioClipsListRef}
         >
-          {audioClips.map((clip, key) => (
-            <AudioClip
-              key={key}
-              clip={clip}
-              userId={user || ''}
-              audioDescriptionId={audioDescriptionId || ''}
-              youtubeVideoId={youtubeVideoId || ''}
-              unitLength={unitLength}
-              currentTime={currentTime}
-              currentEvent={currentEvent}
-              currentState={currentState}
-              updateData={updateData}
-              setUpdateData={setUpdateData}
-              videoLength={videoLength}
-              setShowSpinner={setShowSpinner}
-              editComponentToggleList={editComponentToggleList}
-              setEditComponentToggleFunc={setEditComponentToggleFunc}
-              divWidths={divWidths}
-              handlePlayAudioClip={handlePlayAudioClip}
-              fetchUserVideoData={fetchUserVideoData}
-              setNeedRefresh={setNeedRefresh}
-              isPreview={isPreviewAudioDescription}
-              setUndoDeletedClip={setUndoDeletedClip}
-              setUpdatedDescriptions={setUpdatedDescriptions}
-            />
-          ))}
+          {/* Wait for the canonical duration before rendering clip editors so stale backend lengths cannot shape clip state during route changes. */}
+          {hasCanonicalDuration &&
+            audioClips.map((clip, key) => (
+              <AudioClip
+                key={key}
+                clip={clip}
+                userId={user || ''}
+                audioDescriptionId={audioDescriptionId || ''}
+                youtubeVideoId={youtubeVideoId || ''}
+                unitLength={unitLength}
+                currentTime={currentTime}
+                currentEvent={currentEvent}
+                currentState={currentState}
+                updateData={updateData}
+                setUpdateData={setUpdateData}
+                videoLength={canonicalDurationSeconds}
+                setShowSpinner={setShowSpinner}
+                editComponentToggleList={editComponentToggleList}
+                setEditComponentToggleFunc={setEditComponentToggleFunc}
+                divWidths={divWidths}
+                handlePlayAudioClip={handlePlayAudioClip}
+                fetchUserVideoData={fetchUserVideoData}
+                setNeedRefresh={setNeedRefresh}
+                isPreview={isPreviewAudioDescription}
+                setUndoDeletedClip={setUndoDeletedClip}
+                setUpdatedDescriptions={setUpdatedDescriptions}
+                isPublished={isPublished}
+                enrollInCollabEdit={false}
+                setEnrollInCollabEdit={() => undefined}
+                onPublish={() => undefined}
+              />
+            ))}
         </div>
         <div className="row">
           <div

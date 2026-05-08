@@ -163,6 +163,7 @@ const VideoEmbed = () => {
         clearInterval(timer)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Update Refs
@@ -192,6 +193,7 @@ const VideoEmbed = () => {
   useEffect(() => {
     currentEventRef.current = currentEvent
     currentEventRef.current?.setVolume(youTubeVolume)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEvent])
 
   useEffect(() => {
@@ -240,6 +242,7 @@ const VideoEmbed = () => {
     if (videoId) {
       fetchVideoData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchVideoData = () => {
@@ -935,7 +938,7 @@ const VideoEmbed = () => {
     }
     // Update clipStack
     setClipStack(clipStackData)
-  }, [audioClips, setCurrentClipIndex])
+  }, [audioClips, setCurrentClipIndex, clipStackSize])
 
   //
   //
