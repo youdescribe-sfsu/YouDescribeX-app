@@ -95,7 +95,10 @@ const UserDescribedVideos = () => {
 
       // If no videos, update state and hide spinner and load more button
       if (!videosArray || videosArray.length === 0) {
-        setStateFunction([])
+        // Only clear state if this is the first page (initial load with no results)
+        if (page === 1) {
+          setStateFunction([])
+        }
 
         // Hide the appropriate "Load more" button based on which function is being called
         if (setStateFunction === setVideos) {
