@@ -788,11 +788,24 @@ const YDXHome = ({
           }
           // After normal refresh, recalculate which clip to show by playhead
           if (audioClipsData.length > 0) {
-            const t = currentTimeRef.current
-            const newIdx = audioClipsData.reduce(
-              (best, clip, i) => (clip.clip_start_time <= t ? i : best),
-              0,
+            let newIdx = 0
+            const existingSelectedId = selectedClipIdRef.current
+            const foundIndex = audioClipsData.findIndex(
+              (c) => c.clip_id === existingSelectedId,
             )
+
+            if (foundIndex !== -1) {
+              // We found the clip they were just editing, stay on it!
+              newIdx = foundIndex
+            } else {
+              // Fallback: look at the playhead time
+              const t = currentTimeRef.current
+              newIdx = audioClipsData.reduce(
+                (best, clip, i) => (clip.clip_start_time <= t ? i : best),
+                0,
+              )
+            }
+
             navClipIndexRef.current = newIdx
             setNavClipIndex(newIdx)
             selectedClipIdRef.current = audioClipsData[newIdx]?.clip_id ?? null

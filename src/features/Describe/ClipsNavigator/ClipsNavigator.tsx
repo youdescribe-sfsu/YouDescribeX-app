@@ -35,7 +35,9 @@ const getClipAccessibilityLabel = (clip: Clip, index: number) => {
   const startTime = convertSecondsToCardFormat(clip.clip_start_time)
   const endTime = convertSecondsToCardFormat(clip.clip_end_time)
   const type = formatPlaybackType(clip.playback_type)
-  const description = getDescriptionPreview(clip.description_text)
+  const description = clip.is_recorded
+    ? 'Voice Recording'
+    : getDescriptionPreview(clip.description_text)
 
   return `${getClipLabel(
     clip,
@@ -152,7 +154,7 @@ const ClipsNavigator = ({
                 <div className="clip-summary-content">
                   <div className="clip-description-preview">
                     <span className="clip-description-text">
-                      {getDescriptionPreview(clip.description_text)}
+                      {clip.is_recorded ? "Voice Recording" : getDescriptionPreview(clip.description_text)}
                     </span>
                   </div>
                 </div>
