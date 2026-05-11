@@ -154,7 +154,9 @@ const ClipsNavigator = ({
                 <div className="clip-summary-content">
                   <div className="clip-description-preview">
                     <span className="clip-description-text">
-                      {clip.is_recorded ? "Voice Recording" : getDescriptionPreview(clip.description_text)}
+                      {clip.is_recorded
+                        ? 'Voice Recording'
+                        : getDescriptionPreview(clip.description_text)}
                     </span>
                   </div>
                 </div>
