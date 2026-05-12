@@ -1338,7 +1338,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     setShowLanguageSelector(false)
   }
 
-  const DescriptionButtons = () => {
+  const renderDescriptionButtons = () => {
     if (
       requestAiDescription.status === 'completed' &&
       requestAiDescription.url
@@ -1584,7 +1584,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
                   ariaLabel="Turn off descriptions for this video"
                   onClick={handleTurnOffDescriptions}
                 />
-                <DescriptionButtons />
+                {renderDescriptionButtons()}
               </div>
             </div>
           ) : (
@@ -1634,7 +1634,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
                   onClick={() => upVote()}
                 />
               </div>
-              <DescriptionButtons />
+              {renderDescriptionButtons()}
             </div>
           </div>
         </section>
