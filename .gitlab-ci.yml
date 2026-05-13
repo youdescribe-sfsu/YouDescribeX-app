@@ -33,7 +33,7 @@ before_script:
       --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL"
       --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION"
       -t "${IMAGE_NAME}:${IMAGE_TAG}" .
-    - docker push $LATEST_IMAGE
+    - docker push "${IMAGE_NAME}:${IMAGE_TAG}"
     - echo "Build complete"
 
 build_dev:
