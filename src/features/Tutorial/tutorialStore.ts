@@ -6,10 +6,12 @@ interface TutorialState {
   isActive: boolean
   currentStepIndex: number
   tutorialMode: TutorialMode | null
+  navigationSource: 'tutorial-controls' | 'page-tab'
 
   startTutorial: () => void
   nextStep: () => void
   prevStep: () => void
+  goToStep: (index: number, source?: 'tutorial-controls' | 'page-tab') => void
   skipTutorial: () => void
   completeTutorial: () => void
   setTutorialMode: (mode: TutorialMode) => void
@@ -21,9 +23,15 @@ export const tutorialStore = create<TutorialState>()(
       isActive: false,
       currentStepIndex: 0,
       tutorialMode: null,
+      navigationSource: 'tutorial-controls',
 
       startTutorial: () => {
-        set({ isActive: true, currentStepIndex: 0, tutorialMode: null })
+        set({
+          isActive: true,
+          currentStepIndex: 0,
+          tutorialMode: null,
+          navigationSource: 'tutorial-controls',
+        })
       },
 
       nextStep: () => {
@@ -36,18 +44,41 @@ export const tutorialStore = create<TutorialState>()(
           return
         }
 
-        set({ currentStepIndex: nextIndex })
+        set({
+          currentStepIndex: nextIndex,
+          navigationSource: 'tutorial-controls',
+        })
       },
 
       prevStep: () => {
         const { currentStepIndex } = get()
         if (currentStepIndex > 0) {
-          set({ currentStepIndex: currentStepIndex - 1 })
+          set({
+            currentStepIndex: currentStepIndex - 1,
+            navigationSource: 'tutorial-controls',
+          })
         }
       },
 
+      goToStep: (index, source = 'tutorial-controls') => {
+        const { tutorialMode } = get()
+        const steps = getActiveSteps(tutorialMode)
+        const lastStepIndex = steps.length - 1
+        const nextIndex = Math.max(0, Math.min(index, lastStepIndex))
+
+        set({
+          currentStepIndex: nextIndex,
+          navigationSource: source,
+        })
+      },
+
       skipTutorial: () => {
-        set({ isActive: false, currentStepIndex: 0, tutorialMode: null })
+        set({
+          isActive: false,
+          currentStepIndex: 0,
+          tutorialMode: null,
+          navigationSource: 'tutorial-controls',
+        })
       },
 
       completeTutorial: () => {
@@ -55,6 +86,7 @@ export const tutorialStore = create<TutorialState>()(
           isActive: false,
           currentStepIndex: 0,
           tutorialMode: null,
+          navigationSource: 'tutorial-controls',
         })
       },
 

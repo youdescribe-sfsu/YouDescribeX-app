@@ -26,6 +26,7 @@ interface Props {
   onChoose?: (mode: TutorialMode) => void
   currentStepIndex: number
   totalSteps: number
+  moveKeyboardToPanel: boolean
 }
 
 const DEFAULT_SPOTLIGHT_PADDING = {
@@ -223,6 +224,7 @@ const TutorialOverlay = ({
   onChoose,
   currentStepIndex,
   totalSteps,
+  moveKeyboardToPanel,
 }: Props) => {
   const [targetState, setTargetState] = useState<{
     element: Element | null
@@ -519,14 +521,14 @@ const TutorialOverlay = ({
     isTooltipCentered || (targetEl !== null && isTargetReady && isPositioned)
 
   useEffect(() => {
-    if (!isReady) return
+    if (!isReady || !moveKeyboardToPanel) return
 
     const timer = setTimeout(() => {
       tooltipRef.current?.focus({ preventScroll: true })
     }, TOOLTIP_FOCUS_DELAY_MS)
 
     return () => clearTimeout(timer)
-  }, [step.id, isReady])
+  }, [step.id, isReady, moveKeyboardToPanel])
 
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow
@@ -630,39 +632,42 @@ const TutorialOverlay = ({
     return () => document.removeEventListener('keydown', handleKeydown)
   }, [onSkip, onNext, isClickAction])
 
-  const handleTrapKeydown = useCallback((event: ReactKeyboardEvent) => {
-    if (event.key !== 'Tab') return
+  const handleTrapKeydown = useCallback(
+    (event: ReactKeyboardEvent) => {
+      if (!moveKeyboardToPanel || event.key !== 'Tab') return
 
-    const container = tooltipRef.current
-    if (!container) return
+      const container = tooltipRef.current
+      if (!container) return
 
-    const focusables =
-      container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
-    if (focusables.length === 0) return
+      const focusables =
+        container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      if (focusables.length === 0) return
 
-    const first = focusables[0]
-    const last = focusables[focusables.length - 1]
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
 
-    if (event.shiftKey) {
-      if (
-        document.activeElement === first ||
-        document.activeElement === container
-      ) {
-        event.preventDefault()
-        last.focus()
+      if (event.shiftKey) {
+        if (
+          document.activeElement === first ||
+          document.activeElement === container
+        ) {
+          event.preventDefault()
+          last.focus()
+        }
+        return
       }
-      return
-    }
 
-    if (document.activeElement === last) {
-      event.preventDefault()
-      first.focus()
-    }
-  }, [])
+      if (document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    },
+    [moveKeyboardToPanel],
+  )
 
   const tooltipContent = (
     <>
-      <div aria-live="assertive" aria-atomic="true" className="sr-only">
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
         Step {currentStepIndex + 1} of {totalSteps}: {step.title}.{' '}
         {step.content} {legendText}
       </div>
@@ -740,6 +745,7 @@ const TutorialOverlay = ({
   return (
     <div
       className="tutorial-overlay-wrapper"
+      data-tutorial-overlay="true"
       style={{ pointerEvents: isClickAction ? 'none' : 'auto' }}
     >
       <svg className="tutorial-mask-svg" aria-hidden="true">
@@ -784,7 +790,7 @@ const TutorialOverlay = ({
           tooltipRef.current = node
         }}
         role="dialog"
-        aria-modal="true"
+        aria-modal={moveKeyboardToPanel ? true : undefined}
         aria-label={`Tutorial step ${currentStepIndex + 1} of ${totalSteps}: ${
           step.title
         }`}
