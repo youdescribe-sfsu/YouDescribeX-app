@@ -3,7 +3,7 @@ version: '3'
 services:
   frontend:
     container_name: youdescribex-frontend
-    image: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}:latest"
+    image: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${IMAGE_TAG:-latest}"
     ports:
       - "${PORT}:${PORT}"
     restart: always
