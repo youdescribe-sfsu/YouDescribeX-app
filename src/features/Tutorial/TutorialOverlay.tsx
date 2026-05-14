@@ -59,6 +59,32 @@ const SCROLL_BLOCK_KEYS = [
 const FOCUSABLE_SELECTOR =
   'button, [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+const INTERACTIVE_TAG_NAMES = new Set([
+  'A',
+  'BUTTON',
+  'INPUT',
+  'SELECT',
+  'SUMMARY',
+  'TEXTAREA',
+])
+
+const INTERACTIVE_ROLES = new Set([
+  'button',
+  'checkbox',
+  'combobox',
+  'link',
+  'listbox',
+  'menuitem',
+  'option',
+  'radio',
+  'searchbox',
+  'slider',
+  'spinbutton',
+  'switch',
+  'tab',
+  'textbox',
+])
+
 const toPlacement = (pos: TutorialStep['position']): Placement =>
   pos === 'center' ? 'bottom' : pos
 
@@ -73,7 +99,13 @@ const isInteractiveElement = (element: Element | null): boolean => {
     return false
   }
 
-  return element.tagName === 'BUTTON' || element.tagName === 'A'
+  const role = element.getAttribute('role')
+
+  return (
+    INTERACTIVE_TAG_NAMES.has(element.tagName) ||
+    element.isContentEditable ||
+    (role !== null && INTERACTIVE_ROLES.has(role))
+  )
 }
 
 const isScrollBlockKey = (key: string): boolean =>
@@ -519,16 +551,17 @@ const TutorialOverlay = ({
 
   const isReady =
     isTooltipCentered || (targetEl !== null && isTargetReady && isPositioned)
+  const shouldKeepKeyboardInPanel = moveKeyboardToPanel && isTooltipCentered
 
   useEffect(() => {
-    if (!isReady || !moveKeyboardToPanel) return
+    if (!isReady || !shouldKeepKeyboardInPanel) return
 
     const timer = setTimeout(() => {
       tooltipRef.current?.focus({ preventScroll: true })
     }, TOOLTIP_FOCUS_DELAY_MS)
 
     return () => clearTimeout(timer)
-  }, [step.id, isReady, moveKeyboardToPanel])
+  }, [step.id, isReady, shouldKeepKeyboardInPanel])
 
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow
@@ -634,7 +667,7 @@ const TutorialOverlay = ({
 
   const handleTrapKeydown = useCallback(
     (event: ReactKeyboardEvent) => {
-      if (!moveKeyboardToPanel || event.key !== 'Tab') return
+      if (!shouldKeepKeyboardInPanel || event.key !== 'Tab') return
 
       const container = tooltipRef.current
       if (!container) return
@@ -662,7 +695,7 @@ const TutorialOverlay = ({
         first.focus()
       }
     },
-    [moveKeyboardToPanel],
+    [shouldKeepKeyboardInPanel],
   )
 
   const tooltipContent = (
@@ -784,13 +817,12 @@ const TutorialOverlay = ({
       </svg>
 
       <div
-        key={step.id}
         ref={(node) => {
           refs.setFloating(node)
           tooltipRef.current = node
         }}
         role="dialog"
-        aria-modal={moveKeyboardToPanel ? true : undefined}
+        aria-modal={shouldKeepKeyboardInPanel ? true : undefined}
         aria-label={`Tutorial step ${currentStepIndex + 1} of ${totalSteps}: ${
           step.title
         }`}

@@ -24,7 +24,6 @@ const TutorialPage = () => {
   const nextStep = tutorialStore((state) => state.nextStep)
   const prevStep = tutorialStore((state) => state.prevStep)
   const goToStep = tutorialStore((state) => state.goToStep)
-  const navigationSource = tutorialStore((state) => state.navigationSource)
   const skipTutorial = tutorialStore((state) => state.skipTutorial)
   const setTutorialMode = tutorialStore((state) => state.setTutorialMode)
   const resetTutorialEditor = tutorialEditorStore(
@@ -36,9 +35,7 @@ const TutorialPage = () => {
 
   const activeSteps = getActiveSteps(tutorialMode)
   const currentStep = activeSteps[currentStepIndex]
-  const moveKeyboardToPanel =
-    currentStep?.position === 'center' ||
-    navigationSource === 'tutorial-controls'
+  const moveKeyboardToPanel = currentStep?.position === 'center'
 
   useTutorialKeyboardFlow({
     isActive,
