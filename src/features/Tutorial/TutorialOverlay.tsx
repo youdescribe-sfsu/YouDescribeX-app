@@ -121,6 +121,30 @@ const getTargetFocusElement = (element: Element | null): HTMLElement | null => {
   return element.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
 }
 
+const appendIdReference = (value: string | null, id: string): string => {
+  const ids = value?.split(/\s+/).filter(Boolean) ?? []
+  return ids.includes(id) ? ids.join(' ') : [...ids, id].join(' ')
+}
+
+const appendIdReferences = (value: string | null, ids: string[]): string =>
+  ids.reduce(
+    (currentValue, id) => appendIdReference(currentValue, id),
+    value,
+  ) ?? ''
+
+const restoreAttribute = (
+  element: HTMLElement,
+  attributeName: string,
+  previousValue: string | null,
+) => {
+  if (previousValue !== null) {
+    element.setAttribute(attributeName, previousValue)
+    return
+  }
+
+  element.removeAttribute(attributeName)
+}
+
 const isScrollBlockKey = (key: string): boolean =>
   SCROLL_BLOCK_KEYS.includes(key)
 
@@ -566,6 +590,80 @@ const TutorialOverlay = ({
   const isReady =
     isTooltipCentered || (targetEl !== null && isTargetReady && isPositioned)
   const shouldKeepKeyboardInPanel = moveKeyboardToPanel && isTooltipCentered
+  const stepTitleId = `tutorial-step-${step.id}-title`
+  const stepContentId = `tutorial-step-${step.id}-content`
+
+  useEffect(() => {
+    if (
+      isTooltipCentered ||
+      !isTargetReady ||
+      !(targetEl instanceof HTMLElement)
+    ) {
+      return
+    }
+
+    const target = targetEl
+    const existingFocusTarget = getTargetFocusElement(target)
+    const focusTarget = existingFocusTarget ?? target
+    const shouldMakeTargetFocusable = existingFocusTarget === null
+    const shouldNameTarget =
+      !isInteractiveElement(target) && !target.hasAttribute('aria-label')
+    const shouldRoleTarget =
+      !isInteractiveElement(target) && !target.hasAttribute('role')
+
+    const previousTargetTabIndex = target.getAttribute('tabindex')
+    const previousTargetRole = target.getAttribute('role')
+    const previousTargetAriaLabel = target.getAttribute('aria-label')
+    const previousFocusAriaDescribedBy =
+      focusTarget.getAttribute('aria-describedby')
+
+    if (shouldMakeTargetFocusable) {
+      target.setAttribute('tabindex', '0')
+    }
+
+    if (shouldRoleTarget) {
+      target.setAttribute('role', 'group')
+    }
+
+    if (shouldNameTarget) {
+      target.setAttribute('aria-label', `Tutorial section: ${step.title}`)
+    }
+
+    focusTarget.setAttribute(
+      'aria-describedby',
+      appendIdReferences(previousFocusAriaDescribedBy, [
+        stepTitleId,
+        stepContentId,
+      ]),
+    )
+
+    return () => {
+      if (shouldMakeTargetFocusable) {
+        restoreAttribute(target, 'tabindex', previousTargetTabIndex)
+      }
+
+      if (shouldRoleTarget) {
+        restoreAttribute(target, 'role', previousTargetRole)
+      }
+
+      if (shouldNameTarget) {
+        restoreAttribute(target, 'aria-label', previousTargetAriaLabel)
+      }
+
+      restoreAttribute(
+        focusTarget,
+        'aria-describedby',
+        previousFocusAriaDescribedBy,
+      )
+    }
+  }, [
+    isTargetReady,
+    isTooltipCentered,
+    step.title,
+    stepContentId,
+    stepTitleId,
+    targetEl,
+  ])
 
   useEffect(() => {
     if (!isReady || !shouldKeepKeyboardInPanel) return
@@ -750,8 +848,10 @@ const TutorialOverlay = ({
         Step {currentStepIndex + 1} of {totalSteps}
       </p>
       */}
-      <h3 className="tutorial-tooltip__title">{step.title}</h3>
-      <p className="tutorial-tooltip__content">
+      <h3 id={stepTitleId} className="tutorial-tooltip__title">
+        {step.title}
+      </h3>
+      <p id={stepContentId} className="tutorial-tooltip__content">
         {contentLines.map((line, index) => (
           <Fragment key={`${step.id}-content-line-${index}`}>
             {line}
@@ -864,9 +964,8 @@ const TutorialOverlay = ({
         }}
         role="dialog"
         aria-modal={shouldKeepKeyboardInPanel ? true : undefined}
-        aria-label={`Tutorial step ${currentStepIndex + 1} of ${totalSteps}: ${
-          step.title
-        }`}
+        aria-labelledby={stepTitleId}
+        aria-describedby={stepContentId}
         tabIndex={-1}
         onKeyDown={handleTrapKeydown}
         className={
