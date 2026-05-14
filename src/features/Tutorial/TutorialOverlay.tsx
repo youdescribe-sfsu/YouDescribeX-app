@@ -27,6 +27,7 @@ interface Props {
   currentStepIndex: number
   totalSteps: number
   moveKeyboardToPanel: boolean
+  navigationSource: 'tutorial-controls' | 'page-tab'
 }
 
 const DEFAULT_SPOTLIGHT_PADDING = {
@@ -57,7 +58,7 @@ const SCROLL_BLOCK_KEYS = [
 ]
 
 const FOCUSABLE_SELECTOR =
-  'button, [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 const INTERACTIVE_TAG_NAMES = new Set([
   'A',
@@ -106,6 +107,18 @@ const isInteractiveElement = (element: Element | null): boolean => {
     element.isContentEditable ||
     (role !== null && INTERACTIVE_ROLES.has(role))
   )
+}
+
+const getTargetFocusElement = (element: Element | null): HTMLElement | null => {
+  if (!(element instanceof HTMLElement)) {
+    return null
+  }
+
+  if (element.matches(FOCUSABLE_SELECTOR)) {
+    return element
+  }
+
+  return element.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
 }
 
 const isScrollBlockKey = (key: string): boolean =>
@@ -257,6 +270,7 @@ const TutorialOverlay = ({
   currentStepIndex,
   totalSteps,
   moveKeyboardToPanel,
+  navigationSource,
 }: Props) => {
   const [targetState, setTargetState] = useState<{
     element: Element | null
@@ -562,6 +576,33 @@ const TutorialOverlay = ({
 
     return () => clearTimeout(timer)
   }, [step.id, isReady, shouldKeepKeyboardInPanel])
+
+  useEffect(() => {
+    if (
+      navigationSource !== 'tutorial-controls' ||
+      isTooltipCentered ||
+      shouldKeepKeyboardInPanel ||
+      !isTargetReady
+    ) {
+      return
+    }
+
+    const focusTarget = getTargetFocusElement(targetEl) ?? tooltipRef.current
+    if (!focusTarget) return
+
+    const timer = setTimeout(() => {
+      focusTarget.focus({ preventScroll: true })
+    }, TOOLTIP_FOCUS_DELAY_MS)
+
+    return () => clearTimeout(timer)
+  }, [
+    isTargetReady,
+    isTooltipCentered,
+    navigationSource,
+    shouldKeepKeyboardInPanel,
+    step.id,
+    targetEl,
+  ])
 
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow

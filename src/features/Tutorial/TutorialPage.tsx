@@ -24,6 +24,7 @@ const TutorialPage = () => {
   const nextStep = tutorialStore((state) => state.nextStep)
   const prevStep = tutorialStore((state) => state.prevStep)
   const goToStep = tutorialStore((state) => state.goToStep)
+  const navigationSource = tutorialStore((state) => state.navigationSource)
   const skipTutorial = tutorialStore((state) => state.skipTutorial)
   const setTutorialMode = tutorialStore((state) => state.setTutorialMode)
   const resetTutorialEditor = tutorialEditorStore(
@@ -115,6 +116,7 @@ const TutorialPage = () => {
           currentStepIndex={currentStepIndex}
           totalSteps={activeSteps.length}
           moveKeyboardToPanel={moveKeyboardToPanel}
+          navigationSource={navigationSource}
         />
       )}
     </div>
