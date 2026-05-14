@@ -290,11 +290,11 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
       autoplay: 0,
       enablejsapi: 1,
       cc_load_policy: 1,
-      controls: 1,
+      controls: isTutorialMode ? 0 : 1,
       fs: 0,
       iv_load_policy: 3,
       modestbranding: 1,
-      disablekb: 0,
+      disablekb: isTutorialMode ? 1 : 0,
       rel: 0,
       origin: window.location.origin,
     },
@@ -723,10 +723,26 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
   // YouTube Player Functions
   const onReady = (event: any) => {
     setCurrentEvent(event.target)
+
+    if (isTutorialMode) {
+      event.target.pauseVideo()
+      event.target.getIframe?.().then((iframe: HTMLIFrameElement) => {
+        iframe.setAttribute('aria-hidden', 'true')
+        iframe.setAttribute('tabindex', '-1')
+        iframe.setAttribute('title', 'Tutorial video playback disabled')
+      })
+    }
   }
 
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
+    if (isTutorialMode) {
+      event.target.pauseVideo()
+      setCurrentState(2)
+      setIsActive(false)
+      return
+    }
+
     if (!isTutorialMode && !historyTracked.current && videoId) {
       saveVideoToHistory(videoId)
       historyTracked.current = true
@@ -740,6 +756,16 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
   const onStateChange = (event: any) => {
     const currentYTTime = event.target.getCurrentTime()
     setCurrentEvent(event.target)
+
+    if (isTutorialMode) {
+      if (event.data === 1) {
+        event.target.pauseVideo()
+      }
+      setCurrentState(event.data === 1 ? 2 : event.data)
+      setIsActive(false)
+      return
+    }
+
     setCurrentState(event.data)
 
     switch (event.data) {
@@ -912,6 +938,10 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
 
   // 3. And for good measure, here is the paired turn-on function
   const handleTurnOnDescriptions = () => {
+    if (isTutorialMode) {
+      return
+    }
+
     setDescriptionsActive(true)
     currentEventRef.current?.playVideo() // Optional: auto-resume video when turned back on
   }
@@ -1482,6 +1512,10 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
               className="rounded"
               videoId={videoId}
               opts={opts}
+              style={isTutorialMode ? { pointerEvents: 'none' } : undefined}
+              title={
+                isTutorialMode ? 'Tutorial video playback disabled' : undefined
+              }
               onStateChange={onStateChange}
               onPlay={onPlay}
               onPause={onPause}

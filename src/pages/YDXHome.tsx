@@ -75,7 +75,8 @@ const YDXHome = ({
       autoplay: 0,
       enablejsapi: 1,
       cc_load_policy: 1,
-      controls: 1,
+      controls: isTutorialMode ? 0 : 1,
+      disablekb: isTutorialMode ? 1 : 0,
       fs: 0,
       iv_load_policy: 3,
       modestbranding: 1,
@@ -919,6 +920,18 @@ const YDXHome = ({
 
   // YouTube Player Functions
   const onStateChange = (event: any) => {
+    if (isTutorialMode) {
+      setCurrentEvent(event.target)
+      currentEventRef.current = event.target
+      if (event.data === 1) {
+        event.target.pauseVideo()
+      }
+      setCurrentState(event.data === 1 ? 2 : event.data)
+      setGloballyPaused(true)
+      setIsActive(false)
+      return
+    }
+
     // 1. Logic Guard: Handle navigation seek flags
     const navSeekPending = navSeekPendingRef.current
     if ((event.data === 1 || event.data === 2) && navSeekPending) {
@@ -987,11 +1000,28 @@ const YDXHome = ({
   const onReady = (event: any) => {
     setCurrentEvent(event.target)
     currentEventRef.current = event.target
+
+    if (isTutorialMode) {
+      event.target.pauseVideo()
+      event.target.getIframe?.().then((iframe: HTMLIFrameElement) => {
+        iframe.setAttribute('aria-hidden', 'true')
+        iframe.setAttribute('tabindex', '-1')
+        iframe.setAttribute('title', 'Tutorial video playback disabled')
+      })
+    }
   }
 
   const onPlay = (event: any) => {
     setCurrentEvent(event.target)
     currentEventRef.current = event.target
+
+    if (isTutorialMode) {
+      event.target.pauseVideo()
+      setCurrentState(2)
+      setGloballyPaused(true)
+      setIsActive(false)
+      return
+    }
 
     if (suppressResumeAfterScrubRef.current) {
       event.target.pauseVideo()
@@ -1233,6 +1263,15 @@ const YDXHome = ({
   }, [audioClips])
 
   const handlePlayPause = () => {
+    if (isTutorialMode) {
+      currentEvent?.pauseVideo()
+      stopAllAudio()
+      setCurrentState(2)
+      setGloballyPaused(true)
+      setIsActive(false)
+      return
+    }
+
     // If we are currently playing (Video is state 1 or Engine is active)
     if (currentState === 1 || !isGloballyPaused) {
       // 1. Pause everything
@@ -1421,6 +1460,10 @@ const YDXHome = ({
               className="rounded"
               videoId={youtubeVideoId}
               opts={opts}
+              style={isTutorialMode ? { pointerEvents: 'none' } : undefined}
+              title={
+                isTutorialMode ? 'Tutorial video playback disabled' : undefined
+              }
               onStateChange={onStateChange}
               onPlay={onPlay}
               onPause={onPause}
