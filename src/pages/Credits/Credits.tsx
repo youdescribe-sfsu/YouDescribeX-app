@@ -7,6 +7,22 @@ import { Link } from 'react-router-dom'
 import Button from '@/shared/components/Button/Button'
 
 const Credits = () => {
+  const sortedMembers = [...membersDetails].sort((a: any, b: any) => {
+    // Members with an explicit "order" field come first, in that order.
+    const aHasOrder = typeof a.order === 'number'
+    const bHasOrder = typeof b.order === 'number'
+    if (aHasOrder && bHasOrder) return a.order - b.order
+    if (aHasOrder) return -1
+    if (bHasOrder) return 1
+
+    // Everyone else (alumni) sorted by year, most recent first.
+    const aYear =
+      a.year === 'present' ? new Date().getFullYear() : Number(a.year)
+    const bYear =
+      b.year === 'present' ? new Date().getFullYear() : Number(b.year)
+    return bYear - aYear
+  })
+
   return (
     <div id="credits">
       <header role="banner" className="w3-container w3-indigo">
@@ -36,30 +52,20 @@ const Credits = () => {
         ))}
       </div>
       <div className="classic-container row justify-content-center">
-        {membersDetails
-          .sort((a, b) => {
-            if (a.year === 'present') {
-              a.year = new Date().getFullYear()
-            }
-            if (b.year === 'present') {
-              b.year = new Date().getFullYear()
-            }
-            return a.year > b.year ? -1 : 1
-          })
-          .map((member) => (
-            <div
-              className="col-sm-6 col-md-4 col-lg-3 member-card-column"
-              key={member.name}
-            >
-              <MemberCard
-                name={member.name}
-                designation={member.designation}
-                desc={member.description}
-                img={member.img}
-                tenure={member.tenure}
-              />
-            </div>
-          ))}
+        {sortedMembers.map((member) => (
+          <div
+            className="col-sm-6 col-md-4 col-lg-3 member-card-column"
+            key={member.name}
+          >
+            <MemberCard
+              name={member.name}
+              designation={member.designation}
+              desc={member.description}
+              img={member.img}
+              tenure={member.tenure}
+            />
+          </div>
+        ))}
       </div>
       <div className="w3-margin-top w3-center load-more">
         <Link to="/credits-details" target="_self" className="footer-links">

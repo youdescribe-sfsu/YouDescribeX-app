@@ -7,8 +7,7 @@ variables:
   CI_PROJECT_NAME: youdescribex-app
   DOCKER_REGISTRY: youdescribe
   CI_REGISTRY: docker.io
-  IMAGE_NAME: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}"
-  LATEST_IMAGE: "${IMAGE_NAME}:latest"
+  IMAGE_NAME: '${DOCKER_REGISTRY}/${CI_PROJECT_NAME}'
 
 services:
   - docker:24.0.5-dind
@@ -33,13 +32,14 @@ before_script:
       --build-arg REACT_APP_USE_YDX="$REACT_APP_USE_YDX"
       --build-arg REACT_APP_CLASSIC_BACKEND_URL="$REACT_APP_CLASSIC_BACKEND_URL"
       --build-arg REACT_APP_CLASSIC_BACKEND_URL_VERSION="$REACT_APP_CLASSIC_BACKEND_URL_VERSION"
-      -t $LATEST_IMAGE .
-    - docker push $LATEST_IMAGE
+      -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+    - docker push "${IMAGE_NAME}:${IMAGE_TAG}"
     - echo "Build complete"
 
 build_dev:
   <<: *build_template
   variables:
+    IMAGE_TAG: dev-latest
     REACT_APP_REDIRECT_URL: $REACT_APP_REDIRECT_URL_DEV
     REACT_APP_YDX_BACKEND_URL: $REACT_APP_YDX_BACKEND_URL_DEV
     REACT_APP_YOUTUBE_API_URL: $REACT_APP_YOUTUBE_API_URL_DEV
@@ -53,6 +53,7 @@ build_dev:
 build_prod:
   <<: *build_template
   variables:
+    IMAGE_TAG: prod-latest
     REACT_APP_REDIRECT_URL: $REACT_APP_REDIRECT_URL_PROD
     REACT_APP_YDX_BACKEND_URL: $REACT_APP_YDX_BACKEND_URL_PROD
     REACT_APP_YOUTUBE_API_URL: $REACT_APP_YOUTUBE_API_URL_PROD
@@ -77,6 +78,8 @@ build_prod:
 
 deploy_dev:
   <<: *deploy_template
+  variables:
+    IMAGE_TAG: dev-latest
   environment:
     name: dev
   tags:
@@ -89,6 +92,8 @@ deploy_dev:
 
 deploy_prod:
   <<: *deploy_template
+  variables:
+    IMAGE_TAG: prod-latest
   environment:
     name: prod
   tags:

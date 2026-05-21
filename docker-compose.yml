@@ -3,9 +3,9 @@ version: '3'
 services:
   frontend:
     container_name: youdescribex-frontend
-    image: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}:latest"
+    image: '${DOCKER_REGISTRY}/${CI_PROJECT_NAME}:${IMAGE_TAG:-latest}'
     ports:
-      - "${PORT}:${PORT}"
+      - '${PORT}:${PORT}'
     restart: always
     volumes:
       - /mnt/ebs:/mnt/ebs
@@ -22,7 +22,7 @@ services:
       - REACT_APP_CLASSIC_BACKEND_URL_VERSION=${REACT_APP_CLASSIC_BACKEND_URL_VERSION}
       - PORT=${PORT}
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "200k"
-        max-file: "10"
+        max-size: '200k'
+        max-file: '10'

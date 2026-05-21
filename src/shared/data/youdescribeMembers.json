@@ -1,5 +1,116 @@
 [
   {
+    "name": "Lana Do",
+    "bio": "Lana is a researcher at Northeastern's Khoury College of Computer Sciences. Her work on YouDescribe focuses on AI-assisted audio description, spanning system development, user studies, and evaluation methodology.",
+    "img": "lana.jpg",
+    "designation": "Researcher and Web Developer",
+    "pdf": "",
+    "tenure": "2025 - Present",
+    "year": "present",
+    "team": "web",
+    "description": "Photo of Lana Do, a young Asian woman with long dark brown hair, smiling at the camera. She wears a colorful striped sweater with bands of blue, olive, yellow, navy, pink, and red, with a black crossbody bag strap. The Painted Ladies — a row of pastel Victorian houses in San Francisco — are visible behind her on an overcast day.",
+    "order": 1
+  },
+  {
+    "name": "Sanjay Mirani",
+    "bio": "Sanjay Mirani is a Full Stack Web Developer specializing in building scalable, user-friendly web applications. With expertise in both front-end and back-end development, he focuses on creating clean, efficient, and impactful solutions. His work spans modern frameworks, APIs, and cloud technologies, with a strong interest in delivering seamless digital experiences.",
+    "img": "sanjay.jpg",
+    "designation": "Full Stack Software Engineer",
+    "pdf": "",
+    "tenure": "2023 - Present",
+    "year": "present",
+    "team": "web",
+    "description": "Photo of Sanjay Mirani, a young South Asian man with short dark hair and a closely trimmed beard. He wears dark-framed glasses and a light olive-green jacket, smiling and looking slightly off-camera. The background is a rooftop scene at night with city lights blurred behind him.",
+    "order": 2
+  },
+  {
+    "name": "Zhenzhen Qin",
+    "bio": "Zhenzhen Qin is a Research Assistant on the YouDescribe team, focusing on web development. She led the integration of a new AI feature and works on improving the platform's security, stability, and scalability.",
+    "img": "zhenzhen.jpg",
+    "designation": "Full Stack Software Engineer",
+    "pdf": "",
+    "tenure": "2026 - Present",
+    "year": "present",
+    "team": "web",
+    "description": "Photo of Zhenzhen Qin, a young Asian woman with long straight black hair, looking at the camera with a soft expression. She wears a light olive-green jacket. Behind her, warm string lights glow against a blurred evening market or festival background.",
+    "externalLink": "https://www.linkedin.com/in/zhenzhen-qin/",
+    "externalLinkTitle": "LinkedIn",
+    "order": 3
+  },
+  {
+    "name": "Hyunjoo Shim",
+    "bio": "Hyunjoo Shim developed the YouDescribe tutorial interactive page and actively maintains the site to improve the user experience. She also contributes to videos and slide presentations for the team's research papers.",
+    "img": "hyunjoo.jpg",
+    "designation": "Full Stack Software Engineer",
+    "pdf": "",
+    "tenure": "2026 - Present",
+    "year": "present",
+    "team": "web",
+    "description": "Photo of Hyunjoo Shim, a young Asian woman with long dark brown hair, smiling brightly at the camera. She wears a navy Pixar hoodie and stands in front of a colorful illustrated wall featuring playful artwork of fire-themed snacks and gas-station items, likely from a Pixar studio exhibit.",
+    "externalLink": "https://www.linkedin.com/in/hyunjooshim",
+    "externalLinkTitle": "LinkedIn",
+    "order": 4
+  },
+  {
+    "name": "Trung Kien Nguyen",
+    "bio": "Kien is part of the YouDescribe web development team. He worked on the new user interface and is now focusing on the research and evaluation side of the project.",
+    "img": "trungkien.jpg",
+    "designation": "ML and Full Stack Software Engineer",
+    "pdf": "",
+    "tenure": "2026 - Present",
+    "year": "present",
+    "team": "web",
+    "description": "Photo of Trung Kien Nguyen, a young Asian man with short dark hair, smiling softly at the camera. He wears a light blue zip-up hoodie over a navy quarter-zip and white polo collar. He stands at the Griffith Observatory in Los Angeles, with the white art-deco dome behind him and the lights of the city skyline stretching into the distance at dusk.",
+    "order": 5
+  },
+  {
+    "name": "Rodrigo Leme de Mello",
+    "bio": "Rodrigo Leme de Mello, Principal Software Engineer, was the main member of the original Codesmith team that rebuilt from the ground-up YouDescribe in 2017. His career-long passion for accessibility led him to volunteer with the project after the launch, expanding YouDescribe's capabilities and keeping the code running smoothly. Thank you, Rodrigo, for your many long volunteer hours. We are grateful. Rodrigo is currently a Trainer at Amazon/AWS.",
+    "img": "rodrigo-2022.png",
+    "designation": "Principal Engineer",
+    "pdf": "",
+    "tenure": "2017 - 2020",
+    "year": 2020,
+    "team": "alumni",
+    "description": "Photo of Rodrigo Leme de Mello. A light-skinned man with a sparse, close-cropped beard crouches on a frozen lake. He wears a grey knit beanie, black jacket, jeans, and grey sneakers.",
+    "order": 6
+  },
+  {
+    "name": "Dr. Shasta Ihorn",
+    "bio": "Dr. Shasta Ihorn is a professor at San Francisco State University with expertise in statistics, psychology, and education. She leads YouDescribe's user studies and analyzes data to inform improvements to the platform.",
+    "img": "shasta.jpg",
+    "designation": "Research Advisor",
+    "pdf": "",
+    "tenure": "2017 - Present",
+    "year": "present",
+    "team": "lead",
+    "description": "TODO: add image alt description for Dr. Shasta Ihorn.",
+    "order": 7
+  },
+  {
+    "name": "Dr. Vassilis Athitsos",
+    "bio": "Dr. Vassilis Athitsos is a professor at the University of Texas at Arlington. He contributes to the development of the AI models behind YouDescribe, with research interests in computer vision and machine learning applied to accessibility.",
+    "img": "vassilis.jpg",
+    "designation": "Research Advisor",
+    "pdf": "",
+    "tenure": "2017 - Present",
+    "year": "present",
+    "team": "lead",
+    "description": "Photo of Dr. Vassilis Athitsos, a man with short dark hair and rectangular wire-framed glasses, smiling gently at the camera. He wears a dark navy checked button-up shirt and is photographed against a solid blue studio background.",
+    "order": 8
+  },
+  {
+    "name": "Dr. Alexander Blum",
+    "bio": "Dr. Alexander Blum is a measurement expert who contributes to YouDescribe's evaluation work, helping the team assess the quality and impact of audio descriptions.",
+    "img": "alexander.jpg",
+    "designation": "Evaluation & Measurement",
+    "pdf": "",
+    "tenure": "2020 - Present",
+    "year": "present",
+    "order": 9,
+    "description": "Photo of Dr. Alexander Blum, a bald white man with a salt-and-pepper beard, smiling warmly at the camera. He wears a navy blazer over a white button-up shirt, photographed against a dark grey studio background."
+  },
+  {
     "name": "Andrew Taylor Scott",
     "bio": "Andrew Taylor Scott is currently the Linux HPC Administrator at Blue River Technology. He is interested in computer vision, machine learning, and high performance computing. He has worked in tech in the San Francisco Bay Area since the late 90's and he is currently completing a Masters degree in Computer Science at San Francisco State University. He previously completed a Bachelors degree in Computer Science at San Francisco State University and an Associates degree in Computer Science at City College of San Francisco.",
     "img": "andrew.jpg",
@@ -7,7 +118,56 @@
     "pdf": "Andrew_thesis.pdf",
     "tenure": "2019 - Present",
     "year": "present",
-    "description": "Photo of Andrew Taylor Scott, a white man with a beard and his hair is tied behiend his head. He is smiling at the camera. there are some trees in the background."
+    "team": "ml",
+    "description": "Photo of Andrew Taylor Scott, a white man with a beard and his hair is tied behiend his head. He is smiling at the camera. there are some trees in the background.",
+    "order": 10
+  },
+  {
+    "name": "Gio Jung",
+    "bio": "Gio holds a Bachelor's degree in Mathematics and Master's degree in Computer Science from SFSU. His research focuses on evaluating vision language models to assess how well they are good at describing images and videos.",
+    "img": "gio.jpg",
+    "designation": "Machine Learning",
+    "pdf": "None",
+    "tenure": "2024 - Present",
+    "year": "present",
+    "team": "ml",
+    "description": "Photo of Gio Jung, a 28 year old asian man with black hair. He is wearing a black t-shirt and the background is white.",
+    "order": 11
+  },
+  {
+    "name": "Juvenal F Barajas",
+    "bio": "Gio holds a Bachelor's degree in Computer Science and completed his Master's at SFSU in 2025, where my research focuses on large-scale video captioning models. I am particularly interested in the intersection of vision and language, model scaling, and multi-modal learning.",
+    "img": "juve.jpg",
+    "designation": "Machine Learning",
+    "pdf": "None",
+    "tenure": "2023 - Present",
+    "year": "present",
+    "team": "ml",
+    "description": "Photo of Juvenal Barajas, a 25 year old man with curly brown hair. He is smiling at the camera with a grey background.",
+    "order": 12
+  },
+  {
+    "name": "Alan Wang",
+    "bio": "Alan Wang developed an issue tracker that helps the YouDescribe team organize and resolve site issues quickly. He also contributes to ongoing site maintenance.",
+    "img": "alan.jpg",
+    "designation": "Full Stack Software Engineer",
+    "pdf": "",
+    "tenure": "2026 - Present",
+    "year": "present",
+    "team": "web",
+    "description": "Photo of Alan Wang, a young Asian man with short dark hair and rectangular wire-framed glasses, smiling warmly at the camera. He wears a black hooded jacket. Behind him is a misty waterfront with a faint city skyline in the background.",
+    "order": 13
+  },
+  {
+    "name": "Xuan Duy Anh Nguyen",
+    "bio": "Xuan Duy Anh Nguyen was a core member of the YouDescribe team, leading the development of the iOS app and contributing significantly to building and maintaining the website.",
+    "img": "xuanduyanh.jpg",
+    "designation": "TODO: add designation",
+    "pdf": "",
+    "tenure": "2023-2025",
+    "year": 2024,
+    "team": "alumni",
+    "description": "Photo of Xuan Duy Anh Nguyen, a young Asian man with a slight smile, wearing a dark blue bucket hat with a white logo and a navy t-shirt with a red lanyard. He stands on a boat with the limestone karst islands of Ha Long Bay rising from the water behind him under a cloudy sky."
   },
   {
     "name": "Benjamin Kao",
@@ -16,6 +176,7 @@
     "designation": "Team Lead",
     "year": 2023,
     "tenure": "2022-2023",
+    "team": "alumni",
     "description": "Photo of Benjamin Kao, he is wearing spectacles and smiling at the camera. He is also wearing a black suit with a back bow-tie"
   },
   {
@@ -25,6 +186,7 @@
     "designation": "GPU Accelerated Backend Developer",
     "year": 2023,
     "tenure": "2022-2023",
+    "team": "alumni",
     "description": "Photo of Vishal Sharma, This picture was taken at the Golden Gate Bridge. Vishal is standing on the footpath that runs along the side of the bridge and is wearing a blue t-shirt and a black hoodie."
   },
   {
@@ -34,6 +196,7 @@
     "designation": "Frontend Developer",
     "year": 2023,
     "tenure": "2022-2023",
+    "team": "alumni",
     "description": "Photo of Sanket Naik, This picture was taken in front of the Golden Gate Bridge. Sanket is standing in front of the Golden Gate Bridge at the end of the Baker Beach Trail. He is wearing a black hoodie"
   },
   {
@@ -43,6 +206,7 @@
     "designation": "Data Engineer",
     "year": 2023,
     "tenure": "2022-2023",
+    "team": "alumni",
     "description": "Photo of Manali Seth, Manali is smiling while waiting for food in the restaurant."
   },
   {
@@ -52,6 +216,7 @@
     "designation": "Mobile Application Developer",
     "year": 2023,
     "tenure": "2022-2023",
+    "team": "alumni",
     "description": "Photo of Kishan Patel. This picture was taken at Fisherman's Wharf in San Francisco. In this picture, Kishan is wearing a black sweatshirt over a white shirt and is smiling at the camera."
   },
   {
@@ -61,6 +226,7 @@
     "designation": "Frontend and Mobile Developer",
     "year": 2023,
     "tenure": "2023-2024",
+    "team": "alumni",
     "description": "Photo of Alekya Bairaboina. Alekya is standing near a landscape and is wearing a blue t-shirt."
   },
   {
@@ -70,6 +236,7 @@
     "designation": "Machine Learning Engineer",
     "year": 2023,
     "tenure": "2022-2023",
+    "team": "alumni",
     "description": "Photo of Calen Wang, Calen is wearing a grey jacket and smiling at the camera on a foggy day. "
   },
   {
@@ -79,6 +246,7 @@
     "designation": "YouDescribeX Software Engineer",
     "year": 2023,
     "tenure": "2022-2023",
+    "team": "alumni",
     "description": "Photo of Hirva Patel, This picture was taken in Seattle when I was interning at Amazon in Summer 2022."
   },
   {
@@ -89,6 +257,7 @@
     "pdf": "Rupal-Khilari-Final-report.pdf",
     "tenure": "2016 - 2017",
     "year": 2017,
+    "team": "alumni",
     "description": "Photo of Rupal Khilari, a light skinned woman with brown hair. She is smiling at the camera. there is a lake and greenery in the background."
   },
   {
@@ -99,6 +268,7 @@
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo of abhishek das, a brown man with black hair. He is wearing spectacles and smiling at the camera. there are some green mountains in the background."
   },
   {
@@ -109,6 +279,7 @@
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo os Yash Kant, a brown man with black hair and light stubble. He is smiling brightly towards tha camera. He is also wearing glasses."
   },
   {
@@ -119,6 +290,7 @@
     "pdf": "csc_895_umang_mathur.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo of Umang Mathur, a brown man with short black hair. He is smiling at the camera with some cars parked in the background. this hands are tucked in his pockets."
   },
   {
@@ -129,6 +301,7 @@
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo of Beste Yuksel, a fair skineed woman with black-brown long wavy hair. She has glasses on and is smiling at the camera."
   },
   {
@@ -139,6 +312,7 @@
     "pdf": "895Report_jianfei zhao.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "No image available. A silhouette image of a guy"
   },
   {
@@ -149,6 +323,7 @@
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo of Poorva Rathi, a brown skinned woman with long black hair. She is wearing a white dress and is smiling towards the camera."
   },
   {
@@ -159,6 +334,7 @@
     "pdf": "895Report_VaishaliBisht.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo of Vaishali Bisht, a fair skinned woman with black hair. She is wearing a black dress and is standing on a pier in front of the Sea with Ships in the background"
   },
   {
@@ -169,16 +345,18 @@
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "No image available. A silhouette image of a guy"
   },
   {
-    "name": "Jose Castanon",
-    "bio": "Jose is pursuing his master's in Computer Science at San Francisco State University after finishing his undergraduate studies in Spring 2020. He has an interest in full stack web development. He currently works on site maintenance and development for YouDescribe.",
-    "img": "jose.jpg",
+    "name": "Mar Castanon",
+    "bio": "Mar pursued her master's in Computer Science at San Francisco State University after finishing her undergraduate studies in Spring 2020. Mar has an interest in full stack web development. She worked on site maintenance and development for YouDescribe.",
+    "img": "mar.jpg",
     "designation": "YouDescribe",
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2022",
     "year": 2022,
+    "team": "alumni",
     "description": "No image available. A silhouette image of a guy"
   },
   {
@@ -189,6 +367,7 @@
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo of Aditya Bodi, a brown man with short black hair and a short beard. He is wearing a suit and is smiling lightly at the camera."
   },
   {
@@ -199,6 +378,7 @@
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo of Brenna Tirumalashetty, a fair skinned woman with short blonde hair. she is wearing a white dress and is smilling at the camera."
   },
   {
@@ -209,6 +389,7 @@
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo of Manish Patil, a brown skinned man with black hair and short beard. He is smiling at the camera and standing in front of a building on a street."
   },
   {
@@ -219,6 +400,7 @@
     "pdf": "895Report_Poorva.pdf",
     "tenure": "2018 - 2020",
     "year": 2020,
+    "team": "alumni",
     "description": "Photo of Varun Sura, a fair skinned man with long black hair and light stubble. He is wearing a black suit and is smiling at the camera and holding spectacles in his hands."
   }
 ]

@@ -26,6 +26,8 @@ interface Props {
   onChoose?: (mode: TutorialMode) => void
   currentStepIndex: number
   totalSteps: number
+  moveKeyboardToPanel: boolean
+  navigationSource: 'tutorial-controls' | 'page-tab'
 }
 
 const DEFAULT_SPOTLIGHT_PADDING = {
@@ -56,7 +58,33 @@ const SCROLL_BLOCK_KEYS = [
 ]
 
 const FOCUSABLE_SELECTOR =
-  'button, [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+const INTERACTIVE_TAG_NAMES = new Set([
+  'A',
+  'BUTTON',
+  'INPUT',
+  'SELECT',
+  'SUMMARY',
+  'TEXTAREA',
+])
+
+const INTERACTIVE_ROLES = new Set([
+  'button',
+  'checkbox',
+  'combobox',
+  'link',
+  'listbox',
+  'menuitem',
+  'option',
+  'radio',
+  'searchbox',
+  'slider',
+  'spinbutton',
+  'switch',
+  'tab',
+  'textbox',
+])
 
 const toPlacement = (pos: TutorialStep['position']): Placement =>
   pos === 'center' ? 'bottom' : pos
@@ -72,7 +100,49 @@ const isInteractiveElement = (element: Element | null): boolean => {
     return false
   }
 
-  return element.tagName === 'BUTTON' || element.tagName === 'A'
+  const role = element.getAttribute('role')
+
+  return (
+    INTERACTIVE_TAG_NAMES.has(element.tagName) ||
+    element.isContentEditable ||
+    (role !== null && INTERACTIVE_ROLES.has(role))
+  )
+}
+
+const getTargetFocusElement = (element: Element | null): HTMLElement | null => {
+  if (!(element instanceof HTMLElement)) {
+    return null
+  }
+
+  if (element.matches(FOCUSABLE_SELECTOR)) {
+    return element
+  }
+
+  return element.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
+}
+
+const appendIdReference = (value: string | null, id: string): string => {
+  const ids = value?.split(/\s+/).filter(Boolean) ?? []
+  return ids.includes(id) ? ids.join(' ') : [...ids, id].join(' ')
+}
+
+const appendIdReferences = (value: string | null, ids: string[]): string =>
+  ids.reduce(
+    (currentValue, id) => appendIdReference(currentValue, id),
+    value,
+  ) ?? ''
+
+const restoreAttribute = (
+  element: HTMLElement,
+  attributeName: string,
+  previousValue: string | null,
+) => {
+  if (previousValue !== null) {
+    element.setAttribute(attributeName, previousValue)
+    return
+  }
+
+  element.removeAttribute(attributeName)
 }
 
 const isScrollBlockKey = (key: string): boolean =>
@@ -223,6 +293,8 @@ const TutorialOverlay = ({
   onChoose,
   currentStepIndex,
   totalSteps,
+  moveKeyboardToPanel,
+  navigationSource,
 }: Props) => {
   const [targetState, setTargetState] = useState<{
     element: Element | null
@@ -517,16 +589,118 @@ const TutorialOverlay = ({
 
   const isReady =
     isTooltipCentered || (targetEl !== null && isTargetReady && isPositioned)
+  const shouldKeepKeyboardInPanel = moveKeyboardToPanel && isTooltipCentered
+  const stepTitleId = `tutorial-step-${step.id}-title`
+  const stepContentId = `tutorial-step-${step.id}-content`
 
   useEffect(() => {
-    if (!isReady) return
+    if (
+      isTooltipCentered ||
+      !isTargetReady ||
+      !(targetEl instanceof HTMLElement)
+    ) {
+      return
+    }
+
+    const target = targetEl
+    const existingFocusTarget = getTargetFocusElement(target)
+    const focusTarget = existingFocusTarget ?? target
+    const shouldMakeTargetFocusable = existingFocusTarget === null
+    const shouldNameTarget =
+      !isInteractiveElement(target) && !target.hasAttribute('aria-label')
+    const shouldRoleTarget =
+      !isInteractiveElement(target) && !target.hasAttribute('role')
+
+    const previousTargetTabIndex = target.getAttribute('tabindex')
+    const previousTargetRole = target.getAttribute('role')
+    const previousTargetAriaLabel = target.getAttribute('aria-label')
+    const previousFocusAriaDescribedBy =
+      focusTarget.getAttribute('aria-describedby')
+
+    if (shouldMakeTargetFocusable) {
+      target.setAttribute('tabindex', '0')
+    }
+
+    if (shouldRoleTarget) {
+      target.setAttribute('role', 'group')
+    }
+
+    if (shouldNameTarget) {
+      target.setAttribute('aria-label', `Tutorial section: ${step.title}`)
+    }
+
+    focusTarget.setAttribute(
+      'aria-describedby',
+      appendIdReferences(previousFocusAriaDescribedBy, [
+        stepTitleId,
+        stepContentId,
+      ]),
+    )
+
+    return () => {
+      if (shouldMakeTargetFocusable) {
+        restoreAttribute(target, 'tabindex', previousTargetTabIndex)
+      }
+
+      if (shouldRoleTarget) {
+        restoreAttribute(target, 'role', previousTargetRole)
+      }
+
+      if (shouldNameTarget) {
+        restoreAttribute(target, 'aria-label', previousTargetAriaLabel)
+      }
+
+      restoreAttribute(
+        focusTarget,
+        'aria-describedby',
+        previousFocusAriaDescribedBy,
+      )
+    }
+  }, [
+    isTargetReady,
+    isTooltipCentered,
+    step.title,
+    stepContentId,
+    stepTitleId,
+    targetEl,
+  ])
+
+  useEffect(() => {
+    if (!isReady || !shouldKeepKeyboardInPanel) return
 
     const timer = setTimeout(() => {
       tooltipRef.current?.focus({ preventScroll: true })
     }, TOOLTIP_FOCUS_DELAY_MS)
 
     return () => clearTimeout(timer)
-  }, [step.id, isReady])
+  }, [step.id, isReady, shouldKeepKeyboardInPanel])
+
+  useEffect(() => {
+    if (
+      navigationSource !== 'tutorial-controls' ||
+      isTooltipCentered ||
+      shouldKeepKeyboardInPanel ||
+      !isTargetReady
+    ) {
+      return
+    }
+
+    const focusTarget = getTargetFocusElement(targetEl) ?? tooltipRef.current
+    if (!focusTarget) return
+
+    const timer = setTimeout(() => {
+      focusTarget.focus({ preventScroll: true })
+    }, TOOLTIP_FOCUS_DELAY_MS)
+
+    return () => clearTimeout(timer)
+  }, [
+    isTargetReady,
+    isTooltipCentered,
+    navigationSource,
+    shouldKeepKeyboardInPanel,
+    step.id,
+    targetEl,
+  ])
 
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow
@@ -630,39 +804,42 @@ const TutorialOverlay = ({
     return () => document.removeEventListener('keydown', handleKeydown)
   }, [onSkip, onNext, isClickAction])
 
-  const handleTrapKeydown = useCallback((event: ReactKeyboardEvent) => {
-    if (event.key !== 'Tab') return
+  const handleTrapKeydown = useCallback(
+    (event: ReactKeyboardEvent) => {
+      if (!shouldKeepKeyboardInPanel || event.key !== 'Tab') return
 
-    const container = tooltipRef.current
-    if (!container) return
+      const container = tooltipRef.current
+      if (!container) return
 
-    const focusables =
-      container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
-    if (focusables.length === 0) return
+      const focusables =
+        container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      if (focusables.length === 0) return
 
-    const first = focusables[0]
-    const last = focusables[focusables.length - 1]
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
 
-    if (event.shiftKey) {
-      if (
-        document.activeElement === first ||
-        document.activeElement === container
-      ) {
-        event.preventDefault()
-        last.focus()
+      if (event.shiftKey) {
+        if (
+          document.activeElement === first ||
+          document.activeElement === container
+        ) {
+          event.preventDefault()
+          last.focus()
+        }
+        return
       }
-      return
-    }
 
-    if (document.activeElement === last) {
-      event.preventDefault()
-      first.focus()
-    }
-  }, [])
+      if (document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    },
+    [shouldKeepKeyboardInPanel],
+  )
 
   const tooltipContent = (
     <>
-      <div aria-live="assertive" aria-atomic="true" className="sr-only">
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
         Step {currentStepIndex + 1} of {totalSteps}: {step.title}.{' '}
         {step.content} {legendText}
       </div>
@@ -671,8 +848,10 @@ const TutorialOverlay = ({
         Step {currentStepIndex + 1} of {totalSteps}
       </p>
       */}
-      <h3 className="tutorial-tooltip__title">{step.title}</h3>
-      <p className="tutorial-tooltip__content">
+      <h3 id={stepTitleId} className="tutorial-tooltip__title">
+        {step.title}
+      </h3>
+      <p id={stepContentId} className="tutorial-tooltip__content">
         {contentLines.map((line, index) => (
           <Fragment key={`${step.id}-content-line-${index}`}>
             {line}
@@ -740,6 +919,7 @@ const TutorialOverlay = ({
   return (
     <div
       className="tutorial-overlay-wrapper"
+      data-tutorial-overlay="true"
       style={{ pointerEvents: isClickAction ? 'none' : 'auto' }}
     >
       <svg className="tutorial-mask-svg" aria-hidden="true">
@@ -778,16 +958,14 @@ const TutorialOverlay = ({
       </svg>
 
       <div
-        key={step.id}
         ref={(node) => {
           refs.setFloating(node)
           tooltipRef.current = node
         }}
         role="dialog"
-        aria-modal="true"
-        aria-label={`Tutorial step ${currentStepIndex + 1} of ${totalSteps}: ${
-          step.title
-        }`}
+        aria-modal={shouldKeepKeyboardInPanel ? true : undefined}
+        aria-labelledby={stepTitleId}
+        aria-describedby={stepContentId}
         tabIndex={-1}
         onKeyDown={handleTrapKeydown}
         className={

@@ -255,8 +255,14 @@ const NewAudioClipComponent = ({
             <select
               className="dialog-select-enhanced"
               value={newACType}
-              onChange={(e) => setNewACType(e.target.value)}
-              disabled={tutorialMode}
+              onChange={(e) => {
+                if (tutorialMode) {
+                  e.currentTarget.value = newACType
+                  return
+                }
+                setNewACType(e.target.value)
+              }}
+              aria-disabled={tutorialMode ? true : undefined}
               required
             >
               <option value="Visual">Visual</option>

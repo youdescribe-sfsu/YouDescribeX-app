@@ -5,6 +5,7 @@ import { tutorialEditorStore } from './tutorialEditorStore'
 import { getActiveSteps, type TutorialMode } from './tutorialStepRegistry'
 import { INSTANT_SCROLL_RESET, TUTORIAL_EXIT_ROUTE } from './tutorialConfig'
 import TutorialOverlay from './TutorialOverlay'
+import { useTutorialKeyboardFlow } from './useTutorialKeyboardFlow'
 import YDXHome from '@/pages/YDXHome'
 import Video from '@/pages/Video/Video'
 import './tutorial.scss'
@@ -22,6 +23,8 @@ const TutorialPage = () => {
   const tutorialMode = tutorialStore((state) => state.tutorialMode)
   const nextStep = tutorialStore((state) => state.nextStep)
   const prevStep = tutorialStore((state) => state.prevStep)
+  const goToStep = tutorialStore((state) => state.goToStep)
+  const navigationSource = tutorialStore((state) => state.navigationSource)
   const skipTutorial = tutorialStore((state) => state.skipTutorial)
   const setTutorialMode = tutorialStore((state) => state.setTutorialMode)
   const resetTutorialEditor = tutorialEditorStore(
@@ -33,6 +36,14 @@ const TutorialPage = () => {
 
   const activeSteps = getActiveSteps(tutorialMode)
   const currentStep = activeSteps[currentStepIndex]
+  const moveKeyboardToPanel = currentStep?.position === 'center'
+
+  useTutorialKeyboardFlow({
+    isActive,
+    activeSteps,
+    currentStepIndex,
+    goToStep,
+  })
 
   // Start the tutorial on mount, stop on unmount
   useEffect(() => {
@@ -104,6 +115,8 @@ const TutorialPage = () => {
           onChoose={handleChoose}
           currentStepIndex={currentStepIndex}
           totalSteps={activeSteps.length}
+          moveKeyboardToPanel={moveKeyboardToPanel}
+          navigationSource={navigationSource}
         />
       )}
     </div>
