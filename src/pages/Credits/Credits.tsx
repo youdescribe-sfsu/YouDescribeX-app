@@ -16,8 +16,10 @@ const Credits = () => {
     if (bHasOrder) return 1
 
     // Everyone else (alumni) sorted by year, most recent first.
-    const aYear = a.year === 'present' ? new Date().getFullYear() : Number(a.year)
-    const bYear = b.year === 'present' ? new Date().getFullYear() : Number(b.year)
+    const aYear =
+      a.year === 'present' ? new Date().getFullYear() : Number(a.year)
+    const bYear =
+      b.year === 'present' ? new Date().getFullYear() : Number(b.year)
     return bYear - aYear
   })
 

@@ -94,15 +94,14 @@ const Tutorial = () => {
 
         <p>
           <strong>Search Box</strong>: If you know what video you are seeking,
-          the most direct way to access that video is to type in the YouTube
-          ID, as a secondary search you can type the title, a keyword, or the
+          the most direct way to access that video is to type in the YouTube ID,
+          as a secondary search you can type the title, a keyword, or the
           channel owner name into the search box in the upper tool box,
-          center-left of page. For you to create a description the video must
-          be set to public at YouTube and be allowed under our API key. We are
-          only able to access content that is acceptable for children 13 and
-          under. (If it has not been shared at YouTube, you can create a
-          channel of your own to upload the content you want. Directions
-          supplied{' '}
+          center-left of page. For you to create a description the video must be
+          set to public at YouTube and be allowed under our API key. We are only
+          able to access content that is acceptable for children 13 and under.
+          (If it has not been shared at YouTube, you can create a channel of
+          your own to upload the content you want. Directions supplied{' '}
           <a href="https://support.google.com/youtube/answer/1646861?hl=en">
             here
           </a>
@@ -116,19 +115,19 @@ const Tutorial = () => {
         </p>
 
         <p>
-          <strong>Wishlist</strong>: YouDescribe keeps a wish list of videos
-          in need of AD. It is best audio description practice to create AD
-          for videos on our Wishlist. To find something on the wishlist, click
-          the Wishlist button at the top toolbar, it has a heart next to it.
-          Now you are on the main Wishlist page. There are three sections:
-          Recent AI Descriptions (those videos that have been prompted but a
-          volunteer has not yet corrected), My Wishlist (videos that you have
-          requested, but are not yet described) and the sitewide Wishlist (You
-          can refine the list by sorting by category, or by keyword search.
-          Videos with more votes for AD are at the top, then they are sorted
-          by latest request). Selecting the Describe button will open that
-          video, and then you can select from add to Wishlist, Add freestyle
-          Description, and Request AI Descriptions.
+          <strong>Wishlist</strong>: YouDescribe keeps a wish list of videos in
+          need of AD. It is best audio description practice to create AD for
+          videos on our Wishlist. To find something on the wishlist, click the
+          Wishlist button at the top toolbar, it has a heart next to it. Now you
+          are on the main Wishlist page. There are three sections: Recent AI
+          Descriptions (those videos that have been prompted but a volunteer has
+          not yet corrected), My Wishlist (videos that you have requested, but
+          are not yet described) and the sitewide Wishlist (You can refine the
+          list by sorting by category, or by keyword search. Videos with more
+          votes for AD are at the top, then they are sorted by latest request).
+          Selecting the Describe button will open that video, and then you can
+          select from add to Wishlist, Add freestyle Description, and Request AI
+          Descriptions.
         </p>
 
         <p>
@@ -142,25 +141,25 @@ const Tutorial = () => {
         <h3>Adding something to the wish list:</h3>
         <p>
           At the YouDescribe homepage, use the search box on the top tool bar.
-          The videos will appear as thumbnails. In the left hand corner of
-          each video on the screen is a heart. Click the heart to add it to
-          the wish list. Or you can open the video to full screen and select
-          the first button in the tool stack on the right, “add to wishlist.”
+          The videos will appear as thumbnails. In the left hand corner of each
+          video on the screen is a heart. Click the heart to add it to the wish
+          list. Or you can open the video to full screen and select the first
+          button in the tool stack on the right, “add to wishlist.”
         </p>
 
         <h3>Add Audio Description (AD) to your Video:</h3>
         <p>
-          The video you want to describe should be in the center of the page.
-          If the video does not already have AD, there will be an Add
-          Freestyle Description button and a Request AI Button under the video
-          screen and to the right. Click there to add your description. (If
-          that video has AD you have two other buttons available as well: Rate
-          Description, and Turn Off Descriptions. Rate Description allows you
-          to rate the describer on that particular video. Turn Off
-          descriptions allows you to stop the AD while you view the video.
-          Videos may have multiple descriptions available). To begin - select
-          Add FreeStyle Description. You can add description to any video-
-          even if it has already been described.
+          The video you want to describe should be in the center of the page. If
+          the video does not already have AD, there will be an Add Freestyle
+          Description button and a Request AI Button under the video screen and
+          to the right. Click there to add your description. (If that video has
+          AD you have two other buttons available as well: Rate Description, and
+          Turn Off Descriptions. Rate Description allows you to rate the
+          describer on that particular video. Turn Off descriptions allows you
+          to stop the AD while you view the video. Videos may have multiple
+          descriptions available). To begin - select Add FreeStyle Description.
+          You can add description to any video- even if it has already been
+          described.
         </p>
 
         <h3>Choosing your audio description interface:</h3>
@@ -172,55 +171,54 @@ const Tutorial = () => {
 
         <h3>Anatomy of the YouDescribe AD tools.</h3>
         <p>
-          The video viewer is in the upper left corner. Stop/start is
-          controlled by a play/pause button in the top center of the page.
+          The video viewer is in the upper left corner. Stop/start is controlled
+          by a play/pause button in the top center of the page.
         </p>
         <p>
           In the center of the screen is a green start/pause button that you
-          will use to control the video viewer, and a two part control system
-          to set the volume level of the video, as well as the volume level
-          for your description. To adjust the volume you can use right and
-          left arrow keys, a mouse, or a touch screen. The first slider is for
-          the describer volume, to increase the volume slide the right, to
-          decrease slide it left. Below that bar is the video volume, You can
-          make it louder by sliding the bar right, and softer sliding the bar
-          left. Please note: there is sometimes a little bit of a lag in the
-          volume correction.
+          will use to control the video viewer, and a two part control system to
+          set the volume level of the video, as well as the volume level for
+          your description. To adjust the volume you can use right and left
+          arrow keys, a mouse, or a touch screen. The first slider is for the
+          describer volume, to increase the volume slide the right, to decrease
+          slide it left. Below that bar is the video volume, You can make it
+          louder by sliding the bar right, and softer sliding the bar left.
+          Please note: there is sometimes a little bit of a lag in the volume
+          correction.
         </p>
         <p>
-          On the far right is a section labeled Notes. Use the notes section
-          for anything you want to write down. Here you can jot anything down
-          that comes to mind. Language you would like to use. Details you
-          would like to include. To help you keep track of your ideas, the
-          notes section automatically saves and assigns a time-stamp for where
-          you are stopped in the video. This can be helpful for faster track
-          placement later.
+          On the far right is a section labeled Notes. Use the notes section for
+          anything you want to write down. Here you can jot anything down that
+          comes to mind. Language you would like to use. Details you would like
+          to include. To help you keep track of your ideas, the notes section
+          automatically saves and assigns a time-stamp for where you are stopped
+          in the video. This can be helpful for faster track placement later.
         </p>
 
         <h3>Timeline tool bar:</h3>
         <p>
-          The timeline toolbar displays your track controls and shows where
-          they are placed within the video. It uses color coding to help you
-          see and understand the position of each track. The red slider bar on
-          the timeline—sometimes called the storyline bar—lets you start or
-          replay the video from any specific time stamp. It also functions
-          like a timing marker: wherever the red bar is positioned becomes the
-          starting point for any edits you make.
+          The timeline toolbar displays your track controls and shows where they
+          are placed within the video. It uses color coding to help you see and
+          understand the position of each track. The red slider bar on the
+          timeline—sometimes called the storyline bar—lets you start or replay
+          the video from any specific time stamp. It also functions like a
+          timing marker: wherever the red bar is positioned becomes the starting
+          point for any edits you make.
         </p>
         <p>
           <strong>Please Note:</strong> You can navigate the Timeline tool bar
-          without using a mouse by using the View Saved Audio Clips button.
-          Tab down to View Saved Audio Clips, select, and then tab down to the
-          track you want to work on. The red timeline bar will automatically
-          move to that spot in the video.
+          without using a mouse by using the View Saved Audio Clips button. Tab
+          down to View Saved Audio Clips, select, and then tab down to the track
+          you want to work on. The red timeline bar will automatically move to
+          that spot in the video.
         </p>
         <p>
           When you need to move or adjust an audio track, check where the red
           bar is located and place it just before the point where you want the
           track to begin. This ensures that your edits land exactly where you
           intend. If you drag the red bar a long distance on the timeline, you
-          may notice a brief delay. Pausing for a moment gives the video time
-          to catch up.
+          may notice a brief delay. Pausing for a moment gives the video time to
+          catch up.
         </p>
         <p>
           If you reach the end of the video and want to return to the very
@@ -232,14 +230,14 @@ const Tutorial = () => {
         <h3>Add Inline/Add Extended:</h3>
         <p>
           There are two buttons for the two types of audio description tracks:
-          YELLOW Inline and FUSCHIA Extended style. An Inline track plays
-          while the video plays; For an extended track the video is stopped
-          while the track plays.
+          YELLOW Inline and FUSCHIA Extended style. An Inline track plays while
+          the video plays; For an extended track the video is stopped while the
+          track plays.
         </p>
         <p>
-          It is good audio description practice to use inline whenever
-          possible, and extended only when necessary. This means at the end of
-          your description you will have a lot of inline tracks, and very few
+          It is good audio description practice to use inline whenever possible,
+          and extended only when necessary. This means at the end of your
+          description you will have a lot of inline tracks, and very few
           extended. If you need to change from extended to inline or inline to
           extended you can select the kind of track you want, it will save
           automatically.
@@ -248,17 +246,17 @@ const Tutorial = () => {
         <h3>View Saved Clips:</h3>
         <p>
           There is a new navigation button to the right of the Inline/Extended
-          buttons. Here you can quickly tab or mouse click down to the track
-          you want to work on. The red toolbar will automatically settle at
-          the beginning of the track you are editing.
+          buttons. Here you can quickly tab or mouse click down to the track you
+          want to work on. The red toolbar will automatically settle at the
+          beginning of the track you are editing.
         </p>
 
         <h3>Using the Notes section:</h3>
         <p>
           Watch the entire video and make your notes for each track in the
           section to the right of the video. Be brief, be descriptive. Please
-          write down anything printed. A full tutorial on good audio
-          description can be found{' '}
+          write down anything printed. A full tutorial on good audio description
+          can be found{' '}
           <a href="https://www.youtube.com/watch?v=24Pmmo9wKik&amplist=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7">
             here
           </a>
@@ -274,19 +272,18 @@ const Tutorial = () => {
         </p>
         <p>
           The first text box lets you name your track. Choose a short,
-          descriptive title to make it easy to find and edit later. The next
-          box allows you to select the track type—either Visual or Text on
-          Screen. If you use text-to-speech, visual tracks are read with a
+          descriptive title to make it easy to find and edit later. The next box
+          allows you to select the track type—either Visual or Text on Screen.
+          If you use text-to-speech, visual tracks are read with a
           higher-pitched voice, and text-on-screen tracks are read with a
           lower-pitched voice.
         </p>
         <p>
           Below that, you’ll see the timeline timecode where the red storyline
           bar is currently stopped. This marks the point where your new track
-          will be inserted. Try to place the storyline bar as close as
-          possible to where you want the track to appear. You can adjust it
-          afterwards, but very large adjustments can make editing a bit more
-          difficult.
+          will be inserted. Try to place the storyline bar as close as possible
+          to where you want the track to appear. You can adjust it afterwards,
+          but very large adjustments can make editing a bit more difficult.
         </p>
         <p>
           Next, choose how you want to create the description. You can type a
@@ -296,15 +293,15 @@ const Tutorial = () => {
           switch between text and audio later if you need to.
         </p>
         <p>
-          If you want to use Text Description (speech-to-text), simply enter
-          the text in the provided box, and press the green save button. If
-          you choose to record your voice (highly recommended), a red
-          microphone button will appear. Press it to start; a countdown—three,
-          two, one, go—will play before recording begins. Start speaking just
-          after the countdown ends so you have a moment to breathe and
-          prepare. Press the microphone button again to stop the recording,
-          then select the white square to confirm that you’re finished. You
-          can re-record your voice as many times as you like.
+          If you want to use Text Description (speech-to-text), simply enter the
+          text in the provided box, and press the green save button. If you
+          choose to record your voice (highly recommended), a red microphone
+          button will appear. Press it to start; a countdown—three, two, one,
+          go—will play before recording begins. Start speaking just after the
+          countdown ends so you have a moment to breathe and prepare. Press the
+          microphone button again to stop the recording, then select the white
+          square to confirm that you’re finished. You can re-record your voice
+          as many times as you like.
         </p>
         <p>
           When everything sounds right and you’re satisfied with the result,
@@ -322,10 +319,10 @@ const Tutorial = () => {
 
         <h3>Saving your work:</h3>
         <p>
-          While you will still need to press “save” or “update” for all of
-          your track recordings (both synthetic text-to-speech, and your
-          personal voice recordings), the notes section, the nudge feature,
-          and the direct time stamp inputs are auto saved.
+          While you will still need to press “save” or “update” for all of your
+          track recordings (both synthetic text-to-speech, and your personal
+          voice recordings), the notes section, the nudge feature, and the
+          direct time stamp inputs are auto saved.
         </p>
 
         <h3>Tool bar for recorded tracks:</h3>
@@ -333,9 +330,9 @@ const Tutorial = () => {
           Under each recorded audio track is a tool bar with 5 functions: a
           start/stop button (shown as play/pause), a switch between inline and
           extended track (shown as the Rightwards Arrow Over Leftwards Arrow),
-          left arrow (move the audio track a little earlier), right arrow
-          (move the audio track a little later) and a delete button (classic
-          trash can).
+          left arrow (move the audio track a little earlier), right arrow (move
+          the audio track a little later) and a delete button (classic trash
+          can).
         </p>
 
         <p>
@@ -344,34 +341,33 @@ const Tutorial = () => {
 
         <h3>Using the Nudge feature:</h3>
         <p>
-          To move the track a quarter of a second (0.25) sooner, click the
-          left arrow button, to move it half a second later click the right
-          arrow button. You can click it as many times as you need to get it
-          to settle in exactly the right spot. Nudging is saved automatically.
+          To move the track a quarter of a second (0.25) sooner, click the left
+          arrow button, to move it half a second later click the right arrow
+          button. You can click it as many times as you need to get it to settle
+          in exactly the right spot. Nudging is saved automatically.
         </p>
 
         <h3>Converting Inline/Extended:</h3>
         <p>
-          You can use a mix of inline and extended audio tracks, and they can
-          be converted from Extended to Inline, and vice versa using the
-          buttons to the right of the nudge bar. Sometimes when a track
-          overlaps by more than 0.25 seconds, it will auto convert to an
-          extended track (this helps our playback API get the correct timing
-          without skipping a track). A combination of editing (making the
-          tracks shorter), and nudging (changing the time) will separate your
-          tracks so they both can be inline. If two tracks are very close, you
-          might want to combine them into a single longer track.
+          You can use a mix of inline and extended audio tracks, and they can be
+          converted from Extended to Inline, and vice versa using the buttons to
+          the right of the nudge bar. Sometimes when a track overlaps by more
+          than 0.25 seconds, it will auto convert to an extended track (this
+          helps our playback API get the correct timing without skipping a
+          track). A combination of editing (making the tracks shorter), and
+          nudging (changing the time) will separate your tracks so they both can
+          be inline. If two tracks are very close, you might want to combine
+          them into a single longer track.
         </p>
 
         <h3>Using the Time Controls:</h3>
         <p>
           Some people prefer to enter the start time manually rather than
-          nudging the track. Enter the start time you want in the timing
-          control box. You can change both seconds and milliseconds. Your new
-          start time is saved when you do your next keystroke, or mouse
-          select. The end time will update automatically. Sometimes the exact
-          time you input is moved a little bit, to optimize the playback with
-          YouTube.
+          nudging the track. Enter the start time you want in the timing control
+          box. You can change both seconds and milliseconds. Your new start time
+          is saved when you do your next keystroke, or mouse select. The end
+          time will update automatically. Sometimes the exact time you input is
+          moved a little bit, to optimize the playback with YouTube.
         </p>
 
         <p>
@@ -447,15 +443,15 @@ const Tutorial = () => {
           A: Save your work, then refresh the video so you can play it from the
           beginning. Advance the video or the red storybar until you are in the
           right spot and click the red microphone button to start recording,
-          click the white square when you are finished speaking. The track
-          will be placed in the correct order automatically.
+          click the white square when you are finished speaking. The track will
+          be placed in the correct order automatically.
         </p>
 
         <h3>Q: How long will my content be saved on YouDescribe?</h3>
         <p>
           A: Your descriptions will be stored on YouDescribe until you delete
-          them. We do archive your audio descriptions, but they cannot be
-          played by anyone from the forward facing tool.
+          them. We do archive your audio descriptions, but they cannot be played
+          by anyone from the forward facing tool.
         </p>
 
         <h3>Q: Can I download my descriptions for my own use off-line?</h3>
@@ -466,8 +462,8 @@ const Tutorial = () => {
 
         <h3>Q: Can I edit descriptions recorded by other users?</h3>
         <p>
-          A: Yes, if they have selected "collaborative editing” you can edit
-          the tracks they have already made. Record your voice, clean up the
+          A: Yes, if they have selected "collaborative editing” you can edit the
+          tracks they have already made. Record your voice, clean up the
           synthetic voice text, reseat a track. Users will have access to both
           descriptions and can choose which one they want. If you don’t want
           anyone to edit your audio description, uncheck the collaborative
@@ -477,9 +473,9 @@ const Tutorial = () => {
 
         <h3>Q: How long will my content be saved on YouDescribe?</h3>
         <p>
-          A: Your descriptions will be stored on YouDescribe until you
-          unpublish them. They still exist in your drafts folder, and you can
-          come back to them at any time.
+          A: Your descriptions will be stored on YouDescribe until you unpublish
+          them. They still exist in your drafts folder, and you can come back to
+          them at any time.
         </p>
 
         <h3>Q: How can I send feedback or reach technical support?</h3>

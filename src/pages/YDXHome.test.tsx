@@ -610,7 +610,11 @@ describe('YDXHome refresh alignment', () => {
       // After save: new clip inserted between clip-1 and clip-2
       makeAudioDescriptionResponse([
         makeClip({ clip_id: 'clip-1', clip_start_time: 10, clip_end_time: 12 }),
-        makeClip({ clip_id: 'clip-new', clip_start_time: 20, clip_end_time: 22 }),
+        makeClip({
+          clip_id: 'clip-new',
+          clip_start_time: 20,
+          clip_end_time: 22,
+        }),
         makeClip({ clip_id: 'clip-2', clip_start_time: 30, clip_end_time: 32 }),
       ]),
     )
