@@ -462,7 +462,7 @@ const Tutorial = () => {
 
         <h3>Q: Can I edit descriptions recorded by other users?</h3>
         <p>
-          A: Yes, if they have selected "collaborative editing” you can edit the
+          A: Yes, if they have selected “collaborative editing” you can edit the
           tracks they have already made. Record your voice, clean up the
           synthetic voice text, reseat a track. Users will have access to both
           descriptions and can choose which one they want. If you don’t want
