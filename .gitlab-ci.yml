@@ -7,7 +7,7 @@ variables:
   CI_PROJECT_NAME: youdescribex-app
   DOCKER_REGISTRY: youdescribe
   CI_REGISTRY: docker.io
-  IMAGE_NAME: "${DOCKER_REGISTRY}/${CI_PROJECT_NAME}"
+  IMAGE_NAME: '${DOCKER_REGISTRY}/${CI_PROJECT_NAME}'
 
 services:
   - docker:24.0.5-dind

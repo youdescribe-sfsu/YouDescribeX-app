@@ -76,12 +76,12 @@ src/
 
 ## Backend Integration (YouDescribeX-api)
 
-| What | Where |
-|---|---|
-| API base | `http://localhost:4001/api` |
-| YouTube proxy | `http://localhost:4001/api/youtube-proxy/videos` |
-| Audio file serving | `http://localhost:4001/api/static/<clip_path>` |
-| Auth | Google OAuth via backend |
+| What               | Where                                            |
+| ------------------ | ------------------------------------------------ |
+| API base           | `http://localhost:4001/api`                      |
+| YouTube proxy      | `http://localhost:4001/api/youtube-proxy/videos` |
+| Audio file serving | `http://localhost:4001/api/static/<clip_path>`   |
+| Auth               | Google OAuth via backend                         |
 
 Changes to API contracts (routes, payloads, auth) need matching updates in both repos.
 
