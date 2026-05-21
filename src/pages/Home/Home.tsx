@@ -163,6 +163,8 @@ const videoCache = {
   },
 }
 
+export const invalidateHomeVideoCache = () => videoCache.invalidateCache()
+
 const Home = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [rawVideoData, setRawVideoData] = useState<VideoData[]>([])
