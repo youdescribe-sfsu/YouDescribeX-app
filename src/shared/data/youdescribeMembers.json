@@ -9,7 +9,9 @@
     "year": "present",
     "team": "web",
     "description": "Photo of Lana Do, a young Asian woman with long dark brown hair, smiling at the camera. She wears a colorful striped sweater with bands of blue, olive, yellow, navy, pink, and red, with a black crossbody bag strap. The Painted Ladies — a row of pastel Victorian houses in San Francisco — are visible behind her on an overcast day.",
-    "order": 1
+    "order": 1,
+    "externalLink": "https://lanad22.github.io/",
+    "externalLinkTitle": " Learn More"
   },
   {
     "name": "Sanjay Mirani",
