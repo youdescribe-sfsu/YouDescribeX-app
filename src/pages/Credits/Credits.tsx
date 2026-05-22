@@ -36,31 +36,40 @@ const Credits = () => {
         <h3 className="credits-grants__heading">
           This work was made possible by grants from
         </h3>
-        <div className="credits-grants__grid">
-          <div className="credits-grants__card">
-            <div className="credits-grants__card-name">NIDLIRR</div>
-            <div className="credits-grants__card-detail">
-              RERC on Blindness and Low Vision
+        <div className="credits-grants__wrap">
+          <div className="credits-grants__grid">
+            <div className="credits-grants__card">
+              <div className="credits-grants__card-name">
+                NIDLIRR<sup className="credits-grants__asterisk">*</sup>
+              </div>
+              <div className="credits-grants__card-detail">
+                RERC on Blindness and Low Vision
+              </div>
+            </div>
+            <div className="credits-grants__card">
+              <div className="credits-grants__card-name">Ability Central</div>
+              <div className="credits-grants__card-detail">
+                Inclusive Media Research
+              </div>
+            </div>
+            <div className="credits-grants__card">
+              <div className="credits-grants__card-name">NEI</div>
+              <div className="credits-grants__card-detail">
+                National Eye Institute
+              </div>
+            </div>
+            <div className="credits-grants__card">
+              <div className="credits-grants__card-name">
+                Dept. of Education
+              </div>
+              <div className="credits-grants__card-detail">
+                U.S. Federal funding
+              </div>
             </div>
           </div>
-          <div className="credits-grants__card">
-            <div className="credits-grants__card-name">Ability Central</div>
-            <div className="credits-grants__card-detail">
-              (formerly The Disabilities Communication Fund)
-            </div>
-          </div>
-          <div className="credits-grants__card">
-            <div className="credits-grants__card-name">NEI</div>
-            <div className="credits-grants__card-detail">
-              National Eye Institute
-            </div>
-          </div>
-          <div className="credits-grants__card">
-            <div className="credits-grants__card-name">Dept. of Education</div>
-            <div className="credits-grants__card-detail">
-              U.S. Federal funding
-            </div>
-          </div>
+          <p className="credits-grants__footnote">
+            * NIDLIRR Grant #90REGE0018-01-00 &amp; 90RE5024
+          </p>
         </div>
       </div>
 
