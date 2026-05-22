@@ -324,33 +324,30 @@ const Wishlist = () => {
       )
 
       const wishListItems = response.data.result
-      const topYouTubeIds = []
-      const topYouDescribeIds = []
-      const topVotes = []
-      const votedArr = []
-      const aiReq = []
-
-      for (let i = 0; i < wishListItems.length; i += 1) {
-        topYouTubeIds.push(wishListItems[i].youtube_id)
-        topYouDescribeIds.push(wishListItems[i]._id)
-        topVotes.push(wishListItems[i].votes)
-        aiReq.push(wishListItems[i].aiRequested)
-        votedArr.push({
-          id: wishListItems[i]._id,
-          voted: wishListItems[i].votes,
-        })
-      }
+      const topYouTubeIds = wishListItems.map((entry: any) => entry.youtube_id)
 
       const youTubeVideos = await fetchVideoDetails(topYouTubeIds)
+
+      // Index YouTube data by id so backend order is preserved even when
+      // YouTube returns no data for some ids (deleted / private videos).
+      // Previously the loop iterated youTubeVideos.length and used the
+      // loop index to read topYouDescribeIds / topVotes / aiReq, which
+      // mis-bound _id / votes / aiRequested to the wrong card whenever
+      // YouTube dropped any entry.
+      const youTubeById = new Map<string, any>()
+      youTubeVideos.forEach((v: any) => {
+        if (v?.id) youTubeById.set(v.id, v)
+      })
+
       const videoCardsComponents = []
 
-      for (let i = 0; i < youTubeVideos.length; i += 1) {
-        const item = youTubeVideos[i]
+      for (let i = 0; i < wishListItems.length; i += 1) {
+        const item = youTubeById.get(wishListItems[i].youtube_id)
         if (!item?.snippet || !item?.statistics) {
           continue
         }
 
-        const _id = topYouDescribeIds[i]
+        const _id = wishListItems[i]._id
         const youTubeId = item.id
         const thumbnailMedium = item.snippet?.thumbnails?.medium || { url: '' }
         const title = item.snippet?.title || 'Untitled'
@@ -361,8 +358,8 @@ const Wishlist = () => {
         )
         const publishedAt = new Date(item.snippet?.publishedAt || new Date())
         const now = Date.now()
-        const votes = topVotes[i]
-        const aiRequested = aiReq[i]
+        const votes = wishListItems[i].votes
+        const aiRequested = wishListItems[i].aiRequested
         const time = convertTimeToCardFormat(
           Number(now - publishedAt.getTime()), // Fixed: getTime() instead of getMilliseconds()
         )
