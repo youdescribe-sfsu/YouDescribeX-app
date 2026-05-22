@@ -1,6 +1,7 @@
 .footer {
-  padding-top: 32px !important;
-  padding-bottom: 32px !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+
   h5,
   h6,
   a {
@@ -24,5 +25,77 @@
   }
   a img {
     width: 140px !important;
+  }
+
+  /* Scoped overrides for the partners section — must live INSIDE .footer
+     so they beat the generic .footer div a rules above */
+  .footer-partners {
+    margin-bottom: 1rem;
+
+    .footer-partners__label {
+      font-size: 0.875rem !important;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6) !important;
+      margin: 0 0 0.75rem;
+      text-align: center;
+    }
+
+    .footer-partners__names {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: nowrap;
+    }
+
+    a.footer-partners__name {
+      text-decoration: none !important;
+      font-family: var(--font-serif, Georgia, serif);
+      font-size: 1.25rem !important;
+      font-weight: 500;
+      padding: 0 1.25rem;
+      margin: 0 !important;
+      white-space: nowrap;
+      cursor: pointer;
+
+      &:hover,
+      &:focus,
+      &:visited,
+      &:active {
+        text-decoration: none !important;
+      }
+
+      &.footer-partners__name--neu {
+        color: #ff6b6b !important;
+      }
+      &.footer-partners__name--skeri {
+        color: #ffffff !important;
+      }
+      &.footer-partners__name--sfsu {
+        color: #f4c430 !important;
+      }
+    }
+
+    .footer-partners__divider {
+      display: inline-block;
+      width: 1px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+  }
+}
+
+@media (max-width: 1000px) {
+  .footer .footer-partners {
+    .footer-partners__names {
+      flex-wrap: wrap;
+    }
+    .footer-partners__divider {
+      display: none;
+    }
+    a.footer-partners__name {
+      padding: 0.5rem 1rem;
+    }
   }
 }

@@ -9,7 +9,9 @@
     "year": "present",
     "team": "web",
     "description": "Photo of Lana Do, a young Asian woman with long dark brown hair, smiling at the camera. She wears a colorful striped sweater with bands of blue, olive, yellow, navy, pink, and red, with a black crossbody bag strap. The Painted Ladies — a row of pastel Victorian houses in San Francisco — are visible behind her on an overcast day.",
-    "order": 1
+    "order": 1,
+    "externalLink": "https://lanad22.github.io/",
+    "externalLinkTitle": " Learn More"
   },
   {
     "name": "Sanjay Mirani",
@@ -39,7 +41,7 @@
   },
   {
     "name": "Hyunjoo Shim",
-    "bio": "Hyunjoo Shim developed the YouDescribe tutorial interactive page and actively maintains the site to improve the user experience. She also contributes to videos and slide presentations for the team's research papers.",
+    "bio": "Hyunjoo Shim actively maintains the site to improve the user experience on the YouDescribe website. She developed the YouDescribe tutorial interactive page and contributed to videos and slide presentations for the team's research papers.",
     "img": "hyunjoo.jpg",
     "designation": "Full Stack Software Engineer",
     "pdf": "",
@@ -53,7 +55,7 @@
   },
   {
     "name": "Trung Kien Nguyen",
-    "bio": "Kien is part of the YouDescribe web development team. He worked on the new user interface and is now focusing on the research and evaluation side of the project.",
+    "bio": "Kien is part of the YouDescribe web development as well as research team. He worked on the updated editing tool on YouDescribe platform, and is focusing the research into evaluation of AD quality.",
     "img": "trungkien.jpg",
     "designation": "ML and Full Stack Software Engineer",
     "pdf": "",
@@ -136,7 +138,7 @@
   },
   {
     "name": "Juvenal F Barajas",
-    "bio": "Gio holds a Bachelor's degree in Computer Science and completed his Master's at SFSU in 2025, where my research focuses on large-scale video captioning models. I am particularly interested in the intersection of vision and language, model scaling, and multi-modal learning.",
+    "bio": "Gio holds a Bachelor's degree in Computer Science and completed his Master's at SFSU in 2025, where his research focuses on large-scale video captioning models. He is particularly interested in the intersection of vision and language, model scaling, and multi-modal learning.",
     "img": "juve.jpg",
     "designation": "Machine Learning",
     "pdf": "None",

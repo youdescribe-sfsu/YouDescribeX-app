@@ -11,22 +11,43 @@ const Footer = () => {
   }
 
   return (
-    <footer className="w3-center w3-indigo w3-padding-32 footer">
-      <div>
-        <a href="https://itunes.apple.com/app/id1177344886">
-          <img
-            alt="YouDescribe is also available for iphone at Itunes Store"
-            src={path.join(__dirname, 'assets', 'img', 'logo-apple-store.jpg')}
-          />
-        </a>
+    <footer className="w3-center w3-indigo footer">
+      <div className="footer-partners">
+        <p className="footer-partners__label">
+          {translate('YouDescribe is a project of')}
+        </p>
+        <div className="footer-partners__names">
+          <a
+            href="https://www.northeastern.edu/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-partners__name footer-partners__name--neu"
+          >
+            Northeastern University
+          </a>
+          <span className="footer-partners__divider" aria-hidden="true"></span>
+
+          <a
+            href="https://www.ski.org/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-partners__name footer-partners__name--skeri"
+          >
+            Smith-Kettlewell Eye Research Institute
+          </a>
+          <span className="footer-partners__divider" aria-hidden="true"></span>
+
+          <a
+            href="https://www.sfsu.edu/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-partners__name footer-partners__name--sfsu"
+          >
+            San Francisco State University
+          </a>
+        </div>
       </div>
-      <h5 className="classic-h5">
-        {translate('YouDescribe is a project of')}{' '}
-        <a href="http://www.ski.org" title="External link">
-          The Smith-Kettlewell Eye Research Institute
-        </a>
-        .
-      </h5>
+
       <div>
         <Link to="/credits" className="footer-links">
           {translate('Credits')}
@@ -48,6 +69,7 @@ const Footer = () => {
           {translate('Support')}
         </Link>
       </div>
+
       <h6 className="classic-h6">
         Copyright © {getYear()}, The Smith-Kettlewell Eye Research Institute,{' '}
         {translate('All rights reserved')}.
