@@ -37,6 +37,7 @@ import { TUTORIAL_TARGETS } from '../features/Tutorial/tutorialSelectors'
 import { useTutorialEditorAdapter } from '../features/Tutorial/useTutorialEditorAdapter'
 import type { TutorialMode } from '../features/Tutorial/tutorialStepRegistry'
 import { useAudioDescriptionEngine } from '../shared/hooks/useAudioDescriptionEngine' // <-- Add import
+import { invalidateHomeVideoCache } from '../shared/utils/homeVideoCache'
 
 type DialogTimestamp = {
   dialog_seq_no: number
@@ -1341,6 +1342,7 @@ const YDXHome = ({
       )
       setNeedRefresh(true)
       toast.success('Audio description published successfully!')
+      invalidateHomeVideoCache()
       window.location.href = `${window.location.origin}/video/${youtubeVideoId}?ad=${audioDescriptionId}`
     } catch (error) {
       console.error(error)
@@ -1363,6 +1365,7 @@ const YDXHome = ({
       setIsPublished(false)
       setNeedRefresh(true)
       toast.success('Audio description unpublished successfully!')
+      invalidateHomeVideoCache()
     } catch (error) {
       console.error('Error unpublishing audio description:', error)
       toast.error('Error unpublishing audio description!')
