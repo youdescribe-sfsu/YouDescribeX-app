@@ -116,7 +116,7 @@ const ClipsNavigator = ({
             <li key={clip.clip_id} className="clip-summary-list-item">
               <button
                 type="button"
-                tabIndex={index === currentIndex ? 0 : -1}
+                tabIndex={0}
                 ref={(element) => {
                   clipButtonRefs.current[index] = element
                 }}
