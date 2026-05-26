@@ -352,7 +352,7 @@ const AudioClip = ({
                 className="ad-title-input"
                 placeholder="Enter clip title..."
                 disabled={!showEditComponent}
-                readOnly={isTutorialMode}
+                readOnly
                 value={clipTitle}
                 onChange={(e) => setClipTitle(e.target.value)}
               />

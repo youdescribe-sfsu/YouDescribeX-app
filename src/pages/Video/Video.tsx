@@ -165,7 +165,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
       audioClips,
       currentEventRef.current,
       descriptionVolumeRef.current,
-      descriptionsActive,
+      descriptionsActive && currentState === 1,
     )
 
   // Update getPlaybackStats to use the new hook variables

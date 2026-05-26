@@ -162,6 +162,14 @@ export const useAudioDescriptionEngine = (
     return () => clearInterval(id)
   }, [isPlaying, tick])
 
+  useEffect(() => {
+    return () => {
+      // When the hook is destroyed (e.g., navigating away from the page),
+      // ensure any currently playing Howler instance is killed.
+      stopAllAudio()
+    }
+  }, [stopAllAudio])
+
   return {
     currentTimeUI,
     playedClips,
