@@ -198,16 +198,40 @@ const Search = () => {
     setLoadingYTVideos(true)
     const value = searchParams.get('q') ?? ''
     let query = (value || '').trim()
+    let directVideoId: string | null = null
 
+    // Full YouTube URL
     if (
       value.match(
-        /^https:\/\/(?:www\.)?youtube.com\/watch\?(?=v=\w+)(?:\S+)?$/g,
+        /^https:\/\/(?:www\.)?youtube\.com\/watch\?(?=v=[\w-]+)(?:\S+)?$/,
       )
     ) {
       const url = new URL(value)
-      query = url.searchParams.get('v') ?? ''
+      directVideoId = url.searchParams.get('v')
+    }
+    // youtu.be short URL
+    else if (value.match(/^https:\/\/youtu\.be\/([\w-]{11})/)) {
+      directVideoId = value.match(/youtu\.be\/([\w-]{11})/)![1]
+    }
+    // Bare 11-char video ID
+    else if (/^[\w-]{11}$/.test(query)) {
+      directVideoId = query
     }
 
+    if (directVideoId) {
+      // Skip search, go straight to the videos endpoint for an exact match
+      const videoDetailsUrl = `${youTubeApiUrl}/videos?id=${directVideoId}&part=contentDetails,snippet,statistics&key=${youTubeApiKey}`
+      ourFetch(videoDetailsUrl)
+        .then((videosFromYouTube: any) => {
+          setVideosNotOnYD([])
+          renderVideosFromYT(videosFromYouTube.items)
+        })
+        .catch((error) => {
+          console.error('Error fetching YouTube results:', error)
+          setLoadingYTVideos(false)
+        })
+      return
+    }
     // Direct call to YouTube's API for search
     const searchUrl = `${youTubeApiUrl}/search?part=snippet&q=${query}&maxResults=50&key=${youTubeApiKey}`
 
