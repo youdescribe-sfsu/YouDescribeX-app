@@ -197,7 +197,7 @@ const Search = () => {
   const getSearchResultsFromYt = (page = 1) => {
     setLoadingYTVideos(true)
     const value = searchParams.get('q') ?? ''
-    let query = (value || '').trim()
+    const query = (value || '').trim()
     let directVideoId: string | null = null
 
     // Full YouTube URL
