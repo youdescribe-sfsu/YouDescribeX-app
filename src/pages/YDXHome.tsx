@@ -1679,11 +1679,11 @@ const YDXHome = ({
                 }
                 onClick={() => setIsClipsListExpanded(!isClipsListExpanded)}
                 style={{ whiteSpace: 'nowrap' }}
-                aria-label={`View saved audio clips list, ${
+                aria-label={`Clip index, ${
                   audioClips.length
                 } total. Click to ${
                   shouldShowClipsList ? 'collapse' : 'expand'
-                } saved audio clips list`}
+                } clip index`}
                 aria-expanded={shouldShowClipsList}
               >
                 <i
@@ -1692,7 +1692,7 @@ const YDXHome = ({
                   }`}
                 />
                 <span className="saved-clips-toggle-text">
-                  View Saved Audio Clips ({audioClips.length} total)
+                  CLIP INDEX ({audioClips.length} total)
                 </span>
               </button>
             )}

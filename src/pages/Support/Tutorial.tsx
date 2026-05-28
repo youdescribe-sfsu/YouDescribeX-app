@@ -207,8 +207,8 @@ const Tutorial = () => {
         </p>
         <p>
           <strong>Please Note:</strong> You can navigate the Timeline tool bar
-          without using a mouse by using the View Saved Audio Clips button. Tab
-          down to View Saved Audio Clips, select, and then tab down to the track
+          without using a mouse by using the CLIP INDEX button. Tab
+          down to CLIP INDEX, select, and then tab down to the track
           you want to work on. The red timeline bar will automatically move to
           that spot in the video.
         </p>
@@ -287,13 +287,13 @@ const Tutorial = () => {
         </p>
         <p>
           Next, choose how you want to create the description. You can type a
-          Text Description, which will be read by the synthetic voice, or you
-          can make an Audio Recording using your own voice. Recording your own
+          TTS RECORD, which will be read by the synthetic voice, or you
+          can make a VOICE RECORD using your own voice. Recording your own
           voice usually produces higher-quality audio description. You can
           switch between text and audio later if you need to.
         </p>
         <p>
-          If you want to use Text Description (speech-to-text), simply enter the
+          If you want to use TTS RECORD (speech-to-text), simply enter the
           text in the provided box, and press the green save button. If you
           choose to record your voice (highly recommended), a red microphone
           button will appear. Press it to start; a countdown—three, two, one,

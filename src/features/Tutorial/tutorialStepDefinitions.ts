@@ -199,7 +199,7 @@ export const descriptionMethodStep: TutorialStep = {
   targetSelector: getTutorialSelector(TUTORIAL_TARGETS.descriptionMethod),
   title: 'Description Method',
   content:
-    'Choose Text Description to use an AI voice, or Audio Recording to use your own.',
+    'Choose TTS RECORD to use an AI voice, or VOICE RECORD to use your own.',
   position: 'top',
   action: 'next',
   page: 'editor',

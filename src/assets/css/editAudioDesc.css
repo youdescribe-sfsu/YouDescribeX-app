@@ -1272,6 +1272,42 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* VOICE RECORD: green (matches prompted tool .record-voice-prominent) */
+.method-button-voice {
+  border-color: #28a745;
+  color: #1d6f30;
+}
+
+.method-button-voice:hover {
+  background-color: rgba(40, 167, 69, 0.08);
+  border-color: #28a745;
+}
+
+.method-button-voice.active {
+  background: linear-gradient(135deg, #28a745, #218838);
+  border-color: #28a745;
+  color: white;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* TTS RECORD: aquamarine */
+.method-button-tts {
+  border-color: #5fd0bf;
+  color: #0b3d3d;
+}
+
+.method-button-tts:hover {
+  background-color: rgba(127, 255, 212, 0.15);
+  border-color: #5fd0bf;
+}
+
+.method-button-tts.active {
+  background-color: aquamarine;
+  border-color: #5fd0bf;
+  color: #0b3d3d;
+  box-shadow: 0 4px 12px rgba(127, 255, 212, 0.35);
+}
+
 /* Responsive adjustments that maintain spacing integrity */
 @media (max-width: 768px) {
   .dialog-content-grid {
