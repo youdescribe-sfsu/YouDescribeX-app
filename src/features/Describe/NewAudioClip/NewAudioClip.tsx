@@ -340,7 +340,7 @@ const NewAudioClipComponent = ({
                   if (!tutorialMode) setDescriptionMethod('audio')
                 }}
               >
-                VOICE RECORD
+                Voice Record
               </button>
               <button
                 type="button"
@@ -351,7 +351,7 @@ const NewAudioClipComponent = ({
                   if (!tutorialMode) setDescriptionMethod('text')
                 }}
               >
-                TTS RECORD
+                TTS Record
               </button>
             </div>
           </div>
@@ -379,7 +379,7 @@ const NewAudioClipComponent = ({
         ) : (
           <div className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3">
             <h6 className="text-white text-size text-center mb-2">
-              VOICE RECORD
+              Voice Record
               <span
                 className="ms-2 text-info"
                 data-bs-toggle="tooltip"

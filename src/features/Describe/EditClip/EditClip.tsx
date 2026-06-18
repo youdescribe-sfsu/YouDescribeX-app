@@ -117,7 +117,7 @@ const EditClip = ({
         title: 'Voice Recording',
         icon: 'fa-microphone',
         primaryAction: 'Replace Recording',
-        secondaryAction: 'TTS RECORD',
+        secondaryAction: 'TTS Record',
         description: 'Your voice recording is ready',
       }
     }
@@ -181,7 +181,7 @@ const EditClip = ({
     }
     if (clipDescriptionText !== initialClipDescriptionText) {
       return {
-        label: 'TTS RECORD',
+        label: 'TTS Record',
         icon: 'fa-sync',
         disabled: false,
         action: 'update',
@@ -777,7 +777,7 @@ const EditClip = ({
                 onClick={handleStartIntegratedRecording}
                 title="Replace AI voice with your own recording"
               >
-                <i className="fa fa-microphone" /> VOICE RECORD
+                <i className="fa fa-microphone" /> Voice Record
               </button>
             )}
             {isRecorded && !isPreview && !isIntegratedRecordingMode && (
@@ -786,7 +786,7 @@ const EditClip = ({
                 onClick={handleStartIntegratedRecording}
                 title="Record a new audio clip to replace the current one"
               >
-                <i className="fa fa-microphone" /> VOICE RECORD
+                <i className="fa fa-microphone" /> Voice Record
               </button>
             )}
             {isRecorded && !isPreview && (
@@ -800,7 +800,7 @@ const EditClip = ({
                     }}
                     title="Switch back to AI-generated voice"
                   >
-                    <i className="fa fa-robot" /> TTS RECORD
+                    <i className="fa fa-robot" /> TTS Record
                   </button>
                 ) : (
                   <div className="switch-to-tts-inline">
@@ -842,7 +842,7 @@ const EditClip = ({
               (() => {
                 const buttonConfig = getSmartButtonConfig()
                 if (!buttonConfig) return null
-                const isTtsRecord = buttonConfig.label === 'TTS RECORD'
+                const isTtsRecord = buttonConfig.label === 'TTS Record'
                 const variantClass = buttonConfig.disabled
                   ? 'ydx-button--secondary'
                   : isTtsRecord

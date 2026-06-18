@@ -1272,7 +1272,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* VOICE RECORD: green (matches prompted tool .record-voice-prominent) */
+/* Voice Record: green (matches prompted tool .record-voice-prominent) */
 .method-button-voice {
   border-color: #28a745;
   color: #1d6f30;
@@ -1290,7 +1290,7 @@
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
-/* TTS RECORD: aquamarine */
+/* TTS Record: aquamarine */
 .method-button-tts {
   border-color: #5fd0bf;
   color: #0b3d3d;
