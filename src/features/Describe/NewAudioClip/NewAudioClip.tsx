@@ -333,25 +333,25 @@ const NewAudioClipComponent = ({
             <div className="method-selection-enhanced">
               <button
                 type="button"
-                className={`method-button-enhanced ${
-                  descriptionMethod === 'text' ? 'active' : ''
-                }`}
-                onClick={() => {
-                  if (!tutorialMode) setDescriptionMethod('text')
-                }}
-              >
-                Text Description
-              </button>
-              <button
-                type="button"
-                className={`method-button-enhanced ${
+                className={`method-button-enhanced method-button-voice ${
                   descriptionMethod === 'audio' ? 'active' : ''
                 }`}
                 onClick={() => {
                   if (!tutorialMode) setDescriptionMethod('audio')
                 }}
               >
-                Audio Recording
+                Voice Record
+              </button>
+              <button
+                type="button"
+                className={`method-button-enhanced method-button-tts ${
+                  descriptionMethod === 'text' ? 'active' : ''
+                }`}
+                onClick={() => {
+                  if (!tutorialMode) setDescriptionMethod('text')
+                }}
+              >
+                TTS Record
               </button>
             </div>
           </div>
@@ -379,7 +379,7 @@ const NewAudioClipComponent = ({
         ) : (
           <div className="d-flex justify-content-center align-items-center flex-column mb-3 mx-3">
             <h6 className="text-white text-size text-center mb-2">
-              Record New Audio Clip
+              Voice Record
               <span
                 className="ms-2 text-info"
                 data-bs-toggle="tooltip"

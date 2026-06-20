@@ -207,10 +207,9 @@ const Tutorial = () => {
         </p>
         <p>
           <strong>Please Note:</strong> You can navigate the Timeline tool bar
-          without using a mouse by using the View Saved Audio Clips button. Tab
-          down to View Saved Audio Clips, select, and then tab down to the track
-          you want to work on. The red timeline bar will automatically move to
-          that spot in the video.
+          without using a mouse by using the Clip Index button. Tab down to Clip
+          Index, select, and then tab down to the track you want to work on. The
+          red timeline bar will automatically move to that spot in the video.
         </p>
         <p>
           When you need to move or adjust an audio track, check where the red
@@ -287,21 +286,21 @@ const Tutorial = () => {
         </p>
         <p>
           Next, choose how you want to create the description. You can type a
-          Text Description, which will be read by the synthetic voice, or you
-          can make an Audio Recording using your own voice. Recording your own
-          voice usually produces higher-quality audio description. You can
-          switch between text and audio later if you need to.
+          TTS Record, which will be read by the synthetic voice, or you can make
+          a Voice Record using your own voice. Recording your own voice usually
+          produces higher-quality audio description. You can switch between text
+          and audio later if you need to.
         </p>
         <p>
-          If you want to use Text Description (speech-to-text), simply enter the
-          text in the provided box, and press the green save button. If you
-          choose to record your voice (highly recommended), a red microphone
-          button will appear. Press it to start; a countdown—three, two, one,
-          go—will play before recording begins. Start speaking just after the
-          countdown ends so you have a moment to breathe and prepare. Press the
-          microphone button again to stop the recording, then select the white
-          square to confirm that you’re finished. You can re-record your voice
-          as many times as you like.
+          If you want to use TTS Record (speech-to-text), simply enter the text
+          in the provided box, and press the green save button. If you choose to
+          record your voice (highly recommended), a red microphone button will
+          appear. Press it to start; a countdown—three, two, one, go—will play
+          before recording begins. Start speaking just after the countdown ends
+          so you have a moment to breathe and prepare. Press the microphone
+          button again to stop the recording, then select the white square to
+          confirm that you’re finished. You can re-record your voice as many
+          times as you like.
         </p>
         <p>
           When everything sounds right and you’re satisfied with the result,

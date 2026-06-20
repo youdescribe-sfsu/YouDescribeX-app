@@ -128,6 +128,23 @@
   color: var(--text-primary);
 }
 
+.ydx-button--tts-aquamarine {
+  background-color: aquamarine;
+  color: #0b3d3d;
+  border: 1px solid #5fd0bf;
+}
+
+.ydx-button--tts-aquamarine:hover {
+  background-color: #6fe7d0;
+  color: #0b3d3d;
+}
+
+.ydx-button--tts-aquamarine:disabled {
+  background-color: #b4ecdc;
+  color: #5a7878;
+  cursor: not-allowed;
+}
+
 .ydx-button--danger {
   background-color: #dc3545;
   color: var(--text-primary);
