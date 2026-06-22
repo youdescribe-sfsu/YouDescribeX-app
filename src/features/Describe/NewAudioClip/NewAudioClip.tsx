@@ -38,7 +38,7 @@ const NewAudioClipComponent = ({
   const [isRecording, setIsRecording] = useState(false)
   const [recordingError, setRecordingError] = useState<string | null>(null)
   const [descriptionMethod, setDescriptionMethod] = useState<'text' | 'audio'>(
-    'text',
+    'audio',
   )
   const [recordingDuration, setRecordingDuration] = useState(0)
   const [readySetGo, setReadySetGo] = useState('')
@@ -336,22 +336,26 @@ const NewAudioClipComponent = ({
                 className={`method-button-enhanced method-button-voice ${
                   descriptionMethod === 'audio' ? 'active' : ''
                 }`}
+                aria-pressed={descriptionMethod === 'audio'}
                 onClick={() => {
                   if (!tutorialMode) setDescriptionMethod('audio')
                 }}
               >
-                Voice Record
+                <i className="fa fa-microphone method-button-icon" />
+                <span>Voice Record</span>
               </button>
               <button
                 type="button"
                 className={`method-button-enhanced method-button-tts ${
                   descriptionMethod === 'text' ? 'active' : ''
                 }`}
+                aria-pressed={descriptionMethod === 'text'}
                 onClick={() => {
                   if (!tutorialMode) setDescriptionMethod('text')
                 }}
               >
-                TTS Record
+                <i className="fa fa-sync method-button-icon" />
+                <span>TTS Record</span>
               </button>
             </div>
           </div>

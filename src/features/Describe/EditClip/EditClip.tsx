@@ -793,7 +793,7 @@ const EditClip = ({
               <>
                 {!showSwitchToTTSModal ? (
                   <button
-                    className="ydx-button ydx-button--tts-aquamarine"
+                    className="ydx-button ydx-button--tts-violet"
                     onClick={() => {
                       setSwitchToTTSText(clipDescriptionText || '')
                       setShowSwitchToTTSModal(true)
@@ -818,7 +818,7 @@ const EditClip = ({
                     />
                     <div className="inline-action-buttons">
                       <button
-                        className="ydx-button ydx-button--tts-aquamarine"
+                        className="ydx-button ydx-button--tts-violet"
                         onClick={handleSwitchToTTS}
                         disabled={!switchToTTSText.trim()}
                       >
@@ -846,7 +846,7 @@ const EditClip = ({
                 const variantClass = buttonConfig.disabled
                   ? 'ydx-button--secondary'
                   : isTtsRecord
-                  ? 'ydx-button--tts-aquamarine'
+                  ? 'ydx-button--tts-violet'
                   : 'ydx-button--success'
                 return (
                   <button

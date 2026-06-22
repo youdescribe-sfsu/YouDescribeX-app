@@ -128,20 +128,20 @@
   color: var(--text-primary);
 }
 
-.ydx-button--tts-aquamarine {
-  background-color: aquamarine;
-  color: #0b3d3d;
-  border: 1px solid #5fd0bf;
+.ydx-button--tts-violet {
+  background-color: #8254c4;
+  color: #fff;
+  border: 1px solid #9d72d6;
 }
 
-.ydx-button--tts-aquamarine:hover {
-  background-color: #6fe7d0;
-  color: #0b3d3d;
+.ydx-button--tts-violet:hover {
+  background-color: #6f45ad;
+  color: #fff;
 }
 
-.ydx-button--tts-aquamarine:disabled {
-  background-color: #b4ecdc;
-  color: #5a7878;
+.ydx-button--tts-violet:disabled {
+  background-color: #c9b6e6;
+  color: #6b5a82;
   cursor: not-allowed;
 }
 
