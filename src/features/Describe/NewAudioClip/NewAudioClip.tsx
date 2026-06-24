@@ -330,33 +330,35 @@ const NewAudioClipComponent = ({
             <h6 className="text-white text-size mb-2">
               Choose Description Method:
             </h6>
-            <div className="method-selection-enhanced">
-              <button
-                type="button"
-                className={`method-button-enhanced method-button-voice ${
-                  descriptionMethod === 'audio' ? 'active' : ''
-                }`}
-                aria-pressed={descriptionMethod === 'audio'}
-                onClick={() => {
-                  if (!tutorialMode) setDescriptionMethod('audio')
-                }}
-              >
-                <i className="fa fa-microphone method-button-icon" />
-                <span>Voice Record</span>
-              </button>
-              <button
-                type="button"
-                className={`method-button-enhanced method-button-tts ${
-                  descriptionMethod === 'text' ? 'active' : ''
-                }`}
-                aria-pressed={descriptionMethod === 'text'}
-                onClick={() => {
-                  if (!tutorialMode) setDescriptionMethod('text')
-                }}
-              >
-                <i className="fa fa-sync method-button-icon" />
-                <span>TTS Record</span>
-              </button>
+            <div className="d-flex justify-content-center">
+              <div className="method-selection-enhanced">
+                <button
+                  type="button"
+                  className={`method-button-enhanced method-button-voice ${
+                    descriptionMethod === 'audio' ? 'active' : ''
+                  }`}
+                  aria-pressed={descriptionMethod === 'audio'}
+                  onClick={() => {
+                    if (!tutorialMode) setDescriptionMethod('audio')
+                  }}
+                >
+                  <i className="fa fa-microphone method-button-icon" />
+                  <span>Voice Record</span>
+                </button>
+                <button
+                  type="button"
+                  className={`method-button-enhanced method-button-tts ${
+                    descriptionMethod === 'text' ? 'active' : ''
+                  }`}
+                  aria-pressed={descriptionMethod === 'text'}
+                  onClick={() => {
+                    if (!tutorialMode) setDescriptionMethod('text')
+                  }}
+                >
+                  <i className="fa fa-sync method-button-icon" />
+                  <span>TTS Record</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
