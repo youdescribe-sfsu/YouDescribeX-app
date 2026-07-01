@@ -160,13 +160,19 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
   const currentStateRef = useRef(currentState)
 
   // 1. Initialize new engine
-  const { playedClips, handleSeek, currentTimeUI, stopAllAudio } =
-    useAudioDescriptionEngine(
-      audioClips,
-      currentEventRef.current,
-      descriptionVolumeRef.current,
-      descriptionsActive && currentState === 1,
-    )
+  const {
+    playedClips,
+    handleBuffering,
+    currentTimeUI,
+    stopAllAudio,
+    pauseCurrentAudio,
+    resumeCurrentAudio,
+  } = useAudioDescriptionEngine(
+    audioClips,
+    currentEventRef.current,
+    descriptionVolumeRef.current,
+    descriptionsActive && currentState === 1,
+  )
 
   // Update getPlaybackStats to use the new hook variables
   const getPlaybackStats = () => {
@@ -771,10 +777,13 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     switch (event.data) {
       case 1: // Playing
         if (!isActive) setIsActive(true)
+        resumeCurrentAudio()
         break
-      case 3: // Buffering / Seek detected
-        console.info('Seek detected, resetting engine...')
-        handleSeek(currentYTTime)
+      case 2: // Paused
+        pauseCurrentAudio()
+        break
+      case 3: // Buffering — resets the engine only if the playhead jumped
+        handleBuffering(currentYTTime)
         break
       case 0: // Ended
         setIsActive(false)

@@ -20,6 +20,7 @@ export const useAudioDescriptionEngine = (
   const engineStateRef = useRef<EngineState>('IDLE')
   const playedClipsRef = useRef<Set<string>>(new Set())
   const currentAudioRef = useRef<Howl | null>(null)
+  const currentSoundIdRef = useRef<number | null>(null)
   const previousTimeRef = useRef<number>(0)
 
   // --- UI STATE (The "Face") ---
@@ -77,12 +78,13 @@ export const useAudioDescriptionEngine = (
 
       howlInstance.once('end', () => {
         currentAudioRef.current = null
+        currentSoundIdRef.current = null
         if (type === 'extended') currentEvent?.playVideo()
         engineStateRef.current = 'PLAYING_VIDEO'
       })
 
       currentAudioRef.current = howlInstance
-      howlInstance.play()
+      currentSoundIdRef.current = howlInstance.play()
     },
     [currentEvent, descriptionVolume],
   )
@@ -121,6 +123,7 @@ export const useAudioDescriptionEngine = (
       if (currentAudioRef.current) {
         currentAudioRef.current.stop()
         currentAudioRef.current = null
+        currentSoundIdRef.current = null
       }
 
       const newPlayedSet = new Set<string>()
@@ -138,19 +141,56 @@ export const useAudioDescriptionEngine = (
     [audioClips],
   )
 
-  // 5. Stop All Audio (Required by Video.tsx)
+  // 4b. Buffering handler — YouTube has no dedicated seek event; it fires
+  // BUFFERING both on real seeks and on a plain resume after pause. Only a
+  // genuine playhead jump should reset the engine; resetting on resume would
+  // kill (and mark as played) an inline clip that is merely paused.
+  const handleBuffering = useCallback(
+    (time: number) => {
+      const SEEK_JUMP_THRESHOLD = 1.5 // seconds
+      if (Math.abs(time - previousTimeRef.current) > SEEK_JUMP_THRESHOLD) {
+        seekTo(time)
+      }
+    },
+    [seekTo],
+  )
+
+  // 5. Pause/Resume the current inline clip (video pause/play controls)
+  // Extended clips are excluded: they pause the video themselves, and that
+  // pause event must not stop the clip that triggered it.
+  const pauseCurrentAudio = useCallback(() => {
+    if (
+      engineStateRef.current === 'PLAYING_INLINE' &&
+      currentAudioRef.current?.playing()
+    ) {
+      currentAudioRef.current.pause(currentSoundIdRef.current ?? undefined)
+    }
+  }, [])
+
+  const resumeCurrentAudio = useCallback(() => {
+    if (
+      engineStateRef.current === 'PLAYING_INLINE' &&
+      currentAudioRef.current &&
+      !currentAudioRef.current.playing()
+    ) {
+      currentAudioRef.current.play(currentSoundIdRef.current ?? undefined)
+    }
+  }, [])
+
+  // 6. Stop All Audio (Required by Video.tsx)
   // Inside useAudioDescriptionEngine.ts
   const stopAllAudio = useCallback(() => {
     if (currentAudioRef.current) {
       currentAudioRef.current.stop()
       currentAudioRef.current.unload()
       currentAudioRef.current = null
+      currentSoundIdRef.current = null
     }
     setActiveClipId(null) // <--- Add this line!
     engineStateRef.current = 'IDLE'
   }, [])
 
-  // 6. Sync & Lifecycle
+  // 7. Sync & Lifecycle
   useEffect(() => {
     if (currentAudioRef.current)
       currentAudioRef.current.volume(descriptionVolume / 100)
@@ -176,7 +216,10 @@ export const useAudioDescriptionEngine = (
     activeClipId,
     seekTo,
     handleSeek: seekTo, // Alias for Video.tsx compatibility
+    handleBuffering,
     stopAllAudio, // Exported for Video.tsx compatibility
+    pauseCurrentAudio,
+    resumeCurrentAudio,
     resetPlayedClips: () => {
       playedClipsRef.current = new Set()
       setPlayedClips(new Set())
