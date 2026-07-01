@@ -117,7 +117,7 @@ const EditClip = ({
         title: 'Voice Recording',
         icon: 'fa-microphone',
         primaryAction: 'Replace Recording',
-        secondaryAction: 'Switch to AI Voice',
+        secondaryAction: 'TTS Record',
         description: 'Your voice recording is ready',
       }
     }
@@ -181,7 +181,7 @@ const EditClip = ({
     }
     if (clipDescriptionText !== initialClipDescriptionText) {
       return {
-        label: 'Update AI Voice',
+        label: 'TTS Record',
         icon: 'fa-sync',
         disabled: false,
         action: 'update',
@@ -777,7 +777,7 @@ const EditClip = ({
                 onClick={handleStartIntegratedRecording}
                 title="Replace AI voice with your own recording"
               >
-                <i className="fa fa-microphone" /> Record Your Voice
+                <i className="fa fa-microphone" /> Voice Record
               </button>
             )}
             {isRecorded && !isPreview && !isIntegratedRecordingMode && (
@@ -786,20 +786,71 @@ const EditClip = ({
                 onClick={handleStartIntegratedRecording}
                 title="Record a new audio clip to replace the current one"
               >
-                <i className="fa fa-microphone" /> 🎤 Record New Audio
+                <i className="fa fa-microphone" /> Voice Record
               </button>
+            )}
+            {isRecorded && !isPreview && (
+              <>
+                {!showSwitchToTTSModal ? (
+                  <button
+                    className="ydx-button ydx-button--tts-violet"
+                    onClick={() => {
+                      setSwitchToTTSText(clipDescriptionText || '')
+                      setShowSwitchToTTSModal(true)
+                    }}
+                    title="Switch back to AI-generated voice"
+                  >
+                    <i className="fa fa-robot" /> TTS Record
+                  </button>
+                ) : (
+                  <div className="switch-to-tts-inline">
+                    <div className="inline-text-header">
+                      <i className="fa fa-robot text-primary me-2"></i>
+                      <span>Enter text for AI voice generation:</span>
+                    </div>
+                    <textarea
+                      className="enhanced-description-textarea"
+                      rows={3}
+                      placeholder="Describe what you recorded so the AI can generate similar speech..."
+                      value={switchToTTSText}
+                      onChange={(e) => setSwitchToTTSText(e.target.value)}
+                      style={{ marginTop: '8px', marginBottom: '8px' }}
+                    />
+                    <div className="inline-action-buttons">
+                      <button
+                        className="ydx-button ydx-button--tts-violet"
+                        onClick={handleSwitchToTTS}
+                        disabled={!switchToTTSText.trim()}
+                      >
+                        <i className="fa fa-robot" /> Generate AI Voice
+                      </button>
+                      <button
+                        className="ydx-button ydx-button--secondary"
+                        onClick={() => {
+                          setShowSwitchToTTSModal(false)
+                          setSwitchToTTSText('')
+                        }}
+                      >
+                        <i className="fa fa-times" /> Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
             {!isIntegratedRecordingMode &&
               (() => {
                 const buttonConfig = getSmartButtonConfig()
                 if (!buttonConfig) return null
+                const isTtsRecord = buttonConfig.label === 'TTS Record'
+                const variantClass = buttonConfig.disabled
+                  ? 'ydx-button--secondary'
+                  : isTtsRecord
+                  ? 'ydx-button--tts-violet'
+                  : 'ydx-button--success'
                 return (
                   <button
-                    className={`ydx-button ${
-                      buttonConfig.disabled
-                        ? 'ydx-button--secondary'
-                        : 'ydx-button--success'
-                    }`}
+                    className={`ydx-button ${variantClass}`}
                     onClick={
                       buttonConfig.disabled ? undefined : saveClipDescription
                     }
@@ -823,55 +874,6 @@ const EditClip = ({
               />
               {isAdAudioPlaying ? 'Pause Audio' : 'Play Audio'}
             </button>
-            {isRecorded && !isPreview && (
-              <>
-                {!showSwitchToTTSModal ? (
-                  <button
-                    className="ydx-button ydx-button--secondary"
-                    onClick={() => {
-                      setSwitchToTTSText(clipDescriptionText || '')
-                      setShowSwitchToTTSModal(true)
-                    }}
-                    title="Switch back to AI-generated voice"
-                  >
-                    <i className="fa fa-robot" /> Switch to AI Voice
-                  </button>
-                ) : (
-                  <div className="switch-to-tts-inline">
-                    <div className="inline-text-header">
-                      <i className="fa fa-robot text-primary me-2"></i>
-                      <span>Enter text for AI voice generation:</span>
-                    </div>
-                    <textarea
-                      className="enhanced-description-textarea"
-                      rows={3}
-                      placeholder="Describe what you recorded so the AI can generate similar speech..."
-                      value={switchToTTSText}
-                      onChange={(e) => setSwitchToTTSText(e.target.value)}
-                      style={{ marginTop: '8px', marginBottom: '8px' }}
-                    />
-                    <div className="inline-action-buttons">
-                      <button
-                        className="ydx-button ydx-button--primary"
-                        onClick={handleSwitchToTTS}
-                        disabled={!switchToTTSText.trim()}
-                      >
-                        <i className="fa fa-robot" /> Generate AI Voice
-                      </button>
-                      <button
-                        className="ydx-button ydx-button--secondary"
-                        onClick={() => {
-                          setShowSwitchToTTSModal(false)
-                          setSwitchToTTSText('')
-                        }}
-                      >
-                        <i className="fa fa-times" /> Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
             <button
               className="ydx-button ydx-button--danger"
               onClick={() => {

@@ -1,5 +1,41 @@
 [
   {
+    "pub": "Lana Do, Gio Jung, Juvenal Francisco Barajas, Andrew Taylor Scott, Shasta Ihorn, Alexander Mario Blum, Vassilis Athitsos, Ilmi Yoon, \"Toward Scalable Audio Description Quality Control: A Workflow for Evaluating Human and VLM Raters\", Conditionally accepted to ASSETS 2026."
+  },
+  {
+    "pub": "Lana Do, Shasta Ihorn, Charity M. Pitcher-Cooper, Sanjay Mirani, Gio Jung, Hyunjoo Shim, Zhenzhen Qin, Kien T. Nguyen, Vassilis Athitsos, Ilmi Yoon, \"Making AI Drafts Count: A Quality Threshold in Audio Description Workflows\", arXiv:2605.05348, May 2026."
+  },
+  {
+    "pub": "Juvenal Francisco Barajas, Gio Jung, Manali Seth, Lana Do, Malleeswari Jagabattuni, Andrew Taylor Scott, Shasta Ihorn, Alexander Mario Blum, Vassilis Athitsos, Ilmi Yoon, \"Beyond Lexical Overlap: Validating Semantic Similarity Metrics for LLM-Based Video Caption Augmentation\", In Proceedings of the 11th International Conference on Intelligent Information Technology (ICIIT 2026), Da Nang, Vietnam, March 2026."
+  },
+  {
+    "pub": "Lana Do, Shasta Ihorn, Charity M. Pitcher-Cooper, Juvenal Francisco Barajas, Gio Jung, Xuan Duy Anh Nguyen, Sanjay Mirani, Ilmi Yoon, \"ADx3: A Collaborative Workflow for High-Quality Accessible Audio Description\", Poster, NeurIPS Women in Machine Learning Workshop, December 2025."
+  },
+  {
+    "pub": "Lana Do, Sanjay Mirani, Charity Pitcher-Cooper, Xuan Duy Anh Nguyen, Alekya Bairaboina, Ilmi Yoon, \"YouDescribe: Bridging AI Efficiency and Human Insight for Scalable Audio Description\", In Adjunct Proceedings of the 4th Annual Symposium on Human-Computer Interaction for Work (CHIWORK '25 Adjunct), ACM, June 2025."
+  },
+  {
+    "pub": "Charity Pitcher-Cooper, Shasta Ihorn, Ilmi Yoon, \"Access Granted: Unlocking Accessibility in Computer Science Through Collaboration\", In Proceedings of the Workshop on Accessibility and Robotics Education at ASSETS '24, ACM, October 2024."
+  },
+  {
+    "pub": "Lothar D. Narins, Andrew Taylor Scott, Aakash Gautam, Anagha Kulkarni, Mar Castanon, Benjamin Kao, Shasta Ihorn, Yue-Ting Siu, James Mason, Alexander Mario Blum, Ilmi Yoon, \"Validated Image Caption Rating Dataset\", In Advances in Neural Information Processing Systems 36 (NeurIPS 2023), Datasets and Benchmarks Track (Spotlight), December 2023."
+  },
+  {
+    "pub": "Charity Pitcher-Cooper, Seth Manali, Kao Benjamin, James Coughlan, Yoon Ilmi, \"You Described, We Archived: A Rich Audio Description Dataset\", In Journal On Technology And Persons With Disabilities, Volume 11, May 2023."
+  },
+  {
+    "pub": "Andrew Taylor Scott, Lothar D. Narins, Anagha Kulkarni, Mar Castanon, Benjamin Kao, Shasta Ihorn, Yue-Ting Siu, Ilmi Yoon, \"Improved Image Caption Rating – Datasets, Game, and Model\", In Extended Abstracts of the 2023 CHI Conference on Human Factors in Computing Systems (CHI EA '23), Article 172, April 2023."
+  },
+  {
+    "pub": "Shasta Ihorn, Yue-Ting Siu, Aditya Bodi, Lothar Narins, Jose M. Castanon, Yash Kant, Abhishek Das, Ilmi Yoon, Pooyan Fazli, \"NarrationBot and InfoBot: A Hybrid System for Automated Video Description\", arXiv:2111.03994, November 2021."
+  },
+  {
+    "pub": "Charity Pitcher-Cooper, John Brabyn, \"The Unstoppable Utility of YouDescribe. Wireless RERC 2021 State of Technology Forum Proceedings\" 09/2021."
+  },
+  {
+    "pub": "Aditya Bodi, Pooyan Fazli, Shasta Ihorn, Yue-Ting Siu, Andrew T. Scott, Lothar Narins, Yash Kant, Abhishek Das, Ilmi Yoon, \"Automated Video Description for Blind and Low Vision Users\", In Extended Abstracts of the ACM CHI Conference on Human Factors in Computing Systems (CHI EA '21), 2021."
+  },
+  {
     "pub": "Beste F. Yuksel, Pooyan Fazli, Umang Mathur*, Vaishali Bisht*, Soo Jung Kim*, Joshua Junhee Lee*, Seung Jung Jin*, Yue-Ting Siu, Joshua A Miele, Ilmi Yoon, “Human-in-the-Loop Machine Learning to Increase Video Accessibility for Visually Impaired and Blind Users” accepted to present at ACM DIS 2020."
   },
   {
@@ -7,11 +43,5 @@
   },
   {
     "pub": "Ilmi Yoon, Umang Mathur*, Brenna Gibson Tirumalashetty*, Pooyan Fazli, Joshua Miele, \"Video Accessibility for the Visually Impaired\", In Proceedings of the Workshop on AI for Social Good at the International Conference on Machine Learning, ICML, Long Beach, CA, USA, 2019."
-  },
-  {
-    "pub": "Charity Pitcher-Cooper, John Brabyn, \"The Unstoppable Utility of YouDescribe. Wireless RERC 2021 State of Technology Forum Proceedings\" 09/2021."
-  },
-  {
-    "pub": "Charity Pitcher-Cooper, Seth Manali, Kao Benjamin, James Coughlan, Yoon Ilmi, \"You Described, We Archived: A Rich Audio Description Dataset\", In Journal On Technology And Persons With Disabilities, Volume 11 (2023)"
   }
 ]

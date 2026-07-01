@@ -579,6 +579,9 @@
   /* Better visual feedback */
   position: relative;
   overflow: hidden;
+
+  height: 42px;          /* fixed height — all 4 buttons match */
+  padding: 0 16px;
 }
 
 .ydx-button::before {
@@ -1236,40 +1239,62 @@
 }
 
 /* Enhanced Method Selection Buttons */
+/* The pill container that holds both buttons */
 .method-selection-enhanced {
-  display: flex;
-  gap: var(--space-sm);
-  margin: var(--space-md) 0;
-}
-
-.method-button-enhanced {
-  flex: 1;
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--text-base);
-  font-weight: 500;
+  display: inline-flex;
+  gap: 0;
+  padding: 5px;
+  background-color: var(--background-primary);
   border: 2px solid var(--border-primary);
   border-radius: var(--radius-md);
-  background-color: var(--background-primary);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all var(--duration-fast) ease;
-  text-transform: capitalize;
-  min-height: 44px;
+  margin: 0 auto;
+}
+
+/* Shared button — transparent by default, fills when selected */
+.method-button-enhanced {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  width: 132px;
+  height: 70px;
+  border: none;
+  border-radius: 8px;       
+  background-color: transparent;
+  color: #cecece;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.method-button-enhanced:hover {
-  border-color: var(--border-accent);
-  background-color: var(--background-tertiary);
+.method-button-enhanced .method-button-icon {
+  font-size: 19px;
+  margin-bottom: 2px;
 }
 
-.method-button-enhanced.active {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
-  box-shadow: var(--shadow-sm);
+.method-button-enhanced:hover:not(.active) {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.method-button-enhanced:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Voice Record: fills green when active */
+.method-button-voice.active {
+  background-color: #28a745;
+  color: #fff;
+}
+
+/* TTS Record: fills violet when active */
+.method-button-tts.active {
+  background-color: #8254c4;
+  color: #fff;
 }
 
 /* Responsive adjustments that maintain spacing integrity */
@@ -1282,11 +1307,6 @@
   .playback-type-enhanced {
     flex-direction: column;
     align-items: stretch;
-    gap: var(--space-sm);
-  }
-
-  .method-selection-enhanced {
-    flex-direction: column;
     gap: var(--space-sm);
   }
 }

@@ -128,6 +128,23 @@
   color: var(--text-primary);
 }
 
+.ydx-button--tts-violet {
+  background-color: #8254c4;
+  color: #fff;
+  border: 1px solid #9d72d6;
+}
+
+.ydx-button--tts-violet:hover {
+  background-color: #6f45ad;
+  color: #fff;
+}
+
+.ydx-button--tts-violet:disabled {
+  background-color: #c9b6e6;
+  color: #6b5a82;
+  cursor: not-allowed;
+}
+
 .ydx-button--danger {
   background-color: #dc3545;
   color: var(--text-primary);
