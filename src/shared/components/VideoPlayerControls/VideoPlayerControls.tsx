@@ -1,6 +1,7 @@
 import { debounce } from 'debounce'
-import { ChangeEvent, useMemo, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import Form from 'react-bootstrap/Form'
+import { DESCRIPTION_VOLUME_MAX } from '@/shared/utils/descriptionGain'
 import './videoPlayerControls.scss'
 
 interface Props {
@@ -19,6 +20,16 @@ const VideoPlayerControls = ({
   const [descriptionValue, setDescriptionValue] =
     useState<number>(descriptionVolume)
   const [YTValue, setYTValue] = useState<number>(youTubeVideoVolume)
+
+  // Keep the visible slider positions in lockstep with the parent-owned
+  // volume state, so external changes (e.g. clicking YouTube's built-in
+  // mute button) move the sliders too.
+  useEffect(() => {
+    setDescriptionValue(descriptionVolume)
+  }, [descriptionVolume])
+  useEffect(() => {
+    setYTValue(youTubeVideoVolume)
+  }, [youTubeVideoVolume])
 
   // const showAudioDuckingTooltip = (props: any) => {
   //   return (
@@ -95,8 +106,11 @@ const VideoPlayerControls = ({
           <div className="col-sm-6 col-md-6 col-lg-6">
             <Form.Range
               aria-label="Audio Description Volume Slider"
-              aria-roledescription="This slider controls the volume of the audio description. The volume can be adjusted from 0 to 100."
+              aria-roledescription={`Slider for audio description volume. 0 is muted, 100 is the recorded level, and ${DESCRIPTION_VOLUME_MAX} amplifies quiet recordings up to 3x.`}
               className=""
+              min={0}
+              max={DESCRIPTION_VOLUME_MAX}
+              step={1}
               value={descriptionValue}
               onChange={handleDescriptionVolumeChange}
             />

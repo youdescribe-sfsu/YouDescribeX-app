@@ -38,6 +38,10 @@ import { useTutorialEditorAdapter } from '../features/Tutorial/useTutorialEditor
 import type { TutorialMode } from '../features/Tutorial/tutorialStepRegistry'
 import { useAudioDescriptionEngine } from '../shared/hooks/useAudioDescriptionEngine' // <-- Add import
 import { invalidateHomeVideoCache } from '../shared/utils/homeVideoCache'
+import {
+  howlerVolumeFor,
+  setDescriptionAmplification,
+} from '../shared/utils/descriptionGain'
 
 type DialogTimestamp = {
   dialog_seq_no: number
@@ -277,6 +281,19 @@ const YDXHome = ({
   useEffect(() => {
     currentClipIndexRef.current = currentClipIndex
   }, [currentClipIndex])
+
+  // Description Volume slider — keep the ref in sync, persist across sessions,
+  // and update every preloaded Howl in the current clip stack so a slider
+  // change ducks TTS and voice-recorded clips even before they start playing.
+  useEffect(() => {
+    descriptionVolumeRef.current = descriptionVolume
+    localStorage.setItem('descriptionVolume', descriptionVolume.toString())
+    setDescriptionAmplification(descriptionVolume)
+    const v = howlerVolumeFor(descriptionVolume)
+    clipStackRef.current.forEach((clip) => {
+      if (clip.clip_audio) clip.clip_audio.volume(v)
+    })
+  }, [descriptionVolume])
 
   useEffect(() => {
     navClipIndexRef.current = navClipIndex
@@ -617,6 +634,7 @@ const YDXHome = ({
       html5: true,
       preload: true,
       autoplay: false,
+      volume: descriptionVolumeRef.current / 100,
     })
     clip.clip_audio.load()
     return clip
@@ -825,6 +843,7 @@ const YDXHome = ({
               html5: true,
               preload: true,
               autoplay: false,
+              volume: descriptionVolumeRef.current / 100,
             })
             clip.clip_audio.load()
             clipStackData.push(clip)
@@ -1164,6 +1183,7 @@ const YDXHome = ({
           html5: true,
           preload: true,
           autoplay: false,
+          volume: descriptionVolumeRef.current / 100,
         })
         clip.clip_audio.load()
         clipStackData.push(clip)
@@ -1789,6 +1809,7 @@ const YDXHome = ({
               setEnrollInCollabEdit={setEnrollInCollabEdit}
               onPublish={handlePublish}
               isTutorialMode={isTutorialMode}
+              descriptionVolume={descriptionVolume}
             />
           )}
         </div>
