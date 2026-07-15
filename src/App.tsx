@@ -12,7 +12,8 @@ import UserStudyHome from './pages/UserStudyHome'
 import PlayVideo from './pages/PlayVideo'
 import './assets/css/index.css'
 import './app.scss'
-import { ToastContainer } from 'react-toastify' // for toast messages
+import { ToastContainer, toast } from 'react-toastify' // for toast messages
+import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
 import Home from './pages/Home/Home'
@@ -80,14 +81,20 @@ const resetCookie = () => {
   document.cookie = `userName=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
   document.cookie = `userPicture=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
 }
+
+// xiao: 0713
+export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
+
 interface UserStore {
   isSignedIn: boolean
+  authStatus: AuthStatus
   userId: string
   userToken: string
   userName: string
   userPicture: string
   userAdmin: number
   setSignedIn: (isSignedIn: boolean) => void
+  setAuthStatus: (authStatus: AuthStatus) => void
   setUserId: (userId: string) => void
   setUserToken: (userToken: string) => void
   setUserName: (userName: string) => void
@@ -99,12 +106,14 @@ interface UserStore {
 export const userDataStore = create<UserStore>()(
   devtools((set) => ({
     isSignedIn: false,
+    authStatus: 'loading',
     userId: '',
     userToken: '',
     userName: '',
     userPicture: '',
     userAdmin: 0,
     setSignedIn: (isSignedIn: boolean) => set({ isSignedIn }),
+    setAuthStatus: (authStatus: AuthStatus) => set({ authStatus }),
     setUserId: (userId: string) => set({ userId }),
     setUserToken: (userToken: string) => set({ userToken }),
     setUserName: (userName: string) => set({ userName }),
@@ -113,6 +122,7 @@ export const userDataStore = create<UserStore>()(
     clearUserData: () => {
       set({
         isSignedIn: false,
+        authStatus: 'unauthenticated',
         userId: '',
         userToken: '',
         userName: '',
@@ -123,6 +133,18 @@ export const userDataStore = create<UserStore>()(
       resetCookie()
     },
   })),
+)
+
+// Detect session expiration at runtime, if any Axios request returns 401, immediately treat the user as logged out
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      userDataStore.getState().clearUserData()
+      toast.error('Your session has expired. Please sign in again.')
+    }
+    return Promise.reject(error)
+  },
 )
 
 const App = () => {
@@ -141,6 +163,7 @@ const App = () => {
 
   const {
     setSignedIn,
+    setAuthStatus,
     setUserId,
     setUserToken,
     setUserName,
@@ -149,6 +172,7 @@ const App = () => {
   } = userDataStore((state) => {
     return {
       setSignedIn: state.setSignedIn,
+      setAuthStatus: state.setAuthStatus,
       setUserId: state.setUserId,
       setUserToken: state.setUserToken,
       setUserName: state.setUserName,
@@ -226,13 +250,21 @@ const App = () => {
       const response = await fetch(url, {
         credentials: 'include',
       })
+      if (!response.ok) {
+        clearUserData()
+        return
+      }
       const data = await response.json()
-
+      if (!data?.result) {
+        clearUserData()
+        return
+      }
       setUserData(data.result)
       handleRedirect()
     } catch (error) {
       //}
       console.error('Login error:', error)
+      clearUserData()
     }
   }
 
@@ -242,6 +274,7 @@ const App = () => {
     setUserId(result._id)
     setUserToken(result.token)
     setUserPicture(result.picture)
+    setAuthStatus('authenticated')
     setUserAdmin(result.admin)
     setSignedIn(true)
     setCookie(result._id, result.token, result.name, result.picture)
@@ -292,11 +325,11 @@ const App = () => {
     name: string,
     picture: string,
   ) => {
-    const now = new Date()
-    let time = now.getTime()
-    time += 20 * 1000
-    now.setTime(time)
-    const exp = now.toUTCString()
+    // const now = new Date()
+    // let time = now.getTime()
+    // time += 20 * 1000
+    // now.setTime(time)
+    // const exp = now.toUTCString()
     document.cookie = `userId=${id};path=/`
     document.cookie = `userToken=${token};path=/`
     document.cookie = `userName=${name};path=/`
