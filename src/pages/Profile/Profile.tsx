@@ -11,11 +11,7 @@ interface ProfileParams {
 }
 
 const Profile = () => {
-  const [optInChoices, setOptInChoices] = useState<boolean[]>([
-    false,
-    false,
-    false,
-  ])
+  const [optInChoices, setOptInChoices] = useState<boolean[]>([false, false])
   const [optIn, setOptIn] = useState<boolean>(false)
   const [reviewStatus, setReviewStatus] = useState<string>('')
 
@@ -33,12 +29,14 @@ const Profile = () => {
       const url = `${apiUrl}/users/${userId}`
       const response = await ourFetch(url)
       const user = response.result
-      const choices = [false, false, false]
-      user.opt_in.forEach((index: number) => {
-        choices[index] = true
-      })
+      // Each checkbox is persisted in its own field. choices[0] = wishlist
+      // published, choices[1] = automated AI feedback.
+      const choices = [
+        user.opt_in_wishlist_published === true,
+        user.opt_in_ai_feedback === true,
+      ]
       setOptInChoices(choices)
-      setOptIn(user.opt_in.length > 0)
+      setOptIn(user.opt_in === true)
       setReviewStatus(user.policy_review)
     } catch (error) {
       console.error('Failed to load user data:', error)
@@ -47,14 +45,8 @@ const Profile = () => {
 
   const handleCheckBoxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const index = parseInt(event.target.id)
-    let choices = [...optInChoices]
-    if (index === 3) {
-      choices = event.target.checked
-        ? [true, true, true]
-        : [false, false, false]
-    } else {
-      choices[index] = event.target.checked
-    }
+    const choices = [...optInChoices]
+    choices[index] = event.target.checked
     setOptInChoices(choices)
     setOptIn(true)
     setReviewStatus('reviewed')
@@ -65,7 +57,7 @@ const Profile = () => {
   ) => {
     const value = event.target.value
     if (value === 'off') {
-      setOptInChoices([false, false, false])
+      setOptInChoices([false, false])
       setOptIn(false)
     } else {
       setOptIn(true)
@@ -77,12 +69,7 @@ const Profile = () => {
     if (reviewStatus !== 'reviewed') {
       alert('Sorry, you have not made any choice yet.')
       return
-    } else if (
-      optIn &&
-      !optInChoices[0] &&
-      !optInChoices[1] &&
-      !optInChoices[2]
-    ) {
+    } else if (optIn && !optInChoices[0] && !optInChoices[1]) {
       alert('Sorry, you have not selected any opt-in checkbox.')
       return
     }
@@ -131,51 +118,48 @@ const Profile = () => {
           value="on"
           onChange={handleRadioButtonChange}
         />
-        <Form.Check
-          style={{ marginLeft: 20 }}
-          type="checkbox"
-          checked={optInChoices[0]}
-          name="optinchoices"
-          label={translate(
-            'My wishlist selection has been described and published',
-          )}
-          id="0"
-          onChange={handleCheckBoxChange}
-        />
-        <Form.Check
-          style={{ marginLeft: 20 }}
-          type="checkbox"
-          checked={optInChoices[1]}
-          name="optinchoices"
-          label={translate('My audio description has been viewed')}
-          id="1"
-          onChange={handleCheckBoxChange}
-        />
-        <Form.Check
-          style={{ marginLeft: 20 }}
-          type="checkbox"
-          checked={optInChoices[2]}
-          name="optinchoices"
-          label={translate(
-            'I wish to receive automated feedback on my published audio descriptions',
-          )}
-          id="2"
-          onChange={handleCheckBoxChange}
-        />
-        <Form.Check
-          style={{ marginLeft: 20 }}
-          type="checkbox"
-          checked={optInChoices.every((choice) => choice)}
-          label={translate('I would like to receive all notifications')}
-          id="3"
-          onChange={handleCheckBoxChange}
-        />
+        <p
+          id="optin-required-hint"
+          className="optin-helper-text"
+          style={{ marginLeft: '1.5em', fontSize: '0.85rem' }}
+        >
+          {translate('(Please select at least one option below)')}
+        </p>
+        <div
+          role="group"
+          aria-label={translate('A. Yes I want to be notified by email when:')}
+          aria-required={optIn}
+          aria-describedby={optIn ? 'optin-required-hint' : undefined}
+        >
+          <Form.Check
+            style={{ marginLeft: 20 }}
+            type="checkbox"
+            checked={optInChoices[0]}
+            name="optinchoices"
+            label={translate(
+              'My wishlist selection has been described and published',
+            )}
+            id="0"
+            onChange={handleCheckBoxChange}
+          />
+          <Form.Check
+            style={{ marginLeft: 20 }}
+            type="checkbox"
+            checked={optInChoices[1]}
+            name="optinchoices"
+            label={translate(
+              'I wish to receive automated feedback on my published audio descriptions',
+            )}
+            id="1"
+            onChange={handleCheckBoxChange}
+          />
+        </div>
         <br />
         <Form.Check
           type="radio"
           checked={reviewStatus === 'reviewed' && !optIn}
           label={translate(
-            'B. I do not want any automated notifications from YouDescribe.',
+            "B. I don't want to receive notifications for any of the options above.",
           )}
           name="optin"
           value="off"
