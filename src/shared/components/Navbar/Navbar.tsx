@@ -13,6 +13,7 @@ interface Props {
 
 const Navbar = ({ newGoogleAuth, signOut }: Props) => {
   const location = useLocation()
+  const authStatus = userDataStore((s) => s.authStatus) // xiao: reactive subscription — re-renders when auth state changes
 
   const navMenuOpen = () => {
     const mySidenav = document.getElementById('mySidenav')
@@ -42,12 +43,15 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
     }
   }
 
+  // xiao: three-state rendering — nothing while checking, avatar when confirmed, sign-in button when denied
   const signInComponent = () => {
-    if (userDataStore.getState().isSignedIn) {
-      return <UserAvatar userMenuToggle={userMenuToggle} signOut={signOut} />
-    } else {
-      return <SignInButton newGoogleAuth={newGoogleAuth} />
+    if (authStatus === 'loading') {
+      return null
     }
+    if (authStatus === 'authenticated') {
+      return <UserAvatar userMenuToggle={userMenuToggle} signOut={signOut} />
+    }
+    return <SignInButton newGoogleAuth={newGoogleAuth} />
   }
   const myHistoryUrl = `/videos/history`
 
