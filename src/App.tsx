@@ -12,7 +12,7 @@ import UserStudyHome from './pages/UserStudyHome'
 import PlayVideo from './pages/PlayVideo'
 import './assets/css/index.css'
 import './app.scss'
-import { ToastContainer, toast } from 'react-toastify'  // xiao: toast used for session expiration notification
+import { ToastContainer, toast } from 'react-toastify' // xiao: toast used for session expiration notification
 import axios from 'axios' // xiao: axios imported for 401 response interceptor
 import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
