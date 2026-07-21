@@ -12,8 +12,8 @@ import UserStudyHome from './pages/UserStudyHome'
 import PlayVideo from './pages/PlayVideo'
 import './assets/css/index.css'
 import './app.scss'
-import { ToastContainer, toast } from 'react-toastify' // for toast messages
-import axios from 'axios'
+import { ToastContainer, toast } from 'react-toastify'  // xiao: toast used for session expiration notification
+import axios from 'axios' // xiao: axios imported for 401 response interceptor
 import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
 import Home from './pages/Home/Home'
@@ -82,7 +82,7 @@ const resetCookie = () => {
   document.cookie = `userPicture=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
 }
 
-// xiao: 0713
+// xiao: three-state auth — 'loading' = haven't checked backend, 'authenticated' = confirmed, 'unauthenticated' = denied
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
 
 interface UserStore {
@@ -122,6 +122,7 @@ export const userDataStore = create<UserStore>()(
     clearUserData: () => {
       set({
         isSignedIn: false,
+        // xiao: explicitly mark as unauthenticated so UI knows backend denied login
         authStatus: 'unauthenticated',
         userId: '',
         userToken: '',
@@ -135,7 +136,7 @@ export const userDataStore = create<UserStore>()(
   })),
 )
 
-// Detect session expiration at runtime, if any Axios request returns 401, immediately treat the user as logged out
+// xiao: intercept all axios responses — any 401 means session expired, clear login state immediately
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -250,11 +251,13 @@ const App = () => {
       const response = await fetch(url, {
         credentials: 'include',
       })
+      // xiao: backend returns 500 when not logged in, fetch doesn't throw on 500 — must check response.ok explicitly
       if (!response.ok) {
         clearUserData()
         return
       }
       const data = await response.json()
+      // xiao: safety check — 200 but no result means unexpected response, treat as not logged in
       if (!data?.result) {
         clearUserData()
         return
@@ -262,8 +265,8 @@ const App = () => {
       setUserData(data.result)
       handleRedirect()
     } catch (error) {
-      //}
       console.error('Login error:', error)
+      // xiao: network error — clear fake login state instead of silently ignoring
       clearUserData()
     }
   }
@@ -274,6 +277,7 @@ const App = () => {
     setUserId(result._id)
     setUserToken(result.token)
     setUserPicture(result.picture)
+    // xiao: backend confirmed login — set authoritative auth state
     setAuthStatus('authenticated')
     setUserAdmin(result.admin)
     setSignedIn(true)
