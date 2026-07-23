@@ -1,4 +1,4 @@
-import { apiUrl } from '../config'  // Xiao: import the apiUrl from the config file
+import { apiUrl } from '../config' // Xiao: import the apiUrl from the config file
 
 interface Response {
   code: number
