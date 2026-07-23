@@ -6,6 +6,8 @@ import { translate, userDataStore } from '@/App'
 
 import { apiUrl } from '@/shared/config'
 
+import { toast } from 'react-toastify' // xiao: replace blocking alert() with toast for consistent UI
+
 interface ProfileParams {
   userId: string
 }
@@ -67,10 +69,12 @@ const Profile = () => {
 
   const handleSave = async () => {
     if (reviewStatus !== 'reviewed') {
-      alert('Sorry, you have not made any choice yet.')
+      // xiao: alert() replaced with toast — non-blocking, matches site-wide notification style
+      toast.error('Sorry, you have not made any choice yet.')
       return
     } else if (optIn && !optInChoices[0] && !optInChoices[1]) {
-      alert('Sorry, you have not selected any opt-in checkbox.')
+      // xiao: alert() replaced with toast — non-blocking, matches site-wide notification style
+      toast.error('Sorry, you have not selected any opt-in checkbox.')
       return
     }
     try {
@@ -86,9 +90,11 @@ const Profile = () => {
         }),
       }
       await ourFetch(url, true, optionObj)
-      alert(
-        'Your opt-in choices have been successfully saved! You will now be redirected to the home page',
-      )
+      // xiao: toast instead of blocking alert; 5s for low-vision users (global default is 1s).
+      // "redirected to home page" wording removed — toast doesn't block, navigate fires immediately
+      toast.success('Your opt-in choices have been successfully saved!', {
+        autoClose: 5000,
+      })
       navigate('/') // Redirect using useNavigate
     } catch (error) {
       console.error('Failed to save opt-in choices:', error)

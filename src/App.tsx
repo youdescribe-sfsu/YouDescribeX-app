@@ -142,11 +142,26 @@ axios.interceptors.response.use(
   (error) => {
     if (error?.response?.status === 401) {
       userDataStore.getState().clearUserData()
-      toast.error('Your session has expired. Please sign in again.')
+      // xiao: toastId dedupes concurrent 401s (video page fires several requests at once);
+      // 5s instead of global 1s default for low-vision users
+      toast.error('Your session has expired. Please sign in again.', {
+        autoClose: 5000,
+        toastId: 'session-expired',
+      })
     }
     return Promise.reject(error)
   },
 )
+
+// xiao: ourFetch (XHR) bypasses the axios interceptor — listen for its 401 events here
+window.addEventListener('ydx:unauthorized', () => {
+  userDataStore.getState().clearUserData()
+  // xiao: same toastId as the axios interceptor — mixed axios/ourFetch 401s show one toast total
+  toast.error('Your session has expired. Please sign in again.', {
+    autoClose: 5000,
+    toastId: 'session-expired',
+  })
+})
 
 const App = () => {
   const { userId, userToken, userName, userPicture, clearUserData } =
