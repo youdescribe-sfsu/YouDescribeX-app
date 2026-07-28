@@ -1,3 +1,5 @@
+import { apiUrl } from '../config' // Xiao: import the apiUrl from the config file
+
 interface Response {
   code: number
   message: string
@@ -27,6 +29,9 @@ const ourFetch = (
 
     req.open(optionObj.method, absoluteUrl.toString())
 
+    // xiao: send session cookie only to YDX backend; third-party domains (googleapis) reject credentialed requests via CORS
+    req.withCredentials = absoluteUrl.origin === new URL(apiUrl).origin
+
     req.timeout = optionObj.timeoutMs ?? 15000
 
     req.ontimeout = () => {
@@ -51,6 +56,10 @@ const ourFetch = (
           resolve(req.response)
         }
       } else {
+        // xiao: notify app of session expiration — ourFetch bypasses the axios interceptor
+        if (req.status === 401) {
+          window.dispatchEvent(new CustomEvent('ydx:unauthorized'))
+        }
         try {
           reject(JSON.parse(req.response))
         } catch {

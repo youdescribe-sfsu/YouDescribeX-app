@@ -12,7 +12,8 @@ import UserStudyHome from './pages/UserStudyHome'
 import PlayVideo from './pages/PlayVideo'
 import './assets/css/index.css'
 import './app.scss'
-import { ToastContainer } from 'react-toastify' // for toast messages
+import { ToastContainer, toast } from 'react-toastify' // xiao: toast used for session expiration notification
+import axios from 'axios' // xiao: axios imported for 401 response interceptor
 import 'react-toastify/dist/ReactToastify.css'
 import LogRocket from 'logrocket'
 import Home from './pages/Home/Home'
@@ -80,14 +81,20 @@ const resetCookie = () => {
   document.cookie = `userName=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
   document.cookie = `userPicture=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
 }
+
+// xiao: three-state auth — 'loading' = haven't checked backend, 'authenticated' = confirmed, 'unauthenticated' = denied
+export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
+
 interface UserStore {
   isSignedIn: boolean
+  authStatus: AuthStatus
   userId: string
   userToken: string
   userName: string
   userPicture: string
   userAdmin: number
   setSignedIn: (isSignedIn: boolean) => void
+  setAuthStatus: (authStatus: AuthStatus) => void
   setUserId: (userId: string) => void
   setUserToken: (userToken: string) => void
   setUserName: (userName: string) => void
@@ -99,12 +106,14 @@ interface UserStore {
 export const userDataStore = create<UserStore>()(
   devtools((set) => ({
     isSignedIn: false,
+    authStatus: 'loading',
     userId: '',
     userToken: '',
     userName: '',
     userPicture: '',
     userAdmin: 0,
     setSignedIn: (isSignedIn: boolean) => set({ isSignedIn }),
+    setAuthStatus: (authStatus: AuthStatus) => set({ authStatus }),
     setUserId: (userId: string) => set({ userId }),
     setUserToken: (userToken: string) => set({ userToken }),
     setUserName: (userName: string) => set({ userName }),
@@ -113,6 +122,8 @@ export const userDataStore = create<UserStore>()(
     clearUserData: () => {
       set({
         isSignedIn: false,
+        // xiao: explicitly mark as unauthenticated so UI knows backend denied login
+        authStatus: 'unauthenticated',
         userId: '',
         userToken: '',
         userName: '',
@@ -124,6 +135,33 @@ export const userDataStore = create<UserStore>()(
     },
   })),
 )
+
+// xiao: intercept all axios responses — any 401 means session expired, clear login state immediately
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      userDataStore.getState().clearUserData()
+      // xiao: toastId dedupes concurrent 401s (video page fires several requests at once);
+      // 5s instead of global 1s default for low-vision users
+      toast.error('Your session has expired. Please sign in again.', {
+        autoClose: 5000,
+        toastId: 'session-expired',
+      })
+    }
+    return Promise.reject(error)
+  },
+)
+
+// xiao: ourFetch (XHR) bypasses the axios interceptor — listen for its 401 events here
+window.addEventListener('ydx:unauthorized', () => {
+  userDataStore.getState().clearUserData()
+  // xiao: same toastId as the axios interceptor — mixed axios/ourFetch 401s show one toast total
+  toast.error('Your session has expired. Please sign in again.', {
+    autoClose: 5000,
+    toastId: 'session-expired',
+  })
+})
 
 const App = () => {
   const { userId, userToken, userName, userPicture, clearUserData } =
@@ -141,6 +179,7 @@ const App = () => {
 
   const {
     setSignedIn,
+    setAuthStatus,
     setUserId,
     setUserToken,
     setUserName,
@@ -149,6 +188,7 @@ const App = () => {
   } = userDataStore((state) => {
     return {
       setSignedIn: state.setSignedIn,
+      setAuthStatus: state.setAuthStatus,
       setUserId: state.setUserId,
       setUserToken: state.setUserToken,
       setUserName: state.setUserName,
@@ -226,13 +266,23 @@ const App = () => {
       const response = await fetch(url, {
         credentials: 'include',
       })
+      // xiao: backend returns 500 when not logged in, fetch doesn't throw on 500 — must check response.ok explicitly
+      if (!response.ok) {
+        clearUserData()
+        return
+      }
       const data = await response.json()
-
+      // xiao: safety check — 200 but no result means unexpected response, treat as not logged in
+      if (!data?.result) {
+        clearUserData()
+        return
+      }
       setUserData(data.result)
       handleRedirect()
     } catch (error) {
-      //}
       console.error('Login error:', error)
+      // xiao: network error — clear fake login state instead of silently ignoring
+      clearUserData()
     }
   }
 
@@ -242,6 +292,8 @@ const App = () => {
     setUserId(result._id)
     setUserToken(result.token)
     setUserPicture(result.picture)
+    // xiao: backend confirmed login — set authoritative auth state
+    setAuthStatus('authenticated')
     setUserAdmin(result.admin)
     setSignedIn(true)
     setCookie(result._id, result.token, result.name, result.picture)
@@ -292,11 +344,11 @@ const App = () => {
     name: string,
     picture: string,
   ) => {
-    const now = new Date()
-    let time = now.getTime()
-    time += 20 * 1000
-    now.setTime(time)
-    const exp = now.toUTCString()
+    // const now = new Date()
+    // let time = now.getTime()
+    // time += 20 * 1000
+    // now.setTime(time)
+    // const exp = now.toUTCString()
     document.cookie = `userId=${id};path=/`
     document.cookie = `userToken=${token};path=/`
     document.cookie = `userName=${name};path=/`
