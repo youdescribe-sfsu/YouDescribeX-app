@@ -120,17 +120,6 @@ export const aiPostForkSteps: TutorialStep[] = [
     uiState: SAVED_CLIP,
   }),
 
-  withUIStateDefaultScroll(insertInlineBtnStep, SAVED_CLIP, {
-    id: 'ai-insert-inline-add-more',
-  }),
-  withUIState(insertExtendedBtnStep, SAVED_CLIP, { id: 'ai-insert-extended-add-more' }),
-  withUIState(currentClipNavigatorStep, SAVED_CLIP, {
-    id: 'ai-clip-currently-editing-add-more',
-  }),
-  withUIState(clipNavButtonsStep, SAVED_CLIP, {
-    id: 'ai-clip-nav-buttons-add-more',
-  }),
-
   withUIState(clipFormIntroStep, FORM_AND_CLIP, {
     id: 'ai-clip-form-intro',
     title: 'Insert Audio Clip',
