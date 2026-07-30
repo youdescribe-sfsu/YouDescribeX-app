@@ -109,6 +109,15 @@ const Profile = () => {
             'YouDescribe is now using an optional email notification system. In the form below, please select your desired notification options. These can be changed later in the My Profile tab, found in your user menu.',
           )}
         </p>
+        <p
+          id="optin-ai-status-note"
+          className="optin-note-text"
+          style={{ fontSize: '0.9rem' }}
+        >
+          {translate(
+            'Note: emails about the status of your AI description requests (processing and completed) cannot be turned off, and are not affected by the choices below.',
+          )}
+        </p>
         <Form.Check
           type="radio"
           checked={reviewStatus === 'reviewed' && optIn}
