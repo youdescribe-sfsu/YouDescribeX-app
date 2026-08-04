@@ -170,7 +170,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
   } = useAudioDescriptionEngine(
     audioClips,
     currentEventRef.current,
-    descriptionVolumeRef.current,
+    descriptionVolume,
     descriptionsActive && currentState === 1,
   )
 
@@ -237,12 +237,50 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
   }, [currentState])
 
   useEffect(() => {
-    if (currentEventRef) {
-      currentEventRef.current?.setVolume(youTubeVolume)
+    descriptionVolumeRef.current = descriptionVolume
+    localStorage.setItem('descriptionVolume', descriptionVolume.toString())
+  }, [descriptionVolume])
+
+  useEffect(() => {
+    const player = currentEventRef.current
+    if (player) {
+      if (youTubeVolume === 0) {
+        player.mute?.()
+      } else {
+        player.unMute?.()
+        player.setVolume?.(youTubeVolume)
+      }
     }
     youTubeVolumeRef.current = youTubeVolume
     localStorage.setItem('youTubeVolume', youTubeVolume.toString())
-  }, [youTubeVolume, currentEventRef])
+  }, [youTubeVolume])
+
+  // The YouTube iframe API doesn't emit volume/mute events, so poll the
+  // player and mirror external changes (e.g. clicking YouTube's built-in
+  // mute button) back into our slider state.
+  useEffect(() => {
+    if (!currentEvent) return
+    let cancelled = false
+    const id = setInterval(async () => {
+      try {
+        const [muted, vol] = await Promise.all([
+          currentEvent.isMuted?.() ?? Promise.resolve(false),
+          currentEvent.getVolume?.() ?? Promise.resolve(100),
+        ])
+        if (cancelled) return
+        const effective = muted ? 0 : Math.round(vol)
+        if (effective !== youTubeVolumeRef.current) {
+          setYouTubeVolume(effective)
+        }
+      } catch {
+        // player not ready yet
+      }
+    }, 500)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
+  }, [currentEvent])
 
   useEffect(() => {
     return () => {
@@ -254,13 +292,6 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
       })
     }
   }, [audioClips])
-
-  useEffect(() => {
-    currentEventRef.current = currentEvent
-    if (currentEvent) {
-      currentEvent.setVolume(youTubeVolume)
-    }
-  }, [currentEvent, youTubeVolume])
 
   useEffect(() => {
     if (currentState !== 1 || audioClips.length === 0) return
@@ -1622,7 +1653,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
                 {describerCards.slice(1)}
                 <Button
                   title={translate('Turn off descriptions for this video')}
-                  text={translate('Turn Off Descriptions')}
+                  text={translate('Turn off descriptions')}
                   color="w3-indigo w3-block w3-margin-top"
                   ariaLabel="Turn off descriptions for this video"
                   onClick={handleTurnOffDescriptions}

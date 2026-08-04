@@ -62,6 +62,7 @@ interface Props {
   setEnrollInCollabEdit: (val: boolean) => void
   onPublish: (e: any, checkbox?: boolean) => void
   isTutorialMode?: boolean
+  descriptionVolume?: number
 }
 
 const AudioClip = ({
@@ -91,6 +92,7 @@ const AudioClip = ({
   setEnrollInCollabEdit,
   onPublish,
   isTutorialMode = false,
+  descriptionVolume,
 }: Props) => {
   const clipID = clip.clip_id
   const clipSequenceNumber = clip.clip_sequence_number
@@ -575,6 +577,7 @@ const AudioClip = ({
               setUndoDeletedClip={setUndoDeletedClip}
               setClipDescText={handleDescriptionChange}
               isTutorialMode={isTutorialMode}
+              descriptionVolume={descriptionVolume}
             />
           )}
         </div>

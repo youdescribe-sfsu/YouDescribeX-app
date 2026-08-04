@@ -11,6 +11,11 @@ import convertSecondsToCardFormat from '../../../shared/utils/convertSecondsToCa
 import padNumber from '@/shared/utils/padNumber'
 import { Tooltip } from 'bootstrap'
 import { TUTORIAL_TARGETS } from '../../Tutorial/tutorialSelectors'
+import {
+  attachAudioElementToGain,
+  howlerVolumeFor,
+  setDescriptionAmplification,
+} from '@/shared/utils/descriptionGain'
 
 interface Props {
   userId: string
@@ -38,6 +43,7 @@ interface Props {
   handleClickSaveClipDescription: (updatedClipDescriptionText: string) => void
   setClipDescText: (description: string) => void
   isTutorialMode?: boolean
+  descriptionVolume?: number
 }
 
 const EditClip = ({
@@ -66,8 +72,10 @@ const EditClip = ({
   setUndoDeletedClip,
   setClipDescText,
   isTutorialMode = false,
+  descriptionVolume = 100,
 }: Props) => {
   const ref = useRef<HTMLDivElement>(null)
+  const recordedAudioElRef = useRef<HTMLAudioElement>(null)
   const clipEndTime = clipStartTime + clipDuration
 
   const [clipDescriptionText, setClipDescriptionText] = useState(
@@ -200,8 +208,11 @@ const EditClip = ({
     setClipDescriptionText(initialClipDescriptionText ?? '')
     handleClipStartTimeInputsRender()
     handleClipEndTimeInputsRender()
-    if (mediaBlobUrl !== null) {
-      const newAudio = new Audio(mediaBlobUrl)
+    if (mediaBlobUrl != null) {
+      const newAudio = new Audio()
+      newAudio.crossOrigin = 'anonymous'
+      newAudio.src = mediaBlobUrl
+      newAudio.volume = howlerVolumeFor(descriptionVolume)
       setRecordedAudio(newAudio)
       newAudio.addEventListener(
         'loadedmetadata',
@@ -225,7 +236,11 @@ const EditClip = ({
         false,
       )
     }
-    setAdAudio(new Audio(clipAudioPath))
+    const initialAdAudio = new Audio()
+    initialAdAudio.crossOrigin = 'anonymous'
+    initialAdAudio.src = clipAudioPath
+    initialAdAudio.volume = howlerVolumeFor(descriptionVolume)
+    setAdAudio(initialAdAudio)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     clipAudioPath,
@@ -247,10 +262,25 @@ const EditClip = ({
 
   useEffect(() => {
     if (clipAudioPath && !isRecorded) {
-      const newAudio = new Audio(clipAudioPath)
+      const newAudio = new Audio()
+      newAudio.crossOrigin = 'anonymous'
+      newAudio.src = clipAudioPath
+      newAudio.volume = howlerVolumeFor(descriptionVolume)
       setAdAudio(newAudio)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clipAudioPath, isRecorded])
+
+  // Keep every preview-audio element in sync with the shared Description Volume
+  // slider so recorded-voice and TTS clips duck together, matching the video
+  // overlay playback path in Video_v2 / useAudioDescriptionEngine.
+  useEffect(() => {
+    setDescriptionAmplification(descriptionVolume)
+    const v = howlerVolumeFor(descriptionVolume)
+    if (adAudio) adAudio.volume = v
+    if (recordedAudio) recordedAudio.volume = v
+    if (recordedAudioElRef.current) recordedAudioElRef.current.volume = v
+  }, [descriptionVolume, adAudio, recordedAudio])
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -431,6 +461,11 @@ const EditClip = ({
       recordedAudio?.pause()
       setIsRecordedAudioPlaying(false)
     } else {
+      if (recordedAudio) {
+        recordedAudio.volume = howlerVolumeFor(descriptionVolume)
+        setDescriptionAmplification(descriptionVolume)
+        attachAudioElementToGain(recordedAudio)
+      }
       recordedAudio?.play()
       setIsRecordedAudioPlaying(true)
       recordedAudio?.addEventListener('ended', function () {
@@ -445,6 +480,11 @@ const EditClip = ({
       adAudio?.pause()
       setIsAdAudioPlaying(false)
     } else {
+      if (adAudio) {
+        adAudio.volume = howlerVolumeFor(descriptionVolume)
+        setDescriptionAmplification(descriptionVolume)
+        attachAudioElementToGain(adAudio)
+      }
       const audioProm = adAudio?.play()
       if (audioProm !== undefined) {
         audioProm
@@ -747,7 +787,15 @@ const EditClip = ({
                     <i className="fa fa-check-circle text-success"></i>
                     <span>Recording completed! Listen and confirm:</span>
                   </div>
-                  <audio src={mediaBlobUrl} controls className="w-100 mb-3" />
+                  <audio
+                    ref={recordedAudioElRef}
+                    src={mediaBlobUrl}
+                    controls
+                    className="w-100 mb-3"
+                    onLoadedMetadata={(e) => {
+                      e.currentTarget.volume = descriptionVolume / 100
+                    }}
+                  />
                   <div className="confirmation-actions">
                     <button
                       className="ydx-button ydx-button--success"

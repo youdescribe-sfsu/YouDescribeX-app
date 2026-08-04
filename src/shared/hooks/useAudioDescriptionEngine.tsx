@@ -2,6 +2,11 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Howl } from 'howler'
 import axios from 'axios'
 import { Clip } from '@/shared/utils/convertClipObject'
+import {
+  attachHowlToGain,
+  howlerVolumeFor,
+  setDescriptionAmplification,
+} from '@/shared/utils/descriptionGain'
 
 type EngineState =
   | 'IDLE'
@@ -54,6 +59,10 @@ export const useAudioDescriptionEngine = (
         engineStateRef.current = 'PLAYING_INLINE'
       }
 
+      // Volume 0-100 on the slider maps to Howler's 0.0-1.0; anything above 100
+      // is delivered via the shared Web Audio GainNode (see descriptionGain.ts).
+      const howlVolume = howlerVolumeFor(descriptionVolume)
+
       // Assign to a variable and ensure it is treated as a Howl instance
       const howlInstance: Howl =
         clip.clip_audio ??
@@ -61,8 +70,16 @@ export const useAudioDescriptionEngine = (
           src: clip.clip_audio_path,
           html5: true,
           preload: true,
-          volume: descriptionVolume / 100,
+          volume: howlVolume,
         })
+
+      // Preloaded Howl instances (created by pages like YDXHome/Video_v2 before
+      // playback) don't carry the current slider volume, and the `??` above uses
+      // them as-is. Set volume explicitly on every playback so the Description
+      // Volume slider affects TTS and voice-recorded clips uniformly.
+      howlInstance.volume(howlVolume)
+      setDescriptionAmplification(descriptionVolume)
+      attachHowlToGain(howlInstance)
 
       // Use howlInstance consistently within this scope
       howlInstance.once('play', () => {
@@ -192,8 +209,9 @@ export const useAudioDescriptionEngine = (
 
   // 7. Sync & Lifecycle
   useEffect(() => {
+    setDescriptionAmplification(descriptionVolume)
     if (currentAudioRef.current)
-      currentAudioRef.current.volume(descriptionVolume / 100)
+      currentAudioRef.current.volume(howlerVolumeFor(descriptionVolume))
   }, [descriptionVolume])
 
   useEffect(() => {
