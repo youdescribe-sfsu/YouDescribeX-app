@@ -33,7 +33,8 @@ import { convertLikesToCardFormat } from '@/shared/utils/convertLikesToCardForma
 import { convertISO8601ToDate } from '@/shared/utils/convertISO8601ToDate'
 import DescriberCard from '@/features/Video/DescriberCard/DescriberCard'
 import RatingPopup from '@/features/Video/RatingPopup/RatingPopup'
-import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
+// Optional feedback UI disabled — see commented-out usages below. Data field (`feedback`) is still sent/stored.
+// import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
 import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import axios from 'axios'
@@ -986,7 +987,7 @@ const Video = () => {
           key={i}
           handleDescriberChange={handleDescriberChange}
           handleRatingPopup={handleRatingPopup}
-          handleFeedbackPopup={handleFeedbackPopup}
+          // handleFeedbackPopup={handleFeedbackPopup}
           handleNewCollabEdit={handleNewCollabEdit}
           describerId={describerId}
           selectedDescriberId={selectedADId}
@@ -1231,46 +1232,47 @@ const Video = () => {
     }
   }
 
-  const handleFeedbackSubmit = (feedback: any) => {
-    const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
-    ourFetch(url, true, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: userDataStore.getState().userId,
-        userToken: userDataStore.getState().userToken,
-        rating: rating,
-        feedback,
-      }),
-    })
-      .then((res) => {
-        const feedbackPopup = document.getElementById('feedback-popup')
-        const feedbackSuccess = document.getElementById('feedback-success')
-        if (feedbackPopup) {
-          feedbackPopup.style.display = 'none'
-        }
-        if (feedbackSuccess) {
-          feedbackSuccess.style.display = 'block'
-          feedbackSuccess.focus()
-          setTimeout(() => (feedbackSuccess.style.display = 'none'), 1000)
-        }
-        // toast.error('Thanks for your feedback!');
-
-        /* start of email */
-        sendOptInEmail(2, rating, feedback)
-        /* end of email */
-      })
-      .catch((err) => {
-        // console.log(err)
-        toast.error(
-          translate(
-            'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
-          ),
-        )
-      })
-  }
+  // Optional feedback UI disabled — data field (`feedback`) kept on the rating payload, just never populated from the UI anymore.
+  // const handleFeedbackSubmit = (feedback: any) => {
+  //   const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
+  //   ourFetch(url, true, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify({
+  //       userId: userDataStore.getState().userId,
+  //       userToken: userDataStore.getState().userToken,
+  //       rating: rating,
+  //       feedback,
+  //     }),
+  //   })
+  //     .then((res) => {
+  //       const feedbackPopup = document.getElementById('feedback-popup')
+  //       const feedbackSuccess = document.getElementById('feedback-success')
+  //       if (feedbackPopup) {
+  //         feedbackPopup.style.display = 'none'
+  //       }
+  //       if (feedbackSuccess) {
+  //         feedbackSuccess.style.display = 'block'
+  //         feedbackSuccess.focus()
+  //         setTimeout(() => (feedbackSuccess.style.display = 'none'), 1000)
+  //       }
+  //       // toast.error('Thanks for your feedback!');
+  //
+  //       /* start of email */
+  //       sendOptInEmail(2, rating, feedback)
+  //       /* end of email */
+  //     })
+  //     .catch((err) => {
+  //       // console.log(err)
+  //       toast.error(
+  //         translate(
+  //           'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
+  //         ),
+  //       )
+  //     })
+  // }
 
   const sendOptInEmail = (optIn: number, rating = 0, feedback = []) => {
     let emailBody = ''
@@ -1315,19 +1317,19 @@ const Video = () => {
       }
     }
   }
-  const handleFeedbackPopup = () => {
-    if (!userDataStore.getState().isSignedIn) {
-      toast.error(
-        translate('You have to be logged in in order to give feedback'),
-      )
-    } else {
-      const feedbackPopup = document.getElementById('feedback-popup')
-      if (feedbackPopup) {
-        feedbackPopup.style.display = 'block'
-        feedbackPopup.focus()
-      }
-    }
-  }
+  // const handleFeedbackPopup = () => {
+  //   if (!userDataStore.getState().isSignedIn) {
+  //     toast.error(
+  //       translate('You have to be logged in in order to give feedback'),
+  //     )
+  //   } else {
+  //     const feedbackPopup = document.getElementById('feedback-popup')
+  //     if (feedbackPopup) {
+  //       feedbackPopup.style.display = 'block'
+  //       feedbackPopup.focus()
+  //     }
+  //   }
+  // }
 
   const handleRatingPopupClose = () => {
     const ratingPopup = document.getElementById('rating-popup')
@@ -1336,12 +1338,12 @@ const Video = () => {
     }
   }
 
-  const handleFeedbackPopupClose = () => {
-    const feedbackPopup = document.getElementById('feedback-popup')
-    if (feedbackPopup) {
-      feedbackPopup.style.display = 'none'
-    }
-  }
+  // const handleFeedbackPopupClose = () => {
+  //   const feedbackPopup = document.getElementById('feedback-popup')
+  //   if (feedbackPopup) {
+  //     feedbackPopup.style.display = 'none'
+  //   }
+  // }
 
   // console.log(videoDurationInSeconds)
 
@@ -1579,6 +1581,7 @@ const Video = () => {
           <div id="rating-success" className="rating-success" tabIndex={-1}>
             {translate('Thanks for rating this description!')}
           </div>
+          {/* Optional feedback UI disabled — data field (`feedback`) kept on the rating payload.
           <FeedbackPopup
             handleFeedbackSubmit={handleFeedbackSubmit}
             handleFeedbackPopupClose={handleFeedbackPopupClose}
@@ -1586,6 +1589,7 @@ const Video = () => {
           <div id="feedback-success" className="feedback-success" tabIndex={-1}>
             {translate('Thank you for your feedback!')}
           </div>
+          */}
           <div className="w3-col l8 m8">
             <YTInfoCard
               videoTitle={videoTitle}

@@ -14,7 +14,8 @@ interface Props {
   handleDescriberChange: (describerId: string) => void
   handleRating: (rating: number) => void
   handleRatingPopup: () => void
-  handleFeedbackPopup: () => void
+  // Optional feedback UI disabled — data field (`feedback`) kept on the rating payload.
+  // handleFeedbackPopup: () => void
   handleNewCollabEdit: (describerId: string) => void
   videoId?: string
   collaborativeEdit?: boolean
@@ -31,7 +32,7 @@ const DescriberCard = ({
   handleDescriberChange,
   handleRating,
   handleRatingPopup,
-  handleFeedbackPopup,
+  // handleFeedbackPopup,
   handleNewCollabEdit,
   videoId,
   collaborativeEdit,
@@ -60,6 +61,7 @@ const DescriberCard = ({
             color="w3-indigo w3-block w3-margin-top"
             onClick={() => handleRatingPopup()}
           />
+          {/* Optional feedback UI disabled — data field (`feedback`) kept on the rating payload.
           <Button
             ariaLabel={translate('Provide feedback for this describer')}
             title={translate('Provide feedback for this describer')}
@@ -67,6 +69,7 @@ const DescriberCard = ({
             color="w3-indigo w3-block w3-margin-top"
             onClick={() => handleFeedbackPopup()}
           />
+          */}
           {collaborativeEdit && (
             <Button
               ariaLabel={translate(
