@@ -7,6 +7,7 @@ $tutorial-shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.3);
 $tutorial-visibility-transition: opacity 0.2s ease-out, visibility 0.2s;
 
 $tutorial-flow-gradient: linear-gradient(270deg, #1c3557, #4a90e2, #1c3557);
+$tutorial-float-solid: #2d5a8e;
 $tutorial-flow-shadow-soft: 0 4px 12px rgba(74, 144, 226, 0.2);
 $tutorial-flow-shadow-strong: 0 4px 15px rgba(74, 144, 226, 0.3);
 
@@ -358,7 +359,9 @@ $tutorial-focus-white: #fff;
   bottom: 24px;
   right: 24px;
   z-index: $tutorial-float-z-index;
-  @include tutorial-flow-background;
+  background: $tutorial-float-solid;
+  color: white;
+  border: none;
   border-radius: 28px;
   padding: 12px 24px;
   font-size: 14px;
