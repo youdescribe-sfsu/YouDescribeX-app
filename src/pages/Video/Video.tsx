@@ -89,6 +89,8 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
   const [rating, setRating] = useState<number>(0)
+  const [enjoymentRating, setEnjoymentRating] = useState<number>(0)
+  const [ratingComment, setRatingComment] = useState<string>('')
   // const codes = iso6391.getAllCodes()
 
   const languages = [
@@ -986,13 +988,17 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
     currentEventRef.current?.playVideo() // Optional: auto-resume video when turned back on
   }
 
-  const handleRatingSubmit = (rating: number) => {
-    if (rating === 0) toast.error('You must select a rating')
+  const handleRatingSubmit = (
+    comprehensionRating: number,
+    enjoymentScore: number,
+    ratingCommentText: string,
+  ) => {
+    if (comprehensionRating === 0 || enjoymentScore === 0)
+      toast.error(translate('Please answer both questions'))
     else if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
     } else {
       const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
-      setRating(rating)
       ourFetch(url, true, {
         method: 'POST',
         headers: {
@@ -1001,7 +1007,9 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
         body: JSON.stringify({
           userId: userDataStore.getState().userId,
           userToken: userDataStore.getState().userToken,
-          rating,
+          rating: comprehensionRating,
+          enjoymentRating: enjoymentScore,
+          comment: ratingCommentText.trim(),
         }),
       })
         .then((res) => {
@@ -1019,7 +1027,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
           }
 
           /* start of email */
-          sendOptInEmail(2, rating, [])
+          sendOptInEmail(2, comprehensionRating, [])
           /* end of email */
 
           // }
@@ -1039,7 +1047,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
             describers[selectedId].overall_rating_average = 0
           }
 
-          describers[selectedId].overall_rating_votes_sum += rating
+          describers[selectedId].overall_rating_votes_sum += comprehensionRating
           describers[selectedId].overall_rating_votes_counter += 1
           describers[selectedId].overall_rating_average =
             describers[selectedId].overall_rating_votes_sum /
@@ -1601,8 +1609,12 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
         >
           <RatingPopup
             audioDescriptionId={selectedADId}
-            rating={rating}
-            setRating={setRating}
+            comprehensionRating={rating}
+            setComprehensionRating={setRating}
+            enjoymentRating={enjoymentRating}
+            setEnjoymentRating={setEnjoymentRating}
+            comment={ratingComment}
+            setComment={setRatingComment}
             handleRatingSubmit={handleRatingSubmit}
             handleRatingPopupClose={handleRatingPopupClose}
           />

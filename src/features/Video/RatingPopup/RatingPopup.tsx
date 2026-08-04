@@ -1,26 +1,78 @@
 import { translate, userDataStore } from '@/App'
-import Button from '@/shared/components/Button/Button'
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import './ratingPopup.scss'
 import { apiUrl } from '@/shared/config'
 import ourFetch from '@/shared/utils/ourFetch'
 
 interface Props {
   audioDescriptionId: string
-  rating: number
-  setRating: Dispatch<SetStateAction<number>>
-  handleRatingSubmit: (rating: number) => void
+  comprehensionRating: number
+  setComprehensionRating: Dispatch<SetStateAction<number>>
+  enjoymentRating: number
+  setEnjoymentRating: Dispatch<SetStateAction<number>>
+  comment: string
+  setComment: Dispatch<SetStateAction<string>>
+  handleRatingSubmit: (
+    comprehensionRating: number,
+    enjoymentRating: number,
+    comment: string,
+  ) => void
   handleRatingPopupClose: () => void
 }
 
+const COMPREHENSION_CAPTIONS = [
+  'Not at all',
+  'A little',
+  'Somewhat',
+  'Mostly',
+  'Completely',
+]
+
+const ENJOYMENT_CAPTIONS = [
+  'Not at all',
+  'A little',
+  'Somewhat',
+  'Quite a bit',
+  'A great deal',
+]
+
+interface SpeechRecognitionLike {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start: () => void
+  stop: () => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onresult: ((event: any) => void) | null
+  onerror: (() => void) | null
+  onend: (() => void) | null
+}
+
+const SpeechRecognitionCtor =
+  (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition // eslint-disable-line @typescript-eslint/no-explicit-any
+
 const RatingPopup = ({
   audioDescriptionId,
-  rating,
-  setRating,
+  comprehensionRating,
+  setComprehensionRating,
+  enjoymentRating,
+  setEnjoymentRating,
+  comment,
+  setComment,
   handleRatingSubmit,
   handleRatingPopupClose,
 }: Props) => {
-  const [userRating, setUserRating] = useState<number | null>(null)
+  const [isListening, setIsListening] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
+  const baseCommentRef = useRef('')
+  const finalTranscriptRef = useRef('')
 
   useEffect(() => {
     const fetchUserRating = async () => {
@@ -31,9 +83,22 @@ const RatingPopup = ({
         }
         const url = `${apiUrl}/audio-descriptions/ratings/user/${audioDescriptionId}?userId=${userId}`
         const response = await ourFetch(url)
-        setUserRating(response.result)
-        if (response.result !== null) {
-          setRating(response.result)
+        const result = response.result as {
+          rating: number | null
+          enjoymentRating: number | null
+          comment: string
+        } | null
+        if (!result) {
+          return
+        }
+        if (result.rating !== null) {
+          setComprehensionRating(result.rating)
+        }
+        if (result.enjoymentRating !== null) {
+          setEnjoymentRating(result.enjoymentRating)
+        }
+        if (result.comment) {
+          setComment(result.comment)
         }
       } catch (error) {
         console.error('Error fetching user rating:', error)
@@ -41,102 +106,204 @@ const RatingPopup = ({
     }
 
     fetchUserRating()
-  }, [audioDescriptionId, setRating])
+  }, [
+    audioDescriptionId,
+    setComprehensionRating,
+    setEnjoymentRating,
+    setComment,
+  ])
 
-  const renderStars = () => {
-    const stars = []
-    for (let i = 5; i >= 1; i--) {
-      stars.push(
-        <button
-          key={i}
-          onClick={() => handleRatingSubmit(i)}
-          className={`star ${i <= (rating || userRating || 0) ? 'filled' : ''}`}
-          tabIndex={-1}
-        >
-          ★
-        </button>,
-      )
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop()
     }
-    return stars
+  }, [])
+
+  const stopDictation = () => {
+    recognitionRef.current?.stop()
   }
 
-  return (
-    <div id="rating-popup" tabIndex={-1}>
-      <div id="rating-popup-contents">
-        <a aria-label="close window" href="#" onClick={handleRatingPopupClose}>
-          <i className="fa fa-window-close" />
-        </a>
-        <h2>{translate('Rate description')}</h2>
-        <p>
-          {translate(
-            'Please rate this description with 1 star being unusable and 5 stars being perfect',
-          )}
-        </p>
-        <div className="rating" aria-hidden="true">
-          {renderStars()}
+  const toggleDictation = () => {
+    if (isListening) {
+      stopDictation()
+      return
+    }
+
+    const recognition: SpeechRecognitionLike = new SpeechRecognitionCtor()
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.lang = navigator.language || 'en-US'
+
+    baseCommentRef.current = comment ? `${comment.trimEnd()} ` : ''
+    finalTranscriptRef.current = ''
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
+      let interim = ''
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          finalTranscriptRef.current += transcript
+        } else {
+          interim += transcript
+        }
+      }
+      setComment(baseCommentRef.current + finalTranscriptRef.current + interim)
+    }
+    recognition.onerror = () => setIsListening(false)
+    recognition.onend = () => setIsListening(false)
+
+    recognitionRef.current = recognition
+    recognition.start()
+    setIsListening(true)
+  }
+
+  const closePopup = () => {
+    stopDictation()
+    handleRatingPopupClose()
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Escape') {
+      return
+    }
+    if (rootRef.current?.style.display !== 'block') {
+      return
+    }
+    closePopup()
+  }
+
+  const renderScale = (
+    name: string,
+    captions: string[],
+    value: number,
+    onSelect: (score: number) => void,
+  ) =>
+    captions.map((caption, index) => {
+      const score = index + 1
+      return (
+        <div className="scale-option" key={score}>
+          <input
+            type="radio"
+            id={`${name}-${score}`}
+            name={name}
+            value={score}
+            checked={value === score}
+            onChange={() => onSelect(score)}
+            aria-describedby={`${name}-${score}-caption`}
+          />
+          <label htmlFor={`${name}-${score}`}>
+            <span className="scale-number">{score}</span>
+          </label>
+          <span className="scale-caption" id={`${name}-${score}-caption`}>
+            {translate(caption)}
+          </span>
         </div>
-        <form
-          className="skip"
-          onSubmit={(event) => {
+      )
+    })
+
+  return (
+    <div
+      id="rating-popup"
+      tabIndex={-1}
+      ref={rootRef}
+      onKeyDown={handleKeyDown}
+    >
+      <div
+        id="rating-popup-contents"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="rating-popup-title"
+      >
+        <a
+          className="close-window"
+          aria-label="close window"
+          href="#"
+          onClick={(event) => {
             event.preventDefault()
-            handleRatingSubmit(rating)
+            closePopup()
           }}
         >
-          <input
-            id="rating-1"
-            type="radio"
-            name="rating"
-            value="1"
-            onChange={() => setRating(1)}
-            checked={rating === 1}
-          />
-          <label htmlFor="rating-1"> 1 star</label>
-          <br />
-          <input
-            id="rating-2"
-            type="radio"
-            name="rating"
-            value="2"
-            onChange={() => setRating(2)}
-            checked={rating === 2}
-          />
-          <label htmlFor="rating-2"> 2 stars</label>
-          <br />
-          <input
-            id="rating-3"
-            type="radio"
-            name="rating"
-            value="3"
-            onChange={() => setRating(3)}
-            checked={rating === 3}
-          />
-          <label htmlFor="rating-3"> 3 stars</label>
-          <br />
-          <input
-            id="rating-4"
-            type="radio"
-            name="rating"
-            value="4"
-            onChange={() => setRating(4)}
-            checked={rating === 4}
-          />
-          <label htmlFor="rating-4"> 4 stars</label>
-          <br />
-          <input
-            id="rating-5"
-            type="radio"
-            name="rating"
-            value="5"
-            onChange={() => setRating(5)}
-            checked={rating === 5}
-          />
-          <label htmlFor="rating-5"> 5 stars</label>
-          <br />
-          <Button
-            ariaLabel="Submit rating"
-            text="Submit rating"
-            color="w3-indigo w3-margin-top w3-center"
-          />
+          <i className="fa fa-window-close" />
+        </a>
+        <h2 id="rating-popup-title">{translate('Two quick questions')}</h2>
+        <p className="rating-subtitle">
+          {translate('About the video you just watched.')}
+        </p>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            stopDictation()
+            handleRatingSubmit(comprehensionRating, enjoymentRating, comment)
+          }}
+        >
+          <fieldset className="rating-question">
+            <legend>
+              {translate(
+                'How well were you able to follow what was happening in the video?',
+              )}
+            </legend>
+            <div className="scale">
+              {renderScale(
+                'comprehension-rating',
+                COMPREHENSION_CAPTIONS,
+                comprehensionRating,
+                setComprehensionRating,
+              )}
+            </div>
+          </fieldset>
+          <fieldset className="rating-question">
+            <legend>{translate('How much did you enjoy the video?')}</legend>
+            <div className="scale">
+              {renderScale(
+                'enjoyment-rating',
+                ENJOYMENT_CAPTIONS,
+                enjoymentRating,
+                setEnjoymentRating,
+              )}
+            </div>
+          </fieldset>
+          <div className="comment-block">
+            <label htmlFor="rating-comment">
+              {translate("Anything else you'd like us to know?")}{' '}
+              <span className="optional-tag">({translate('optional')})</span>
+            </label>
+            <div className="comment-wrap">
+              <textarea
+                id="rating-comment"
+                rows={3}
+                value={comment}
+                placeholder={translate(
+                  'Optional — any other thoughts about the video or its description.',
+                )}
+                onChange={(event) => setComment(event.target.value)}
+              />
+              {SpeechRecognitionCtor && (
+                <button
+                  type="button"
+                  className={`mic-button ${isListening ? 'listening' : ''}`}
+                  onClick={toggleDictation}
+                  aria-pressed={isListening}
+                  aria-label={translate(
+                    isListening ? 'Stop dictation' : 'Dictate your answer',
+                  )}
+                >
+                  <i className="fa fa-microphone" />
+                </button>
+              )}
+              <span className="dictation-status" role="status">
+                {isListening ? translate('Listening…') : ''}
+              </span>
+            </div>
+          </div>
+          <div className="rating-footer">
+            <button type="button" className="back-button" onClick={closePopup}>
+              {translate('Back')} <kbd className="keycap">Esc</kbd>
+            </button>
+            <button type="submit" className="submit-button">
+              {translate('Submit & finish')} →
+            </button>
+          </div>
         </form>
       </div>
     </div>
