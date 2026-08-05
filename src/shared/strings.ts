@@ -156,6 +156,29 @@ const strings = {
     'Description Detail': 'Descrição Detalhe',
     'My profile': 'Meus perfil',
     Admin: 'Admin',
+    'Two quick questions': 'Duas perguntas rápidas',
+    'About the video you just watched.':
+      'Sobre o vídeo que você acabou de assistir.',
+    'How well were you able to follow what was happening in the video?':
+      'Quão bem você conseguiu acompanhar o que acontecia no vídeo?',
+    'How much did you enjoy the video?': 'Quanto você gostou do vídeo?',
+    "Anything else you'd like us to know?":
+      'Mais alguma coisa que você gostaria de nos contar?',
+    optional: 'opcional',
+    'Optional — any other thoughts about the video or its description.':
+      'Opcional — outros comentários sobre o vídeo ou sua audiodescrição.',
+    'Stop dictation': 'Parar ditado',
+    'Dictate your answer': 'Dite sua resposta',
+    'Listening…': 'Ouvindo…',
+    Back: 'Voltar',
+    'Submit & finish': 'Enviar e finalizar',
+    'Not at all': 'Nem um pouco',
+    'A little': 'Um pouco',
+    Somewhat: 'Razoavelmente',
+    Mostly: 'Na maior parte',
+    Completely: 'Completamente',
+    'Quite a bit': 'Bastante',
+    'A great deal': 'Muitíssimo',
   },
   'en-us': {
     'RECENT DESCRIPTIONS': 'RECENT DESCRIPTIONS',
@@ -328,6 +351,28 @@ const strings = {
     'Provide feedback for this describer':
       'Provide feedback for this describer',
     'MY DESCRIPTIONS': 'MY DESCRIPTIONS',
+    'Two quick questions': 'Two quick questions',
+    'About the video you just watched.': 'About the video you just watched.',
+    'How well were you able to follow what was happening in the video?':
+      'How well were you able to follow what was happening in the video?',
+    'How much did you enjoy the video?': 'How much did you enjoy the video?',
+    "Anything else you'd like us to know?":
+      "Anything else you'd like us to know?",
+    optional: 'optional',
+    'Optional — any other thoughts about the video or its description.':
+      'Optional — any other thoughts about the video or its description.',
+    'Stop dictation': 'Stop dictation',
+    'Dictate your answer': 'Dictate your answer',
+    'Listening…': 'Listening…',
+    Back: 'Back',
+    'Submit & finish': 'Submit & finish',
+    'Not at all': 'Not at all',
+    'A little': 'A little',
+    Somewhat: 'Somewhat',
+    Mostly: 'Mostly',
+    Completely: 'Completely',
+    'Quite a bit': 'Quite a bit',
+    'A great deal': 'A great deal',
   },
 }
 
