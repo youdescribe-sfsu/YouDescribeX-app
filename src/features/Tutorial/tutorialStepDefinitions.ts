@@ -281,7 +281,7 @@ export const nudgeControlsStep: TutorialStep = {
 export const currentClipNavigatorStep: TutorialStep = {
   id: 'clip-currently-editing',
   targetSelector: getTutorialSelector(TUTORIAL_TARGETS.clipCurrentlyEditing),
-  title: 'View Saved Clips',
+  title: 'Clip index',
   content: "Click button to view the list of clips you've saved.",
   position: 'top',
   action: 'next',
