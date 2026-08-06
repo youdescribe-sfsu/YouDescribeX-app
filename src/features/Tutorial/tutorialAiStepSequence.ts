@@ -55,7 +55,7 @@ export const aiPostForkSteps: TutorialStep[] = [
   }),
   withUIState(audioDuckingStep, SAVED_CLIP, { id: 'ai-audio-ducking' }),
   withUIState(notesAreaStep, SAVED_CLIP, { id: 'ai-notes-area' }),
-  
+
   withUIState(dialogTimelineStep, SAVED_CLIP, {
     id: 'ai-dialog-timeline',
     content:
@@ -80,7 +80,7 @@ export const aiPostForkSteps: TutorialStep[] = [
   withUIState(clipNavButtonsStep, SAVED_CLIP, {
     id: 'ai-clip-nav-buttons',
   }),
-  
+
   withUIStateDefaultScroll(clipControlsStep, SAVED_CLIP, {
     id: 'ai-clip-controls',
     title: 'Review AI Clip',
@@ -136,7 +136,7 @@ export const aiPostForkSteps: TutorialStep[] = [
     content: 'Add your own description or supplement the AI-generated ones.',
   }),
   withUIState(saveBtnStep, FORM_AND_CLIP, { id: 'ai-save-btn' }),
-  
+
   withUIStateDefaultScroll(collabCheckboxStep, SAVED_CLIP, {
     id: 'ai-collab',
   }),
