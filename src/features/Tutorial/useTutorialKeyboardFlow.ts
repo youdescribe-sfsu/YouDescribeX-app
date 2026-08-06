@@ -55,10 +55,10 @@ export const useTutorialKeyboardFlow = ({
   goToStep,
 }: Params) => {
   const ignoreNextProgrammaticFocusRef = useRef(false)
-    useEffect(() => {
-  ignoreNextProgrammaticFocusRef.current =
-    navigationSource === 'tutorial-controls'
-}, [currentStepIndex, navigationSource])
+  useEffect(() => {
+    ignoreNextProgrammaticFocusRef.current =
+      navigationSource === 'tutorial-controls'
+  }, [currentStepIndex, navigationSource])
   useEffect(() => {
     if (!isActive) return undefined
 
@@ -67,9 +67,9 @@ export const useTutorialKeyboardFlow = ({
       if (!(element instanceof Element)) return
       if (element.closest('[data-tutorial-overlay="true"]')) return
       if (ignoreNextProgrammaticFocusRef.current) {
-  ignoreNextProgrammaticFocusRef.current = false
-  return
-}
+        ignoreNextProgrammaticFocusRef.current = false
+        return
+      }
 
       const matchingIndex = getClosestMatchingStepIndex(element, activeSteps)
 
