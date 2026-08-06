@@ -94,6 +94,10 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
               <i className="fa fa-heart" aria-hidden="true" />
               {translate('WISHLIST')}
             </Link>
+            <Link to="/ai-drafts" className="nav-link-item">
+              <i className="fa fa-file-text" aria-hidden="true" />
+              AI Drafts
+            </Link>
             <Link to="/support" className="nav-link-item">
               <i className="fa fa-question-circle" aria-hidden="true" />
               {translate('SUPPORT')}
@@ -135,6 +139,13 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
         >
           <i className="fa fa-heart" aria-hidden="true" />{' '}
           {translate('WISHLIST')}
+        </Link>
+        <Link
+          to="/ai-drafts"
+          className="w3-bar-item w3-button"
+          onClick={navMenuClose}
+        >
+          <i className="fa fa-file-text" aria-hidden="true" /> AI Drafts
         </Link>
         {signInComponent()}
       </div>
