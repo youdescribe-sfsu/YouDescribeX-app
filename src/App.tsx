@@ -136,6 +136,12 @@ export const userDataStore = create<UserStore>()(
   })),
 )
 
+// alan: every axios call in this app targets the YDX backend (external APIs go through
+// ourFetch, which sets credentials per-origin), so send the session cookie by default.
+// A single call missing withCredentials gets a 401 that the interceptor below turns
+// into a fake logout for a validly signed-in user (bit us via Notes auto-save).
+axios.defaults.withCredentials = true
+
 // xiao: intercept all axios responses — any 401 means session expired, clear login state immediately
 axios.interceptors.response.use(
   (response) => response,
