@@ -1,0 +1,29 @@
+#ai-drafts {
+  min-height: calc(100vh - 54px);
+}
+
+.ai-drafts-introduction {
+  padding-top: 20px;
+  padding-bottom: 8px;
+}
+
+.ai-drafts-introduction p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.ai-drafts-grid {
+  padding-top: 12px;
+}
+
+.ai-drafts-message {
+  padding-top: 32px;
+  padding-bottom: 32px;
+  text-align: center;
+}
+
+.ai-drafts-load-more {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0 30px;
+}
