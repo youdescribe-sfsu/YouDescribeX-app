@@ -23,6 +23,7 @@ interface Props {
   time: string
   userVote?: boolean
   url?: string
+  previewUrl?: string
   aiRequested?: boolean
   onClick?: () => void
   audioDescriptionTimestamp?: number
@@ -50,6 +51,8 @@ const VideoCard = ({
   const navigate = useNavigate()
   const [voted, setVoted] = React.useState(userVote)
   const [isLoading, setIsLoading] = React.useState(false)
+  const cardLink =
+  previewUrl || (url ? `/editor/${url}` : `/video/${youTubeId}`)
 
   const upVote = async () => {
     if (!userDataStore.getState().isSignedIn) {
@@ -72,6 +75,7 @@ const VideoCard = ({
         const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
         const response = await axios.post(
           url,
+          previewUrl,
           {
             youTubeId: youTubeId,
             userId: userDataStore.getState().userId,
@@ -251,7 +255,7 @@ const VideoCard = ({
           <Link
             role="link"
             aria-hidden="true"
-            to={url ? '/editor/' + url : '/video/' + youTubeId}
+            to={cardLink}
             className=""
           >
             <img alt={title} src={thumbnailMediumUrl} width="100%" />
@@ -268,7 +272,7 @@ const VideoCard = ({
               <h3 className="card-h3 classic-h3">
                 <Link
                   role="link"
-                  to={url ? '/editor/' + url : '/video/' + youTubeId}
+                  to={cardLink}
                   className="classic-link"
                 >
                   {title}
