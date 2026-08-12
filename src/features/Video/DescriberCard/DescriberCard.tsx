@@ -23,6 +23,19 @@ interface Props {
   displayContributions?: { [key: string]: number }
 }
 
+/**
+ * Accessible name for the star widget, applied via role="img" + aria-label.
+ *
+ * The average blends comprehension and enjoyment, so it lands on halves —
+ * reported to one decimal rather than rounded to the number of filled stars.
+ */
+const getRatingLabel = (average: number): string => {
+  if (average === null || average === undefined || Number.isNaN(average)) {
+    return 'no ratings'
+  }
+  return `${Math.round(average * 10) / 10} out of 5 star rating`
+}
+
 const DescriberCard = ({
   picture,
   name,
@@ -40,6 +53,11 @@ const DescriberCard = ({
   displayContributions, // Add this new prop
 }: Props) => {
   const navigate = useNavigate()
+
+  const ratingLabel = getRatingLabel(overall_rating_average)
+  // Unique per card so each describer's button describes its own rating.
+  const ratingLabelId = `describer-rating-${describerId}`
+
   const getButton = (): ReactNode => {
     const userName = userDataStore.getState().userName
     const isDescriber = name === userName
@@ -56,6 +74,7 @@ const DescriberCard = ({
         <>
           <Button
             ariaLabel={translate("Rate this describer's audio description")}
+            ariaDescribedBy={ratingLabelId}
             title={translate("Rate this describer's audio description")}
             text={translate('Rate Description')}
             color="w3-indigo w3-block w3-margin-top"
@@ -87,6 +106,7 @@ const DescriberCard = ({
     return (
       <Button
         ariaLabel={translate("Select this describer's audio description")}
+        ariaDescribedBy={ratingLabelId}
         title={translate("Select this describer's audio description")}
         text={translate('Use description')}
         color="w3-indigo w3-block"
@@ -96,28 +116,29 @@ const DescriberCard = ({
   }
 
   const getStars = (): ReactNode[] => {
-    const stars: ReactNode[] = []
-    for (let i = 0; i < 5; i += 1) {
-      if (i + 1 <= Math.round(overall_rating_average)) {
-        stars.push(
-          <button
-            key={i}
-            style={{ color: 'gold' }}
-            onClick={() => handleRating(5 - i)}
-            tabIndex={-1}
-          >
-            ★
-          </button>,
-        )
-      } else {
-        stars.push(
-          <button key={i} onClick={() => handleRating(5 - i)} tabIndex={-1}>
-            ★
-          </button>,
-        )
-      }
+    // Snapped to the nearest half so a 4.5 average is visually distinct from a
+    // perfect 5, matching the decimal the screen-reader label reports.
+    const snapped = Math.round(overall_rating_average * 2) / 2
+    const fullStars = Math.floor(snapped)
+    // NaN comparisons are all false, so an absent average leaves every star grey.
+    const halfIndex = snapped > fullStars ? fullStars : -1
+
+    const starClass = (index: number): string | undefined => {
+      if (index < fullStars) return 'star-full'
+      if (index === halfIndex) return 'star-half'
+      return undefined
     }
-    return stars
+
+    return Array.from({ length: 5 }, (unused, i) => (
+      <button
+        key={i}
+        className={starClass(i)}
+        onClick={() => handleRating(5 - i)}
+        tabIndex={-1}
+      >
+        ★
+      </button>
+    ))
   }
 
   const getDisplayedName = (): string => {
@@ -193,14 +214,22 @@ const DescriberCard = ({
               </div>
               <div className="w3-col l9 m7 s9">
                 {getDisplayedName()}
-                <div className="rating-desc" aria-hidden="true">
+                {/* role="img" + aria-label makes the star row itself the
+                    accessible node. Its descendants are dropped from the tree
+                    automatically, so the individual stars need no aria-hidden. */}
+                <div
+                  className="rating-desc"
+                  role="img"
+                  aria-label={ratingLabel}
+                >
                   {getStars()}
                 </div>
-                <div className="skip">
-                  {Number.isNaN(Math.round(overall_rating_average))
-                    ? 'no ratings'
-                    : `${Math.round(overall_rating_average)} star rating`}
-                </div>
+                {/* aria-describedby reads the target's text, not its aria-label,
+                    so the buttons point here rather than at the star row —
+                    otherwise the description comes out as "★ ★ ★ ★ ★". */}
+                <span className="visually-hidden" id={ratingLabelId}>
+                  {ratingLabel}
+                </span>
               </div>
             </>
           )}
@@ -210,14 +239,16 @@ const DescriberCard = ({
                 <Accordion.Header>{getDisplayedName()}</Accordion.Header>
                 <Accordion.Body>
                   {/* <div className="w3-col l12 m12 s12"> */}
-                  <div className="rating-desc" aria-hidden="true">
+                  <div
+                    className="rating-desc"
+                    role="img"
+                    aria-label={ratingLabel}
+                  >
                     {getStars()}
                   </div>
-                  <div className="skip">
-                    {Number.isNaN(Math.round(overall_rating_average))
-                      ? 'no ratings'
-                      : `${Math.round(overall_rating_average)} star rating`}
-                  </div>
+                  <span className="visually-hidden" id={ratingLabelId}>
+                    {ratingLabel}
+                  </span>
                   {renderContributionBars()}
                   <hr aria-hidden="true" />
                   {getButton()}

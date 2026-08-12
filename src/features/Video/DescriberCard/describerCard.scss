@@ -15,6 +15,20 @@
       cursor: pointer;
       pointer-events: none;
     }
+
+    .star-full {
+      color: gold;
+    }
+
+    // Clipping a gradient to the glyph fills exactly half the star; no single
+    // Unicode half-star character renders reliably across fonts. Overrides the
+    // button's background-color, which is fine since the card behind is white.
+    .star-half {
+      background: linear-gradient(90deg, gold 50%, grey 50%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
   }
 
   .contribution-bars {
