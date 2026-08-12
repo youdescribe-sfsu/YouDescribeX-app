@@ -41,6 +41,7 @@ const VideoCard = ({
   duration,
   statusVal,
   url,
+  previewUrl,
   // views,
   // time,
   userVote = false,
