@@ -53,7 +53,7 @@ const VideoCard = ({
   const [voted, setVoted] = React.useState(userVote)
   const [isLoading, setIsLoading] = React.useState(false)
   const cardLink =
-  previewUrl || (url ? `/editor/${url}` : `/video/${youTubeId}`)
+    previewUrl || (url ? `/editor/${url}` : `/video/${youTubeId}`)
 
   const upVote = async () => {
     if (!userDataStore.getState().isSignedIn) {
@@ -252,12 +252,7 @@ const VideoCard = ({
     <div id="video-card" className="w3-left video-card h-100 w-100" title="">
       <div className="w3-card-2 w3-hover-shadow h-100">
         <div id="card-thumbnail" className="card-thumbnail" aria-hidden="true">
-          <Link
-            role="link"
-            aria-hidden="true"
-            to={cardLink}
-            className=""
-          >
+          <Link role="link" aria-hidden="true" to={cardLink} className="">
             <img alt={title} src={thumbnailMediumUrl} width="100%" />
           </Link>
           {duration ? (
@@ -270,11 +265,7 @@ const VideoCard = ({
           <div id="card-title-container" className="card-title-container">
             <div id="card-title" className="card-title">
               <h3 className="card-h3 classic-h3">
-                <Link
-                  role="link"
-                  to={cardLink}
-                  className="classic-link"
-                >
+                <Link role="link" to={cardLink} className="classic-link">
                   {title}
                 </Link>
               </h3>
