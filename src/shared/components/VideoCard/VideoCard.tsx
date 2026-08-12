@@ -76,7 +76,6 @@ const VideoCard = ({
         const url = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/add-one-wishlist-item`
         const response = await axios.post(
           url,
-          previewUrl,
           {
             youTubeId: youTubeId,
             userId: userDataStore.getState().userId,
