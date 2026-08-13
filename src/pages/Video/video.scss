@@ -143,9 +143,14 @@
     }
   }
 
-  .feedback-success,
-  .rating-success {
+  .feedback-success {
     display: none;
+  }
+
+  // Rendered only while there is a message to show (see Video.tsx), so it no
+  // longer needs to be toggled from JS.
+  .rating-success {
+    display: block;
     position: fixed;
     background-color: #fff;
     color: #3f51b5;
