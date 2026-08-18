@@ -38,7 +38,7 @@ const NewAudioClipComponent = ({
   const [isRecording, setIsRecording] = useState(false)
   const [recordingError, setRecordingError] = useState<string | null>(null)
   const [descriptionMethod, setDescriptionMethod] = useState<'text' | 'audio'>(
-    'audio',
+    tutorialMode ? 'text' : 'audio',
   )
   const [recordingDuration, setRecordingDuration] = useState(0)
   const [readySetGo, setReadySetGo] = useState('')

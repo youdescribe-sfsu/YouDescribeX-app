@@ -42,6 +42,7 @@ const TutorialPage = () => {
     isActive,
     activeSteps,
     currentStepIndex,
+    navigationSource,
     goToStep,
   })
 

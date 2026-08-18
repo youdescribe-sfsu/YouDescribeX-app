@@ -50,6 +50,12 @@ const aiEditorIntroStep = centeredStep({
 export const aiPostForkSteps: TutorialStep[] = [
   aiEditorIntroStep,
 
+  withUIStateDefaultScroll(playPauseBtnStep, SAVED_CLIP, {
+    id: 'ai-play-pause',
+  }),
+  withUIState(audioDuckingStep, SAVED_CLIP, { id: 'ai-audio-ducking' }),
+  withUIState(notesAreaStep, SAVED_CLIP, { id: 'ai-notes-area' }),
+
   withUIState(dialogTimelineStep, SAVED_CLIP, {
     id: 'ai-dialog-timeline',
     content:
@@ -60,12 +66,20 @@ export const aiPostForkSteps: TutorialStep[] = [
       { label: 'Blue', description: 'Video dialogue', color: 'dialogue' },
     ],
   }),
-
-  withUIStateDefaultScroll(playPauseBtnStep, SAVED_CLIP, {
-    id: 'ai-play-pause',
+  withUIStateDefaultScroll(insertInlineBtnStep, SAVED_CLIP, {
+    id: 'ai-insert-inline',
   }),
-  withUIState(notesAreaStep, SAVED_CLIP, { id: 'ai-notes-area' }),
-  withUIState(audioDuckingStep, SAVED_CLIP, { id: 'ai-audio-ducking' }),
+  withUIState(insertExtendedBtnStep, SAVED_CLIP, { id: 'ai-insert-extended' }),
+  withUIState(currentClipNavigatorStep, SAVED_CLIP, {
+    id: 'ai-clip-currently-editing',
+  }),
+  withUIState(savedClipsListStep, SAVED_CLIP_WITH_LIST, {
+    id: 'ai-saved-clips-list',
+    waitForTargetSettle: true,
+  }),
+  withUIState(clipNavButtonsStep, SAVED_CLIP, {
+    id: 'ai-clip-nav-buttons',
+  }),
 
   withUIStateDefaultScroll(clipControlsStep, SAVED_CLIP, {
     id: 'ai-clip-controls',
@@ -73,15 +87,7 @@ export const aiPostForkSteps: TutorialStep[] = [
     content:
       'You can view AI-generated clips here. Edit the content, timing, or type as needed.',
   }),
-  withUIState(clipAiVoiceStep, SAVED_CLIP, {
-    id: 'ai-clip-ai-voice',
-    title: 'AI Description Content',
-    content:
-      'Edit the AI-generated text, preview the audio, or record your own voice instead.',
-  }),
-  withUIState(clipTimingControlsStep, SAVED_CLIP, { id: 'ai-clip-timing' }),
   withUIState(nudgeControlsStep, SAVED_CLIP, { id: 'ai-nudge-controls' }),
-
   {
     id: 'ai-clip-type',
     targetSelector: getTutorialSelector(TUTORIAL_TARGETS.aiClipType),
@@ -94,6 +100,13 @@ export const aiPostForkSteps: TutorialStep[] = [
     autoScroll: false,
     uiState: SAVED_CLIP,
   },
+  withUIState(clipAiVoiceStep, SAVED_CLIP, {
+    id: 'ai-clip-ai-voice',
+    title: 'AI Description Content',
+    content:
+      'Edit the AI-generated text, preview the audio, or record your own voice instead.',
+  }),
+  withUIState(clipTimingControlsStep, SAVED_CLIP, { id: 'ai-clip-timing' }),
 
   centeredStep({
     id: 'ai-add-more-intro',
@@ -107,10 +120,6 @@ export const aiPostForkSteps: TutorialStep[] = [
     uiState: SAVED_CLIP,
   }),
 
-  withUIStateDefaultScroll(insertInlineBtnStep, SAVED_CLIP, {
-    id: 'ai-insert-inline',
-  }),
-  withUIState(insertExtendedBtnStep, SAVED_CLIP, { id: 'ai-insert-extended' }),
   withUIState(clipFormIntroStep, FORM_AND_CLIP, {
     id: 'ai-clip-form-intro',
     title: 'Insert Audio Clip',
@@ -127,17 +136,6 @@ export const aiPostForkSteps: TutorialStep[] = [
     content: 'Add your own description or supplement the AI-generated ones.',
   }),
   withUIState(saveBtnStep, FORM_AND_CLIP, { id: 'ai-save-btn' }),
-
-  withUIState(currentClipNavigatorStep, SAVED_CLIP, {
-    id: 'ai-clip-currently-editing',
-  }),
-  withUIState(savedClipsListStep, SAVED_CLIP_WITH_LIST, {
-    id: 'ai-saved-clips-list',
-    waitForTargetSettle: true,
-  }),
-  withUIState(clipNavButtonsStep, SAVED_CLIP, {
-    id: 'ai-clip-nav-buttons',
-  }),
 
   withUIStateDefaultScroll(collabCheckboxStep, SAVED_CLIP, {
     id: 'ai-collab',

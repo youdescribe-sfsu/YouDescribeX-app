@@ -33,7 +33,9 @@ import { convertLikesToCardFormat } from '@/shared/utils/convertLikesToCardForma
 import { convertISO8601ToDate } from '@/shared/utils/convertISO8601ToDate'
 import DescriberCard from '@/features/Video/DescriberCard/DescriberCard'
 import RatingPopup from '@/features/Video/RatingPopup/RatingPopup'
-import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
+import { useRatingPopup } from '@/features/Video/RatingPopup/useRatingPopup'
+// Optional feedback UI disabled — see commented-out usages below. Data field (`feedback`) is still sent/stored.
+// import FeedbackPopup from '@/features/Video/FeedbackPopup/FeedbackPopup'
 import RatingsInfoCard from '@/features/Video/RatingsInfoCard/RatingsInfoCard'
 import { ProgressBar } from 'react-bootstrap'
 import axios from 'axios'
@@ -48,6 +50,17 @@ const Video = () => {
   const [describerCards, setDescriberCards] = useState<ReactNode[]>([])
   const [descriptionsActive, setDescriptionsActive] = useState(true)
   const [rating, setRating] = useState<number>(0)
+  const [enjoymentRating, setEnjoymentRating] = useState<number>(0)
+  const [ratingComment, setRatingComment] = useState<string>('')
+  const {
+    isRatingPopupOpen,
+    openRatingPopup,
+    closeRatingPopup,
+    completeRatingPopup,
+    ratingSubmitError,
+    setRatingSubmitError,
+    ratingSuccessMessage,
+  } = useRatingPopup()
 
   // Loading Spinner
   const [showSpinner, setShowSpinner] = useState(true)
@@ -313,7 +326,11 @@ const Video = () => {
           adIdsUsers[ad._id] = ad.user
           adIdsUsers[ad._id].overall_rating_votes_counter =
             ad.overall_rating_votes_counter
-          adIdsUsers[ad._id].overall_rating_average = ad.overall_rating_average
+          // The API field is overall_rating_votes_average; reading
+          // ad.overall_rating_average here yielded undefined, so the stars
+          // rendered as NaN and the label always said "no ratings".
+          adIdsUsers[ad._id].overall_rating_average =
+            ad.overall_rating_votes_average
           adIdsUsers[ad._id].overall_rating_votes_sum =
             ad.overall_rating_votes_sum
           adIdsUsers[ad._id].feedbacks = ad.feedbacks
@@ -984,7 +1001,7 @@ const Video = () => {
           key={i}
           handleDescriberChange={handleDescriberChange}
           handleRatingPopup={handleRatingPopup}
-          handleFeedbackPopup={handleFeedbackPopup}
+          // handleFeedbackPopup={handleFeedbackPopup}
           handleNewCollabEdit={handleNewCollabEdit}
           describerId={describerId}
           selectedDescriberId={selectedADId}
@@ -1151,13 +1168,19 @@ const Video = () => {
     setDescriptionsActive(true)
   }
 
-  const handleRatingSubmit = (rating: number) => {
-    if (rating === 0) toast.error('You must select a rating')
-    else if (!userDataStore.getState().isSignedIn) {
-      toast.error(translate('You have to be logged in in order to vote'))
+  const handleRatingSubmit = (
+    comprehensionRating: number,
+    enjoymentScore: number,
+    ratingCommentText: string,
+  ) => {
+    // The popup validates that both questions are answered and reports it in its
+    // own alert region, so this only has to handle session/server failures.
+    if (!userDataStore.getState().isSignedIn) {
+      setRatingSubmitError(
+        translate('You have to be logged in in order to vote'),
+      )
     } else {
       const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
-      setRating(rating)
       ourFetch(url, true, {
         method: 'POST',
         headers: {
@@ -1166,55 +1189,56 @@ const Video = () => {
         body: JSON.stringify({
           userId: userDataStore.getState().userId,
           userToken: userDataStore.getState().userToken,
-          rating,
+          rating: comprehensionRating,
+          enjoymentRating: enjoymentScore,
+          comment: ratingCommentText.trim(),
         }),
       })
         .then((res) => {
-          // if (rating === 5) {
-          // toast.error(`You have successfully given this description a rating of ${rating}`);
-          const ratingPopup = document.getElementById('rating-popup')
-          const ratingSuccess = document.getElementById('rating-success')
-          if (ratingPopup) {
-            ratingPopup.style.display = 'none'
-          }
-          if (ratingSuccess) {
-            ratingSuccess.style.display = 'block'
-            ratingSuccess.focus()
-            setTimeout(() => (ratingSuccess.style.display = 'none'), 1000)
-          }
+          // Closes the popup (which hands focus back to the trigger) and puts the
+          // confirmation in a live region instead of focusing a div that is then
+          // torn down a second later.
+          completeRatingPopup(translate('Thanks for rating this description!'))
 
           /* start of email */
-          sendOptInEmail(2, rating, [])
+          sendOptInEmail(2, comprehensionRating, [])
           /* end of email */
 
           // }
           // else {
           //   // this.handleFeedbackPopup();
           // }
-          const describers = { ...audioDescriptionsIdsUsers }
+          // The API returns the recomputed aggregate, so the stars show exactly
+          // what the next page load will. Adding to the local copy instead used
+          // to double-count: it always incremented the vote counter, even when
+          // the user was changing a rating they had already given, which the
+          // server correctly treats as a replacement rather than a new vote.
+          const { overallRating } = res as unknown as {
+            overallRating?: {
+              overall_rating_votes_sum: number
+              overall_rating_votes_counter: number
+              overall_rating_votes_average: number
+            }
+          }
           const selectedId = selectedADId
 
-          if (!describers[selectedId].overall_rating_votes_sum) {
-            describers[selectedId].overall_rating_votes_sum = 0
-          }
-          if (!describers[selectedId].overall_rating_votes_counter) {
-            describers[selectedId].overall_rating_votes_counter = 0
-          }
-          if (!describers[selectedId].overall_rating_average) {
-            describers[selectedId].overall_rating_average = 0
-          }
+          if (overallRating && audioDescriptionsIdsUsers?.[selectedId]) {
+            const describers = { ...audioDescriptionsIdsUsers }
+            describers[selectedId].overall_rating_votes_sum =
+              overallRating.overall_rating_votes_sum
+            describers[selectedId].overall_rating_votes_counter =
+              overallRating.overall_rating_votes_counter
+            describers[selectedId].overall_rating_average =
+              overallRating.overall_rating_votes_average
 
-          describers[selectedId].overall_rating_votes_sum += rating
-          describers[selectedId].overall_rating_votes_counter += 1
-          describers[selectedId].overall_rating_average =
-            describers[selectedId].overall_rating_votes_sum /
-            describers[selectedId].overall_rating_votes_counter
-
-          setAudioDescriptionsIdsUsers(describers)
+            setAudioDescriptionsIdsUsers(describers)
+          }
         })
         .catch((err) => {
           // console.log(err)
-          toast.error(
+          // Keep the popup open so the answers are not lost, and report the
+          // failure inside it where the alert region is reachable.
+          setRatingSubmitError(
             translate(
               'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
             ),
@@ -1223,46 +1247,47 @@ const Video = () => {
     }
   }
 
-  const handleFeedbackSubmit = (feedback: any) => {
-    const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
-    ourFetch(url, true, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: userDataStore.getState().userId,
-        userToken: userDataStore.getState().userToken,
-        rating: rating,
-        feedback,
-      }),
-    })
-      .then((res) => {
-        const feedbackPopup = document.getElementById('feedback-popup')
-        const feedbackSuccess = document.getElementById('feedback-success')
-        if (feedbackPopup) {
-          feedbackPopup.style.display = 'none'
-        }
-        if (feedbackSuccess) {
-          feedbackSuccess.style.display = 'block'
-          feedbackSuccess.focus()
-          setTimeout(() => (feedbackSuccess.style.display = 'none'), 1000)
-        }
-        // toast.error('Thanks for your feedback!');
-
-        /* start of email */
-        sendOptInEmail(2, rating, feedback)
-        /* end of email */
-      })
-      .catch((err) => {
-        // console.log(err)
-        toast.error(
-          translate(
-            'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
-          ),
-        )
-      })
-  }
+  // Optional feedback UI disabled — data field (`feedback`) kept on the rating payload, just never populated from the UI anymore.
+  // const handleFeedbackSubmit = (feedback: any) => {
+  //   const url = `${apiUrl}/audio-descriptions/ratings/addOne/${selectedADId}`
+  //   ourFetch(url, true, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify({
+  //       userId: userDataStore.getState().userId,
+  //       userToken: userDataStore.getState().userToken,
+  //       rating: rating,
+  //       feedback,
+  //     }),
+  //   })
+  //     .then((res) => {
+  //       const feedbackPopup = document.getElementById('feedback-popup')
+  //       const feedbackSuccess = document.getElementById('feedback-success')
+  //       if (feedbackPopup) {
+  //         feedbackPopup.style.display = 'none'
+  //       }
+  //       if (feedbackSuccess) {
+  //         feedbackSuccess.style.display = 'block'
+  //         feedbackSuccess.focus()
+  //         setTimeout(() => (feedbackSuccess.style.display = 'none'), 1000)
+  //       }
+  //       // toast.error('Thanks for your feedback!');
+  //
+  //       /* start of email */
+  //       sendOptInEmail(2, rating, feedback)
+  //       /* end of email */
+  //     })
+  //     .catch((err) => {
+  //       // console.log(err)
+  //       toast.error(
+  //         translate(
+  //           'It was impossible to vote. Maybe your session has expired. Try to logout and login again.',
+  //         ),
+  //       )
+  //     })
+  // }
 
   const sendOptInEmail = (optIn: number, rating = 0, feedback = []) => {
     let emailBody = ''
@@ -1300,40 +1325,33 @@ const Video = () => {
     if (!userDataStore.getState().isSignedIn) {
       toast.error(translate('You have to be logged in in order to vote'))
     } else {
-      const ratingPopup = document.getElementById('rating-popup')
-      if (ratingPopup) {
-        ratingPopup.style.display = 'block'
-        ratingPopup.focus()
-      }
+      openRatingPopup()
     }
   }
-  const handleFeedbackPopup = () => {
-    if (!userDataStore.getState().isSignedIn) {
-      toast.error(
-        translate('You have to be logged in in order to give feedback'),
-      )
-    } else {
-      const feedbackPopup = document.getElementById('feedback-popup')
-      if (feedbackPopup) {
-        feedbackPopup.style.display = 'block'
-        feedbackPopup.focus()
-      }
-    }
-  }
+  // const handleFeedbackPopup = () => {
+  //   if (!userDataStore.getState().isSignedIn) {
+  //     toast.error(
+  //       translate('You have to be logged in in order to give feedback'),
+  //     )
+  //   } else {
+  //     const feedbackPopup = document.getElementById('feedback-popup')
+  //     if (feedbackPopup) {
+  //       feedbackPopup.style.display = 'block'
+  //       feedbackPopup.focus()
+  //     }
+  //   }
+  // }
 
   const handleRatingPopupClose = () => {
-    const ratingPopup = document.getElementById('rating-popup')
-    if (ratingPopup) {
-      ratingPopup.style.display = 'none'
-    }
+    closeRatingPopup()
   }
 
-  const handleFeedbackPopupClose = () => {
-    const feedbackPopup = document.getElementById('feedback-popup')
-    if (feedbackPopup) {
-      feedbackPopup.style.display = 'none'
-    }
-  }
+  // const handleFeedbackPopupClose = () => {
+  //   const feedbackPopup = document.getElementById('feedback-popup')
+  //   if (feedbackPopup) {
+  //     feedbackPopup.style.display = 'none'
+  //   }
+  // }
 
   // console.log(videoDurationInSeconds)
 
@@ -1502,7 +1520,13 @@ const Video = () => {
 
   return (
     <div id="video-page" className="video-page">
-      <main role="main" className="video-page-main" title="Video page">
+      {/* The page had no banner landmark and no h1 at all. The title is already
+          shown visually by YTInfoCard, so this is the screen-reader-only
+          equivalent rather than a second visible header bar. */}
+      <header role="banner" className="visually-hidden">
+        <h1>{videoTitle || translate('Video')}</h1>
+      </header>
+      <main role="main" className="video-page-main" aria-label="Video page">
         <section id="video-area" className="video-area">
           {/* <ToastContainer /> */}
           <ShareBar videoTitle={videoTitle} />
@@ -1558,15 +1582,34 @@ const Video = () => {
           className="classic-container w3-row video-info"
         >
           <RatingPopup
+            isOpen={isRatingPopupOpen}
             audioDescriptionId={selectedADId}
-            rating={rating}
-            setRating={setRating}
+            comprehensionRating={rating}
+            setComprehensionRating={setRating}
+            enjoymentRating={enjoymentRating}
+            setEnjoymentRating={setEnjoymentRating}
+            comment={ratingComment}
+            setComment={setRatingComment}
+            submitError={ratingSubmitError}
             handleRatingSubmit={handleRatingSubmit}
             handleRatingPopupClose={handleRatingPopupClose}
           />
-          <div id="rating-success" className="rating-success" tabIndex={-1}>
-            {translate('Thanks for rating this description!')}
+          {/* Announcement channel: always mounted so the live region is
+              registered before it gains text. The visual confirmation below is
+              a separate node, hidden from assistive tech to avoid saying it twice. */}
+          <div className="visually-hidden" role="status">
+            {ratingSuccessMessage}
           </div>
+          {ratingSuccessMessage && (
+            <div
+              id="rating-success"
+              className="rating-success"
+              aria-hidden="true"
+            >
+              {ratingSuccessMessage}
+            </div>
+          )}
+          {/* Optional feedback UI disabled — data field (`feedback`) kept on the rating payload.
           <FeedbackPopup
             handleFeedbackSubmit={handleFeedbackSubmit}
             handleFeedbackPopupClose={handleFeedbackPopupClose}
@@ -1574,6 +1617,7 @@ const Video = () => {
           <div id="feedback-success" className="feedback-success" tabIndex={-1}>
             {translate('Thank you for your feedback!')}
           </div>
+          */}
           <div className="w3-col l8 m8">
             <YTInfoCard
               videoTitle={videoTitle}

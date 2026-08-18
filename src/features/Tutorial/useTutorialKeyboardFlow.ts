@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { TutorialStep } from './tutorialStepRegistry'
 
 interface Params {
   isActive: boolean
   activeSteps: TutorialStep[]
   currentStepIndex: number
+  navigationSource: 'tutorial-controls' | 'page-tab'
   goToStep: (index: number, source: 'page-tab') => void
 }
 
@@ -50,8 +51,14 @@ export const useTutorialKeyboardFlow = ({
   isActive,
   activeSteps,
   currentStepIndex,
+  navigationSource,
   goToStep,
 }: Params) => {
+  const ignoreNextProgrammaticFocusRef = useRef(false)
+  useEffect(() => {
+    ignoreNextProgrammaticFocusRef.current =
+      navigationSource === 'tutorial-controls'
+  }, [currentStepIndex, navigationSource])
   useEffect(() => {
     if (!isActive) return undefined
 
@@ -59,6 +66,10 @@ export const useTutorialKeyboardFlow = ({
       const element = event.target
       if (!(element instanceof Element)) return
       if (element.closest('[data-tutorial-overlay="true"]')) return
+      if (ignoreNextProgrammaticFocusRef.current) {
+        ignoreNextProgrammaticFocusRef.current = false
+        return
+      }
 
       const matchingIndex = getClosestMatchingStepIndex(element, activeSteps)
 

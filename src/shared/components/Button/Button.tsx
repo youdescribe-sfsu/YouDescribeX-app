@@ -2,6 +2,8 @@ import React, { ReactNode } from 'react'
 
 interface Props {
   ariaLabel: string
+  /** Id of an element whose text is read after the label, e.g. a rating summary. */
+  ariaDescribedBy?: string
   id?: string
   title?: string
   color: string
@@ -13,6 +15,7 @@ interface Props {
 
 const Button = ({
   ariaLabel,
+  ariaDescribedBy,
   id,
   title,
   color,
@@ -25,6 +28,7 @@ const Button = ({
     <div id="button">
       <button
         aria-label={ariaLabel}
+        aria-describedby={ariaDescribedBy}
         id={id}
         title={title}
         className={`w3-btn ${color} ${classNames}`}
