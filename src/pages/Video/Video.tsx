@@ -865,6 +865,7 @@ const Video = ({ isTutorialMode = false }: VideoProps) => {
             // handleFeedbackPopup={handleFeedbackPopup}
             handleNewCollabEdit={() => handleNewCollabEdit(selectedADId)}
             describerId={describerId}
+            describerUserId={describers[describerId].user?._id}
             selectedDescriberId={selectedADId}
             picture={describers[describerId].picture}
             name={describers[describerId].name}
