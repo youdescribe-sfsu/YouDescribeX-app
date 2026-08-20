@@ -9,6 +9,8 @@ interface Props {
   picture: string
   name: string
   describerId: string
+  /** Owner of this AD. Compared against the signed-in user id to decide who may edit. */
+  describerUserId?: string
   selectedDescriberId: string
   overall_rating_average: number
   handleDescriberChange: (describerId: string) => void
@@ -40,6 +42,7 @@ const DescriberCard = ({
   picture,
   name,
   describerId,
+  describerUserId,
   selectedDescriberId,
   overall_rating_average,
   handleDescriberChange,
@@ -59,8 +62,11 @@ const DescriberCard = ({
   const ratingLabelId = `describer-rating-${describerId}`
 
   const getButton = (): ReactNode => {
-    const userName = userDataStore.getState().userName
-    const isDescriber = name === userName
+    // Ownership is a user-id match, not a display-name match: names collide between
+    // Google accounts, and a collaborative AD's name is a joined contributor list, so
+    // comparing `name` hid the edit button from people who genuinely owned the AD.
+    const currentUserId = userDataStore.getState().userId
+    const isDescriber = !!describerUserId && describerUserId === currentUserId
     if (describerId === selectedDescriberId) {
       return isDescriber ? (
         <Button

@@ -1004,6 +1004,7 @@ const Video = () => {
           // handleFeedbackPopup={handleFeedbackPopup}
           handleNewCollabEdit={handleNewCollabEdit}
           describerId={describerId}
+          describerUserId={describers[describerId].user?._id}
           selectedDescriberId={selectedADId}
           picture={describers[describerId].picture}
           name={describers[describerId].name}
