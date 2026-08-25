@@ -383,15 +383,16 @@ const App = () => {
   return (
     <>
       {location.pathname === '/home' && (
-          <AnnouncementBar
-            storageKey="ydx-extension-banner-v1"
-            icon="🎉"
-            headline="YouDescribeX Wishlist Chrome Extension is now live!"
-            message="Add any YouTube video to your wishlist in one click."
-            ctaLabel="Try it now"
-            ctaHref={chromeWebStoreUrl}
-          />
-        )}
+        // xiao 0824: Extension announcement - home page only
+        <AnnouncementBar
+          storageKey="ydx-extension-banner-v1"
+          icon="🎉"
+          headline="YouDescribeX Wishlist Chrome Extension is now live!"
+          message="Add any YouTube video to your wishlist in one click."
+          ctaLabel="Try it now"
+          ctaHref={chromeWebStoreUrl}
+        />
+      )}
       {!isEmbedRoute && (
         <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
       )}

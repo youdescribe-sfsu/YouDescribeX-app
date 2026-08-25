@@ -46,6 +46,7 @@ const audioDescriptionFeedbacks: { [key: number]: string } = {
   11: 'Needs to read all onscreen text',
 }
 
+// xiao 0824:
 // YouDescribeX Chrome extension listings.
 // Picked at runtime from the hostname; anything unrecognised falls back to prod.
 const chromeWebStoreUrlProd =
@@ -53,10 +54,11 @@ const chromeWebStoreUrlProd =
 const chromeWebStoreUrlDev =
   'https://chromewebstore.google.com/detail/youdescribex-wishlist-dev/mndhjjobpcbmghiopgaffclnlbpjjhkn'
 
-const devHosts = ['ydx-dev.youdescribe.org', 'localhost', '127.0.0.1']
-const chromeWebStoreUrl = devHosts.includes(window.location.hostname)
-  ? chromeWebStoreUrlDev
-  : chromeWebStoreUrlProd
+const chromeWebStoreUrl =
+  process.env.REACT_APP_ENVIRONMENT === 'production'
+    ? chromeWebStoreUrlProd
+    : chromeWebStoreUrlDev
+
 
 const startDateTimeStamp = 1352707200000
 

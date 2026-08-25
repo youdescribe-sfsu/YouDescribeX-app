@@ -1,4 +1,5 @@
 /**
+ * xiao 0824: AnnouncementBar.tsx
  * AnnouncementBar — dismissible full-width bar shown above the navbar.
  *
  * All content comes from props so the same bar can be reused for any
@@ -46,7 +47,7 @@ const AnnouncementBar = ({
   ctaHref,
 }: AnnouncementBarProps) => {
   const [isVisible, setIsVisible] = useState<boolean>(
-    () => !readDismissed(storageKey)
+    () => !readDismissed(storageKey),
   )
 
   const handleDismiss = () => {
