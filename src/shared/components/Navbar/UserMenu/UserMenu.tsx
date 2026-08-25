@@ -73,7 +73,7 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
           <a
             href={chromeWebStoreUrl}
             target="_blank"
-            title="Get the YouDescribeX Wishlist Chrome extension"
+            title="Get the Chrome extension"
             onClick={userMenuToggle}
             className="usermenu-link"
             rel="noopener noreferrer"
