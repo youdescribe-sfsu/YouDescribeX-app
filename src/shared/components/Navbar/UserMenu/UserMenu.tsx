@@ -1,6 +1,7 @@
 import { translate, userDataStore } from '@/App'
 import { Link } from 'react-router-dom'
 import Button from '../../Button/Button'
+import { chromeWebStoreUrl } from '@/shared/config'
 import './userMenu.scss'
 
 interface Props {
@@ -66,6 +67,25 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
               aria-hidden="true"
             ></i>
             <span className="usermenu-span">{translate('My profile')}</span>
+          </a>
+        </div>
+        <div className="my-described-videos-button">
+          <a
+            href={chromeWebStoreUrl}
+            target="_blank"
+            title="Get the YouDescribeX Wishlist Chrome extension"
+            onClick={userMenuToggle}
+            className="usermenu-link"
+            rel="noopener noreferrer"
+          >
+            <i
+              style={{ width: 50 }}
+              className="fa fa-puzzle-piece"
+              aria-hidden="true"
+            ></i>
+            <span className="usermenu-span">
+              {translate('Get the Chrome extension')}
+            </span>
           </a>
         </div>
         {userDataStore.getState().userAdmin ? (
