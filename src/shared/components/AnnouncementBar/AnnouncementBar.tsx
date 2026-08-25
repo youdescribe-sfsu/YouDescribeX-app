@@ -12,9 +12,10 @@
  *   ctaLabel    optional — button text, needs ctaHref
  *   ctaHref     optional — external link, opens in a new tab
  *
- * Dismissal is stored in localStorage, read lazily so a dismissed bar never
- * flashes on load. Access is wrapped in try/catch — localStorage throws when
- * the quota is full or site data is blocked.
+ * Dismissal is stored in localStorage under the `ANNOUNCEMENT_KEY_PREFIX`
+ * namespace, read lazily so a dismissed bar never flashes on load. Access is
+ * wrapped in try/catch — localStorage throws when the quota is full or site
+ * data is blocked.
  */
 
 import React, { useState } from 'react'
@@ -29,9 +30,16 @@ interface AnnouncementBarProps {
   ctaHref?: string
 }
 
+// All announcement dismissal flags live under this prefix so callers that wipe
+// localStorage in bulk (e.g. App.tsx's clearUserData on sign-out) can preserve
+// them by pattern instead of having to know every individual storageKey.
+export const ANNOUNCEMENT_KEY_PREFIX = 'ydx-announcement:'
+
+const namespacedKey = (key: string) => `${ANNOUNCEMENT_KEY_PREFIX}${key}`
+
 const readDismissed = (key: string): boolean => {
   try {
-    return localStorage.getItem(key) === 'true'
+    return localStorage.getItem(namespacedKey(key)) === 'true'
   } catch (error) {
     console.error('Error reading announcement bar state:', error)
     return false
@@ -53,7 +61,7 @@ const AnnouncementBar = ({
   const handleDismiss = () => {
     setIsVisible(false)
     try {
-      localStorage.setItem(storageKey, 'true')
+      localStorage.setItem(namespacedKey(storageKey), 'true')
     } catch (error) {
       console.error('Error saving announcement bar state:', error)
     }

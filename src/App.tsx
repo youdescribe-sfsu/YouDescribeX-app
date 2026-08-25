@@ -19,7 +19,9 @@ import LogRocket from 'logrocket'
 import Home from './pages/Home/Home'
 import VideoEmbed from './pages/VideoEmbed/VideoEmbed'
 import Navbar from './shared/components/Navbar/Navbar'
-import AnnouncementBar from './shared/components/AnnouncementBar/AnnouncementBar' // xiao 0824: AnnouncementBar
+import AnnouncementBar, {
+  ANNOUNCEMENT_KEY_PREFIX,
+} from './shared/components/AnnouncementBar/AnnouncementBar' // xiao 0824: AnnouncementBar
 import Polyglot from 'node-polyglot'
 import getLanguage from './shared/utils/getLanguage'
 import strings from './shared/strings'
@@ -131,7 +133,14 @@ export const userDataStore = create<UserStore>()(
         userPicture: '',
         userAdmin: 0,
       })
-      localStorage.clear()
+      // alan: clear() wiped everything indiscriminately, including
+      // AnnouncementBar dismissal flags — so a 401/sign-out (e.g. an expired
+      // session) made already-dismissed announcements reappear. Preserve
+      // that namespace instead of nuking it; everything else (search
+      // history, cached home page data, etc.) still gets cleared.
+      Object.keys(localStorage)
+        .filter((key) => !key.startsWith(ANNOUNCEMENT_KEY_PREFIX))
+        .forEach((key) => localStorage.removeItem(key))
       resetCookie()
     },
   })),
