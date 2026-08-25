@@ -83,9 +83,7 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
               className="fa fa-puzzle-piece"
               aria-hidden="true"
             ></i>
-            <span className="usermenu-span">
-              {translate('Get extension')}
-            </span>
+            <span className="usermenu-span">{translate('Get extension')}</span>
           </a>
         </div>
         {userDataStore.getState().userAdmin ? (
