@@ -1,3 +1,11 @@
+.user-avatar {
+  // Positioning context for UserMenu's dropdown (.arrow-up / .w3-card-4), so the
+  // dropdown anchors to the avatar itself instead of a hardcoded viewport offset
+  // that assumed Navbar always starts at y=0 (broke when AnnouncementBar pushed
+  // Navbar down — see userMenu.scss).
+  position: relative;
+}
+
 .avatar-button {
   border: none;
   background: none;

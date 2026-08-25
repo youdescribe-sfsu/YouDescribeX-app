@@ -1,9 +1,12 @@
 .user-menu {
   display: none;
+  // Anchored to .user-avatar (see userAvatar.scss), not the viewport — so this
+  // dropdown always sits just below the avatar regardless of what pushes Navbar
+  // itself down (e.g. AnnouncementBar).
   .arrow-up {
     position: absolute;
-    left: 22px;
-    top: 42px;
+    right: 10px;
+    top: 100%;
     width: 0;
     height: 0;
     border-left: 10px solid transparent;
@@ -15,9 +18,9 @@
   .w3-card-4 {
     // z-index: 99!important;
     // overflow: visible;
-    position: fixed;
-    right: 16px;
-    top: 54px;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
     width: 200px;
     // height: 120px;
     background-color: white;
