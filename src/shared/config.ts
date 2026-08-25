@@ -59,14 +59,13 @@ const chromeWebStoreUrl =
     ? chromeWebStoreUrlProd
     : chromeWebStoreUrlDev
 
-
 const startDateTimeStamp = 1352707200000
 
 export {
   apiUrl,
   audioClipsUploadsPath,
   audioDescriptionFeedbacks,
-  chromeWebStoreUrl, // YouDescribeX Chrome extension URL
+  chromeWebStoreUrl, // xiao 0824: YouDescribeX Chrome extension URL
   googleClientId,
   href,
   nudgeIncrementDecrementValue,
