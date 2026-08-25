@@ -84,7 +84,7 @@ const UserMenu = ({ userMenuToggle, signOut }: Props) => {
               aria-hidden="true"
             ></i>
             <span className="usermenu-span">
-              {translate('Chrome extension')}
+              {translate('Get extension')}
             </span>
           </a>
         </div>
