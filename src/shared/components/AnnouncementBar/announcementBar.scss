@@ -1,0 +1,106 @@
+// Styles for AnnouncementBar.
+// Class names are prefixed because CRA compiles every stylesheet into one
+// global bundle — separate files do not create a scope.
+
+$ydx-ab-purple: #6d3ee8;
+$ydx-ab-purple-dark: #5b2fd0;
+$ydx-ab-ink: #16162e;
+$ydx-ab-muted: #4b5563;
+
+.ydx-announcement-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 56px; // right padding leaves room for the close button
+  background: linear-gradient(90deg, #f1ecfe 0%, #faf8ff 60%, #ffffff 100%);
+  border-bottom: 1px solid #e6e0f7;
+
+  &__content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  &__icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  &__headline {
+    font-size: 15px;
+    font-weight: 700;
+    color: $ydx-ab-ink;
+  }
+
+  &__message {
+    font-size: 14px;
+    color: $ydx-ab-muted;
+  }
+
+  &__cta {
+    padding: 8px 16px;
+    border-radius: 6px;
+    background-color: $ydx-ab-purple;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover,
+    &:focus {
+      background-color: $ydx-ab-purple-dark;
+      color: #fff;
+      text-decoration: none;
+    }
+  }
+
+  &__close {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 4px 8px;
+    border: 0;
+    background: none;
+    color: #6b7280;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      color: $ydx-ab-ink;
+    }
+  }
+
+  &__cta:focus-visible,
+  &__close:focus-visible {
+    outline: 2px solid $ydx-ab-purple;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 700px) {
+    padding: 12px 44px;
+
+    &__content {
+      gap: 8px;
+    }
+    &__headline {
+      font-size: 14px;
+    }
+    &__message {
+      font-size: 13px;
+    }
+    &__cta {
+      padding: 7px 12px;
+      font-size: 13px;
+    }
+  }
+}
