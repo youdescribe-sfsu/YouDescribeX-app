@@ -19,6 +19,7 @@ import LogRocket from 'logrocket'
 import Home from './pages/Home/Home'
 import VideoEmbed from './pages/VideoEmbed/VideoEmbed'
 import Navbar from './shared/components/Navbar/Navbar'
+import AnnouncementBar from './shared/components/AnnouncementBar/AnnouncementBar' // xiao 0824: AnnouncementBar
 import Polyglot from 'node-polyglot'
 import getLanguage from './shared/utils/getLanguage'
 import strings from './shared/strings'
@@ -28,7 +29,7 @@ import Wishlist from './pages/Wishlist/Wishlist'
 import Profile from './pages/Profile/Profile'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { apiUrl } from './shared/config'
+import { apiUrl, chromeWebStoreUrl } from './shared/config' // xiao: import chromeWebStoreUrl from config
 import Search from './pages/Search/Search'
 import Support from './pages/Support/Support'
 import About from './pages/Support/About'
@@ -381,6 +382,16 @@ const App = () => {
 
   return (
     <>
+      {location.pathname === '/home' && (
+          <AnnouncementBar
+            storageKey="ydx-extension-banner-v1"
+            icon="🎉"
+            headline="YouDescribeX Wishlist Chrome Extension is now live!"
+            message="Add any YouTube video to your wishlist in one click."
+            ctaLabel="Try it now"
+            ctaHref={chromeWebStoreUrl}
+          />
+        )}
       {!isEmbedRoute && (
         <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
       )}

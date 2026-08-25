@@ -46,12 +46,25 @@ const audioDescriptionFeedbacks: { [key: number]: string } = {
   11: 'Needs to read all onscreen text',
 }
 
+// YouDescribeX Chrome extension listings.
+// Picked at runtime from the hostname; anything unrecognised falls back to prod.
+const chromeWebStoreUrlProd =
+  'https://chromewebstore.google.com/detail/youdescribex-wishlist/nejfnjbfpjcbmpkeoffgpmmmjcgnemid'
+const chromeWebStoreUrlDev =
+  'https://chromewebstore.google.com/detail/youdescribex-wishlist-dev/mndhjjobpcbmghiopgaffclnlbpjjhkn'
+
+const devHosts = ['ydx-dev.youdescribe.org', 'localhost', '127.0.0.1']
+const chromeWebStoreUrl = devHosts.includes(window.location.hostname)
+  ? chromeWebStoreUrlDev
+  : chromeWebStoreUrlProd
+
 const startDateTimeStamp = 1352707200000
 
 export {
   apiUrl,
   audioClipsUploadsPath,
   audioDescriptionFeedbacks,
+  chromeWebStoreUrl, // YouDescribeX Chrome extension URL
   googleClientId,
   href,
   nudgeIncrementDecrementValue,
