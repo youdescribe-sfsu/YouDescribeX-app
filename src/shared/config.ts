@@ -46,9 +46,8 @@ const audioDescriptionFeedbacks: { [key: number]: string } = {
   11: 'Needs to read all onscreen text',
 }
 
-// xiao 0824:
 // YouDescribeX Chrome extension listings.
-// Picked at runtime from the hostname; anything unrecognised falls back to prod.
+// Picked from REACT_APP_ENVIRONMENT; anything other than 'production' gets the dev listing.
 const chromeWebStoreUrlProd =
   'https://chromewebstore.google.com/detail/youdescribex-wishlist/nejfnjbfpjcbmpkeoffgpmmmjcgnemid'
 const chromeWebStoreUrlDev =
