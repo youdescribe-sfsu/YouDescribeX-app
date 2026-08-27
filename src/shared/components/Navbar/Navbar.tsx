@@ -94,6 +94,10 @@ const Navbar = ({ newGoogleAuth, signOut }: Props) => {
               <i className="fa fa-heart" aria-hidden="true" />
               {translate('WISHLIST')}
             </Link>
+            <Link to="/ai-drafts" className="nav-link-item">
+              <i className="fa fa-robot" aria-hidden="true" />
+              {translate('AI DRAFTS')}
+            </Link>
             <Link to="/support" className="nav-link-item">
               <i className="fa fa-question-circle" aria-hidden="true" />
               {translate('SUPPORT')}
