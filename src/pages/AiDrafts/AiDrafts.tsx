@@ -154,7 +154,10 @@ const AiDrafts = () => {
       </form>
 
       <h3 className="classic-container ai-drafts-section-heading">
-        All AI Draft Videos
+        All AI Draft Videos{' '}
+        <span className="ai-drafts-section-heading-suffix">
+          (Awaiting Your Review, Rating, and Publishing)
+        </span>
       </h3>
 
       {isLoading ? <Spinner /> : null}
