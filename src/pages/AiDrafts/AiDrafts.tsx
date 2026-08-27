@@ -154,7 +154,7 @@ const AiDrafts = () => {
       </form>
 
       <h3 className="classic-container ai-drafts-section-heading">
-        All AI Draft Videos
+        All AI Draft Videos (Awaiting Your Review, Rating, and Publishing)
       </h3>
 
       {isLoading ? <Spinner /> : null}
