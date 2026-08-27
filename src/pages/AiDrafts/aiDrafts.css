@@ -43,6 +43,11 @@
   margin-bottom: 10px;
 }
 
+.ai-drafts-section-heading-suffix {
+  font-size: 15px;
+  color: #6b6b6b;
+}
+
 .ai-drafts-grid {
   padding-top: 12px;
 }
