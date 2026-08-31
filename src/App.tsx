@@ -388,7 +388,7 @@ const App = () => {
         <AnnouncementBar
           storageKey="ydx-extension-banner-v1"
           icon="🎉"
-          headline="YouDescribeX Wishlist Chrome Extension is now live!"
+          headline="YouDescribe Wishlist Chrome Extension is now live!"
           message="Add any YouTube video to your wishlist in one click."
           ctaLabel="Try it now"
           ctaHref={chromeWebStoreUrl}
