@@ -46,12 +46,25 @@ const audioDescriptionFeedbacks: { [key: number]: string } = {
   11: 'Needs to read all onscreen text',
 }
 
+// YouDescribeX Chrome extension listings.
+// Picked from REACT_APP_ENVIRONMENT; anything other than 'production' gets the dev listing.
+const chromeWebStoreUrlProd =
+  'https://chromewebstore.google.com/detail/youdescribex-wishlist/nejfnjbfpjcbmpkeoffgpmmmjcgnemid'
+const chromeWebStoreUrlDev =
+  'https://chromewebstore.google.com/detail/youdescribex-wishlist-dev/mndhjjobpcbmghiopgaffclnlbpjjhkn'
+
+const chromeWebStoreUrl =
+  process.env.REACT_APP_ENVIRONMENT === 'production'
+    ? chromeWebStoreUrlProd
+    : chromeWebStoreUrlDev
+
 const startDateTimeStamp = 1352707200000
 
 export {
   apiUrl,
   audioClipsUploadsPath,
   audioDescriptionFeedbacks,
+  chromeWebStoreUrl, // xiao 0824: YouDescribeX Chrome extension URL
   googleClientId,
   href,
   nudgeIncrementDecrementValue,

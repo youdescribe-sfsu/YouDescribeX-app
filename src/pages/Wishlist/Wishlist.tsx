@@ -114,9 +114,6 @@ const Wishlist = () => {
   const [perPage, setPerPage] = useState(10)
   const [totalRows, setTotalRows] = useState(0)
   const [wishlistData, setWishlistData] = useState<VideosState | null>(null)
-  const [recentAIRequested, setrecentAIRequested] =
-    useState<VideosState | null>(null)
-  const [, setRecentAIRequestedSpinner] = useState(true) // For loading state
 
   const [isSearching, setIsSearching] = useState(false)
 
@@ -497,7 +494,6 @@ const Wishlist = () => {
   }
 
   const wishlistUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/wishlist/get-user-wishlist`
-  const aiRequestedUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api/audio-descriptions/get-All-AI-descriptions`
 
   // In the useEffect where we read URL parameters
   useEffect(() => {
@@ -574,12 +570,6 @@ const Wishlist = () => {
       setShowWishlistSpinner,
       wishlistUrl,
       setWishlistData,
-    )
-    fetchAndSetVideosData(
-      recentAIRequested,
-      setRecentAIRequestedSpinner,
-      aiRequestedUrl,
-      setrecentAIRequested,
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -1083,75 +1073,6 @@ const Wishlist = () => {
       {/*    {videoCardsComponents}*/}
       {/*  </div>*/}
       {/*</section>*/}
-
-      <section className="recent-ai-descriptions-section">
-        <header className="w3-container w3-indigo">
-          <h2 className="classic-h2">{translate('RECENT AI DESCRIPTIONS')}</h2>
-        </header>
-
-        <div className="custom-carousel">
-          {!userDataStore.getState().isSignedIn ? (
-            <div className="empty-state-message">
-              <i className="fas fa-lock auth-required-icon"></i>
-              <p className="auth-required-text">
-                {translate('Log in to view recent AI-generated descriptions')}
-              </p>
-            </div>
-          ) : (
-            <>
-              {!recentAIRequested && <CustomSpinner />}
-              {recentAIRequested && recentAIRequested?.data.length > 0 && (
-                <>
-                  <CustomButton
-                    className="prev-wishlist-icon"
-                    onClick={() =>
-                      handlePreviousPage(
-                        recentAIRequested,
-                        setRecentAIRequestedSpinner,
-                        aiRequestedUrl,
-                        setrecentAIRequested,
-                      )
-                    }
-                    disabled={recentAIRequested.currentPage === 1}
-                  >
-                    &lt;
-                  </CustomButton>
-
-                  <div className="wishlist-video-row">
-                    {recentAIRequested.data}
-                  </div>
-
-                  <CustomButton
-                    className="next-wishlist-icon"
-                    onClick={() =>
-                      handleNextPage(
-                        recentAIRequested,
-                        setRecentAIRequestedSpinner,
-                        aiRequestedUrl,
-                        setrecentAIRequested,
-                      )
-                    }
-                    disabled={
-                      recentAIRequested.currentPage ===
-                      recentAIRequested.totalPages
-                    }
-                  >
-                    &gt;
-                  </CustomButton>
-                </>
-              )}
-              {recentAIRequested?.data.length === 0 && (
-                <div className="no-videos-message">
-                  <i className="fas fa-video-slash no-videos-icon"></i>
-                  <p className="no-videos-text">
-                    {translate('No AI Requested Videos')}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </section>
 
       <section className="my-wishlist-section">
         <header className="w3-container w3-indigo">

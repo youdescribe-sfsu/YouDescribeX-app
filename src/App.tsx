@@ -19,16 +19,18 @@ import LogRocket from 'logrocket'
 import Home from './pages/Home/Home'
 import VideoEmbed from './pages/VideoEmbed/VideoEmbed'
 import Navbar from './shared/components/Navbar/Navbar'
+import AnnouncementBar from './shared/components/AnnouncementBar/AnnouncementBar' // xiao 0824: AnnouncementBar
 import Polyglot from 'node-polyglot'
 import getLanguage from './shared/utils/getLanguage'
 import strings from './shared/strings'
 import Video from './pages/Video/Video'
 import Footer from './shared/components/Footer/Footer'
 import Wishlist from './pages/Wishlist/Wishlist'
+import AiDrafts from './pages/AiDrafts/AiDrafts'
 import Profile from './pages/Profile/Profile'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { apiUrl } from './shared/config'
+import { apiUrl, chromeWebStoreUrl } from './shared/config' // xiao: import chromeWebStoreUrl from config
 import Search from './pages/Search/Search'
 import Support from './pages/Support/Support'
 import About from './pages/Support/About'
@@ -381,6 +383,17 @@ const App = () => {
 
   return (
     <>
+      {location.pathname === '/home' && (
+        // xiao 0824: Extension announcement - home page only
+        <AnnouncementBar
+          storageKey="ydx-extension-banner-v1"
+          icon="🎉"
+          headline="YouDescribeX Wishlist Chrome Extension is now live!"
+          message="Add any YouTube video to your wishlist in one click."
+          ctaLabel="Try it now"
+          ctaHref={chromeWebStoreUrl}
+        />
+      )}
       {!isEmbedRoute && (
         <Navbar newGoogleAuth={newGoogleAuth} signOut={signOut} />
       )}
@@ -404,6 +417,7 @@ const App = () => {
           {/* <Route path="/video/v2/:videoId" element={<Video_v2 />} /> */}
           <Route path="/embed/:videoId" element={<VideoEmbed />} />
           <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/ai-drafts" element={<AiDrafts />} />
           <Route path="/profile/:userId" element={<Profile />} />
           <Route path="/search" element={<Search />} />
           <Route path="/support" element={<Support />} />
