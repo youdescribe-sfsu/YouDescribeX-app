@@ -49,7 +49,7 @@ const audioDescriptionFeedbacks: { [key: number]: string } = {
 // YouDescribeX Chrome extension listings.
 // Picked from REACT_APP_ENVIRONMENT; anything other than 'production' gets the dev listing.
 const chromeWebStoreUrlProd =
-  'https://chromewebstore.google.com/detail/youdescribex-wishlist/nejfnjbfpjcbmpkeoffgpmmmjcgnemid'
+  'https://chromewebstore.google.com/detail/youdescribe-wishlist/nejfnjbfpjcbmpkeoffgpmmmjcgnemid'
 const chromeWebStoreUrlDev =
   'https://chromewebstore.google.com/detail/youdescribex-wishlist-dev/mndhjjobpcbmghiopgaffclnlbpjjhkn'
 
