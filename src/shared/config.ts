@@ -8,7 +8,7 @@ const apiUrl = `${process.env.REACT_APP_YDX_BACKEND_URL}/api`
 // let apiUrl = `https://test-api.youdescribe.org/${apiVersion}`;
 
 const audioClipsUploadsPath = (clip_path: string) =>
-  `${process.env.REACT_APP_REDIRECT_URL}/api/static${clip_path}`
+  `${process.env.REACT_APP_YDX_BACKEND_URL}/api/static${clip_path}`
 // const audioClipsUploadsPath = `${process.env.REACT_APP_YDX_BACKEND_URL}/audio-descriptions-files`
 // let audioClipsUploadsPath =
 //   "https://api.youdescribe.org/audio-descriptions-files";
