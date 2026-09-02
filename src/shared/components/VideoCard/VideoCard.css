@@ -29,6 +29,8 @@
 
 .card-title-container {
   min-height: 120px;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-title {
@@ -52,6 +54,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .card-stats {
@@ -64,6 +69,10 @@
   outline-offset: -1px;
   margin-top: 10px;
   margin-bottom: 4px;
+}
+
+#card-buttons {
+  margin-top: auto;
 }
 
 .card-span,
