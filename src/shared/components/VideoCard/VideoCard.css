@@ -22,7 +22,6 @@
 
 .card-thumbnail {
   position: relative;
-  flex-shrink: 0;
 }
 
 .card-content {
