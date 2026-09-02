@@ -13,8 +13,21 @@
   }
 }
 
+/* Scoped to VideoCard's own instance of .w3-card-2 (a shared utility class
+   used by many unrelated components) so this doesn't affect other cards. */
+.video-card .w3-card-2 {
+  display: flex;
+  flex-direction: column;
+}
+
 .card-thumbnail {
   position: relative;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .card-duration {
@@ -31,6 +44,7 @@
   min-height: 120px;
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .card-title {
