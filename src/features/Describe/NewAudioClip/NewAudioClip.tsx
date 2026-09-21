@@ -253,16 +253,12 @@ const NewAudioClipComponent = ({
           >
             <label className="dialog-form-label">Type:</label>
             <select
-              className="dialog-select-enhanced"
+              className={`dialog-select-enhanced${
+                tutorialMode ? ' dialog-select-expanded' : ''
+              }`}
               value={newACType}
-              onChange={(e) => {
-                if (tutorialMode) {
-                  e.currentTarget.value = newACType
-                  return
-                }
-                setNewACType(e.target.value)
-              }}
-              aria-disabled={tutorialMode ? true : undefined}
+              onChange={(e) => setNewACType(e.target.value)}
+              size={tutorialMode ? 2 : undefined}
               required
             >
               <option value="Visual">Visual</option>

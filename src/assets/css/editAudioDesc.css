@@ -1205,6 +1205,21 @@
   padding-right: calc(var(--space-md) + 20px);
 }
 
+/* Tutorial mode renders the type picker as an open list so both track types
+   are visible at once, instead of hiding one behind a closed dropdown. */
+.dialog-select-enhanced.dialog-select-expanded {
+  height: auto;
+  padding: var(--space-xs);
+  padding-right: var(--space-xs);
+  background-image: none;
+  overflow: hidden;
+}
+
+.dialog-select-enhanced.dialog-select-expanded option {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+}
+
 .dialog-select-enhanced:focus {
   outline: none;
   border-color: var(--border-accent);
