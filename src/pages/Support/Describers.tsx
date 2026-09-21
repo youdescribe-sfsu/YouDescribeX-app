@@ -132,13 +132,17 @@ const Describers = () => {
         </h3>
         <p>
           A: No, but the more you know about good audio description, the better
-          and more useful your descriptions will be. Go to{' '}
-          <a href="https://www.youtube.com/@VDRDC/playlists">
-            YouDescribe Tutorial Playlists
-          </a>{' '}
-          to learn the basics of good AD, more about YouDescribe, and our
-          current interface video tutorials. Our YouDescribe specific style
-          guide can be read here:{' '}
+          and more useful your descriptions will be. Go to YouDescribe Tutorial
+          Playlists to learn the{' '}
+          <a href="https://www.youtube.com/playlist?list=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7">
+            basics of good AD
+          </a>
+          , more{' '}
+          <a href="https://www.youtube.com/playlist?list=PLNJrbI_nyy9sjqZ-Wcn6sX868i9KtdNrT">
+            about YouDescribe
+          </a>
+          , and our current interface video tutorials. Our YouDescribe specific
+          style guide can be read here:{' '}
           <a href="https://skeri-my.sharepoint.com/:w:/g/personal/cpcooper_ski_org/IQDP3nh0staSSImMfEZ-CB3iAbQkgEXQphjuXPaHgOkHntc?e=n5Pnig">
             YD StyleGuide
           </a>
