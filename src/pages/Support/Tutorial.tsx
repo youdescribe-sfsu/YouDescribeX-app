@@ -57,7 +57,8 @@ const Tutorial = () => {
 
         <p>
           Top: A tool bar along the top (from left to right): YouDescribe Home,
-          Search Box, History, Wishlist, Support and the Sign In buttons.
+          Search Box, History, Wishlist, AI Drafts, Support and the Sign In
+          buttons.
         </p>
         <p>
           Center section: Thumbnail links to recent videos posted with
@@ -87,11 +88,9 @@ const Tutorial = () => {
         </p>
 
         <h3>Finding your desired YouTube Video:</h3>
-
         <p>
           <strong>There are two ways to locate videos!</strong>
         </p>
-
         <p>
           <strong>Search Box</strong>: If you know what video you are seeking,
           the most direct way to access that video is to type in the YouTube ID,
@@ -113,23 +112,18 @@ const Tutorial = () => {
           an obscure YouTube Channel. Click the thumbnail to open a new window
           and start adding AD.
         </p>
-
         <p>
           <strong>Wishlist</strong>: YouDescribe keeps a wish list of videos in
           need of AD. It is best audio description practice to create AD for
           videos on our Wishlist. To find something on the wishlist, click the
           Wishlist button at the top toolbar, it has a heart next to it. Now you
-          are on the main Wishlist page. There are three sections: Recent AI
-          Descriptions (those videos that have been prompted but a volunteer has
-          not yet corrected), My Wishlist (videos that you have requested, but
-          are not yet described) and the sitewide Wishlist (You can refine the
-          list by sorting by category, or by keyword search. Videos with more
-          votes for AD are at the top, then they are sorted by latest request).
-          Selecting the Describe button will open that video, and then you can
-          select from add to Wishlist, Add freestyle Description, and Request AI
-          Descriptions.
+          are on the main Wishlist page. There are two sections: My Wishlist
+          (videos that you have requested, but are not yet described) and the
+          sitewide Wishlist (You can refine the list by sorting by category, or
+          by keyword search. Videos with more votes for AD are at the top, then
+          they are sorted by latest request). Selecting the Describe button will
+          open that video, and then you can select from add to Wishlist.
         </p>
-
         <p>
           Videos with more votes for AD are at the top, then the most recent
           requests. Select a video to describe from the wish list by clicking
@@ -138,13 +132,23 @@ const Tutorial = () => {
           like.
         </p>
 
-        <h3>Adding something to the wish list:</h3>
+        <h3>Adding something to the Wishlist:</h3>
         <p>
           At the YouDescribe homepage, use the search box on the top tool bar.
           The videos will appear as thumbnails. In the left hand corner of each
           video on the screen is a heart. Click the heart to add it to the wish
           list. Or you can open the video to full screen and select the first
           button in the tool stack on the right, “add to wishlist.”
+        </p>
+        <p>
+          If Chrome is your browser, it is even easier! We have a Chrome
+          Wishlist Extension you can download. The link to download the
+          extension is on your profile tab at the far right on the top tool bar
+          on the home page. Select Profile to open the menu. Tab down to
+          Extension and select. Once added, when you are at YouTube, you can
+          click the YouDescribe Extension button at the Top header/NavBar, (its
+          next to the URL address and search bar) and the video will
+          automatically be added to the very top of the My Wishlist page.
         </p>
 
         <h3>Add Audio Description (AD) to your Video:</h3>
@@ -165,8 +169,8 @@ const Tutorial = () => {
         <h3>Choosing your audio description interface:</h3>
         <p>
           There are two different ways to create an audio description with
-          YouDescribe: The Freestyle interface and the AI Prompted interface.
-          The basic layout of both interfaces is similar.
+          YouDescribe: The Freestyle interface and the Prompted interface. The
+          basic layout of both interfaces is similar to aid describers.
         </p>
 
         <h3>Anatomy of the YouDescribe AD tools.</h3>
@@ -175,7 +179,7 @@ const Tutorial = () => {
           by a play/pause button in the top center of the page.
         </p>
         <p>
-          In the center of the screen is a green start/pause button that you
+          In the center of the screen is a turquoise start/pause button that you
           will use to control the video viewer, and a two part control system to
           set the volume level of the video, as well as the volume level for
           your description. To adjust the volume you can use right and left
@@ -207,8 +211,8 @@ const Tutorial = () => {
         </p>
         <p>
           <strong>Please Note:</strong> You can navigate the Timeline tool bar
-          without using a mouse by using the Clip Index button. Tab down to Clip
-          Index, select, and then tab down to the track you want to work on. The
+          without using a mouse by using the CLIP INDEX button. Tab down to CLIP
+          INDEX, select, and then tab down to the track you want to work on. The
           red timeline bar will automatically move to that spot in the video.
         </p>
         <p>
@@ -226,7 +230,7 @@ const Tutorial = () => {
           start.
         </p>
 
-        <h3>Add Inline/Add Extended:</h3>
+        <h3>Add Inline/Add extended:</h3>
         <p>
           There are two buttons for the two types of audio description tracks:
           YELLOW Inline and FUSCHIA Extended style. An Inline track plays while
@@ -256,7 +260,7 @@ const Tutorial = () => {
           section to the right of the video. Be brief, be descriptive. Please
           write down anything printed. A full tutorial on good audio description
           can be found{' '}
-          <a href="https://www.youtube.com/watch?v=24Pmmo9wKik&amplist=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7">
+          <a href="https://www.youtube.com/watch?v=24Pmmo9wKik&list=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7">
             here
           </a>
           . Once you have all your notes written, you are ready to start
@@ -285,40 +289,42 @@ const Tutorial = () => {
           but very large adjustments can make editing a bit more difficult.
         </p>
         <p>
-          Next, choose how you want to create the description. You can type a
-          TTS Record, which will be read by the synthetic voice, or you can make
-          a Voice Record using your own voice. Recording your own voice usually
-          produces higher-quality audio description. You can switch between text
-          and audio later if you need to.
+          Next, choose how you want to create the description. Select VOICE
+          RECORD (will turn green) to make a recording of your own voice.
+          Natural speech produces higher-quality audio description, and if at
+          all possible we recommend this option. Or select TTS RECORD (Text to
+          Speech, will turn purple when selected), which will be read by a
+          synthetic voice. You can switch between TTS RECORD and VOICE RECORD at
+          a later time if desired.
         </p>
         <p>
-          If you want to use TTS Record (speech-to-text), simply enter the text
-          in the provided box, and press the green save button. If you choose to
-          record your voice (highly recommended), a red microphone button will
-          appear. Press it to start; a countdown—three, two, one, go—will play
-          before recording begins. Start speaking just after the countdown ends
-          so you have a moment to breathe and prepare. Press the microphone
-          button again to stop the recording, then select the white square to
-          confirm that you’re finished. You can re-record your voice as many
-          times as you like.
+          If you choose VOICE RECORD (highly recommended), a red microphone
+          button will appear. Press it to start; a countdown—three, two, one,
+          go—will play before recording begins. Start speaking just after the
+          countdown ends so you have a moment to breathe and prepare. Press the
+          microphone button again to stop the recording, then select the
+          turquoise SAVE button to confirm that you’re finished. You can
+          re-record your voice as many times as you like.
         </p>
         <p>
-          When everything sounds right and you’re satisfied with the result,
-          press SAVE or UPDATE to add your completed track.
+          If you want to use TTS RECORD, simply enter the text in the provided
+          box, and press the turquoise save button. When everything sounds right
+          and you’re satisfied with the result, press SAVE or UPDATE to add your
+          completed track.
         </p>
 
         <h3>Deleting a track:</h3>
         <p>
           Click the red trashcan symbol under the track. Easy! Under some
           conditions you can undo the last track you mistakenly deleted (but
-          best not to count on it). The UNDO button is yellow, and on the far
+          best not to count on it) The UNDO button is yellow, and on the far
           right of the screen, below the timeline bar, and above the audio
           description tracks.
         </p>
 
         <h3>Saving your work:</h3>
         <p>
-          While you will still need to press “save” or “update” for all of your
+          While you will still need to press “SAVE” or “UPDATE” for all of your
           track recordings (both synthetic text-to-speech, and your personal
           voice recordings), the notes section, the nudge feature, and the
           direct time stamp inputs are auto saved.
@@ -405,7 +411,7 @@ const Tutorial = () => {
         <p>
           A: Most description that has been created over the last few decades is
           Inline description. This means that the description is carefully
-          dubbed into available spaces in the existing soundtrack. This
+          inserted into available spaces in the existing soundtrack. This
           sometimes left very little space for a describer to say anything,
           leading to extremely hard choices about what they could describe. With
           streaming video available on demand, it is no longer necessary to
@@ -446,11 +452,20 @@ const Tutorial = () => {
           be placed in the correct order automatically.
         </p>
 
-        <h3>Q: How long will my content be saved on YouDescribe?</h3>
+        <h3>
+          Q: I was on the wrong track and made a bunch of timing changes, now
+          the track order is all mixed up, and two of tracks seem stuck
+          together.
+        </h3>
         <p>
-          A: Your descriptions will be stored on YouDescribe until you delete
-          them. We do archive your audio descriptions, but they cannot be played
-          by anyone from the forward facing tool.
+          A: Ugh. That sounds frustrating. This is our playback API trying to
+          keep everything in the correct order, and it sometimes works against
+          you. If your tracks have married, the best way to move forward is to
+          delete one of the tracks, and re-record it. It helps if you have named
+          your tracks so you can find them again easily. Sometimes you will need
+          to delete both tracks. Make sure you copy your script from the text
+          box before you delete it. (You can put it up in the notes section if
+          you are worried about losing it).
         </p>
 
         <h3>Q: Can I download my descriptions for my own use off-line?</h3>
@@ -477,12 +492,10 @@ const Tutorial = () => {
           them at any time.
         </p>
 
-        <h3>Q: How can I send feedback or reach technical support?</h3>
+        <h3>Q: How can I send feedback or access technical support?</h3>
         <p>
           A: Please email us at:{' '}
-          <a href="mailto: info@youdescribe.org">info@youdescribe.org</a> or
-          join our online community at{' '}
-          <a href="https://www.facebook.com/youdescribe/">Facebook</a>.
+          <a href="mailto: info@youdescribe.org">info@youdescribe.org</a>
         </p>
       </main>
     </div>
