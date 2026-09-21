@@ -88,6 +88,17 @@ export const dialogTimelineStep: TutorialStep = {
   ),
 }
 
+export const freestyleDialogTimelineStep: TutorialStep = {
+  ...dialogTimelineStep,
+  content:
+    'View your audio descriptions and drag the red playhead to move through the timeline.',
+  legendItems: [
+    { label: 'Yellow', description: 'Inline clips', color: 'inline' },
+    { label: 'Fuchsia', description: 'Extended clips', color: 'extended' },
+    { label: 'Blue', description: 'Video dialogue', color: 'dialogue' },
+  ],
+}
+
 export const playPauseBtnStep: TutorialStep = {
   id: 'play-pause-btn',
   targetSelector: getTutorialSelector(TUTORIAL_TARGETS.playPauseBtn),
@@ -363,8 +374,9 @@ export const sharedSteps: TutorialStep[] = [
 export const freestylePostForkSteps: TutorialStep[] = [
   editorIntroStep,
   playPauseBtnStep,
-  notesAreaStep,
   audioDuckingStep,
+  notesAreaStep,
+  freestyleDialogTimelineStep,
   insertInlineBtnStep,
   insertExtendedBtnStep,
   { ...clipFormIntroStep, waitForTargetSettle: true },
