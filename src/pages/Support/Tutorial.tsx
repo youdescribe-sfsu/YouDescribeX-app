@@ -487,9 +487,10 @@ const Tutorial = () => {
 
         <h3>Q: How long will my content be saved on YouDescribe?</h3>
         <p>
-          A: Your descriptions will be stored on YouDescribe until you unpublish
-          them. They still exist in your drafts folder, and you can come back to
-          them at any time.
+          A: Your descriptions will be stored on YouDescribe until you delete
+          them. We do archive your audio descriptions, but they cannot be played
+          by anyone from the forward facing tool. They still exist in your
+          drafts folder, and you can come back to them at any time.
         </p>
 
         <h3>Q: How can I send feedback or access technical support?</h3>
