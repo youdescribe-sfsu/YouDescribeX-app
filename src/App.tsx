@@ -404,7 +404,7 @@ const App = () => {
             location.pathname.includes('editor') ||
             location.pathname.includes('embed')
               ? '0px'
-              : '54px',
+              : '64px',
         }}
       >
         <Routes>
