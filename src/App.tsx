@@ -401,8 +401,7 @@ const App = () => {
         className="classic-body"
         style={{
           paddingTop:
-            location.pathname.includes('editor') ||
-            location.pathname.includes('embed')
+            location.pathname.includes('editor') || isEmbedRoute
               ? '0px'
               : '64px',
         }}
