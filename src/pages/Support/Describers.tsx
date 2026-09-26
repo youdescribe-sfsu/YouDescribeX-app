@@ -46,14 +46,13 @@ const Describers = () => {
             <Link to="/support/privacy">Privacy Policy</Link>
           </li>
         </ul>
-        {/* <a name="top" className="anchor"></a> */}
 
         <h2>For Describers</h2>
 
         <p>
-          By popular demand - the Describer trouble shooting checklist! Having
+          By popular demand - the describer troubleshooting checklist! Having
           trouble saving your tracks? Before you panic - use this handy, dandy
-          check list.
+          checklist.
         </p>
 
         <p>
@@ -65,42 +64,65 @@ const Describers = () => {
         <p>
           <strong>2.</strong> Check that your mic is not intermittent (loose
           wire, or connection). There are several programs that will check your
-          microphone.
+          microphone. You can use your favorite or{' '}
+          <a href="https://mictests.com/">https://mictests.com/</a> is
+          available. The fancier your microphone and recording, the more
+          settings your desktop/laptop will need customized.
         </p>
 
         <p>
           <strong>3.</strong> Start fresh! If you have been logged in for a
-          while, log out, then log back in. This will make sure the version of
-          YouDescribe you are working in is the latest version!
+          while, log out of all google accounts including YouTube, clear your
+          cache, then log back in. This will make sure the version of
+          YouDescribe you are working in is the latest version! When in doubt:
+          closing your whole computer system (power it down) and starting with a
+          fresh browser window is the fastest way.
+        </p>
+
+        <p>
+          If in doubt, go to an incognito window, and make your descriptions
+          from there. Then you can side step all the logging out, shutting down
+          and signing back in. Not familiar with incognito? An overview is
+          provided at{' '}
+          <a href="https://www.indeed.com/career-advice/career-development/how-to-open-incognito-tab">
+            Incognito
+          </a>
         </p>
 
         <p>
           <strong>4.</strong> Make short tracks, around one minute or less is
-          optimal, anything over two minutes will gum up the works.
+          optimal, anything over two is problematic when viewers want to fast
+          forward or rewind. By the same token, tracks shorter than 30 seconds
+          can be hard for our API to play consistently. If it is frequently
+          dropped, it’s probably a little too short, or too long.
         </p>
 
         <p>
           <strong>5.</strong> Make sure your tracks are not overlapping or
-          neither of them will play.
+          neither of them will play. Use the timeline bar, and the track times
+          to nudge them into a better spot.
         </p>
 
         <p>
           <strong>6.</strong> Don&apos;t &quot;spot-check&quot; your tracks by
           skipping around, in general your recorded tracks are there, but the
-          API cant keep up the synchronized play with rapid changes.
+          API can&apos;t keep up the synchronized play with rapid changes.
         </p>
 
         <p>
-          <strong>7.</strong> When in doubt press save, wait a few minutes,
-          close down all non-essential programs you may have running
-          concurrently, then log out of YouDescribe and then sign back in.
+          <strong>7.</strong> Volume trouble? Are you using some fancy recording
+          equipment and programs? Sometimes the settings on your computer and in
+          the program you are using need adjustment and it’s not enough to just
+          check if your microphone is working. You will now need to check your
+          computer audio input and output settings, and then again for the
+          program you are using, and then check the levels at YouDescribe.
         </p>
 
         <p>
           Many frequently asked questions are answered in our description
           tutorial playlist. Go to our{' '}
           <a href="https://www.youtube.com/playlist?list=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7">
-            Description Tutorial Playlist
+            Audio Description Tutorial Playlist
           </a>
         </p>
 
@@ -110,34 +132,47 @@ const Describers = () => {
         </h3>
         <p>
           A: No, but the more you know about good audio description, the better
-          and more useful your descriptions will be. Go to{' '}
+          and more useful your descriptions will be. Go to YouDescribe Tutorial
+          Playlists to learn the{' '}
           <a href="https://www.youtube.com/playlist?list=PLNJrbI_nyy9uzywoJfyDRoeKA1SaIEFJ7">
-            Description Tutorial Playlist
-          </a>{' '}
-          to learn the basics of good AD.
+            basics of good AD
+          </a>
+          , more{' '}
+          <a href="https://www.youtube.com/playlist?list=PLNJrbI_nyy9sjqZ-Wcn6sX868i9KtdNrT">
+            about YouDescribe
+          </a>
+          , and our current interface video tutorials. Our YouDescribe specific
+          style guide can be read here:{' '}
+          <a href="https://skeri-my.sharepoint.com/:w:/g/personal/cpcooper_ski_org/IQDP3nh0staSSImMfEZ-CB3iAbQkgEXQphjuXPaHgOkHntc?e=n5Pnig">
+            YD StyleGuide
+          </a>
         </p>
 
         <h3>Q: How do I describe a video with YouDescribe?</h3>
         <p>
-          A: To contribute descriptions toYouDescribe, you first need to be a
+          A: To contribute descriptions to YouDescribe, you first need to be a
           registered user. Log in to your account using a Google ID (you must
           have a google ID to rate and add descriptions. If you don’t have a
           Google ID, an account is free and easy to get at{' '}
           <a href="https://accounts.google.com/SignUp?hl=en">
             Google Accounts page
           </a>
-          . At YouDescribe you will be prompted to type in your google address,
-          and password. Once you have logged in, you are ready to start rating
-          videos, and doing audio description (AD).
+          . Many of our users create a google ID just for their audio
+          description work. Please keep in mind that your google ID will be
+          visible and searchable at YouDescribe.org. If you have any online
+          safety concerns feel free to use a pseudonym. At YouDescribe you will
+          be prompted to type in your google address, and password. Once you
+          have logged in, you are ready to start rating videos, and doing audio
+          description (AD).
         </p>
 
         <h3>Q: What equipment do I need to use YouDescribe?</h3>
         <p>
           A: To record descriptions for YouDescribe you only need an Internet
-          connection, a browser that supports YouDescribe (Chrome is the most
-          consistent) and a microphone. Many computers have built-in
-          microphones, but it’s best to use an external microphone to minimize
-          room noise and get the best voice quality.
+          connection, a browser that supports YouDescribe (Chrome and Firefox
+          are the most consistent) and a microphone. Many computers have
+          built-in microphones, but it’s best to use an external microphone to
+          minimize room noise and get the best voice quality.
         </p>
 
         <h3>Q: What kind of microphone works best with YouDescribe?</h3>
@@ -146,107 +181,84 @@ const Describers = () => {
           those used for Skype, gaming, or other voice applications. These
           headsets are inexpensive and easy to use. Of course, you can use
           fancier microphones as well, but these simple USB headset mics work
-          great!
+          great. As recording has gotten more common, and technology has
+          advanced, your computer microphone has also gotten better at filtering
+          out noise. If your recording is echoing, a microphone with a
+          popfilter, and some acoustic panels, or even a few blankets can help.
         </p>
 
         <h3>Q: What videos should I describe?</h3>
         <p>
           A: It depends. The most important things to describe are the things
           that people need. Let your blind students, friends, and family members
-          be the guides. YouDescribe keeps a WISHLIST of videos in need of AD.
-          To find something on the WISHLIST, click the WISHLIST button at the
+          be the guides. YouDescribe keeps a wish list of videos in need of AD.
+          To find something on the wishlist, click the Wishlist button at the
           top tool bar, it has a heart next to it. Now you are on the main
-          WISHLIST page. Videos with more votes for AD are at the top, the
-          latest WISHLIST requests are at the bottom. Select a video to describe
-          from the WISHLIST by clicking the Describe button in the lower right
-          hand corner of the video thumbnail. If you want to vote a video to the
-          top of the WISHLIST queue, click the heart in the lower left hand
-          corner of the video thumbnail. Don’t see anything you like? Try
-          clicking the Load More button, bottom center of page, to see the next
-          page of WISHLIST items. Click the thumbnail to select the video and
-          start adding AD.
+          Wishlist page. There are three sections: Recent AI Descriptions (those
+          videos that have been prompted but a volunteer has not yet corrected),
+          My Wishlist (videos that you have requested, but are not yet
+          described) and the sitewide Wishlist (You can refine the list by
+          sorting by category, or by keyword search. Videos with more votes for
+          AD are at the top, then they are sorted by latest request). Selecting
+          the Describe button will open that video, and then you can select from
+          add to Wishlist, Add freestyle Description, and Request AI
+          Descriptions.
+        </p>
+        <p>
+          Videos with more votes for AD are at the top, then the most recent
+          requests. Select a video to describe from the wish list by clicking
+          the Describe button. Don’t see anything you like? Use the category and
+          search bars to find something you like.
+        </p>
+        <p>
+          We have a new page just for videos that have an AI prompted Draft
+          available that has not yet been corrected. A draft that needs
+          correcting can help you get started! The AI Draft page can be found by
+          accessing the toolbar at the top of the homepage- tab or click through
+          to AI Draft, and then select. Like the Wishlist page, the AI Draft
+          page has its own search bar, you can browse by selecting the
+          thumbnails, OR use the search to find an AI draft to correct.
         </p>
 
         <h3>Q: What kinds of things should I describe in a video?</h3>
-        <p>
-          <ul>
-            <li>Describe what you see.</li>
-            <li>Be concise and speak comfortably but quickly.</li>
-            <li>Always read on-screen text exactly as they appear.</li>
-            <li>Be factual.</li>
-            <li>Use proper terminology and names whenever possible.</li>
-            <li>Write a script.</li>
-            <li>
-              Use inline description when possible, extended when necessary
-            </li>
-            <li>Try to match the mood of the video.</li>
-          </ul>
-        </p>
+        <ul>
+          <li>Describe what you see.</li>
+          <li>Be concise and speak comfortably but quickly.</li>
+          <li>Always read on-screen text exactly as they appear.</li>
+          <li>Be factual.</li>
+          <li>Use proper terminology and names whenever possible.</li>
+          <li>Write a script.</li>
+          <li>Use inline description when possible, extended when necessary</li>
+          <li>Try to match the mood of the video.</li>
+        </ul>
 
         <h3>Q: What kinds of things should I not describe?</h3>
-        <p>
-          <ul>
-            <li>Don’t talk over the dialog.</li>
-            <li>Don’t describe what can be inferred from the audio.</li>
-            <li>Don’t over-describe - less is more.</li>
-            <li>Don’t interpret or editorialize.</li>
-            <li>
-              Don’t give away secrets, surprises, or sight gags before they
-              happen.
-            </li>
-            <li>Don’t censor (sex, violence, gore, emotions).</li>
-            <li>Don’t overuse extended description.</li>
-            <li>
-              Do not describe obvious sound cues such as a phone ringing or a
-              dog barking.
-            </li>
-          </ul>
-        </p>
-
-        <h3>Q: Are colors important to describe?</h3>
-        <p>
-          A: Describe color only when it is vital to the comprehension of
-          content.
-        </p>
+        <ul>
+          <li>Don’t talk over the dialog.</li>
+          <li>Don’t describe what can be inferred from the audio.</li>
+          <li>Don’t over-describe - less is more.</li>
+          <li>Don’t interpret or editorialize.</li>
+          <li>
+            Don’t give away secrets, surprises, or sight gags before they
+            happen.
+          </li>
+          <li>Don’t censor (sex, violence, gore, emotions).</li>
+          <li>Don’t overuse extended description.</li>
+          <li>
+            Do not describe obvious sound cues such as a phone ringing or a dog
+            barking.
+          </li>
+        </ul>
 
         <h3>
-          Q: Where can I learn more about how to create high quality
-          description?
+          Q: Is there an audio description style guide specifically for
+          YouDescribe?
         </h3>
         <p>
-          <ul>
-            <li>
-              <a href="http://www.acb.org/adp/guidelines.html">
-                The ACB Audio Description Project Guidelines
-              </a>
-            </li>
-            <li>
-              <a href="http://www.audiodescriptioncoalition.org/standards.html">
-                The Audio Description Coalition Standards
-              </a>
-            </li>
-            <li>
-              <a href="http://www.descriptionkey.org/index.html">
-                The Description Key by DCMP
-              </a>
-            </li>
-            <li>
-              <a href="https://www.ofcom.org.uk/about-ofcom/website/regulator-archives">
-                The Independent Television Commission Guidance on Standards
-              </a>
-            </li>
-            <li>
-              <a href="http://main.wgbh.org/wgbh/pages/mag/services/description/dvs-faq.html">
-                The Media Access Group at WGBH Strategies and Techniques
-              </a>
-            </li>
-            <li>
-              <a href="https://www.youtube.com/watch?v=JZlNVajYx9s">
-                The Do’s and Don’ts of Description – Video Tutorial by Rick
-                Boggs.
-              </a>
-            </li>
-          </ul>
+          A: At long last, we do have a style guide!{' '}
+          <a href="https://skeri-my.sharepoint.com/:w:/g/personal/cpcooper_ski_org/IQDP3nh0staSSImMfEZ-CB3iAbQkgEXQphjuXPaHgOkHntc?e=n5Pnig">
+            YouDescribe Style Guide
+          </a>
         </p>
       </main>
     </div>

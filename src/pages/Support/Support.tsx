@@ -8,7 +8,6 @@ const Support = () => (
       <h2
         style={{
           margin: '10px 0',
-          fontSize: '1.25rem',
         }}
       >
         Help and Support page{' '}

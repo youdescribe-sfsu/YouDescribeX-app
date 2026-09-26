@@ -65,14 +65,14 @@ const About = () => {
 
         <h3>Q: Who should be using YouDescribe?</h3>
         <p>
-          A: Everyone who supports or needs audio description can use
-          YouDescribe. People with visual disabilities who cannot see what is
-          going on in a video can benefit from descriptions recorded by sighted
-          describers, but other viewers like individuals on the autism spectrum,
-          or those learning a new language can benefit from AD as well.
-          Descriptions can be contributed by anyone with the time, skill, and
-          inclination, including parents, teachers, and friends and fans. Many
-          people may just think YouDescribe is cool and want to try it.{' '}
+          A: Everyone who supports or needs audio description (AD) can use
+          YouDescribe (YD). People who are blind or have low vision (BLV) can
+          benefit from descriptions recorded by sighted describers, but other
+          viewers like individuals on the autism spectrum, or those learning a
+          new language can benefit from AD as well. Descriptions can be
+          contributed by anyone with the time, skill, and inclination, including
+          parents, teachers, and friends and fans. Many people may just think
+          YouDescribe is cool and want to try it.
         </p>
 
         <h3>Q: What is so important about description?</h3>
@@ -84,57 +84,87 @@ const About = () => {
           track, usually there are visual elements that have no audible
           equivalent. For example, when someone demonstrating a yoga pose says,
           “Hold your arms like this,” or a crafting demonstrator says, “Glue
-          this piece like this,” the blind viewer is barred from using that
-          video as a learning tool. On-screen text, scene changes, and body
-          language are all video elements that may need some description in
-          order for a blind viewer to follow a story. Adding description makes
-          video accessible. That’s important!
+          this piece like this,” the BLV viewer is barred from using that video
+          as a learning tool. On-screen text, scene changes, and body language
+          are all video elements that may need some description in order for a
+          blind viewer to follow a story. Adding description makes video
+          accessible. That’s important!
         </p>
 
         <h3>Q: What’s so cool about YouDescribe?</h3>
         <p>
           A: YouDescribe is unique in that it allows anybody, anywhere to
-          contribute description of an existing video and let a
-          visually-impaired viewer check it out right away. The best part is
-          that it does so without modifying or redistributing the existing
-          YouTube video. It is not a separate version, it’s the same version
-          with description added while you watch.
+          contribute a description for an existing video and let a blind or low
+          vision viewer check it out right away. The best part is that it does
+          so without modifying or redistributing the existing YouTube video. It
+          is not a separate version, it’s the same version with description
+          played as the video plays.
         </p>
 
         <h3>Q: How does YouDescribe work?</h3>
         <p>
           A: Sighted people view YouTube videos and record descriptions of what
           they see. When the video is played with YouDescribe, the descriptions
-          are played back with the video. Underneath the hood, YouDescribe uses
-          an exclusive API to store description clips and information about
-          them. YouDescribe knows what video each clip belongs to and what time
-          the clip should be played. Lots of other information is stored along
-          with the descriptions, including who recorded it, when it was
-          recorded, how popular it is, etc. YouDescribe is the first video
-          service to allow anybody, anywhere, to record and upload video
-          descriptions to the cloud. It provides a unique way for people to get
-          descriptions for the instructional, informational, and entertainment
-          videos offered on YouTube.
+          are played back with the video. YouDescribe uses an exclusive API to
+          store description clips and information about them. YouDescribe knows
+          what video each clip belongs to and what time the clip should be
+          played. Lots of other information is stored along with the
+          descriptions, including who recorded it, when it was recorded, how
+          popular it is, etc. YouDescribe is the first video service to allow
+          anybody, anywhere, to record and upload video descriptions. It
+          provides a unique way for people to get descriptions for the
+          instructional, informational, and entertainment videos offered on
+          YouTube.
         </p>
 
         <h3>
           Q: Can YouDescribe be used for videos other than those on YouTube?
         </h3>
         <p>
-          A: No. The video must be up at YouTube for you to add description. If
-          it has not been shared at YouTube, you can create a channel of your
-          own to upload the content you want. Directions supplied at:{' '}
+          A: No. A video must be hosted on YouTube for YouDescribe to add an
+          audio description. If the video you want to describe isn’t already on
+          YouTube, you can create your own channel and upload the content there.
+          Instructions for creating a channel are available through{' '}
           <a href="https://support.google.com/youtube/answer/1646861?hl=en">
-            Google Support - How to create your own YouTube channel.
+            Google Support
           </a>
+          . Be aware that the YouDescribe API key updates every 24 hours, so
+          there may be a delay between when a video is posted and when
+          YouDescribe can access it. The system also restricts access to content
+          appropriate for users age 13 and under. Because of this, certain
+          trailers, TV episodes, or other general-audience videos may not be
+          available. In addition, some YouTube channels block third-party apps
+          from playing their content, which can also limit access within
+          YouDescribe.
         </p>
 
         <h3>Q: Who built YouDescribe?</h3>
         <p>
           A: The Smith-Kettlewell Video Description Research and Development
-          Center developed the Descriptive Video Exchange and YouDescribe.
-          YouDescribe was developed in collaboration with The Ideal Group and
-          the Description Leadership Network.
+          Center developed the Descriptive Video Exchange and YouDescribe. Our
+          brand new AI prompted interface was developed in partnership with the
+          San Francisco State Computer Science department, Northeastern
+          University and YouDescribe.
+        </p>
+        <p>
+          YouDescribe is supported by grants from: National Eye Institute-
+          R01EY020925, 2010-2014; Department of Education- H327J110005
+          2011-2013; NIDILRR- RERC on Blindness and Low Vision- 90RE5024
+          2016-2022 and 90REGE0018 2022-2027; Ability Central (formerly The
+          Disabilities Communication Fund)- Improving Access to Described Video
+          2016-2017, Training the Next Generation of Audio Describers 2017-2018,
+          and Machine Learning Enhanced Video Accessibility for the Blind
+          2020-2025, YouDescribe: The Future of Inclusive Media 2026-2028.
+        </p>
+        <p>
+          The website <a href="https://youdescribe.org">YouDescribe.org</a> is
+          developed and maintained under a grant from the National Institute on
+          Disability, Independent Living, and Rehabilitation Research (NIDILRR
+          grant number 90 REGE0018). NIDILRR is a Center within the
+          Administration for Community Living (ACL), Department of Health and
+          Human Services (HHS). The contents of this tutorial do not necessarily
+          represent the policy of NIDILRR, ACL, or HHS, and you should not
+          assume endorsement by the Federal Government.
         </p>
 
         <h3>Q: How do I play a described video with YouDescribe?</h3>
@@ -143,9 +173,29 @@ const About = () => {
           Simply go to the main search page of YouDescribe and click on the
           title of any of the videos listed. The most recently described videos
           appear at the top of the list. Find any video by using the search
-          field on this page. While videos with descriptions are listed first,
-          search results will yield undescribed videos as well. Just click on
-          the title to play the video you want to watch.
+          field on this page. The search function works with YouTube video
+          title, YouTube ID, name of describer, and a keyword search. While
+          videos with descriptions are listed first, if you tab down to
+          undescribed videos, and select the Search YouTube button it will bring
+          up undescribed videos. (we do this so the pages load as quickly as
+          possible). If you don’t find the video you want to view, it’s probably
+          lower in the list than you expect.
+        </p>
+        <p>
+          The most consistent way to search at YouDescribe is by YouTube ID. The
+          ID is the alphanumeric string after &quot;v=&quot; in the watch URL,
+          such as in:{' '}
+          <a href="https://www.youtube.com/watch?v=aqz-KE-bpKQ">
+            https://www.youtube.com/watch?v=aqz-KE-bpKQ
+          </a>
+          . You can find the ID by copying the URL and observing the characters
+          after &quot;v=&quot;. Or if the URL is in the short form, The ID is
+          the alphanumeric string after &quot;youtu.be/&quot;, such as in:{' '}
+          <a href="https://youtu.be/aqz-KE-bpKQ">
+            https://youtu.be/aqz-KE-bpKQ
+          </a>
+          . You can find the ID by copying the URL and observing the characters
+          after &quot;youtu.be/&quot;.
         </p>
 
         <h3>Q: How do I become a registered YouDescribe user?</h3>
@@ -159,21 +209,23 @@ const About = () => {
           </a>
           ). At www.youdescribe.org you will be prompted to type in your google
           address, and password. Once you have logged in, you are ready to start
-          rating videos, and doing audio description (AD).
+          rating videos, and doing audio description (AD). While most of our
+          describers use their legal name at YouDescribe, we recommend anyone
+          who wants more online privacy to make a google account just for your
+          audio description that features a screen name and avatar.
         </p>
 
         <h3>Q: What browsers are compatible with YouDescribe?</h3>
         <p>
-          A: YouDescribe works with most browsers: Chrome, Firefox, Edge, and
-          Safari. (Chrome tends to work best, especially if the internet
-          connection is slow).
+          A: YouDescribe works with most browsers: Chrome and Firefox are tested
+          and updated most often (Chrome tends to work best, especially if the
+          internet connection is slow).
         </p>
 
         <h3>Q: What operating systems are compatible with YouDescribe?</h3>
         <p>
           A: YouDescribe is compatible with any Mac or PC-based operating
-          system. Currently, YouDescribe is not compatible on mobile devices but
-          they are in the works and will be launched very soon.
+          system.
         </p>
 
         <h3>
@@ -188,7 +240,7 @@ const About = () => {
           top and use iframe or an object tag to embed the desired video.
         </p>
 
-        <h3>Q: How can I send feedback or reach technical support?</h3>
+        <h3>Q: How can I send feedback or access technical support?</h3>
         <p>
           A: Please email us at:{' '}
           <a href="mailto: info@youdescribe.org">info@youdescribe.org</a>
