@@ -372,10 +372,6 @@ const AudioClip = ({
                   <strong>Duration:</strong>{' '}
                   {convertSecondsToCardFormat(clipDuration)}
                 </div>
-                <div className="description-preview">
-                  {descriptionDisplay.substring(0, 60)}
-                  {descriptionDisplay.length > 60 ? '...' : ''}
-                </div>
               </div>
             </div>
 
@@ -549,6 +545,8 @@ const AudioClip = ({
               )}
             </div>
           </div>
+
+          <div className="description-preview">{descriptionDisplay}</div>
 
           {showEditComponent && (
             <EditClip
