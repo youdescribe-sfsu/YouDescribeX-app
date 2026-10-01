@@ -60,6 +60,7 @@
 }
 
 .timeline-track-wrapper {
+  box-sizing: content-box;
   height: 20px;
   background-color: white;
   border: 1.8px solid #e4a48b;
