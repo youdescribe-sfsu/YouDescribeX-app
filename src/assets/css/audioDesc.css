@@ -263,8 +263,9 @@
 }
 
 /* Description Preview - Shows full description in collapsed summary */
+/* xiao 1001 change: change the text size */
 .description-preview {
-  font-size: var(--text-sm);
+  font-size: var(--text-xl);
   color: var(--text-secondary);
   font-style: italic;
   margin-top: var(--space-xs);
