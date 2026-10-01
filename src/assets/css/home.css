@@ -99,7 +99,7 @@
   height: 45px;
   background-color: red;
   position: absolute;
-  z-index: 1;
+  z-index: 4; /* above the clip bars (zIndex 3) */
   top: -12px;
 }
 
