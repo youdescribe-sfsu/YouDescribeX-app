@@ -60,13 +60,17 @@
 }
 
 .timeline-track-wrapper {
-  box-sizing: content-box;
   height: 20px;
   background-color: white;
   border: 1.8px solid #e4a48b;
   border-radius: 10px;
   position: relative;
   width: 100%;
+}
+
+/* Two classes so this beats `.classic-html * { box-sizing: inherit }` in app.scss */
+.timeline-container-wrapper .timeline-track-wrapper {
+  box-sizing: content-box;
 }
 
 .timeline-actions {
