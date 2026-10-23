@@ -39,7 +39,8 @@ const Profile = () => {
       ]
       setOptInChoices(choices)
       setOptIn(user.opt_in === true)
-      setReviewStatus(user.policy_review)
+      // policy_review is a boolean in the API; the radios check for 'reviewed'.
+      setReviewStatus(user.policy_review === true ? 'reviewed' : '')
     } catch (error) {
       console.error('Failed to load user data:', error)
     }
