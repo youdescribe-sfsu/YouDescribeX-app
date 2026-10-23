@@ -205,24 +205,15 @@ const DescriberCard = ({
     )
   }
 
-  const needAvatar =
-    name !== 'AI Description Draft' &&
-    (!contributions || contributions.size <= 1)
-
   return (
     <div id="describer-card" className="describer-card">
       <div className="w3-card-2">
         <div className="w3-row">
-          {needAvatar && (
-            <>
-              <div className="w3-col l3 m5 s3">
-                <img src={picture} alt={`Profile picture of ${name}`} />
-              </div>
-              <div className="w3-col l9 m7 s9">
-                {getDisplayedName()}
-                {/* role="img" + aria-label makes the star row itself the
-                    accessible node. Its descendants are dropped from the tree
-                    automatically, so the individual stars need no aria-hidden. */}
+          <Accordion defaultActiveKey="0">
+            <Accordion.Item eventKey="0">
+              <Accordion.Header>{getDisplayedName()}</Accordion.Header>
+              <Accordion.Body>
+                {/* <div className="w3-col l12 m12 s12"> */}
                 <div
                   className="rating-desc"
                   role="img"
@@ -230,42 +221,17 @@ const DescriberCard = ({
                 >
                   {getStars()}
                 </div>
-                {/* aria-describedby reads the target's text, not its aria-label,
-                    so the buttons point here rather than at the star row —
-                    otherwise the description comes out as "★ ★ ★ ★ ★". */}
                 <span className="visually-hidden" id={ratingLabelId}>
                   {ratingLabel}
                 </span>
-              </div>
-            </>
-          )}
-          {!needAvatar && (
-            <Accordion defaultActiveKey="0">
-              <Accordion.Item eventKey="0">
-                <Accordion.Header>{getDisplayedName()}</Accordion.Header>
-                <Accordion.Body>
-                  {/* <div className="w3-col l12 m12 s12"> */}
-                  <div
-                    className="rating-desc"
-                    role="img"
-                    aria-label={ratingLabel}
-                  >
-                    {getStars()}
-                  </div>
-                  <span className="visually-hidden" id={ratingLabelId}>
-                    {ratingLabel}
-                  </span>
-                  {renderContributionBars()}
-                  <hr aria-hidden="true" />
-                  {getButton()}
-                  {/* </div> */}
-                </Accordion.Body>
-              </Accordion.Item>
-            </Accordion>
-          )}
+                {renderContributionBars()}
+                <hr aria-hidden="true" />
+                {getButton()}
+                {/* </div> */}
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
         </div>
-        {needAvatar && <hr aria-hidden="true" />}
-        {needAvatar && getButton()}
       </div>
     </div>
   )
