@@ -17,14 +17,18 @@ const Profile = () => {
   const [optIn, setOptIn] = useState<boolean>(false)
   const [reviewStatus, setReviewStatus] = useState<string>('')
 
-  const userId = userDataStore.getState().userId
+  // Subscribe so we re-render once login resolves; after a full page load
+  // userId is still '' when the component first mounts.
+  const userId = userDataStore((state) => state.userId)
   const navigate = useNavigate()
 
   useEffect(() => {
     document.title = translate('My profile')
-    loadUser()
+    // Skip until login sets userId; the effect re-runs when it does.
+    if (userId) loadUser()
+    // loadUser is recreated every render; only a userId change should trigger a reload.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [userId])
 
   const loadUser = async () => {
     try {
