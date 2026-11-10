@@ -25,6 +25,7 @@ const suggestionResponse = (overrides: Record<string, unknown> = {}) => ({
         clipId: CLIP_ID,
         original: CURRENT_TEXT,
         suggestion: 'She tips the plant out of its pot.',
+        unchanged: false,
         ...overrides,
       },
     ],
@@ -68,6 +69,60 @@ describe('RefineAssistantPanel — preset buttons', () => {
     expect(presetButtons).toHaveLength(REFINE_PRESETS.length)
   })
 
+  it('describes every preset to screen readers, not only on hover', () => {
+    renderPanel()
+
+    REFINE_PRESETS.forEach((preset) => {
+      const button = screen.getByRole('button', { name: preset.label })
+      const descriptionId = button.getAttribute('aria-describedby') as string
+      expect(document.getElementById(descriptionId)?.textContent).toBe(
+        preset.description,
+      )
+    })
+  })
+
+  it('renders one labelled row per group, in order', () => {
+    renderPanel()
+
+    const rows = screen
+      .getAllByRole('group')
+      .filter((group) => group.getAttribute('aria-labelledby'))
+    expect(
+      rows.map(
+        (row) =>
+          row.querySelector('.refine-assistant__group-label')?.textContent,
+      ),
+    ).toEqual(['Refine text', 'Style (optional)', 'Check timing'])
+    expect(
+      screen
+        .getByRole('group', { name: 'Refine text' })
+        .contains(screen.getByRole('button', { name: 'Add details' })),
+    ).toBe(true)
+    expect(
+      screen
+        .getByRole('group', { name: 'Check timing' })
+        .contains(screen.getByRole('button', { name: 'Fix timing' })),
+    ).toBe(true)
+  })
+
+  it('puts the Style options in their own labelled group', () => {
+    renderPanel()
+
+    const styleGroup = screen.getByRole('group', { name: 'Style (optional)' })
+    REFINE_PRESETS.filter((preset) => preset.group === 'style').forEach(
+      (preset) => {
+        expect(
+          styleGroup.contains(
+            screen.getByRole('button', { name: preset.label }),
+          ),
+        ).toBe(true)
+      },
+    )
+    expect(
+      styleGroup.contains(screen.getByRole('button', { name: 'Polish' })),
+    ).toBe(false)
+  })
+
   it('gives every control type="button" so none of them submits a form', () => {
     renderPanel()
 
@@ -80,7 +135,7 @@ describe('RefineAssistantPanel — preset buttons', () => {
     mockedAxios.post.mockResolvedValue(suggestionResponse())
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
 
     await waitFor(() => expect(mockedAxios.post).toHaveBeenCalledTimes(1))
     const [url, body] = mockedAxios.post.mock.calls[0]
@@ -88,9 +143,94 @@ describe('RefineAssistantPanel — preset buttons', () => {
     expect(body).toEqual({
       audioDescriptionId: AD_ID,
       clips: [{ clipId: CLIP_ID, currentText: CURRENT_TEXT }],
-      presetId: 'simplify',
+      presetId: 'polish',
       instruction: undefined,
     })
+  })
+})
+
+describe('RefineAssistantPanel — Add details', () => {
+  it('asks for the details instead of sending when the box is empty', () => {
+    renderPanel()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add details' }))
+
+    expect(mockedAxios.post).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert').textContent).toMatch(/type the details/i)
+    expect(document.activeElement).toBe(
+      screen.getByLabelText('Or tell the AI what to change'),
+    )
+  })
+
+  it('sends the typed details along with the preset', async () => {
+    mockedAxios.post.mockResolvedValue(suggestionResponse())
+    renderPanel()
+
+    fireEvent.change(screen.getByLabelText('Or tell the AI what to change'), {
+      target: { value: '  the pot is terracotta  ' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Add details' }))
+
+    await waitFor(() => expect(mockedAxios.post).toHaveBeenCalledTimes(1))
+    expect(mockedAxios.post.mock.calls[0][1]).toMatchObject({
+      presetId: 'add-details',
+      instruction: 'the pot is terracotta',
+    })
+  })
+})
+
+describe('RefineAssistantPanel — Fix timing', () => {
+  it('shows the reason and the suggested change, and accepting only hands over the text', async () => {
+    mockedAxios.post.mockResolvedValue(
+      suggestionResponse({
+        suggestion: CURRENT_TEXT,
+        unchanged: true,
+        timing: { estimatedSeconds: 4, availableSeconds: 1 },
+        timingChange: { startTime: 12.5 },
+        reason: 'Too long for the gap.',
+      }),
+    )
+    const { onAccept } = renderPanel()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fix timing' }))
+
+    await waitFor(() =>
+      expect(screen.getByText('Too long for the gap.')).toBeTruthy(),
+    )
+    expect(mockedAxios.post.mock.calls[0][1]).toMatchObject({
+      presetId: 'fix-timing',
+    })
+    expect(screen.getByText(/Suggested start time: 12.50 s/)).toBeTruthy()
+    expect(screen.getByText(/text unchanged/)).toBeTruthy()
+    expect(screen.getByRole('status').textContent).toBe(
+      'Timing suggestion ready',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Accept suggestion' }))
+
+    expect(onAccept).toHaveBeenCalledWith(CURRENT_TEXT)
+    expect(screen.getByRole('status').textContent).toMatch(
+      /apply the suggested timing change/i,
+    )
+  })
+})
+
+describe('RefineAssistantPanel — too short for a Style option', () => {
+  it('shows the reason as a note and in the status', async () => {
+    const reason =
+      'The description is too short for a style change: there is nothing to rearrange.'
+    mockedAxios.post.mockResolvedValue(
+      suggestionResponse({ suggestion: CURRENT_TEXT, unchanged: true, reason }),
+    )
+    renderPanel()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Character focus' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('status').textContent).toBe(reason),
+    )
+    expect(screen.getByText('Note')).toBeTruthy()
+    expect(screen.queryByText('Timing')).toBeNull()
   })
 })
 
@@ -136,7 +276,7 @@ describe('RefineAssistantPanel — showing a suggestion', () => {
     mockedAxios.post.mockResolvedValue(suggestionResponse())
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
 
     await waitFor(() =>
       expect(
@@ -151,7 +291,7 @@ describe('RefineAssistantPanel — showing a suggestion', () => {
     mockedAxios.post.mockResolvedValue(suggestionResponse())
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
 
     await waitFor(() =>
       expect(
@@ -163,29 +303,32 @@ describe('RefineAssistantPanel — showing a suggestion', () => {
     )
   })
 
-  it('shows the word budget when the backend sent one', async () => {
-    mockedAxios.post.mockResolvedValue(suggestionResponse({ wordBudget: 14 }))
+  it('says so when the AI returned the description unchanged', async () => {
+    mockedAxios.post.mockResolvedValue(
+      suggestionResponse({ suggestion: CURRENT_TEXT, unchanged: true }),
+    )
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Shorten to fit' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Make concise' }))
 
     await waitFor(() =>
-      expect(screen.getByText(/aim for about 14 words/)).toBeTruthy(),
+      expect(screen.getByText(/no changes needed/)).toBeTruthy(),
     )
+    expect(screen.getByRole('status').textContent).toMatch(/no changes needed/i)
   })
 
   it('hides the preset buttons while a suggestion is on screen', async () => {
     mockedAxios.post.mockResolvedValue(suggestionResponse())
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
 
     await waitFor(() =>
       expect(
         screen.getByRole('button', { name: 'Accept suggestion' }),
       ).toBeTruthy(),
     )
-    expect(screen.queryByRole('button', { name: 'Simplify' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Polish' })).toBeNull()
   })
 })
 
@@ -193,7 +336,7 @@ describe('RefineAssistantPanel — accept, reject, try again', () => {
   const showSuggestion = async () => {
     mockedAxios.post.mockResolvedValue(suggestionResponse())
     const handles = renderPanel()
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
     await waitFor(() =>
       expect(
         screen.getByRole('button', { name: 'Accept suggestion' }),
@@ -222,7 +365,7 @@ describe('RefineAssistantPanel — accept, reject, try again', () => {
     expect(
       screen.queryByRole('button', { name: 'Accept suggestion' }),
     ).toBeNull()
-    expect(screen.getByRole('button', { name: 'Simplify' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Polish' })).toBeTruthy()
     expect(screen.getByRole('status').textContent).toMatch(/discarded/i)
   })
 
@@ -233,7 +376,7 @@ describe('RefineAssistantPanel — accept, reject, try again', () => {
 
     await waitFor(() => expect(mockedAxios.post).toHaveBeenCalledTimes(2))
     expect(mockedAxios.post.mock.calls[1][1]).toMatchObject({
-      presetId: 'simplify',
+      presetId: 'polish',
     })
   })
 })
@@ -248,7 +391,7 @@ describe('RefineAssistantPanel — errors', () => {
     })
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
 
     await waitFor(() =>
       expect(screen.getByRole('alert').textContent).toBe(
@@ -264,7 +407,7 @@ describe('RefineAssistantPanel — errors', () => {
     mockedAxios.post.mockRejectedValue({ message: 'Network Error' })
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
 
     await waitFor(() =>
       expect(screen.getByRole('alert').textContent).toMatch(
@@ -279,7 +422,7 @@ describe('RefineAssistantPanel — errors', () => {
     })
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
 
     await waitFor(() =>
       expect(screen.getByRole('alert').textContent).toMatch(
@@ -294,7 +437,7 @@ describe('RefineAssistantPanel — errors', () => {
     })
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
 
     await waitFor(() =>
       expect(screen.getByRole('alert').textContent).toMatch(/did not return/i),
@@ -357,11 +500,11 @@ describe('RefineAssistantPanel — keyboard', () => {
     )
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Simplify' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Polish' }))
 
     await waitFor(() =>
       expect(
-        (screen.getByRole('button', { name: 'Simplify' }) as HTMLButtonElement)
+        (screen.getByRole('button', { name: 'Polish' }) as HTMLButtonElement)
           .disabled,
       ).toBe(true),
     )

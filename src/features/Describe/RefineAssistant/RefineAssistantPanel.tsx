@@ -17,8 +17,19 @@ import {
   RefineRequestError,
   requestRefineSuggestion,
 } from './refineApi'
-import { REFINE_PRESETS } from './refinePresets'
+import {
+  REFINE_PRESETS,
+  REFINE_PRESET_GROUPS,
+  RefinePresetButton,
+} from './refinePresets'
 import { RefinePresetId, RefineSuggestion } from '@/shared/types/refine'
+
+// Leijie Presets render as one labelled row per group (Refine text, Style, Check timing), so a
+// screen reader announces the row's name when focus enters it.
+const PRESET_ROWS = REFINE_PRESET_GROUPS.map((group) => ({
+  ...group,
+  presets: REFINE_PRESETS.filter((preset) => preset.group === group.id),
+})).filter((row) => row.presets.length > 0)
 
 interface Props {
   audioDescriptionId: string
@@ -51,6 +62,7 @@ const RefineAssistantPanel = ({
 
   const acceptButtonRef = useRef<HTMLButtonElement>(null)
   const firstPresetRef = useRef<HTMLButtonElement>(null)
+  const instructionInputRef = useRef<HTMLInputElement>(null)
   // xiao1009 A clip can only be open once at a time, so its id makes the label ids unique without
   // needing React 18's useId.
   const instructionInputId = `refine-instruction-${clipId}`
@@ -94,7 +106,14 @@ const RefineAssistantPanel = ({
         }
 
         setSuggestion(first)
-        setStatusMessage('Suggestion ready')
+        setStatusMessage(
+          first.timingChange
+            ? 'Timing suggestion ready'
+            : first.unchanged
+            ? first.reason ??
+              'No changes needed. The description already fits this request.'
+            : 'Suggestion ready',
+        )
       } catch (error) {
         const message =
           error instanceof RefineRequestError
@@ -122,8 +141,11 @@ const RefineAssistantPanel = ({
     onAccept(suggestion.suggestion)
     setSuggestion(null)
     setErrorMessage('')
+    // Leijie Accept never writes anything; a timing change is applied by hand and saved with the clip.
     setStatusMessage(
-      'Suggestion inserted into the description. Use TTS Record to save it.',
+      suggestion.timingChange
+        ? 'Suggestion inserted into the description. Apply the suggested timing change in the editor, then use TTS Record to save it.'
+        : 'Suggestion inserted into the description. Use TTS Record to save it.',
     )
     onFocusTrigger()
   }
@@ -137,6 +159,53 @@ const RefineAssistantPanel = ({
 
   const handleTryAgain = () => {
     if (lastRequest) submit(lastRequest)
+  }
+
+  // Leijie A preset that needs the describer's text sends the box along; with an empty box it sends
+  // nothing and points the describer at the box instead.
+  const handlePresetClick = (preset: RefinePresetButton) => {
+    const presetId = preset.id
+    if (!preset.needsInstruction) {
+      submit({ presetId })
+      return
+    }
+    const trimmed = instruction.trim()
+    if (!trimmed) {
+      setStatusMessage('')
+      setErrorMessage(
+        `Type the details to add in the box below, then press ${preset.label} again.`,
+      )
+      instructionInputRef.current?.focus()
+      return
+    }
+    submit({ presetId, instruction: trimmed })
+  }
+
+  // Leijie One preset button plus its preview. The preview is a real element referenced by
+  // aria-describedby, so it is read on keyboard focus too, not only shown on mouse hover.
+  const renderPreset = (preset: RefinePresetButton) => {
+    const descriptionId = `refine-preset-desc-${clipId}-${preset.id}`
+    return (
+      <span key={preset.id} className="refine-assistant__preset-wrap">
+        <button
+          type="button"
+          ref={preset.id === REFINE_PRESETS[0].id ? firstPresetRef : undefined}
+          className="ydx-button ydx-button--tts-violet refine-assistant__preset"
+          onClick={() => handlePresetClick(preset)}
+          disabled={isWorking}
+          aria-describedby={descriptionId}
+        >
+          {preset.label}
+        </button>
+        <span
+          id={descriptionId}
+          role="tooltip"
+          className="refine-assistant__tooltip"
+        >
+          {preset.description}
+        </span>
+      </span>
+    )
   }
 
   // xiao1009 Escape closes the panel. stopPropagation keeps it from also reaching the editor's own
@@ -166,20 +235,22 @@ const RefineAssistantPanel = ({
 
       {!suggestion && (
         <>
-          <div className="refine-assistant__presets">
-            {REFINE_PRESETS.map((preset, index) => (
-              <button
-                key={preset.id}
-                type="button"
-                ref={index === 0 ? firstPresetRef : undefined}
-                className="ydx-button ydx-button--tts-violet refine-assistant__preset"
-                onClick={() => submit({ presetId: preset.id })}
-                disabled={isWorking}
+          {PRESET_ROWS.map((row) => {
+            const labelId = `refine-group-label-${clipId}-${row.id}`
+            return (
+              <div
+                key={row.id}
+                className="refine-assistant__presets refine-assistant__preset-row"
+                role="group"
+                aria-labelledby={labelId}
               >
-                {preset.label}
-              </button>
-            ))}
-          </div>
+                <span id={labelId} className="refine-assistant__group-label">
+                  {row.label}
+                </span>
+                {row.presets.map(renderPreset)}
+              </div>
+            )
+          })}
 
           <div className="refine-assistant__free-text">
             <label
@@ -190,6 +261,7 @@ const RefineAssistantPanel = ({
             </label>
             <div className="refine-assistant__free-text-row">
               <input
+                ref={instructionInputRef}
                 id={instructionInputId}
                 type="text"
                 className="refine-assistant__input"
@@ -224,12 +296,47 @@ const RefineAssistantPanel = ({
           <div className="refine-assistant__block">
             <h6 className="refine-assistant__block-title">
               Suggestion
-              {suggestion.wordBudget
-                ? ` — aim for about ${suggestion.wordBudget} words`
+              {suggestion.unchanged
+                ? suggestion.timingChange
+                  ? ' — text unchanged'
+                  : ' — no changes needed'
                 : ''}
             </h6>
             <p className="refine-assistant__text">{suggestion.suggestion}</p>
           </div>
+          {suggestion.reason && (
+            <div className="refine-assistant__block">
+              {/* Leijie A reason without timing data is a text preset that was skipped (too short). */}
+              <h6 className="refine-assistant__block-title">
+                {suggestion.timing ? 'Timing' : 'Note'}
+              </h6>
+              <p className="refine-assistant__text">{suggestion.reason}</p>
+              {suggestion.timingChange && (
+                <>
+                  <ul className="refine-assistant__timing-change">
+                    {suggestion.timingChange.startTime != null && (
+                      <li>
+                        Suggested start time:{' '}
+                        {suggestion.timingChange.startTime.toFixed(2)} s
+                      </li>
+                    )}
+                    {suggestion.timingChange.track && (
+                      <li>
+                        Suggested playback:{' '}
+                        {suggestion.timingChange.track === 'inline'
+                          ? 'inline (plays over the video)'
+                          : 'extended (the video pauses)'}
+                      </li>
+                    )}
+                  </ul>
+                  <p className="refine-assistant__hint">
+                    Accept only updates the text. Change the start time or
+                    playback type in the editor yourself, then save the clip.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
           <div className="refine-assistant__result-actions">
             <button
               type="button"
